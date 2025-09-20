@@ -1,0 +1,10 @@
+{
+    "id": "obsidian-llm-plugin",
+    "name": "Obsidian LLM Assistant",
+    "version": "1.0.0",
+    "minAppVersion": "1.0.0",
+    "description": "Offline-first LLM assistant for Obsidian with task queue, inline previews, and semantic note linking.",
+    "author": "Keimpe de Jong",
+    "authorUrl": "",
+    "isDesktopOnly": true
+}
