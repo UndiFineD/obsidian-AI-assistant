@@ -1,3 +1,4 @@
+# backend/indexing.py
 import os
 import hashlib
 from pathlib import Path
@@ -7,67 +8,58 @@ import requests
 from readability import Document
 from PyPDF2 import PdfReader
 
-from backend.embeddings_manager import EmbeddingsManager
+from .embeddings import EmbeddingsManager
+
 
 class VaultIndexer:
-    def __init__(
-        self, emb_mgr: Optional[EmbeddingsManager] = None, 
-        cache_dir: str = "cache"
-        ):
-            
+    """Indexes Markdown, PDF, and web content into embeddings DB."""
+
+    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: str = "cache"):
         self.emb_mgr = emb_mgr or EmbeddingsManager()
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
     # -------------------
-    # Helper Functions
+    # Helper functions
     # -------------------
 
     def _hash_url(self, url: str) -> str:
         return hashlib.md5(url.encode("utf-8")).hexdigest()
 
-    def _cache_file(self, key: str, text: str):
-        """Save text to cache file."""
+    def _cache_file(self, key: str, text: str) -> Path:
+        """Save text to a cache file."""
         cache_path = self.cache_dir / f"{key}.txt"
         with open(cache_path, "w", encoding="utf-8") as f:
             f.write(text)
         return cache_path
 
     # -------------------
-    # Markdown Files
+    # Vault / Markdown
     # -------------------
 
     def index_vault(self, vault_path: str) -> Dict[str, int]:
-        """Index all .md files in a vault."""
+        """Index all Markdown and PDF files in a vault directory."""
         vault = Path(vault_path)
-        updated_files = []
+        results = {}
         for root, _, files in os.walk(vault_path):
             for file in files:
                 full_path = os.path.join(root, file)
                 if file.endswith(".md"):
                     with open(full_path, "r", encoding="utf-8") as f:
                         content = f.read()
-                        self.emb_manager.add_embedding(content, full_path)
-                        updated_files.append(full_path)
+                        self.emb_mgr.add_embedding(content, full_path)
+                        results[full_path] = 1
                 elif file.endswith(".pdf"):
-                    self.index_pdf(full_path)
-                    updated_files.append(full_path)
-        return updated_files
+                    count = self.index_pdf(full_path)
+                    results[full_path] = count
+        return results
 
-    def fetch_webpage(self, url: str):
-        r = requests.get(url, timeout=10)
-        doc = Document(r.text)
-        content = BeautifulSoup(doc.summary(), "html.parser").get_text()
-        return content
+    def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
+        """Re-scan all files in the vault."""
+        return self.index_vault(vault_path)
 
-    def reindex_all(self):
-        # Re-scan all files in the vector DB’s known vault
-        # For simplicity, assumes a saved vault path
-        # Could store in config.yaml
-        return self.index_vault("./vault")
-        
     # -------------------
-    # PDFs
+    # PDF
     # -------------------
 
     def extract_pdf_text(self, pdf_path: str) -> str:
@@ -83,22 +75,20 @@ class VaultIndexer:
             return ""
 
     def index_pdf(self, pdf_path: str) -> int:
-        """Extract + embed a PDF."""
+        """Extract and embed a PDF."""
         text = self.extract_pdf_text(pdf_path)
         if not text:
             return 0
-
         cache_key = self._hash_url(pdf_path)
-        cache_path = self._cache_file(cache_key, text)
-
-        return self.emb_mgr.index_file(str(cache_path))
+        self._cache_file(cache_key, text)
+        return self.emb_mgr.index_file(str(cache_key))
 
     # -------------------
-    # Web Pages
+    # Web pages
     # -------------------
 
     def fetch_web_page(self, url: str, force: bool = False) -> Optional[str]:
-        """Fetch + sanitize web page with caching."""
+        """Fetch and sanitize a web page with caching."""
         cache_key = self._hash_url(url)
         cache_path = self.cache_dir / f"{cache_key}.txt"
 
@@ -120,12 +110,36 @@ class VaultIndexer:
             return None
 
     def index_web_page(self, url: str, force: bool = False) -> int:
-        """Fetch + embed a web page."""
+        """Fetch and embed a web page."""
         text = self.fetch_web_page(url, force=force)
         if not text:
             return 0
-
         cache_key = self._hash_url(url)
-        cache_path = self._cache_file(cache_key, text)
+        self._cache_file(cache_key, text)
+        return self.emb_mgr.index_file(str(cache_key))
 
-        return self.emb_mgr.index_file(str(cache_path))  
+
+class IndexingService:
+    """
+    Wrapper service that manages embeddings and vault indexing.
+    Provides a single entry point for backend.py.
+    """
+
+    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: str = "cache"):
+        self.emb_mgr = emb_mgr or EmbeddingsManager()
+        self.vault_indexer = VaultIndexer(emb_mgr=self.emb_mgr, cache_dir=cache_dir)
+
+    def index_file(self, file_path: str) -> int:
+        return self.vault_indexer.index_file(file_path)
+
+    def index_vault(self, vault_path: str) -> Dict[str, int]:
+        return self.vault_indexer.index_vault(vault_path)
+
+    def index_pdf(self, pdf_path: str) -> int:
+        return self.vault_indexer.index_pdf(pdf_path)
+
+    def index_web_page(self, url: str, force: bool = False) -> int:
+        return self.vault_indexer.index_web_page(url, force=force)
+
+    def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
+        return self.vault_indexer.reindex_all(vault_path)

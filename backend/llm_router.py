@@ -1,10 +1,25 @@
 # backend/llm_router.py
 import os
-from typing import Dict, Any, List, Optional
-from llama_cpp import Llama
-from gpt4all import GPT4All
+from typing import Dict, List, Optional
+
+# LLM backends
+try:
+    from llama_cpp import Llama
+except ImportError:
+    Llama = None
+
+try:
+    from gpt4all import GPT4All
+except ImportError:
+    GPT4All = None
+
 
 class HybridLLMRouter:
+    """
+    Hybrid LLM router that dynamically selects between LLaMA and GPT4All
+    based on preferences, prompt length, and model availability.
+    """
+
     def __init__(
         self,
         llama_model_path: str = "models/llama-7b-q4.bin",
@@ -13,28 +28,27 @@ class HybridLLMRouter:
         session_memory: bool = True,
         memory_limit: int = 5,
     ):
-        """
-        Hybrid router to dynamically choose between LLaMA and GPT4All.
-        """
         self.prefer_fast = prefer_fast
         self.session_memory = session_memory
         self.memory_limit = memory_limit
         self.memory: List[Dict[str, str]] = []
 
         # Load LLaMA
-        if os.path.exists(llama_model_path):
+        if Llama and os.path.exists(llama_model_path):
             self.llama = Llama(model_path=llama_model_path, n_ctx=2048, n_threads=4)
         else:
             self.llama = None
 
         # Load GPT4All
-        if os.path.exists(gpt4all_model_path):
+        if GPT4All and os.path.exists(gpt4all_model_path):
             self.gpt4all = GPT4All(model_name=gpt4all_model_path)
         else:
             self.gpt4all = None
 
+    # -------------------
+    # Memory Handling
+    # -------------------
     def add_to_memory(self, role: str, content: str):
-        """Append conversation turn to memory."""
         if not self.session_memory:
             return
         self.memory.append({"role": role, "content": content})
@@ -42,25 +56,25 @@ class HybridLLMRouter:
             self.memory.pop(0)
 
     def build_context(self, prompt: str) -> str:
-        """Build context string from memory + new prompt."""
         if not self.session_memory or not self.memory:
             return prompt
         memory_str = "\n".join([f"{m['role']}: {m['content']}" for m in self.memory])
         return f"{memory_str}\nUser: {prompt}"
 
+    # -------------------
+    # Model Selection
+    # -------------------
     def choose_model(self, prompt: str) -> str:
-        """
-        Choose between fast (LLaMA) and deep (GPT4All).
-        - Heuristic: prefer_fast OR use GPT4All if long/complex question.
-        """
         if self.prefer_fast and self.llama:
             return "llama"
-        if len(prompt.split()) > 30 and self.gpt4all:  # heuristic
+        if len(prompt.split()) > 30 and self.gpt4all:
             return "gpt4all"
         return "llama" if self.llama else "gpt4all"
 
+    # -------------------
+    # Generation
+    # -------------------
     def generate(self, prompt: str, max_tokens: int = 512) -> str:
-        """Run inference with chosen model."""
         context = self.build_context(prompt)
         model_choice = self.choose_model(prompt)
 
@@ -73,9 +87,7 @@ class HybridLLMRouter:
         else:
             text = "No model available."
 
-        # update memory
+        # Update memory
         self.add_to_memory("User", prompt)
         self.add_to_memory("Assistant", text)
         return text
-
-        
