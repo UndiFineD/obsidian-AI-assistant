@@ -1,9 +1,12 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from typing import List, Optional
 import uvicorn
 import os
+
+from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+from backend.llm_router import HybridLLMRouter
+from backend.indexing import IndexingService
+from typing import List, Optional
 
 from llm_router import HybridLLMRouter
 from embeddings import EmbeddingManager
@@ -11,7 +14,8 @@ from indexing import VaultIndexer
 from caching import CacheManager
 from security import encrypt_data, decrypt_data
 
-app = FastAPI(title="Obsidian LLM Backend")
+app = FastAPI(title="Obsidian AI Assistant")
+indexer = IndexingService(emb_mgr=EmbeddingManager)
 
 # Allow CORS from Obsidian plugin
 app.add_middleware(
@@ -22,11 +26,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- Initialize components ---
-LLAMA_MODEL_PATH = "./models/llama-7b-q4.bin"
-GPT4ALL_MODEL_PATH = "./models/gpt4all-lora.bin"
+# Initialize router
+router = HybridLLMRouter(
+    llama_model_path="models/llama-7b-q4.bin",
+    gpt4all_model_path="models/gpt4all-lora-quantized.bin",
+    prefer_fast=True,
+    memory_limit=8GB
+)
 
-llm_router = HybridLLMRouter(LLAMA_MODEL_PATH, GPT4ALL_MODEL_PATH)
 emb_manager = EmbeddingManager(db_path="./vector_db")
 vault_indexer = VaultIndexer(emb_manager)
 cache_manager = CacheManager("./cache")
@@ -36,6 +43,8 @@ class AskRequest(BaseModel):
     question: str
     context_paths: Optional[List[str]] = None
     prefer_fast: Optional[bool] = True
+    prompt: str
+    max_tokens: int = 256
 
 class NoteEditRequest(BaseModel):
     note_path: str
@@ -66,11 +75,16 @@ async def ask(request: AskRequest):
     if cached_answer:
         return {"answer": cached_answer, "cached": True}
 
-    answer = llm_router.query(
+    answer = router.query(
         request.question, 
         context=context_text, 
         prefer_fast=request.prefer_fast
     )
+    try:
+        answer = router.generate(req.prompt, max_tokens=req.max_tokens)
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     cache_manager.store_answer(request.question, answer)
     return {"answer": answer, "cached": False}
@@ -110,7 +124,7 @@ async def save_note_changes(edit: NoteEditRequest):
     return {"status": "saved", "note_path": edit.note_path}
 
 @app.post("/api/scan_vault")
-async def scan_vault(vault_path: str):
+async def scan_vault(vault_path: str = "vault"):
     updated_files = vault_indexer.index_vault(vault_path)
     return {"indexed_files": updated_files}
 
@@ -121,11 +135,21 @@ async def fetch_url(request: FetchURLRequest):
     return {"url": request.url, "status": "fetched"}
 
 @app.post("/api/reindex")
-async def reindex():
+async def reindex(vault_path: str = "vault"):
     emb_manager.reset_db()
-    updated_files = vault_indexer.reindex_all()
+    updated_files = vault_indexer.reindex_all(vault_path)
     return {"status": "reindexed", "indexed_files": updated_files}
 
+@app.post("/api/search")
+async def search(query: str, top_k: int = 5):
+    hits = emb_manager.search(query, top_k=top_k)
+    return {"results": hits}
+
+@app.post("/api/index_pdf")
+async def index_pdf(pdf_path: str):
+    count = indexer.index_pdf(pdf_path)
+    return {"chunks_indexed": count}
+    
 # --- Run server ---
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
