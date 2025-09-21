@@ -1,7 +1,7 @@
 
-# Obsidian LLM Assistant
+# Obsidian AI Assistant
 
-**Offline-first LLM assistant for Obsidian with task queue, semantic linking, and analytics.**
+**Offline-first AI assistant for Obsidian with task queue, semantic linking, and analytics.**
 
 ---
 
