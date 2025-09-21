@@ -43,6 +43,7 @@ class AskRequest(BaseModel):
     prefer_fast: Optional[bool] = True
     prompt: Optional[str] = None
     max_tokens: int = 256
+    model_name: Optional[str] = "llama-7b"
 
 class NoteEditRequest(BaseModel):
     note_path: str
@@ -92,7 +93,7 @@ async def ask(request: AskRequest):
     # 4️⃣ Save to cache
     cache_manager.store_answer(request.question, answer)
 
-    return {"answer": answer, "cached": False}
+    return {"answer": answer, "cached": False, "model": request.model_name}
 
 
 # --- Note formatting ---
