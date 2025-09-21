@@ -11,10 +11,17 @@ class ModelManager:
 
         # Dictionary of known small LLMs
         self.available_models = {
-            "llama-7b": "TheBloke/llama-7b-hf",
+            "llama-7b": "meta-llama/Llama-2-7b-hf",
+            "llama-13b": "meta-llama/Llama-3.2-13B-Instruct",
             "gpt4all-lora": "nomic-ai/gpt4all-lora",
-            "mpt-7b-instruct": "mosaicml/mpt-7b-instruct",
-            "vicuna-7b": "lmsys/vicuna-7b-v1.5"
+            "mistral-7b": "mistralai/Mistral-7B-Instruct",
+            "vicuna-7b": "lmsys/vicuna-7b-v1.5",
+            "qwen-8b": "Qwen/Qwen3-8B",
+            "qwen-4b": "Qwen/Qwen3-4B-Instruct-2507",
+            "mpt-7b": "mosaicml/mpt-7b-instruct",
+            "bloom-7b": "bigscience/bloom-7b1",
+            "gemma-3b": "google/gemma-3-270m",
+            "gemma-7b": "google/gemma-7b"
         }
 
     def download_model(self, model_name):
