@@ -2,20 +2,30 @@ import uvicorn
 import os
 from typing import List, Optional
 
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from dotenv import load_dotenv  # ✅ NEW: load .env support
 
-from backend.llm_router import HybridLLMRouter
 from backend.indexing import IndexingService
 from embeddings import EmbeddingManager
 from indexing import VaultIndexer
 from caching import CacheManager
-from security import encrypt_data, decrypt_data
+from modelmanager import ModelManager
 
+# --- Load environment variables from .env ---
+load_dotenv()
+HF_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+
+if HF_TOKEN:
+    print("✅ Hugging Face token loaded from .env")
+else:
+    print("⚠️ Warning: No Hugging Face token found. Some models may not download.")
+
+# --- FastAPI app setup ---
 app = FastAPI(title="Obsidian AI Assistant")
 
-# Allow CORS from Obsidian plugin
+# Allow CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -25,12 +35,7 @@ app.add_middleware(
 )
 
 # --- Initialize services ---
-router = HybridLLMRouter(
-    llama_model_path="models/llama-7b-q4.bin",
-    gpt4all_model_path="models/gpt4all-lora-quantized.bin",
-    prefer_fast=True,
-    memory_limit=8 * 1024 ** 3  # 8GB
-)
+model_manager = ModelManager()
 emb_manager = EmbeddingManager(db_path="./vector_db")
 vault_indexer = VaultIndexer(emb_manager)
 cache_manager = CacheManager("./cache")
@@ -60,29 +65,30 @@ async def health():
 # --- Ask endpoint ---
 @app.post("/api/ask")
 async def ask(request: AskRequest):
-    # 1️⃣ Check cache
+    # Check cache first
     cached_answer = cache_manager.get_cached_answer(request.question)
     if cached_answer:
-        return {"answer": cached_answer, "cached": True}
+        return {"answer": cached_answer, "cached": True, "model": request.model_name}
 
-    # 2️⃣ Retrieve context if provided
+    # Retrieve context if provided
     context_text = ""
     if request.context_paths:
-        context_chunks = []
-        for path in request.context_paths:
-            retrieved = emb_manager.get_embedding_text(path)
-            if retrieved:
-                context_chunks.append(retrieved)
+        context_chunks = [
+            emb_manager.get_embedding_text(path)
+            for path in request.context_paths
+            if emb_manager.get_embedding_text(path)
+        ]
         context_text = "\n".join(context_chunks)
 
-    # 3️⃣ Generate answer using LLM
+    # Load requested model
     try:
+        llm = model_manager.load_model(request.model_name)
+
+        # Generate answer using prompt or question+context
         if request.prompt:
-            # Use custom prompt if provided
-            answer = router.generate(request.prompt, max_tokens=request.max_tokens)
+            answer = llm.generate(request.prompt, max_tokens=request.max_tokens)
         else:
-            # Otherwise, use question + context
-            answer = router.query(
+            answer = llm.query(
                 request.question,
                 context=context_text,
                 prefer_fast=request.prefer_fast
@@ -90,11 +96,10 @@ async def ask(request: AskRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-    # 4️⃣ Save to cache
+    # Save to cache
     cache_manager.store_answer(request.question, answer)
 
     return {"answer": answer, "cached": False, "model": request.model_name}
-
 
 # --- Note formatting ---
 @app.post("/api/format_note")
@@ -105,10 +110,8 @@ async def format_note(edit: NoteEditRequest):
     with open(edit.note_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    summary = router.query(
-        f"Summarize and improve this note:\n{content}",
-        prefer_fast=False
-    )
+    llm = model_manager.load_model("llama-7b")  # default model
+    summary = llm.query(f"Summarize and improve this note:\n{content}", prefer_fast=False)
     return {"note_path": edit.note_path, "suggestions": summary}
 
 # --- Link notes ---
