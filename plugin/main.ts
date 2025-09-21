@@ -1,28 +1,21 @@
 import {
-	App,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-	TFile,
-	ItemView,
-	WorkspaceLeaf
+  App,
+  Modal,
+  Notice,
+  Plugin,
+  PluginSettingTab,
+  Setting,
+  TFile,
+  WorkspaceLeaf
 } from "obsidian";
 
 import { TaskQueue, VIEW_TYPE_TASK_QUEUE, TaskQueueView } from "./taskQueue";
-
-import { 
-	AnalyticsPane
-	AnalyticsState, 
-	AnalyticsView, 
-	ANALYTICS_VIEW_TYPE, 
-	QAEntry, 
-	NoteAnalytics 
-} from "./analyticsPane";
-
+import { AnalyticsView, AnalyticsState, VIEW_TYPE_ANALYTICS } from "./analyticsPane";
 import { VoiceRecorder } from "./voice";
 
+// ----------------------------
+// Plugin Settings
+// ----------------------------
 interface AssistantSettings {
   backendUrl: string;
   vaultPath: string;
@@ -38,34 +31,8 @@ const DEFAULT_SETTINGS: AssistantSettings = {
 };
 
 // ----------------------------
-// Task Queue Manager
+// Main Plugin Class
 // ----------------------------
-class TaskQueue {
-  tasks: Task[] = [];
-  listeners: (() => void)[] = [];
-
-  addTask(task: Task) {
-    this.tasks.push(task);
-    this.notify();
-  }
-
-  updateTask(id: string, updates: Partial<Task>) {
-    const t = this.tasks.find(t => t.id === id);
-    if (t) Object.assign(t, updates);
-    this.notify();
-  }
-
-  filterTasks(query: string, status?: string) {
-    return this.tasks.filter(t => {
-      const matchesQuery = query
-        ? t.prompt.toLowerCase().includes(query.toLowerCase())
-        : true;
-      const matchesStatus = status ? t.status === status : true;
-      return matchesQuery && matchesStatus;
-	  
-// ----------------------------
-// Assistant Plugin
-// ----------------------------	  
 export default class AssistantPlugin extends Plugin {
   settings: AssistantSettings;
   queue: TaskQueue;
@@ -74,72 +41,102 @@ export default class AssistantPlugin extends Plugin {
 
   async onload() {
     await this.loadSettings();
-    this.queue = new TaskQueue(this.settings.backendUrl, this);
-    this.analytics = (await this.loadData()).analytics || { processedNotes: {}, qaHistory: [], modelUsage: {} };
+
+    // Initialize Task Queue
+    this.queue = new TaskQueue(this.settings.backendUrl, this.app);
+
+    // Initialize Analytics State
+    this.analytics = {
+      processedNotes: {},
+      qaHistory: [],
+      modelUsage: {},
+    };
+
+    // Initialize Voice Recorder
     this.voice = new VoiceRecorder();
 
-    // Register the task queue view
-    this.registerView(
-      VIEW_TYPE_TASK_QUEUE,
-      (leaf: WorkspaceLeaf) => new TaskQueueView(leaf, this.queue, this.analytics)
+    // ----------------------------
+    // Register Task Queue View
+    // ----------------------------
+    this.registerView(VIEW_TYPE_TASK_QUEUE, (leaf: WorkspaceLeaf) =>
+      new TaskQueueView(leaf, this.queue, this.analytics)
     );
+
     this.addCommand({
       id: "open-task-queue-view",
       name: "Open Task Queue View",
       callback: () => this.activateTaskQueueView(),
     });
+
     this.addRibbonIcon("list-checks", "Task Queue", () => this.activateTaskQueueView());
 
-    // Register the analytics dashboard view
-    this.registerView(
-      VIEW_TYPE_ANALYTICS,
-      (leaf: WorkspaceLeaf) => new AnalyticsView(leaf, this.analytics)
+    // ----------------------------
+    // Register Analytics View
+    // ----------------------------
+    this.registerView(VIEW_TYPE_ANALYTICS, (leaf: WorkspaceLeaf) =>
+      new AnalyticsView(leaf, this.analytics)
     );
+
     this.addCommand({
       id: "open-analytics-dashboard",
       name: "Open Analytics Dashboard",
       callback: () => this.activateAnalyticsView(),
     });
+
     this.addRibbonIcon("bar-chart", "Analytics Dashboard", () => this.activateAnalyticsView());
 
+    // ----------------------------
     // Voice Input Ribbon
+    // ----------------------------
     this.addRibbonIcon("mic", "Voice Ask", async () => {
       await this.voice.startRecording();
-      new Notice("🎙️ Voice recording started. Click the stop icon in ribbon to finish.");
+      new Notice("🎙️ Voice recording started. Click stop to finish.");
 
-      // Add a temporary stop icon/button
+      // Temporary stop icon
       const stopIcon = this.addRibbonIcon("square", "Stop Recording", async () => {
         const audioBlob = await this.voice.stopRecording();
-        const transcription = await this.voice.sendToBackend(audioBlob, this.settings.backendUrl, this.settings.voiceMode);
+        const transcription = await this.voice.sendToBackend(
+          audioBlob,
+          this.settings.backendUrl,
+          this.settings.voiceMode
+        );
 
         if (transcription && transcription.trim().length > 0) {
           new Notice(`📝 Transcribed: ${transcription}`);
-          // Send to /api/ask
+
           try {
             const resp = await fetch(`${this.settings.backendUrl}/api/ask`, {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ question: transcription, prefer_fast: this.settings.preferFastModel }),
+              body: JSON.stringify({
+                question: transcription,
+                prefer_fast: this.settings.preferFastModel,
+              }),
             });
             const data = await resp.json();
-            this.trackQA(transcription, data.answer, this.settings.preferFastModel ? "fast" : "deep");
-            new Notice("Assistant answered. See output in console or note (depending on your setup).");
+
+            this.trackQA(
+              transcription,
+              data.answer,
+              this.settings.preferFastModel ? "fast" : "deep"
+            );
+
+            new Notice("Assistant answered. See analytics dashboard for details.");
           } catch (err) {
-            new Notice("Error sending voice transcription to backend: " + err);
+            new Notice("Error sending transcription to backend: " + err);
           }
         } else {
           new Notice("Transcription was empty.");
         }
 
-        // Remove stop icon to avoid accumulation
         stopIcon.remove();
       });
     });
 
+    // ----------------------------
     // Settings Tab
+    // ----------------------------
     this.addSettingTab(new AssistantSettingTab(this.app, this));
-
-    this.log("AssistantPlugin loaded with settings:", this.settings);
   }
 
   onunload() {
@@ -147,40 +144,48 @@ export default class AssistantPlugin extends Plugin {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_ANALYTICS);
   }
 
+  // ----------------------------
+  // View Activation
+  // ----------------------------
   async activateTaskQueueView() {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_TASK_QUEUE);
-    await this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE_TASK_QUEUE,
-      active: true,
-    });
-    this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType(VIEW_TYPE_TASK_QUEUE)[0]);
+    const leaf = this.app.workspace.getRightLeaf(false);
+    await leaf.setViewState({ type: VIEW_TYPE_TASK_QUEUE, active: true });
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_TASK_QUEUE)[0]
+    );
   }
 
   async activateAnalyticsView() {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_ANALYTICS);
-    await this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE_ANALYTICS,
-      active: true,
-    });
-    this.app.workspace.revealLeaf(this.app.workspace.getLeavesOfType(VIEW_TYPE_ANALYTICS)[0]);
+    const leaf = this.app.workspace.getRightLeaf(false);
+    await leaf.setViewState({ type: VIEW_TYPE_ANALYTICS, active: true });
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_ANALYTICS)[0]
+    );
   }
 
-  // Analytics tracking
+  // ----------------------------
+  // Analytics Tracking
+  // ----------------------------
   trackQA(prompt: string, answer: string, model: string) {
     const entry = {
       timestamp: Date.now(),
       prompt,
-      answer
+      answer,
     };
     this.analytics.qaHistory.push(entry);
     this.analytics.modelUsage[model] = (this.analytics.modelUsage[model] || 0) + 1;
-    await this.saveAnalytics();
+    this.saveAnalytics();
   }
 
   async saveAnalytics() {
     await this.saveData({ settings: this.settings, analytics: this.analytics });
   }
 
+  // ----------------------------
+  // Settings
+  // ----------------------------
   async loadSettings() {
     const loaded = await this.loadData();
     this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded.settings || {});
@@ -191,6 +196,9 @@ export default class AssistantPlugin extends Plugin {
   }
 }
 
+// ----------------------------
+// Settings Tab
+// ----------------------------
 class AssistantSettingTab extends PluginSettingTab {
   plugin: AssistantPlugin;
 
@@ -207,7 +215,7 @@ class AssistantSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Backend URL")
       .setDesc("URL of backend server for AI assistant")
-      .addText(text =>
+      .addText((text) =>
         text
           .setValue(this.plugin.settings.backendUrl)
           .onChange(async (v) => {
@@ -219,7 +227,7 @@ class AssistantSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Vault Path")
       .setDesc("Path to your vault for backend indexing")
-      .addText(text =>
+      .addText((text) =>
         text
           .setValue(this.plugin.settings.vaultPath)
           .onChange(async (v) => {
@@ -230,8 +238,8 @@ class AssistantSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName("Prefer Fast Model")
-      .setDesc("Use lightweight/fast model (e.g. LLaMA) vs deeper model (e.g. GPT4All)")
-      .addToggle(toggle =>
+      .setDesc("Use lightweight/fast model vs deeper model")
+      .addToggle((toggle) =>
         toggle
           .setValue(this.plugin.settings.preferFastModel)
           .onChange(async (v) => {
@@ -243,7 +251,7 @@ class AssistantSettingTab extends PluginSettingTab {
     new Setting(containerEl)
       .setName("Voice Mode")
       .setDesc("Offline (Vosk) or Online (Whisper/API) transcription")
-      .addDropdown(dd =>
+      .addDropdown((dd) =>
         dd
           .addOption("offline", "Offline (Vosk)")
           .addOption("online", "Online")
