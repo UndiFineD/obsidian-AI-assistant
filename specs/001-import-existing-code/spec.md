@@ -87,8 +87,8 @@ A project maintainer wants to import all existing code in the directory as a for
 - **FR-004**: System MUST mark any ambiguous or undocumented code with [NEEDS CLARIFICATION].
 - **FR-005**: Specification MUST be suitable for review by non-technical stakeholders.
 - **FR-006**: System MUST allow maintainers to update the specification as code evolves.
-- **FR-007**: [NEEDS CLARIFICATION: Should the import process include test code, scripts, or only production modules?]
-- **FR-008**: [NEEDS CLARIFICATION: How should code comments/documentation be handled if present?]
+- **FR-007**: The import process MUST specify whether to include test code, scripts, or only production modules. Stakeholders must decide and document this choice in the specification.
+- **FR-008**: The specification MUST define how code comments/documentation are handled: either included in the spec, summarized, or ignored, as agreed by stakeholders.
 
 ### Key Entities
 
@@ -127,5 +127,3 @@ A project maintainer wants to import all existing code in the directory as a for
 - [ ] Requirements generated
 - [ ] Entities identified
 - [ ] Review checklist passed
-
----

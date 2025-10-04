@@ -1,4 +1,10 @@
-Qwen/Qwen2.5-Omni-3B
+# Text Generation Models
+Qwen/Qwen3-4B
+TheBloke/Mistral-7B-Instruct-v0.2-GGUF
+gpt4all:orca-mini-3b-gguf2-q4_0:orca-mini-3b:https://huggingface.co/TheBloke/orca-mini-3B-GGUF/resolve/main/orca-mini-3b-q4_0.gguf
+
+# Image Generation Models
+stabilityai/stable-diffusion-xl-base-1.0:stable-diffusion-xl:https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0/resolve/main/sd_xl_base_1.0.safetensors
 deepseek-ai/Janus-Pro-1B
 Qwen/Qwen2.5-Omni-7B
 openbmb/MiniCPM-o-2_6

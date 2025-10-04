@@ -50,11 +50,12 @@ class EmbeddingsManager:
 
     def add_embedding(self, text: str, note_path: str):
         vec = self.compute_embedding(text)
-        self.collection.upsert([{
-            "id": note_path,
-            "embedding": vec,
-            "metadata": {"note_path": note_path}
-        }])
+        self.collection.upsert(
+            documents=[text],
+            embeddings=[vec],
+            ids=[note_path],
+            metadatas=[{"note_path": note_path}]
+        )
 
     def search(self, query: str, top_k: Optional[int] = None) -> List[Dict]:
         if top_k is None:
@@ -67,10 +68,10 @@ class EmbeddingsManager:
         return hits
 
     def get_embedding_text(self, note_path: str) -> str:
-        results = self.collection.query(ids=[note_path])
-        embeddings = results["embeddings"][0]
-        if embeddings:
-            return embeddings[0]
+        results = self.collection.get(ids=[note_path])
+        documents = results["documents"]
+        if documents and len(documents) > 0:
+            return documents[0]
         return ""
 
     def reset_db(self):
@@ -107,13 +108,16 @@ class EmbeddingsManager:
         with open(file_path, "r", encoding="utf-8") as f:
             text = f.read()
         chunks = self.chunk_text(text)
-        ids = [f"{os.path.basename(file_path)}-{i}" for i in range(len(chunks))]
+        if not chunks:
+            return 0
+        # Use consistent path handling
+        normalized_path = str(Path(file_path))
+        ids = [f"{normalized_path}-{i}" for i in range(len(chunks))]
         self.collection.add(
             documents=chunks,
             ids=ids,
-            metadatas=[{"note_path": file_path} for _ in chunks]
+            metadatas=[{"note_path": normalized_path} for _ in chunks]
         )
-        self.chroma_client.persist()
         return len(chunks)
 
     def index_vault(self, vault_path: str) -> Dict[str, int]:
