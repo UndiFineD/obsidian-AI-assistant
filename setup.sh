@@ -69,5 +69,28 @@ else
     echo "Plugin directory '$PLUGIN_DIR' not found!"
 fi
 
+
+# --- 8. Build Obsidian plugin and install to vault ---
+PLUGIN_ID="obsidian-llm-plugin"
+PLUGIN_DIR="./plugin"
+if [ -d "$PLUGIN_DIR" ]; then
+    echo "Building Obsidian plugin..."
+    cd "$PLUGIN_DIR"
+    npm install
+    npm run build
+    cd ..
+
+    read -p "Enter the path to your Obsidian vault (.obsidian folder will be detected): " VAULT_PATH
+    VAULT_PLUGIN_DIR="$VAULT_PATH/.obsidian/plugins/$PLUGIN_ID"
+    mkdir -p "$VAULT_PLUGIN_DIR"
+    echo "Copying plugin files to vault..."
+    cp "$PLUGIN_DIR/main.js" "$VAULT_PLUGIN_DIR/"
+    cp "$PLUGIN_DIR/manifest.json" "$VAULT_PLUGIN_DIR/"
+    cp "$PLUGIN_DIR/styles.css" "$VAULT_PLUGIN_DIR/"
+    echo "✅ Plugin installed to vault: $VAULT_PLUGIN_DIR"
+else
+    echo "Plugin directory '$PLUGIN_DIR' not found!"
+fi
+
 echo "=== Setup Complete ==="
 echo "Activate backend with: source $ENV_DIR/bin/activate && python backend.py"

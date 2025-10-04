@@ -1,10 +1,10 @@
-import { ItemView, WorkspaceLeaf, App, ButtonComponent, Setting } from "obsidian";
+import { ItemView, WorkspaceLeaf, App, ButtonComponent, Setting, Notice } from "obsidian";
 import { TaskQueue, QueueTask, VIEW_TYPE_TASK_QUEUE } from "./taskQueue";
 
 export class TaskQueueView extends ItemView {
   private taskQueue: TaskQueue;
-  private searchInput: HTMLInputElement;
-  private taskContainer: HTMLDivElement;
+  private searchInput!: HTMLInputElement;
+  private taskContainer!: HTMLDivElement;
 
   constructor(leaf: WorkspaceLeaf, taskQueue: TaskQueue) {
     super(leaf);

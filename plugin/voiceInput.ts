@@ -14,7 +14,7 @@ export class VoiceInput {
 
             this.recognition.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript;
-                this.taskQueue.addTask({type: 'ask', content: transcript});
+                this.taskQueue.addTask({id: crypto.randomUUID(), type: 'ask', content: transcript});
             };
         }
     }
