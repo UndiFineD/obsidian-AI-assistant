@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Push-to-Talk Microphone Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        
+        .test-container {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+        }
+        
+        .ai-mic-button {
+            font-size: 24px;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007acc;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 20px;
+        }
+        
+        .ai-mic-button:hover:not(:disabled) {
+            background-color: #005a9e;
+            transform: scale(1.05);
+        }
+        
+        .ai-mic-button:active,
+        .ai-mic-button.pressed {
+            background-color: #dc2626 !important;
+            color: white !important;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ai-mic-button.recording {
+            background-color: #dc2626;
+            color: white;
+            animation: pulse-red 1.5s infinite;
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.5);
+        }
+        
+        .ai-mic-button.recording.pressed {
+            animation: pulse-red-pressed 1.5s infinite;
+            transform: scale(0.95);
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(1);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(1.05);
+            }
+        }
+        
+        @keyframes pulse-red-pressed {
+            0%, 100% { 
+                opacity: 1; 
+                transform: scale(0.95);
+            }
+            50% { 
+                opacity: 0.8; 
+                transform: scale(0.98);
+            }
+        }
+        
+        .status {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        
+        .instructions {
+            margin: 20px 0;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>🎤 Push-to-Talk Test</h2>
+        <div class="instructions">
+            Hold down the microphone button to start recording<br>
+            Release to stop recording
+        </div>
+        
+        <button class="ai-mic-button" title="Hold to record">🎤</button>
+        
+        <div class="status" id="status">Ready to record</div>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const micButton = document.querySelector('.ai-mic-button');
+        const status = document.getElementById('status');
+        const log = document.getElementById('log');
+        
+        let isRecording = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        
+        function updateStatus(message) {
+            status.textContent = message;
+            console.log(message);
+        }
+        
+        function addToLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logEntry.style.fontSize = '12px';
+            logEntry.style.color = '#888';
+            logEntry.style.margin = '2px 0';
+            log.appendChild(logEntry);
+        }
+        
+        async function startRecording() {
+            if (isRecording) return;
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                });
+                
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Update button appearance
+                micButton.textContent = "🔴";
+                micButton.title = "Recording... Release to stop";
+                micButton.classList.add("recording", "pressed");
+                
+                updateStatus("🎤 Recording...");
+                addToLog("Recording started");
+                
+            } catch (error) {
+                console.error('Error starting recording:', error);
+                updateStatus('❌ Microphone access denied');
+                addToLog(`Error: ${error.message}`);
+            }
+        }
+        
+        async function stopRecording() {
+            if (!isRecording || !mediaRecorder) return;
+            
+            return new Promise((resolve) => {
+                mediaRecorder.addEventListener('stop', () => {
+                    const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    const sizeKB = Math.round(audioBlob.size / 1024);
+                    
+                    // Reset button appearance
+                    micButton.textContent = "🎤";
+                    micButton.title = "Hold to record";
+                    micButton.classList.remove("recording", "pressed");
+                    
+                    // Stop all audio tracks
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    
+                    updateStatus(`✅ Recording stopped (${sizeKB}KB)`);
+                    addToLog(`Recording stopped - Size: ${sizeKB}KB`);
+                    
+                    // Add audio playback for testing
+                    const audio = document.createElement('audio');
+                    audio.src = audioUrl;
+                    audio.controls = true;
+                    audio.style.width = '100%';
+                    audio.style.margin = '10px 0';
+                    
+                    const playbackDiv = document.createElement('div');
+                    playbackDiv.innerHTML = '<strong>Recorded Audio:</strong>';
+                    playbackDiv.appendChild(audio);
+                    log.appendChild(playbackDiv);
+                    
+                    resolve();
+                });
+                
+                mediaRecorder.stop();
+                isRecording = false;
+            });
+        }
+        
+        // Push-to-talk event handlers
+        micButton.addEventListener('mousedown', async (e) => {
+            e.preventDefault();
+            await startRecording();
+        });
+        
+        micButton.addEventListener('touchstart', async (e) => {
+            e.preventDefault();
+            await startRecording();
+        });
+        
+        const stopHandler = async () => {
+            await stopRecording();
+        };
+        
+        micButton.addEventListener('mouseup', stopHandler);
+        micButton.addEventListener('mouseleave', stopHandler);
+        micButton.addEventListener('touchend', stopHandler);
+        micButton.addEventListener('touchcancel', stopHandler);
+        
+        // Prevent context menu
+        micButton.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Test CSS active state
+        micButton.addEventListener('mousedown', () => {
+            addToLog('Mouse down - button should turn red');
+        });
+        
+        micButton.addEventListener('mouseup', () => {
+            addToLog('Mouse up - button should return to normal');
+        });
+    </script>
+</body>
+</html>

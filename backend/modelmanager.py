@@ -88,7 +88,7 @@ class ModelManager:
             return available_models
         return safe_call(do_load, error_msg=f"[ModelManager] Error loading models from {models_file}", default={})
 
-    def download_model(self, model_name: str, revision: str = "main", max_retries: int = 3):
+    def download_model(self, model_name: str, revision: str = None, max_retries: int = 3):
         if model_name not in self.available_models:
             raise ValueError(f"Unknown model: {model_name}")
 
@@ -99,6 +99,10 @@ class ModelManager:
                 raise RuntimeError(f"Local model directory missing: {model_path}")
             print(f"[ModelManager] Using local model: {model_name} at {model_path}")
             return model_path
+
+        # Require explicit revision pinning for safety
+        if revision is None or revision in ["main", "master"]:
+            raise ValueError("You must specify a pinned revision (commit hash or tag) for Hugging Face model downloads.")
 
         if not model_path.exists():
             print(f"[ModelManager] Downloading {model_name}...")

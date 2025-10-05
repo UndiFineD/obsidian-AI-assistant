@@ -1,10 +1,10 @@
 {
-    "id": "Obsidian-AI-Assistant",
-    "name": "Obsidian AI Assistant",
+    "id": "obsidian-ai-assistant",
+    "name": "AI Assistant",
     "version": "1.0.0",
-    "minAppVersion": "1.0.0",
-    "description": "Offline-first AI assistant for Obsidian with task queue, inline previews, and semantic note linking.",
+    "minAppVersion": "0.15.0",
+    "description": "Simple AI assistant for Obsidian that connects to a local backend server.",
     "author": "Keimpe de Jong",
     "authorUrl": "",
-    "isDesktopOnly": true
+    "isDesktopOnly": false
 }
