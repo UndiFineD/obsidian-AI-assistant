@@ -70,18 +70,7 @@ temp_*
 *.tmp
 .temp/
 
-# Node.js (for plugin)
-node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.npm
-.node_repl_history
-
-# Build outputs
-plugin/main.js
-plugin/styles.css.map
-nodejs/
+# Node.js dependencies removed - project uses Python only
 
 # Environment and configuration files
 .env
@@ -111,9 +100,7 @@ obsidian_ai_test_*/
 profile_*
 .prof
 
-# Package manager lock files (optional - uncomment if needed)
-# package-lock.json
-# yarn.lock
+# Package manager files removed
 
 # Backup files
 *.bak

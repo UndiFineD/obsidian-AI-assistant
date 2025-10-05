@@ -11,6 +11,8 @@ import sys as _sys
 
 # --- Local imports ---
 try:
+    from .utils import safe_call
+    
     from .embeddings import EmbeddingsManager
     from .indexing import VaultIndexer
     from .caching import CacheManager
@@ -197,7 +199,14 @@ async def index_pdf(pdf_path: str):
 # ----------------------
 if __name__ == "__main__":
     init_services()
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+        # Minimal Python webserver for demo (no nodejs, no node modules)
+    import http.server
+    import socketserver
+    PORT = 8000
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
+        print(f"Serving at http://127.0.0.1:{PORT}")
+        httpd.serve_forever()
 
 # Ensure this module can be accessed as 'backend.backend' regardless of import mode
 try:

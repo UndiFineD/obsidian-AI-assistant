@@ -4,6 +4,7 @@ import hashlib
 from pathlib import Path
 from typing import List, Dict, Optional
 
+import logging
 from sentence_transformers import SentenceTransformer
 from chromadb import PersistentClient
 from chromadb.utils import embedding_functions

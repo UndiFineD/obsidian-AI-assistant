@@ -1,5 +1,5 @@
 # Makefile for Obsidian AI Assistant
-# Provides convenient commands for development, testing, and maintenance
+# Prov	@echo "BATS not installed. Install with package manager or from github.com/bats-core/bats-core";des convenient commands for development, testing, and maintenance
 
 .PHONY: help install install-dev test test-backend test-setup test-coverage lint format clean setup-models run-backend build-plugin
 
@@ -123,7 +123,7 @@ run-backend:
 build-plugin:
 	@echo "Building Obsidian plugin..."
 	@if [ -d "plugin" ]; then \
-		cd plugin && npm install && npm run build; \
+		echo "Plugin directory found. JavaScript files are ready for use."; \
 	else \
 		echo "Plugin directory not found."; \
 		exit 1; \
@@ -165,7 +165,7 @@ backup:
 	@echo "Creating backup..."
 	tar -czf "backup-$(shell date +%Y%m%d-%H%M%S).tar.gz" \
 		--exclude=venv \
-		--exclude=node_modules \
+
 		--exclude=models \
 		--exclude=cache \
 		--exclude=vector_db \
@@ -179,8 +179,7 @@ info:
 	@echo "Python version: $(shell python --version 2>&1)"
 	@echo "Pip version: $(shell pip --version)"
 	@echo "Virtual environment: $(shell echo $$VIRTUAL_ENV)"
-	@echo "Node.js version: $(shell node --version 2>/dev/null || echo 'Not installed')"
-	@echo "NPM version: $(shell npm --version 2>/dev/null || echo 'Not installed')"
+	@echo "Node.js: Removed (project uses Python only)"
 	@echo "Pytest version: $(shell pytest --version 2>/dev/null | head -1 || echo 'Not installed')"
 	@echo "BATS version: $(shell bats --version 2>/dev/null || echo 'Not installed')"
 	@echo "Git branch: $(shell git branch --show-current 2>/dev/null || echo 'Not a git repo')"

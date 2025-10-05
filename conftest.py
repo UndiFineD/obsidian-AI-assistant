@@ -12,10 +12,9 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 from typing import Generator, Dict
 
-# Add backend directory to Python path for imports
+# Add project root to Python path for proper package imports - STRONGER! 💪
 project_root = Path(__file__).parent
-backend_path = project_root / "backend"
-sys.path.insert(0, str(backend_path))
+sys.path.insert(0, str(project_root))
 
 
 # ============================================================================
@@ -389,7 +388,8 @@ def cleanup_temp_files():
     yield
 
     # Clean up any remaining temporary files using tempfile.gettempdir()
-    import glob, tempfile
+    import glob
+    import tempfile
     temp_dir = tempfile.gettempdir()
     temp_patterns = [
         os.path.join(temp_dir, "obsidian_ai_test_*"),

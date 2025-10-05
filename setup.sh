@@ -28,30 +28,14 @@ else
         cryptography vosk sentence-transformers chromadb huggingface_hub accelerate transformers
 fi
 
-# --- 4. Node dependencies via lockfile ---
-if command -v npm >/dev/null 2>&1; then
-    pushd "$REPO_ROOT" >/dev/null
-    if [ -f package-lock.json ]; then
-        echo "Installing Node deps with npm ci (locked)..."
-        npm ci --no-audit --no-fund
-    else
-        echo "No package-lock.json; running npm install..."
-        npm install --no-audit --no-fund
-    fi
-    popd >/dev/null
-else
-    echo "WARNING: npm not found; skipping JS deps. Install Node.js from https://nodejs.org/"
-fi
+# --- 4. Node.js dependencies removed ---
+# Project now uses only Python dependencies
 
 # --- 5. Run tests ---
 echo "Running Python tests (pytest)..."
 set +e
 pytest --maxfail=1 --durations=5 || echo "Pytest reported failures. Review above."
 set -e
-if command -v npm >/dev/null 2>&1; then
-    echo "Running JS tests (jest)..."
-    (cd "$REPO_ROOT" && npm test --silent) || echo "Jest tests failed."
-fi
 
 # --- 6. Optional: Obsidian installation guidance ---
 if ! command -v obsidian >/dev/null 2>&1; then
@@ -68,11 +52,7 @@ read -r -p "Enter the full path to your Obsidian vault (or leave blank to skip):
 if [ -n "${VAULT_PATH:-}" ] && [ -d "$VAULT_PATH" ]; then
     MANIFEST="$PLUGIN_DIR/manifest.json"
     if [ -f "$MANIFEST" ]; then
-        PLUGIN_ID="$(node -e "console.log(require(process.argv[1]).id)" "$MANIFEST" 2>/dev/null || true)"
-        if [ -z "$PLUGIN_ID" ]; then
-            echo "manifest.json missing 'id'; using folder name 'obsidian-ai-assistant'"
-            PLUGIN_ID="obsidian-ai-assistant"
-        fi
+        PLUGIN_ID="$(python3 -c "import json; print(json.load(open('$MANIFEST')).get('id', 'obsidian-ai-assistant'))" 2>/dev/null || echo "obsidian-ai-assistant")"
         TARGET_DIR="$VAULT_PATH/.obsidian/plugins/$PLUGIN_ID"
         mkdir -p "$TARGET_DIR"
         echo "Installing plugin to $TARGET_DIR ..."

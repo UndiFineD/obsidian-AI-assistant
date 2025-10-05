@@ -4,11 +4,11 @@ param(
 
 <#
 .SYNOPSIS
-Windows setup for Obsidian AI Assistant
+Windows setup # ----- 4. Node.js dependencies removed -----
+# Project now uses only Python dependenciesI Assistant
 .DESCRIPTION
 - Creates Python venv and installs Python deps
-- Uses npm ci with package-lock.json to install Node deps
-- Runs Python (pytest) and JS (jest) tests
+- Runs Python (pytest) tests
 - Installs Obsidian (winget) if missing
 - Installs/updates the plugin in the specified Obsidian vault
 #>
@@ -24,11 +24,8 @@ $VenvDir = Join-Path $RepoRoot "venv"
 $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 $ActivateScript = Join-Path $VenvDir "Scripts\Activate.ps1"
 
-# ----- 0. Prefer bundled Node if present -----
-$LocalNodeDir = Join-Path $RepoRoot "nodejs\node-v24.8.0-win-x64"
-if (Test-Path (Join-Path $LocalNodeDir "node.exe")) {
-    $env:Path = "$LocalNodeDir;$env:Path"
-}
+# ----- 0. Node.js dependencies removed -----
+# This project now uses only Python dependencies
 
 # ----- 1. Ensure Python -----
 $pythonExe = "python"
@@ -97,11 +94,6 @@ try {
     & $VenvPython -m pytest --maxfail=1 --durations=5
 } catch { Write-Warning "Pytest reported failures. Review output above." }
 
-if (Get-Command npm -ErrorAction SilentlyContinue) {
-    Write-Host "Running JS tests (jest)..."
-    try { Push-Location $RepoRoot; npm test --silent; Pop-Location } catch { Write-Warning "Jest tests failed." }
-}
-
 # ----- 7. Ensure Obsidian is installed (winget) -----
 if (-not (Get-Command obsidian -ErrorAction SilentlyContinue)) {
     if (Get-Command winget -ErrorAction SilentlyContinue) {
@@ -131,7 +123,7 @@ if ($VaultPath -and (Test-Path $VaultPath)) {
             Copy-Item -Path (Join-Path $PluginDir "*") -Destination $TargetDir -Recurse -Force
             Write-Host "✅ Plugin installed. If this is a fresh install, enable it in Obsidian Settings → Community plugins."
             if (-not (Test-Path (Join-Path $TargetDir "main.js"))) {
-                Write-Warning "main.js not found in plugin output. Ensure the plugin is built (npm run build) to generate JavaScript from TypeScript."
+                Write-Warning "main.js not found in plugin output."
             }
         } catch {
             Write-Warning "Failed to install plugin: $_"
