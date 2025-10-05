@@ -124,8 +124,14 @@ $env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 notepad .\backend\config.yaml
 
 # 3) Start backend
+# Option A: FastAPI with Uvicorn (full backend)
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
+
+# Option B: Simple Python test server (no Node/NodeJS required)
+# This serves the plugin files and provides mock endpoints for quick UI testing.
+cd ..
+python .\test_server.py
 ```
 
 Plugin config:
@@ -137,6 +143,7 @@ notepad .\plugin\config.json
 ```
 
 Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
+No Node/NodeJS build step is required—the plugin JS and CSS are ready-to-use.
     
 
 ---
@@ -147,17 +154,33 @@ Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C
 
 ```bash
 source venv/bin/activate
-python backend/backend.py
+python backend/backend.py  # lightweight demo mode
 ```
 
 **Windows:**
 
 ```powershell
 & venv\Scripts\Activate.ps1
-python backend\backend.py
+python backend\backend.py  # lightweight demo mode
 ```
 
-The backend will start at `http://localhost:8000` by default.
+The backend will start at `http://localhost:8000` by default. For full FastAPI features, prefer running with Uvicorn (Option A in Quickstart). For quick UI tests without installing Node/NodeJS, you can run the simple Python test server (`python test_server.py`) which serves the plugin and mock endpoints on `http://localhost:8000`.
+
+### Simple Python Test Server (No Node/NodeJS)
+
+If you only want to try the Obsidian plugin UI without starting the full FastAPI backend, use the included `test_server.py`:
+
+```pwsh
+# from the repo root
+python .\test_server.py
+```
+
+What it does:
+
+- Serves static plugin files from `./plugin`
+- Exposes minimal mock endpoints used by the plugin: GET /, GET /status, POST /ask, POST /reindex, POST /web
+
+Point the plugin's Backend URL to `http://localhost:8000` when using this server. This requires no Node/NodeJS.
 
 ---
 
@@ -362,7 +385,7 @@ Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for Gi
 
 - Python 3.10+
     
-- Node.js 18+ (for plugin build)
+- Node.js 18+ (optional; not required to use the plugin in Obsidian)
     
 - `fastapi`, `uvicorn`, `torch`, `sentence-transformers`, `chromadb`
     

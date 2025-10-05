@@ -18,7 +18,6 @@ from backend.embeddings import EmbeddingsManager
 from backend.indexing import VaultIndexer
 from backend.llm_router import HybridLLMRouter
 
-
 @pytest.fixture
 def temp_cache_dir():
     """Create a temporary directory for cache testing."""
@@ -127,27 +126,24 @@ def test_concurrent_access_simulation():
         cache_manager = CacheManager(cache_dir=temp_dir, ttl=3600)
         results = []
 
+
 def cache_worker(i):
     question = f"Question {i}"
     answer = f"Answer {i}"
     cache_manager.store_answer(question, answer)
     result = cache_manager.get_cached_answer(question)
     results.append(result == answer)
-
     # Create multiple threads
     threads = []
     for i in range(10):
         thread = threading.Thread(target=cache_worker, args=(i,))
         threads.append(thread)
         thread.start()
-
     # Wait for all threads
     for thread in threads:
         thread.join()
-
     # All operations should succeed
     assert all(results)
 
 if __name__ == "__main__":
     pytest.main([__file__])
-    

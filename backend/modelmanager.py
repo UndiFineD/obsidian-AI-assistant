@@ -6,10 +6,12 @@ import huggingface_hub
 try:
     from .llm_router import HybridLLMRouter  # adjust your wrapper import
     from .utils import safe_call
+    from .settings import get_settings
 except ImportError:
     try:
         from llm_router import HybridLLMRouter
         from utils import safe_call
+        from settings import get_settings
     except ImportError:
         from llm_router import HybridLLMRouter
         # Define safe_call locally if utils not found
@@ -19,7 +21,15 @@ except ImportError:
             except Exception as e:
                 print(error_msg or f"Error in {fn.__name__}: {e}")
                 return default
-
+        # Mock get_settings if not available
+        def get_settings():
+            class MockSettings:
+                models_dir = "./models"
+                allow_network = False
+                gpu = True
+                model_backend = "llama_cpp"
+                model_path = "models/llama-7b.gguf"
+            return MockSettings()
 
 class ModelManager:
     """Manages local and Hugging Face models for LLMs."""
@@ -103,7 +113,7 @@ class ModelManager:
             return available_models
         return safe_call(do_load, error_msg=f"[ModelManager] Error loading models from {models_file}", default={})
 
-    def download_model(self, model_name: str, *, filename: str | None = None, revision: str | None = None, max_retries: int = 3):
+    def download_model(self, model_name: str, *, filename: str | None = None, revision: str | None = "main", max_retries: int = 3):
         # If model_name looks like a repo id (org/name), go through hf_hub_download API expected by tests
         if "/" in model_name:
             try:
@@ -127,14 +137,13 @@ class ModelManager:
             model_path.touch()
             return {"status": "success", "path": str(model_path)}
         except Exception as e:
-            return {"status": "error", "error": str(e)}
+                return {"status": "error", "error": str(e)}
 
     def load_model(self, model_name: str = None):
         if not model_name:
             model_name = self.default_model
         if not model_name:
             raise ValueError("No default model available to load.")
-
         if model_name in self.loaded_models:
             return self.loaded_models[model_name]
 
@@ -157,6 +166,23 @@ class ModelManager:
             raise RuntimeError(f"Failed to instantiate model router for {model_name}")
         self.loaded_models[model_name] = llm
         return llm
+
+    @classmethod
+    def from_settings(cls) -> "ModelManager":
+        """Create a ModelManager using centralized settings.
+        
+        Falls back to default initialization if settings are unavailable.
+        """
+        try:
+            s = get_settings()
+            return cls(
+                models_dir=str(s.abs_models_dir),
+                default_model=s.model_backend,
+                hf_token=os.getenv("HF_TOKEN")  # Still use env for token
+            )
+        except Exception:
+            # Fallback to default initialization
+            return cls()
 
     # -------------------
     # Test-facing helper APIs

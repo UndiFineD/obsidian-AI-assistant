@@ -10,9 +10,7 @@ from fastapi import APIRouter, UploadFile
 from .utils import safe_call
 from .settings import get_settings
 
-
 # Robust voice transcription endpoint
-
 _DEFAULT_MODEL_PATH = "models/vosk-model-small-en-us-0.15"
 
 # Provide a patchable 'vosk' attribute on this module
@@ -58,7 +56,6 @@ router = APIRouter()
 @router.post("/api/voice_transcribe")
 async def voice_transcribe(file: UploadFile):
     # Even if model is None, allow processing with patched recognizer in tests
-
     # Read uploaded file
     try:
         audio_data = await file.read()
