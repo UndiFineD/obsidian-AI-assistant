@@ -1,6 +1,6 @@
 # tests/backend/test_security.py
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import sys
 from pathlib import Path
 from cryptography.fernet import Fernet
@@ -151,12 +151,14 @@ class TestSecurity:
         """Test that decrypting invalid data raises an exception."""
         invalid_encrypted_data = b"invalid_encrypted_data_123"
         
-        with pytest.raises(Exception):  # Fernet raises various exceptions for invalid data
+        from cryptography.fernet import InvalidToken
+        with pytest.raises(InvalidToken):  # Fernet raises InvalidToken for invalid data
             decrypt_data(invalid_encrypted_data)
     
     def test_decrypt_empty_bytes_raises_error(self):
         """Test that decrypting empty bytes raises an exception."""
-        with pytest.raises(Exception):
+        from cryptography.fernet import InvalidToken
+        with pytest.raises(InvalidToken):
             decrypt_data(b"")
     
     def test_decrypt_malformed_token_raises_error(self):
@@ -168,8 +170,9 @@ class TestSecurity:
             b"not_base64_encoded_properly",
         ]
         
+        from cryptography.fernet import InvalidToken
         for token in malformed_tokens:
-            with pytest.raises(Exception):
+            with pytest.raises((InvalidToken, AttributeError, TypeError)):
                 decrypt_data(token)
     
     def test_encrypt_data_input_type_validation(self):

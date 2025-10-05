@@ -5,7 +5,7 @@ import time
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 import sys
 
 # Add backend directory to Python path
@@ -29,10 +29,7 @@ class TestCacheManager:
         """Create a CacheManager instance for testing."""
         return CacheManager(cache_dir=temp_cache_dir, ttl=3600)
     
-    @pytest.fixture
-    def temp_cache_dir(self, temp_dir):
-        """Create a temporary cache directory."""
-        return temp_dir
+    # Removed duplicate temp_cache_dir fixture to fix redefinition error.
     
     def test_cache_manager_initialization(self, temp_cache_dir):
         """Test CacheManager initialization."""
@@ -210,7 +207,6 @@ class TestCacheManagerEdgeCases:
     def test_concurrent_access_simulation(self, temp_dir):
         """Test behavior under simulated concurrent access."""
         import threading
-        import time
         
         cache_manager = CacheManager(cache_dir=temp_dir, ttl=3600)
         results = []

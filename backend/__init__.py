@@ -16,12 +16,29 @@ __author__ = "Obsidian AI Assistant"
 
 # Make key classes available at package level
 try:
-    from .backend import app
-    from .caching import CacheManager
-    from .embeddings import EmbeddingsManager
-    from .llm_router import HybridLLMRouter
-    from .modelmanager import ModelManager
-    from .security import encrypt_data, decrypt_data
+    import importlib.util
+    if importlib.util.find_spec(f"{__name__}.backend"):
+        from .backend import AskRequest, ReindexRequest, WebRequest
+    if importlib.util.find_spec(f"{__name__}.caching"):
+        pass  # caching module is available
+    if importlib.util.find_spec(f"{__name__}.embeddings"):
+        from .embeddings import EmbeddingsManager
+    if importlib.util.find_spec(f"{__name__}.llm_router"):
+        from .llm_router import HybridLLMRouter
+    if importlib.util.find_spec(f"{__name__}.modelmanager"):
+        from .modelmanager import ModelManager
+    if importlib.util.find_spec(f"{__name__}.security"):
+        from .security import encrypt_data, decrypt_data
 except ImportError:
     # Handle imports gracefully during testing or when dependencies are missing
+    pass
+
+# Ensure submodule is accessible as attribute for patching like 'backend.backend.*'
+try:
+    import importlib as _importlib
+    import sys as _sys
+    _backend_mod = _importlib.import_module('.backend', __name__)
+    # Expose attribute on package
+    _sys.modules[__name__].backend = _backend_mod
+except Exception:
     pass

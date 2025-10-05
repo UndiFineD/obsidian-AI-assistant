@@ -27,7 +27,7 @@ class VaultIndexer:
     # -------------------
 
     def _hash_url(self, url: str) -> str:
-        return hashlib.md5(url.encode("utf-8")).hexdigest()
+        return hashlib.md5(url.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def _cache_file(self, key: str, text: str) -> Path:
         """Save text to a cache file."""
@@ -42,7 +42,6 @@ class VaultIndexer:
 
     def index_vault(self, vault_path: str) -> Dict[str, int]:
         """Index all Markdown and PDF files in a vault directory."""
-        vault = Path(vault_path)
         results = {}
         for root, _, files in os.walk(vault_path):
             for file in files:

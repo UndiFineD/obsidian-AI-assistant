@@ -390,12 +390,12 @@ class TestVoiceUtilities:
         
         # Test with 16kHz
         sample_rate = 16000
-        recognizer = mock_kaldi(model, sample_rate)
+        mock_kaldi(model, sample_rate)
         mock_kaldi.assert_called_with(model, sample_rate)
         
         # Test with 8kHz
         sample_rate = 8000
-        recognizer = mock_kaldi(model, sample_rate)
+        mock_kaldi(model, sample_rate)
         mock_kaldi.assert_called_with(model, sample_rate)
 
 
@@ -409,7 +409,7 @@ class TestVoiceErrorHandling:
         
         from voice import voice_transcribe
         
-        with pytest.raises(Exception):
+        with pytest.raises(RuntimeError):
             await voice_transcribe(mock_file)
     
     @patch('builtins.open', side_effect=IOError("Cannot write temp file"))

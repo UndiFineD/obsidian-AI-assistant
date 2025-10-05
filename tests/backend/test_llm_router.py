@@ -1,6 +1,6 @@
 # tests/backend/test_llm_router.py
 import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import sys
 from pathlib import Path
 
@@ -195,6 +195,9 @@ class TestHybridLLMRouter:
         response1 = router_with_mocks.generate("First question")
         response2 = router_with_mocks.generate("Second question")
         
+        # Ensure responses are strings
+        assert isinstance(response1, str)
+        assert isinstance(response2, str)
         # Memory should remain empty
         assert len(router_with_mocks.memory) == 0
     
