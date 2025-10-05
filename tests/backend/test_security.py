@@ -5,10 +5,10 @@ import sys
 from pathlib import Path
 from cryptography.fernet import Fernet
 
-# Add backend directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
+# 🎵 Work it FASTER - use proper package imports! 🎵
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from security import encrypt_data, decrypt_data, fernet, KEY
+from backend.security import encrypt_data, decrypt_data, fernet, KEY
 
 
 class TestSecurity:
@@ -202,7 +202,7 @@ class TestSecurity:
             with pytest.raises((AttributeError, TypeError, Exception)):  # Including InvalidToken from cryptography
                 decrypt_data(invalid_input)
     
-    @patch('security.fernet')
+    @patch('backend.security.fernet')
     def test_encrypt_data_uses_global_fernet(self, mock_fernet):
         """Test that encrypt_data uses the global fernet instance."""
         mock_fernet.encrypt.return_value = b"mocked_encrypted_data"
@@ -212,7 +212,7 @@ class TestSecurity:
         mock_fernet.encrypt.assert_called_once_with("test data".encode())
         assert result == b"mocked_encrypted_data"
     
-    @patch('security.fernet')
+    @patch('backend.security.fernet')
     def test_decrypt_data_uses_global_fernet(self, mock_fernet):
         """Test that decrypt_data uses the global fernet instance."""
         mock_fernet.decrypt.return_value = b"decrypted_data"
@@ -225,7 +225,7 @@ class TestSecurity:
     def test_key_consistency(self):
         """Test that the same KEY is used consistently."""
         # The KEY should remain constant during runtime
-        from security import KEY as imported_key
+        from backend.security import KEY as imported_key
         assert imported_key == KEY
         
         # Fernet instance should be created with this key
@@ -296,7 +296,7 @@ class TestSecurityIntegration:
         original_fernet = fernet
         
         # KEY and fernet should remain the same after import
-        from security import KEY as key_check, fernet as fernet_check
+        from backend.security import KEY as key_check, fernet as fernet_check
         
         assert key_check == original_key
         assert fernet_check == original_fernet

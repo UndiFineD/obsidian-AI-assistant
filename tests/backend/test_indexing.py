@@ -32,7 +32,7 @@ def vault_indexer(mock_embeddings_manager, temp_cache_dir):
 
 def test_vault_indexer_initialization(temp_cache_dir):
     """Test VaultIndexer initialization."""
-    with patch('indexing.EmbeddingsManager') as MockEmb:
+    with patch('backend.indexing.EmbeddingsManager') as MockEmb:
         mock_emb_instance = Mock()
         MockEmb.return_value = mock_emb_instance
         indexer = VaultIndexer(cache_dir=temp_cache_dir)
@@ -133,7 +133,7 @@ def test_read_markdown_file_error(self, vault_indexer, temp_cache_dir):
         content = vault_indexer._read_markdown(str(md_file))
         assert content is None
 
-@patch('indexing.PdfReader')
+@patch('backend.indexing.PdfReader')
 def test_read_pdf_success(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
     """Test successful PDF reading."""
     # Mock PDF reader
@@ -152,7 +152,7 @@ def test_read_pdf_success(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
     content = vault_indexer._read_pdf(str(pdf_file))
     assert content == "Page 1 content\nPage 2 content"
 
-@patch('indexing.PdfReader')
+@patch('backend.indexing.PdfReader')
 def test_read_pdf_error(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
     """Test PDF reading with error."""
     mock_pdf_reader.side_effect = Exception("PDF read error")
@@ -168,8 +168,8 @@ def test_read_pdf_file_not_exists(self, vault_indexer):
     content = vault_indexer._read_pdf("non_existing_file.pdf")
     assert content is None
 
-@patch('indexing.requests.get')
-@patch('indexing.Document')
+@patch('backend.indexing.requests.get')
+@patch('backend.indexing.Document')
 def test_fetch_web_content_success(self, mock_document, mock_requests, vault_indexer):
     """Test successful web content fetching."""
     # Mock requests response
@@ -184,7 +184,7 @@ def test_fetch_web_content_success(self, mock_document, mock_requests, vault_ind
     mock_document.return_value = mock_doc
     
     # Mock BeautifulSoup (via patch in the actual call)
-    with patch('indexing.BeautifulSoup') as mock_bs:
+    with patch('backend.indexing.BeautifulSoup') as mock_bs:
         mock_soup = Mock()
         mock_soup.get_text.return_value = "Title\nContent"
         mock_bs.return_value = mock_soup
@@ -195,7 +195,7 @@ def test_fetch_web_content_success(self, mock_document, mock_requests, vault_ind
         assert content == "Title\nContent"
         mock_requests.assert_called_once_with(url, timeout=10)
 
-@patch('indexing.requests.get')
+@patch('backend.indexing.requests.get')
 def test_fetch_web_content_request_error(self, mock_requests, vault_indexer):
     """Test web content fetching with request error."""
     mock_requests.side_effect = Exception("Network error")
@@ -203,7 +203,7 @@ def test_fetch_web_content_request_error(self, mock_requests, vault_indexer):
     content = vault_indexer._fetch_web_content("https://example.com")
     assert content is None
 
-@patch('indexing.requests.get')
+@patch('backend.indexing.requests.get')
 def test_fetch_web_content_http_error(self, mock_requests, vault_indexer):
     """Test web content fetching with HTTP error."""
     mock_response = Mock()
