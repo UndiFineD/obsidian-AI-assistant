@@ -26,7 +26,10 @@ def get_vosk_model():
 router = APIRouter()
 
 @router.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
+async def transcribe(file: UploadFile = None):
+    if file is None:
+        from fastapi import File
+        file = File(...)
     import wave
     import json
     import vosk

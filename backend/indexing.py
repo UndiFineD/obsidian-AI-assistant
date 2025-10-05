@@ -47,7 +47,7 @@ class VaultIndexer:
         for root, _, files in os.walk(vault_path):
             for file in files:
                 full_path = os.path.join(root, file)
-                def do_index():
+                def do_index(file=file, full_path=full_path):
                     if file.endswith(".md"):
                         with open(full_path, "r", encoding="utf-8") as f:
                             content = f.read()

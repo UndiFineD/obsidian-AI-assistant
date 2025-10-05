@@ -1,18 +1,15 @@
 # tests/backend/test_backend.py
-import pytest
 import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# Import the backend modules - made STRONGER! 💪
+from backend.backend import app, shutdown_handler
+import backend.backend as backend_module
+
+import pytest
 from pathlib import Path
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-
-# Add backend directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
-
-# Import after path setup
-from backend import app, AskRequest, ReindexRequest, WebRequest
-# from embeddings import EmbeddingsManager
-# from indexing import VaultIndexer
-
 
 class TestBackendAPI:
     """Test suite for the main backend FastAPI application."""
@@ -26,9 +23,9 @@ class TestBackendAPI:
     def mock_services(self):
         """Mock all external services."""
         with patch('backend.backend.model_manager') as mock_model, \
-             patch('backend.backend.emb_manager') as mock_emb, \
-             patch('backend.backend.vault_indexer') as mock_vault, \
-             patch('backend.backend.cache_manager') as mock_cache:
+            patch('backend.backend.emb_manager') as mock_emb, \
+            patch('backend.backend.vault_indexer') as mock_vault, \
+            patch('backend.backend.cache_manager') as mock_cache:
             yield {
                 'model': mock_model,
                 'embeddings': mock_emb,
@@ -50,13 +47,11 @@ class TestBackendAPI:
         mock_services['cache'].get_cached_answer.return_value = None
         mock_services['model'].generate.return_value = "Test response"
         mock_services['cache'].cache_answer.return_value = None
-        
         request_data = {
             "question": "What is the capital of France?",
             "prefer_fast": True,
             "max_tokens": 100
         }
-        
         response = client.post("/ask", json=request_data)
         assert response.status_code == 200
         data = response.json()
@@ -67,12 +62,10 @@ class TestBackendAPI:
         """Test ask endpoint with cached response."""
         # Setup cache hit
         mock_services['cache'].get_cached_answer.return_value = "Cached response"
-        
         request_data = {
             "question": "What is the capital of France?",
             "prefer_fast": True
         }
-        
         response = client.post("/ask", json=request_data)
         assert response.status_code == 200
         data = response.json()
@@ -90,9 +83,7 @@ class TestBackendAPI:
     def test_reindex_endpoint(self, client, mock_services):
         """Test the reindex endpoint."""
         mock_services['vault'].reindex.return_value = {"files": 5, "chunks": 25}
-        
         request_data = {"vault_path": "./vault"}
-        
         response = client.post("/reindex", json=request_data)
         assert response.status_code == 200
         data = response.json()
@@ -103,12 +94,10 @@ class TestBackendAPI:
         """Test the web search endpoint."""
         mock_services['cache'].get_cached_answer.return_value = None
         mock_services['model'].generate.return_value = "Web search result"
-        
         request_data = {
             "url": "https://example.com",
             "question": "What is this about?"
         }
-        
         response = client.post("/web", json=request_data)
         assert response.status_code == 200
         data = response.json()
@@ -117,7 +106,6 @@ class TestBackendAPI:
 
 class TestRequestModels:
     """Test Pydantic request models."""
-    
     def test_ask_request_validation(self):
         """Test AskRequest model validation."""
         # Valid request
@@ -129,7 +117,6 @@ class TestRequestModels:
         assert request.question == "Test question"
         assert request.prefer_fast is True
         assert request.max_tokens == 100
-        
         # Test defaults
         minimal_request = AskRequest(question="Test")
         assert minimal_request.prefer_fast is True
@@ -139,7 +126,6 @@ class TestRequestModels:
         """Test ReindexRequest model validation."""
         request = ReindexRequest(vault_path="./vault")
         assert request.vault_path == "./vault"
-        
         # Test default
         default_request = ReindexRequest()
         assert default_request.vault_path == "./vault"
@@ -153,10 +139,8 @@ class TestRequestModels:
         assert request.url == "https://example.com"
         assert request.question == "Test question"
 
-
 class TestServiceIntegration:
     """Test integration between backend and services."""
-    
     @pytest.fixture
     def mock_env_vars(self):
         """Mock environment variables."""
@@ -168,10 +152,8 @@ class TestServiceIntegration:
         with patch('backend.backend.ModelManager') as MockModel, \
             patch('backend.backend.EmbeddingsManager') as MockEmb, \
             patch('backend.backend.CacheManager') as MockCache:
-            
             # Import to trigger initialization
             # (import backend.backend is not needed, initialization occurs on first import above)
-            
             MockModel.assert_called_once_with(hf_token='test-token')
             MockEmb.assert_called_once_with(db_path="./vector_db")
             MockCache.assert_called_once_with("./cache")
@@ -181,14 +163,12 @@ class TestServiceIntegration:
         # Mock model to raise exception
         mock_services['model'].generate.side_effect = Exception("Model error")
         mock_services['cache'].get_cached_answer.return_value = None
-        
         request_data = {"question": "Test question"}
-        
         response = client.post("/ask", json=request_data)
         assert response.status_code == 500
         data = response.json()
         assert "error" in data
 
-
 if __name__ == "__main__":
     pytest.main([__file__])
+    
