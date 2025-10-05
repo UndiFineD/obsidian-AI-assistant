@@ -1,0 +1,40 @@
+# Production Requirements for Obsidian AI Assistant
+# Core backend dependencies
+
+# FastAPI and server
+fastapi>=0.104.1
+uvicorn[standard]>=0.24.0
+
+# Machine Learning and AI
+torch>=2.0.0
+sentence-transformers>=2.2.2
+chromadb>=0.4.15
+llama-cpp-python>=0.2.11
+gpt4all>=2.0.2
+transformers>=4.35.0
+accelerate>=0.24.0
+bitsandbytes>=0.41.0
+
+# Hugging Face Hub
+huggingface-hub>=0.17.0
+
+# Web scraping and content processing
+requests>=2.31.0
+beautifulsoup4>=4.12.2
+readability-lxml>=0.8.1
+PyPDF2>=3.0.1
+
+# Voice processing
+vosk>=0.3.45
+
+# Data processing and utilities
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Cryptography for security
+cryptography>=41.0.0
+
+# Environment and configuration
+python-multipart>=0.0.6  # For file uploads in FastAPI

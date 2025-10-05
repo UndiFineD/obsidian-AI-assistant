@@ -1,21 +1,20 @@
-import { ItemView, WorkspaceLeaf, App, ButtonComponent, Setting } from "obsidian";
-import { TaskQueue, QueueTask, VIEW_TYPE_TASK_QUEUE } from "./taskQueue";
+const { ItemView, WorkspaceLeaf, App, ButtonComponent, Setting, Notice } = require("obsidian");
+const { TaskQueue, VIEW_TYPE_TASK_QUEUE } = require("./taskQueue");
 
-export class TaskQueueView extends ItemView {
-  private taskQueue: TaskQueue;
-  private searchInput: HTMLInputElement;
-  private taskContainer: HTMLDivElement;
-
-  constructor(leaf: WorkspaceLeaf, taskQueue: TaskQueue) {
+class TaskQueueView extends ItemView {
+  constructor(leaf, taskQueue, analytics) {
     super(leaf);
     this.taskQueue = taskQueue;
+    this.analytics = analytics;
+    this.searchInput = null;
+    this.taskContainer = null;
   }
 
-  getViewType(): string {
+  getViewType() {
     return VIEW_TYPE_TASK_QUEUE;
   }
 
-  getDisplayText(): string {
+  getDisplayText() {
     return "Task Queue";
   }
 
@@ -57,7 +56,7 @@ export class TaskQueueView extends ItemView {
     // Nothing special for now
   }
 
-  private renderTasks() {
+  renderTasks() {
     if (!this.taskContainer) return;
     this.taskContainer.empty();
 
@@ -89,7 +88,7 @@ export class TaskQueueView extends ItemView {
     });
   }
 
-  private removeTask(taskId: string) {
+  removeTask(taskId) {
     // Remove task from queue
     const currentTasks = this.taskQueue.getTasks();
     const index = currentTasks.findIndex(t => t.id === taskId);
@@ -101,3 +100,4 @@ export class TaskQueueView extends ItemView {
   }
 }
 
+module.exports = { TaskQueueView };

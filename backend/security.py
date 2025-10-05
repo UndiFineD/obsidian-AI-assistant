@@ -1,7 +1,8 @@
 from cryptography.fernet import Fernet
 
 # Generate key: key = Fernet.generate_key()
-KEY = b'your-generated-key-here'
+# For production, use environment variable or secure key management
+KEY = b'ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg='  # Example key - replace in production
 fernet = Fernet(KEY)
 
 def encrypt_data(data: str) -> bytes:

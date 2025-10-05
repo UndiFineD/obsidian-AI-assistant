@@ -1,0 +1,159 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pytest and testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+.hypothesis/
+.tox/
+
+# Models and large files (download locally)
+models/*.bin
+models/*.ggml
+models/*.safetensors
+models/vosk-model-*/
+
+# Cache directories
+cache/
+vector_db/
+*.sqlite3
+*.db
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+temp_*
+*.tmp
+.temp/
+
+# Node.js (for plugin)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.node_repl_history
+
+# Build outputs
+plugin/main.js
+plugin/styles.css.map
+nodejs/
+
+# Environment and configuration files
+.env
+.env.local
+.env.production
+.env.test
+config.local.yaml
+config.prod.yaml
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Test artifacts and temporary files
+test_vault/
+*_test_workspace/
+temp_audio.wav
+obsidian_ai_test_*/
+
+# Coverage and profiling
+.coverage.*
+profile_*
+.prof
+
+# Package manager lock files (optional - uncomment if needed)
+# package-lock.json
+# yarn.lock
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Documentation build
+docs/_build/
+site/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Spyder
+.spyderproject
+.spyproject
+
+# Rope
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Security and credentials
+*.pem
+*.key
+secrets.yaml
+credentials.json

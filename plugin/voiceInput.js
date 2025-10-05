@@ -1,18 +1,17 @@
-import { TaskQueue } from './taskQueue';
+const { TaskQueue } = require('./taskQueue');
 
-export class VoiceInput {
-    private taskQueue: TaskQueue;
-    private recognition: any;
-
-    constructor(taskQueue: TaskQueue) {
+class VoiceInput {
+    constructor(taskQueue) {
         this.taskQueue = taskQueue;
+        this.recognition = null;
+        
         if ('webkitSpeechRecognition' in window) {
-            this.recognition = new (window as any).webkitSpeechRecognition();
+            this.recognition = new window.webkitSpeechRecognition();
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
             this.recognition.lang = 'en-US';
 
-            this.recognition.onresult = (event: any) => {
+            this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 this.taskQueue.addTask({type: 'ask', content: transcript});
             };
@@ -28,3 +27,4 @@ export class VoiceInput {
     }
 }
 
+module.exports = { VoiceInput };
