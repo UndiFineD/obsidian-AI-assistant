@@ -2,25 +2,26 @@
 import os
 from typing import List, Optional
 from fastapi import FastAPI, HTTPException
+from .settings import get_settings, reload_settings, update_settings
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
 import sys as _sys
 import http.server
 import socketserver
-
-# --- Local imports ---
 try:
+    from .utils import safe_call
     from .embeddings import EmbeddingsManager
     from .indexing import VaultIndexer
-    from .caching import CacheManager
+    from .llm_router import HybridLLMRouter
     from .modelmanager import ModelManager
-except ImportError:
-    # Fallback to direct imports when not running as package
-    from embeddings import EmbeddingsManager
-    from indexing import VaultIndexer
-    from caching import CacheManager
-    from modelmanager import ModelManager
+except Exception:
+    # For tests that manipulate sys.path or import paths
+    from utils import safe_call  # type: ignore
+    from embeddings import EmbeddingsManager  # type: ignore
+    from indexing import VaultIndexer  # type: ignore
+    from llm_router import HybridLLMRouter  # type: ignore
+    from modelmanager import ModelManager  # type: ignore
 
 # --- FastAPI app ---
 app = FastAPI(title="Obsidian AI Assistant")
@@ -101,7 +102,38 @@ async def api_health():
 
 @app.get("/health")
 async def health():
-    return _health_payload()
+    s = get_settings()
+    return {
+        "status": "healthy",
+        "backend_url": s.backend_url,
+        "api_port": s.api_port,
+        "vault_path": str(s.vault_path),
+        "models_dir": str(s.models_dir),
+        "cache_dir": str(s.cache_dir),
+        "model_backend": s.model_backend,
+        "embed_model": s.embed_model,
+        "vector_db": s.vector_db,
+        "allow_network": s.allow_network,
+        "gpu": s.gpu,
+    }
+
+
+@app.get("/api/config")
+async def get_config():
+    s = get_settings()
+    return s.dict()
+
+
+@app.post("/api/config/reload")
+async def post_reload_config():
+    s = reload_settings()
+    return {"ok": True, "settings": s.dict()}
+
+
+@app.post("/api/config")
+async def post_update_config(partial: dict):
+    s = update_settings(dict(partial or {}))
+    return {"ok": True, "settings": s.dict()}
 
 def _ask_impl(request: AskRequest):
     # Ensure services

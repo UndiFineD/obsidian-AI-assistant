@@ -7,7 +7,7 @@
 
 ## **Features**
 
-**Phase 1: Core Functionality**
+## Phase 1: Core Functionality
 
 - Ask questions to local LLaMA/GPT4All models
     
@@ -20,7 +20,7 @@
 - Task queue with inline previews
     
 
-**Phase 2: Medium-Term Enhancements**
+## Phase 2: Medium-Term Enhancements
 
 - Batch processing of multiple notes
     
@@ -31,7 +31,7 @@
 - Note formatting via LLM
     
 
-**Phase 3: Advanced Features**
+## Phase 3: Advanced Features
 
 - Analytics dashboard: semantic coverage & QA history
     
@@ -94,6 +94,49 @@ This will:
 4. Download default models (LLaMA 7B Q4, GPT4All Lora)
     
 5. Build the Obsidian plugin automatically
+
+### Central Configuration
+
+Backend reads settings from environment variables and `backend/config.yaml`, with this precedence:
+
+1) Environment variables (e.g., API_PORT, VAULT_PATH, MODEL_PATH, VOSK_MODEL_PATH)
+2) `backend/config.yaml`
+3) Code defaults
+
+The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`). If present, it overrides the built-in defaults (e.g., `backendUrl`).
+
+Key keys:
+
+- backend_url / API_PORT
+- vault_path, models_dir, cache_dir
+- model_backend, model_path, embed_model, vector_db
+- vosk_model_path (for voice)
+
+### Quickstart (Windows PowerShell)
+
+```pwsh
+# 1) Create a .env (optional) or set env vars in your session
+$env:API_PORT=8000
+$env:VAULT_PATH="$(Resolve-Path .\vault)"
+$env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
+
+# 2) Edit backend/config.yaml as needed
+notepad .\backend\config.yaml
+
+# 3) Start backend
+cd backend
+python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
+```
+
+Plugin config:
+
+```pwsh
+# Copy plugin config template and edit backend URL if needed
+Copy-Item .\plugin\config.template.json .\plugin\config.json -Force
+notepad .\plugin\config.json
+```
+
+Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
     
 
 ---

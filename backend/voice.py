@@ -8,6 +8,7 @@ import builtins as _builtins
 from types import SimpleNamespace
 from fastapi import APIRouter, UploadFile
 from .utils import safe_call
+from .settings import get_settings
 
 
 # Robust voice transcription endpoint
@@ -28,8 +29,9 @@ except Exception:
 vosk = _vosk_mod  # Expose for tests to patch backend.voice.vosk.*
 
 # Read env but fall back to default if patched getenv returns None
-_mp = os.getenv("VOSK_MODEL_PATH", _DEFAULT_MODEL_PATH)
-MODEL_PATH = _mp if isinstance(_mp, str) and _mp else _DEFAULT_MODEL_PATH
+_settings = get_settings()
+_mp = os.getenv("VOSK_MODEL_PATH", _settings.vosk_model_path)
+MODEL_PATH = _mp if isinstance(_mp, str) and _mp else _settings.vosk_model_path
 
 def get_vosk_model():
     # Do not swallow the error when default model path is missing; tests expect a RuntimeError
