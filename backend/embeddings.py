@@ -5,9 +5,9 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 from sentence_transformers import SentenceTransformer
-
 from chromadb import PersistentClient
 from chromadb.utils import embedding_functions
+from .utils import safe_call
 
 
 class EmbeddingsManager:
@@ -29,56 +29,84 @@ class EmbeddingsManager:
         self.collection_name = collection_name
         self.model_name = model_name
 
-        # Load embedding model
-        self.model = SentenceTransformer(model_name)
+        # Load embedding model with error boundary
+        self.model = safe_call(SentenceTransformer, model_name, error_msg="[EmbeddingsManager] Error loading embedding model", default=None)
 
         # Initialize persistent Chroma client
-        self.chroma_client = PersistentClient(path=self.db_path)
+        self.chroma_client = safe_call(PersistentClient, path=self.db_path, error_msg="[EmbeddingsManager] Error initializing Chroma client", default=None)
 
         # Create or get collection using the **model name**, not the model object
-        self.collection = self.chroma_client.get_or_create_collection(
-            name=self.collection_name,
-            embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name)
-        )
+        if self.chroma_client:
+            self.collection = safe_call(
+                self.chroma_client.get_or_create_collection,
+                name=self.collection_name,
+                embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name),
+                error_msg="[EmbeddingsManager] Error creating/getting collection",
+                default=None
+            )
+        else:
+            self.collection = None
 
     # ----------------------
     # Core embedding methods
     # ----------------------
 
-    def compute_embedding(self, text: str) -> List[float]:
-        return self.model.encode(text).tolist()
+    def compute_embedding(self, text: str, timeout: float = 5.0) -> List[float]:
+        if self.model is None:
+            logging.error("[EmbeddingsManager] No embedding model loaded.")
+            return []
+        return safe_call(lambda t: self.model.encode(t).tolist(), text, error_msg="[EmbeddingsManager] Error computing embedding", default=[])
 
     def add_embedding(self, text: str, note_path: str):
         vec = self.compute_embedding(text)
-        self.collection.upsert([{
-            "id": note_path,
-            "embedding": vec,
-            "metadata": {"note_path": note_path}
-        }])
+        if self.collection is None:
+            logging.error("[EmbeddingsManager] No collection available for upsert.")
+            return
+        safe_call(
+            lambda: self.collection.upsert([
+                {"id": note_path, "embedding": vec, "metadata": {"note_path": note_path}}
+            ]),
+            error_msg="[EmbeddingsManager] Error upserting embedding"
+        )
 
     def search(self, query: str, top_k: Optional[int] = None) -> List[Dict]:
         if top_k is None:
             top_k = self.top_k
         query_vec = self.compute_embedding(query)
-        results = self.collection.query(query_embeddings=[query_vec], n_results=top_k)
-        hits = []
-        for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
-            hits.append({"text": doc, "source": meta.get("note_path", "")})
-        return hits
+        if self.collection is None:
+            logging.error("[EmbeddingsManager] No collection available for search.")
+            return []
+        def do_search():
+            results = self.collection.query(query_embeddings=[query_vec], n_results=top_k)
+            hits = []
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+                hits.append({"text": doc, "source": meta.get("note_path", "")})
+            return hits
+        return safe_call(do_search, error_msg="[EmbeddingsManager] Error during search", default=[])
 
     def get_embedding_text(self, note_path: str) -> str:
-        results = self.collection.query(ids=[note_path])
-        embeddings = results["embeddings"][0]
-        if embeddings:
-            return embeddings[0]
-        return ""
+        if self.collection is None:
+            logging.error("[EmbeddingsManager] No collection available for get_embedding_text.")
+            return ""
+        def do_get():
+            results = self.collection.query(ids=[note_path])
+            embeddings = results["embeddings"][0]
+            if embeddings:
+                return embeddings[0]
+            return ""
+        return safe_call(do_get, error_msg="[EmbeddingsManager] Error getting embedding text", default="")
 
     def reset_db(self):
-        self.chroma_client.delete_collection(self.collection_name)
-        self.collection = self.chroma_client.get_or_create_collection(
-            name=self.collection_name,
-            embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(self.model_name)
-        )
+        if self.chroma_client is None:
+            logging.error("[EmbeddingsManager] No Chroma client available for reset_db.")
+            return
+        def do_reset():
+            self.chroma_client.delete_collection(self.collection_name)
+            self.collection = self.chroma_client.get_or_create_collection(
+                name=self.collection_name,
+                embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(self.model_name)
+            )
+        safe_call(do_reset, error_msg="[EmbeddingsManager] Error resetting DB")
 
     # ----------------------
     # Utilities

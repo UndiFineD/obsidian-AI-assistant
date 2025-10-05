@@ -62,7 +62,8 @@ if (Test-Path $Requirements) {
     Write-Host "Installing baseline Python deps (no requirements.txt found)..."
     $deps = @(
         "fastapi","uvicorn","python-dotenv","requests","beautifulsoup4","readability-lxml","PyPDF2",
-        "cryptography","vosk","sentence-transformers","chromadb","huggingface_hub","accelerate","transformers"
+        "cryptography","vosk","sentence-transformers","chromadb","huggingface_hub","accelerate","transformers",
+        "pydantic","pytest-asyncio"
     )
     foreach ($d in $deps) { & $VenvPython -m pip install $d }
 }

@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import requests
 from readability import Document
 from PyPDF2 import PdfReader
+from .utils import safe_call
 
 try:
     from .embeddings import EmbeddingsManager
@@ -46,14 +47,16 @@ class VaultIndexer:
         for root, _, files in os.walk(vault_path):
             for file in files:
                 full_path = os.path.join(root, file)
-                if file.endswith(".md"):
-                    with open(full_path, "r", encoding="utf-8") as f:
-                        content = f.read()
-                        self.emb_mgr.add_embedding(content, full_path)
-                        results[full_path] = 1
-                elif file.endswith(".pdf"):
-                    count = self.index_pdf(full_path)
-                    results[full_path] = count
+                def do_index():
+                    if file.endswith(".md"):
+                        with open(full_path, "r", encoding="utf-8") as f:
+                            content = f.read()
+                            self.emb_mgr.add_embedding(content, full_path)
+                            results[full_path] = 1
+                    elif file.endswith(".pdf"):
+                        count = self.index_pdf(full_path)
+                        results[full_path] = count
+                safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
         return results
 
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
@@ -66,24 +69,24 @@ class VaultIndexer:
 
     def extract_pdf_text(self, pdf_path: str) -> str:
         """Extract text from a PDF file."""
-        try:
+        def do_extract():
             reader = PdfReader(pdf_path)
             text = ""
             for page in reader.pages:
                 text += page.extract_text() or ""
             return text.strip()
-        except Exception as e:
-            print(f"PDF parsing failed for {pdf_path}: {e}")
-            return ""
+        return safe_call(do_extract, error_msg=f"[VaultIndexer] PDF parsing failed for {pdf_path}", default="")
 
     def index_pdf(self, pdf_path: str) -> int:
         """Extract and embed a PDF."""
-        text = self.extract_pdf_text(pdf_path)
-        if not text:
-            return 0
-        cache_key = self._hash_url(pdf_path)
-        self._cache_file(cache_key, text)
-        return self.emb_mgr.index_file(str(cache_key))
+        def do_index_pdf():
+            text = self.extract_pdf_text(pdf_path)
+            if not text:
+                return 0
+            cache_key = self._hash_url(pdf_path)
+            self._cache_file(cache_key, text)
+            return self.emb_mgr.index_file(str(cache_key))
+        return safe_call(do_index_pdf, error_msg=f"[VaultIndexer] Error indexing PDF {pdf_path}", default=0)
 
     # -------------------
     # Web pages
@@ -95,9 +98,11 @@ class VaultIndexer:
         cache_path = self.cache_dir / f"{cache_key}.txt"
 
         if cache_path.exists() and not force:
-            return cache_path.read_text(encoding="utf-8")
+            def do_read():
+                return cache_path.read_text(encoding="utf-8")
+            return safe_call(do_read, error_msg=f"[VaultIndexer] Error reading cached web page {url}", default=None)
 
-        try:
+        def do_fetch():
             resp = requests.get(url, timeout=10, headers={"User-Agent": "ObsidianAssistant/1.0"})
             resp.raise_for_status()
             doc = Document(resp.text)
@@ -107,18 +112,19 @@ class VaultIndexer:
             if text:
                 self._cache_file(cache_key, text)
                 return text
-        except Exception as e:
-            print(f"Failed to fetch {url}: {e}")
             return None
+        return safe_call(do_fetch, error_msg=f"[VaultIndexer] Failed to fetch {url}", default=None)
 
     def index_web_page(self, url: str, force: bool = False) -> int:
         """Fetch and embed a web page."""
-        text = self.fetch_web_page(url, force=force)
-        if not text:
-            return 0
-        cache_key = self._hash_url(url)
-        self._cache_file(cache_key, text)
-        return self.emb_mgr.index_file(str(cache_key))
+        def do_index_web():
+            text = self.fetch_web_page(url, force=force)
+            if not text:
+                return 0
+            cache_key = self._hash_url(url)
+            self._cache_file(cache_key, text)
+            return self.emb_mgr.index_file(str(cache_key))
+        return safe_call(do_index_web, error_msg=f"[VaultIndexer] Error indexing web page {url}", default=0)
 
 
 class IndexingService:
