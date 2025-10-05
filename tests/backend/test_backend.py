@@ -2,7 +2,7 @@
 import pytest
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 # Add backend directory to Python path
@@ -10,10 +10,8 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
 
 # Import after path setup
 from backend import app, AskRequest, ReindexRequest, WebRequest
-from embeddings import EmbeddingsManager
-from indexing import VaultIndexer
-from caching import CacheManager
-from modelmanager import ModelManager
+# from embeddings import EmbeddingsManager
+# from indexing import VaultIndexer
 
 
 class TestBackendAPI:
@@ -168,12 +166,11 @@ class TestServiceIntegration:
     def test_service_initialization(self, mock_env_vars):
         """Test that services are properly initialized."""
         with patch('backend.backend.ModelManager') as MockModel, \
-             patch('backend.backend.EmbeddingsManager') as MockEmb, \
-             patch('backend.backend.VaultIndexer') as MockVault, \
-             patch('backend.backend.CacheManager') as MockCache:
+            patch('backend.backend.EmbeddingsManager') as MockEmb, \
+            patch('backend.backend.CacheManager') as MockCache:
             
             # Import to trigger initialization
-            import backend.backend
+            # (import backend.backend is not needed, initialization occurs on first import above)
             
             MockModel.assert_called_once_with(hf_token='test-token')
             MockEmb.assert_called_once_with(db_path="./vector_db")

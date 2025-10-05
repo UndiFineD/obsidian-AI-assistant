@@ -99,7 +99,7 @@ class ModelManager:
             print(f"[ModelManager] Could not download {model_name} ({e}), checking offline cache...")
             model_path = self.models_dir / model_name
             if not model_path.exists():
-                raise RuntimeError(f"No offline model available for {model_name}")
+                raise RuntimeError(f"No offline model available for {model_name}") from e
 
         # Instantiate your hybrid router
         llm = HybridLLMRouter(

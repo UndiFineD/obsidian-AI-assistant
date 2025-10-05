@@ -1,152 +1,149 @@
+param(
+    [string]$VaultPath
+)
+
 <#
 .SYNOPSIS
-Setup script for Obsidian AI Assistant project.
+Windows setup for Obsidian AI Assistant
 .DESCRIPTION
-Sets up Python virtual environment, installs dependencies, optional Hugging Face login,
-installs Node.js/npm locally for Obsidian plugin, and provides correct backend activation path.
+- Creates Python venv and installs Python deps
+- Uses npm ci with package-lock.json to install Node deps
+- Runs Python (pytest) and JS (jest) tests
+- Installs Obsidian (winget) if missing
+- Installs/updates the plugin in the specified Obsidian vault
 #>
 
-# ----- CONFIG -----
-$venvDir = Join-Path $PSScriptRoot "venv"
-$pythonExe = "python"  # or "python3"
-$requirementsFile = Join-Path $PSScriptRoot "requirements.txt"
-$nodeZipUrl = "https://nodejs.org/dist/v24.8.0/node-v24.8.0-win-x64.zip"
-$nodeDir = Join-Path $PSScriptRoot "nodejs"
-$obsidianPluginDir = Join-Path $PSScriptRoot "obsidian-plugin"
-$backendFile = Join-Path $PSScriptRoot "backend\backend.py"
+Write-Host "=== Obsidian AI Assistant Setup (Windows) ===`n"
 
-Write-Host "=== Obsidian AI Assistant Setup ===`n"
+# ----- Resolve repo root -----
+$RepoRoot = $PSScriptRoot
+$PluginDir = Join-Path $RepoRoot "plugin"
+$BackendDir = Join-Path $RepoRoot "backend"
+$BackendEntry = Join-Path $BackendDir "backend.py"
+$VenvDir = Join-Path $RepoRoot "venv"
+$VenvPython = Join-Path $VenvDir "Scripts\python.exe"
+$ActivateScript = Join-Path $VenvDir "Scripts\Activate.ps1"
 
-# ----- 1. Check Python -----
+# ----- 0. Prefer bundled Node if present -----
+$LocalNodeDir = Join-Path $RepoRoot "nodejs\node-v24.8.0-win-x64"
+if (Test-Path (Join-Path $LocalNodeDir "node.exe")) {
+    $env:Path = "$LocalNodeDir;$env:Path"
+}
+
+# ----- 1. Ensure Python -----
+$pythonExe = "python"
 try {
-    $pythonVersion = & $pythonExe --version 2>&1
-    Write-Host "Detected Python version: $pythonVersion"
+    $null = & $pythonExe --version
 } catch {
-    Write-Error "Python not found. Please install Python 3.11+ and ensure it's in your PATH."
+    Write-Error "Python not found. Install Python 3.11+ and re-run."
     exit 1
 }
 
-# ----- 2. Create virtual environment -----
-if (-Not (Test-Path $venvDir)) {
+# ----- 2. Create and activate venv -----
+if (-not (Test-Path $VenvDir)) {
     Write-Host "Creating Python virtual environment..."
-    & $pythonExe -m venv $venvDir
-} else {
-    Write-Host "Python virtual environment already exists."
+    & $pythonExe -m venv $VenvDir
 }
-
-$venvPython = Join-Path $venvDir "Scripts\python.exe"
-$activateScript = Join-Path $venvDir "Scripts\Activate.ps1"
-
-if (-Not (Test-Path $activateScript)) {
-    Write-Error "Activate.ps1 not found. Virtual environment may not have been created correctly."
+if (-not (Test-Path $ActivateScript)) {
+    Write-Error "Virtualenv activation script missing: $ActivateScript"
     exit 1
 }
-
-# ----- 3. Activate virtual environment -----
 Write-Host "Activating virtual environment..."
-. $activateScript
-
-# ----- 4. Upgrade pip -----
+. $ActivateScript
 Write-Host "Upgrading pip..."
-& $venvPython -m pip install --upgrade pip
+& $VenvPython -m pip install --upgrade pip
 
-# ----- 5. Install Python dependencies -----
-if (Test-Path $requirementsFile) {
-    Write-Host "Installing dependencies from requirements.txt..."
-    & $venvPython -m pip install -r $requirementsFile
+# ----- 3. Install Python dependencies -----
+$Requirements = Join-Path $RepoRoot "requirements.txt"
+if (Test-Path $Requirements) {
+    Write-Host "Installing Python deps from requirements.txt..."
+    & $VenvPython -m pip install -r $Requirements
 } else {
-    Write-Warning "requirements.txt not found. Installing fallback dependencies..."
-    $fallbackDeps = @(
-        "fastapi","uvicorn","torch","sentence-transformers","chromadb","llama-cpp-python",
-		"gpt4all","requests","beautifulsoup4","PyPDF2","huggingface_hub","accelerate",
-		"transformers","bitsandbytes","readability-lxml","hf_xet","huggingface_hub"
+    Write-Host "Installing baseline Python deps (no requirements.txt found)..."
+    $deps = @(
+        "fastapi","uvicorn","python-dotenv","requests","beautifulsoup4","readability-lxml","PyPDF2",
+        "cryptography","vosk","sentence-transformers","chromadb","huggingface_hub","accelerate","transformers"
     )
-    foreach ($dep in $fallbackDeps) {
-        & $venvPython -m pip install $dep
-    }
+    foreach ($d in $deps) { & $VenvPython -m pip install $d }
 }
 
-# ----- 6. Hugging Face login -----
-$hfToken = Read-Host "Enter your Hugging Face token (leave blank to skip)"
-if ($hfToken -ne "") {
-    Write-Host "Logging into Hugging Face..."
-    try {
-        & hf auth login --token $hfToken
-        Write-Host "✅ Hugging Face login successful"
-    } catch {
-        Write-Warning "Failed to login to Hugging Face. Check your token and internet connection."
-    }
-} else {
-    Write-Host "Skipping Hugging Face login..."
-}
-
-# ----- 7. Install Node.js/npm locally -----
-function Install-NodeLocal {
-    param($zipUrl, $targetDir)
-
-    if (Get-Command node -ErrorAction SilentlyContinue) {
-        Write-Host "Node.js already installed. Skipping installation."
-        return
-    }
-
-    Write-Host "Ensuring TLS 1.2 is used for downloads..."
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-
-    if (-Not (Test-Path $targetDir)) {
-        New-Item -Path $targetDir -ItemType Directory -Force | Out-Null
-    }
-
-    $zipFile = Join-Path $env:TEMP "nodejs.zip"
-
-    Write-Host "Downloading Node.js ZIP..."
-    try {
-        Invoke-WebRequest -Uri $zipUrl -OutFile $zipFile -UseBasicParsing -ErrorAction Stop
-    } catch {
-        throw "Failed to download Node.js ZIP: $_"
-    }
-
-    Write-Host "Extracting Node.js..."
-    try {
-        Expand-Archive -LiteralPath $zipFile -DestinationPath $targetDir -Force
-    } catch {
-        throw "Failed to extract Node.js ZIP: $_"
-    } finally {
-        Remove-Item $zipFile -Force
-    }
-
-    # Determine extracted folder
-    $extractedNode = Get-ChildItem -Path $targetDir | Where-Object { $_.PSIsContainer } | Select-Object -First 1
-    if (-Not $extractedNode) { $extractedNode = $targetDir }
-
-    $nodeBin = $extractedNode.FullName
-    $env:Path = "$nodeBin;$env:Path"
-
-    # Verify node/npm
-    if ((Get-Command node -ErrorAction SilentlyContinue) -and (Get-Command npm -ErrorAction SilentlyContinue)) {
-        Write-Host "✅ Node.js and npm installed successfully (local)"
+# ----- 4. Node dependencies via package-lock (npm ci) -----
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Push-Location $RepoRoot
+    if (Test-Path (Join-Path $RepoRoot "package-lock.json")) {
+        Write-Host "Installing Node deps with npm ci (locked)..."
+        npm ci --no-audit --no-fund
     } else {
-        throw "Node.js/npm installation failed. Please install manually from https://nodejs.org/"
+        Write-Host "No package-lock.json found; running npm install..."
+        npm install --no-audit --no-fund
+    }
+    Pop-Location
+} else {
+    Write-Warning "npm not found; skipping JS dependency installation."
+}
+
+# ----- 5. Optional: Hugging Face login -----
+if (-not $env:HUGGINGFACE_TOKEN) {
+    $hfToken = Read-Host "Enter your Hugging Face token (leave blank to skip)"
+    if ($hfToken) {
+        $env:HUGGINGFACE_TOKEN = $hfToken
     }
 }
 
+# ----- 6. Run tests (non-blocking) -----
+Write-Host "Running Python tests (pytest)..."
 try {
-    Install-NodeLocal $nodeZipUrl $nodeDir
-} catch {
-    Write-Warning $_
+    & $VenvPython -m pytest --maxfail=1 --durations=5
+} catch { Write-Warning "Pytest reported failures. Review output above." }
+
+if (Get-Command npm -ErrorAction SilentlyContinue) {
+    Write-Host "Running JS tests (jest)..."
+    try { Push-Location $RepoRoot; npm test --silent; Pop-Location } catch { Write-Warning "Jest tests failed." }
 }
 
-# ----- 8. Obsidian plugin info -----
-if ((Test-Path $obsidianPluginDir) -and (Get-Command npm -ErrorAction SilentlyContinue)) {
-    Write-Host "Obsidian plugin directory exists. To build plugin, run:"
-    Write-Host "Push-Location $obsidianPluginDir; npm install; npm run build; Pop-Location"
+# ----- 7. Ensure Obsidian is installed (winget) -----
+if (-not (Get-Command obsidian -ErrorAction SilentlyContinue)) {
+    if (Get-Command winget -ErrorAction SilentlyContinue) {
+        Write-Host "Attempting to install Obsidian via winget..."
+        try { winget install --id Obsidian.Obsidian -e --source winget --accept-package-agreements --accept-source-agreements } catch { Write-Warning "Failed to install Obsidian via winget." }
+    } else {
+        Write-Warning "winget not available. Install Obsidian manually from https://obsidian.md/download"
+    }
 }
 
-# ----- 9. Backend activation info -----
-if (Test-Path $backendFile) {
-    Write-Host "`nTo activate backend manually, run:"
-    Write-Host ". $activateScript; python $backendFile"
+# ----- 8. Install plugin to vault -----
+if (-not $VaultPath) {
+    $VaultPath = Read-Host "Enter the full path to your Obsidian vault"
+}
+if ($VaultPath -and (Test-Path $VaultPath)) {
+    $manifestPath = Join-Path $PluginDir "manifest.json"
+    if (-not (Test-Path $manifestPath)) {
+        Write-Warning "Plugin manifest not found at $manifestPath. Skipping plugin install."
+    } else {
+        try {
+            $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+            $pluginId = $manifest.id
+            if (-not $pluginId) { throw "manifest.json missing 'id' field" }
+            $TargetDir = Join-Path (Join-Path $VaultPath ".obsidian\plugins") $pluginId
+            New-Item -ItemType Directory -Force -Path $TargetDir | Out-Null
+            Write-Host "Installing plugin '$pluginId' to $TargetDir ..."
+            Copy-Item -Path (Join-Path $PluginDir "*") -Destination $TargetDir -Recurse -Force
+            Write-Host "✅ Plugin installed. If this is a fresh install, enable it in Obsidian Settings → Community plugins."
+            if (-not (Test-Path (Join-Path $TargetDir "main.js"))) {
+                Write-Warning "main.js not found in plugin output. Ensure the plugin is built (npm run build) to generate JavaScript from TypeScript."
+            }
+        } catch {
+            Write-Warning "Failed to install plugin: $_"
+        }
+    }
 } else {
-    Write-Warning "backend.py not found in ./backend. Update the path before running."
+    Write-Warning "Vault path not provided or not found; skipping plugin installation."
+}
+
+# ----- 9. Backend run hint -----
+if (Test-Path $BackendEntry) {
+    Write-Host "`nTo run backend:"
+    Write-Host ". $ActivateScript; python `"$BackendEntry`""
 }
 
 Write-Host "`n=== Setup Complete ==="

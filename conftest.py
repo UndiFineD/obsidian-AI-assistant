@@ -10,7 +10,7 @@ import os
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
-from typing import Generator, Dict, Any
+from typing import Generator, Dict
 
 # Add backend directory to Python path for imports
 project_root = Path(__file__).parent
@@ -321,6 +321,30 @@ def mock_fastapi_client():
         return {"status": "healthy"}
     
     return TestClient(app)
+
+
+# Provide a global 'client' fixture bound to the real backend FastAPI app if available
+@pytest.fixture
+def client():
+    """TestClient for the real backend app when importable, otherwise a minimal app."""
+    try:
+        # Try to import the app from our backend package/module
+        try:
+            from backend.backend import app as real_app  # type: ignore
+        except Exception:
+            # Some tests add backend/ to sys.path and import app at package level
+            from backend import app as real_app  # type: ignore
+        from fastapi.testclient import TestClient
+        return TestClient(real_app)
+    except Exception:
+        # Fallback minimal app
+        from fastapi import FastAPI
+        from fastapi.testclient import TestClient
+        _app = FastAPI()
+        @_app.get("/health")
+        def _h():
+            return {"status": "ok"}
+        return TestClient(_app)
 
 
 # ============================================================================

@@ -1,6 +1,6 @@
 # backend/llm_router.py
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # LLM backends
 try:

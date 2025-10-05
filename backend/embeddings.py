@@ -85,7 +85,7 @@ class EmbeddingsManager:
     # ----------------------
 
     def _hash_text(self, text: str) -> str:
-        return hashlib.md5(text.encode("utf-8")).hexdigest()
+        return hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def chunk_text(self, text: str) -> List[str]:
         words = text.split()

@@ -1,4 +1,3 @@
-import os
 import json
 import time
 import hashlib
@@ -34,12 +33,8 @@ class CacheManager:
 
     def store_answer(self, question: str, answer: str):
         self.cache[question] = {"answer": answer, "timestamp": time.time()}
-        try:
-            with open(self.cache_file, "w", encoding="utf-8") as f:
+        with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(self.cache, f, ensure_ascii=False, indent=2)
-        except Exception:
-            # Continue gracefully even if file save fails - answer is still in memory
-            pass
 
 
 class EmbeddingCache:

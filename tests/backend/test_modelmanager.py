@@ -3,7 +3,7 @@ import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, patch
 import sys
 
 # Add backend directory to Python path
@@ -332,8 +332,7 @@ class TestModelManager:
         with patch('modelmanager.load_dotenv'), \
              patch('modelmanager.huggingface_hub.login', 
                    side_effect=Exception("Login failed")), \
-             patch('os.getenv', return_value="invalid_token"), \
-             patch('builtins.print') as mock_print:
+             patch('os.getenv', return_value="invalid_token"):
             
             manager = ModelManager(models_dir=temp_models_dir)
             
@@ -341,8 +340,6 @@ class TestModelManager:
             assert manager.hf_token == "invalid_token"
             
             # Should print error message
-            error_calls = [call for call in mock_print.call_args_list 
-                          if "error" in str(call).lower() or "failed" in str(call).lower()]
             # Login errors might be handled silently or with warnings
     
     def test_models_directory_creation(self, temp_models_dir):
