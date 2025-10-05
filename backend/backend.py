@@ -47,17 +47,23 @@ def init_services():
     if all(v is not None for v in (model_manager, emb_manager, vault_indexer, cache_manager)):
         return
     # Load env here (not at module import) so tests can patch
+    def safe_init(cls, *args, **kwargs):
+        try:
+            return cls(*args, **kwargs)
+        except Exception as e:
+            print(f"[init_services] Error initializing {cls.__name__}: {e}")
+            return None
+
     try:
-        from dotenv import load_dotenv  # local import to avoid hard dependency at import time
+        from dotenv import load_dotenv
         load_dotenv()
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[init_services] Error loading .env: {e}")
     hf_token = os.getenv("HUGGINGFACE_TOKEN")
-    # Initialize services
-    model_manager = ModelManager(hf_token=hf_token)
-    emb_manager = EmbeddingsManager(db_path="./vector_db")
-    vault_indexer = VaultIndexer(emb_mgr=emb_manager)
-    cache_manager = CacheManager("./cache")
+    model_manager = safe_init(ModelManager, hf_token=hf_token)
+    emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
+    vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
+    cache_manager = safe_init(CacheManager, "./cache")
 
 # ----------------------
 # Request models (exported via package)
@@ -97,10 +103,12 @@ def _ask_impl(request: AskRequest):
     global model_manager, cache_manager
     if model_manager is None or cache_manager is None:
         init_services()
-    cached_answer = cache_manager.get_cached_answer(request.question)
-    if cached_answer:
-        return {"answer": cached_answer, "cached": True, "model": request.model_name}
-
+    try:
+        cached_answer = cache_manager.get_cached_answer(request.question)
+        if cached_answer:
+            return {"answer": cached_answer, "cached": True, "model": request.model_name}
+    except Exception as e:
+        print(f"[_ask_impl] Error reading cache: {e}")
     try:
         # Tests mock model_manager.generate directly
         to_generate = request.prompt if request.prompt else request.question
@@ -110,9 +118,12 @@ def _ask_impl(request: AskRequest):
             max_tokens=request.max_tokens,
         )
     except Exception as e:
+        print(f"[_ask_impl] Error generating answer: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
-
-    cache_manager.store_answer(request.question, answer)
+    try:
+        cache_manager.store_answer(request.question, answer)
+    except Exception as e:
+        print(f"[_ask_impl] Error storing answer: {e}")
     return {"answer": answer, "cached": False, "model": request.model_name}
 
 @app.post("/api/ask")

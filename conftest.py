@@ -387,16 +387,17 @@ def pytest_collection_modifyitems(config, items):
 def cleanup_temp_files():
     """Automatically clean up temporary files after each test."""
     yield
-    
-    # Clean up any remaining temporary files
-    import glob
+
+    # Clean up any remaining temporary files using tempfile.gettempdir()
+    import glob, tempfile
+    temp_dir = tempfile.gettempdir()
     temp_patterns = [
-        "/tmp/obsidian_ai_test_*",
-        "temp_audio.wav", 
-        "test_*.tmp",
+        os.path.join(temp_dir, "obsidian_ai_test_*"),
+        os.path.join(temp_dir, "test_*.tmp"),
+        "temp_audio.wav",
         "*.pyc"
     ]
-    
+
     for pattern in temp_patterns:
         for file_path in glob.glob(pattern):
             try:

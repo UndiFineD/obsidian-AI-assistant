@@ -40,8 +40,12 @@ class ModelManager:
         self.models_dir.mkdir(exist_ok=True)
         self.loaded_models = {}
 
-        # Load available models from models.txt
         self.available_models = self._load_models_file(models_file)
+        # Add local installed models (directories) to available_models
+        local_model_dirs = ["claude", "gemini", "gpt4all", "merlin", "perplexity", "vosk-model-small-en-us-0.15"]
+        for local_model in local_model_dirs:
+            if (self.models_dir / local_model).exists():
+                self.available_models[local_model] = f"local:{local_model}"
 
         # Default model
         self.default_model = default_model
@@ -60,28 +64,47 @@ class ModelManager:
             return {}
 
         available_models = {}
-        with open(models_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if not line or line.startswith("#"):
-                    continue
-                key = line.split("/")[-1].lower()
-                available_models[key] = line
+        def do_load():
+            with open(models_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    key = line.split("/")[-1].lower()
+                    available_models[key] = line
+            print(f"[ModelManager] Loaded {len(available_models)} models from {models_file}")
+            return available_models
+        return safe_call(do_load, error_msg=f"[ModelManager] Error loading models from {models_file}", default={})
 
-        print(f"[ModelManager] Loaded {len(available_models)} models from {models_file}")
-        return available_models
-
-    def download_model(self, model_name: str):
+    def download_model(self, model_name: str, revision: str = "main", max_retries: int = 3):
         if model_name not in self.available_models:
             raise ValueError(f"Unknown model: {model_name}")
 
         model_path = self.models_dir / model_name
+        # If local model, skip download
+        if str(self.available_models[model_name]).startswith("local:"):
+            if not model_path.exists():
+                raise RuntimeError(f"Local model directory missing: {model_path}")
+            print(f"[ModelManager] Using local model: {model_name} at {model_path}")
+            return model_path
+
         if not model_path.exists():
             print(f"[ModelManager] Downloading {model_name}...")
-            huggingface_hub.snapshot_download(
-                repo_id=self.available_models[model_name],
-                cache_dir=str(model_path)
-            )
+            last_err = None
+            for attempt in range(1, max_retries + 1):
+                try:
+                    huggingface_hub.snapshot_download(
+                        repo_id=self.available_models[model_name],
+                        cache_dir=str(model_path),
+                        revision=revision
+                    )
+                    print(f"[ModelManager] Downloaded {model_name} (revision: {revision}) on attempt {attempt}")
+                    break
+                except Exception as e:
+                    print(f"[ModelManager] Download attempt {attempt} for {model_name} failed: {e}")
+                    last_err = e
+            else:
+                raise RuntimeError(f"Failed to download {model_name} after {max_retries} attempts") from last_err
         return model_path
 
     def load_model(self, model_name: str = None):
@@ -93,21 +116,22 @@ class ModelManager:
         if model_name in self.loaded_models:
             return self.loaded_models[model_name]
 
-        try:
-            model_path = self.download_model(model_name)
-        except Exception as e:
-            print(f"[ModelManager] Could not download {model_name} ({e}), checking offline cache...")
-            model_path = self.models_dir / model_name
-            if not model_path.exists():
-                raise RuntimeError(f"No offline model available for {model_name}") from e
+        def do_download():
+            return self.download_model(model_name)
+        model_path = safe_call(do_download, error_msg=f"[ModelManager] Could not download {model_name}, checking offline cache...", default=self.models_dir / model_name)
+        if not model_path.exists():
+            raise RuntimeError(f"No offline model available for {model_name}")
 
-        # Instantiate your hybrid router
-        llm = HybridLLMRouter(
-            llama_model_path=str(model_path / "model.bin"),
-            gpt4all_model_path=str(model_path / "gpt4all.bin"),
-            prefer_fast=True,
-            memory_limit=8 * 1024 ** 3
-        )
-
+        # Robust error boundary for model instantiation
+        def do_instantiate():
+            return HybridLLMRouter(
+                llama_model_path=str(model_path / "model.bin"),
+                gpt4all_model_path=str(model_path / "gpt4all.bin"),
+                prefer_fast=True,
+                memory_limit=8 * 1024 ** 3
+            )
+        llm = safe_call(do_instantiate, error_msg=f"[ModelManager] Error instantiating HybridLLMRouter for {model_name}", default=None)
+        if llm is None:
+            raise RuntimeError(f"Failed to instantiate model router for {model_name}")
         self.loaded_models[model_name] = llm
         return llm
