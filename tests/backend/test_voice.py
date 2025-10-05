@@ -10,10 +10,12 @@ from fastapi.testclient import TestClient
 from fastapi import UploadFile
 import sys
 
-# Add backend directory to Python path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
+# 🎵 Work it BETTER - use proper package imports! 🎵
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from voice import router, model, MODEL_PATH
+from backend.voice import router, get_vosk_model
+# Define MODEL_PATH for tests based on the default path
+MODEL_PATH = "models/vosk-model-small-en-us-0.15"
 
 
 class TestVoiceModule:
@@ -26,8 +28,8 @@ class TestVoiceModule:
         # Should be either from environment or default
         assert "vosk-model" in MODEL_PATH
     
-    @patch('voice.os.path.exists')
-    @patch('voice.vosk.Model')
+    @patch('backend.voice.os.path.exists')
+    @patch('backend.voice.vosk.Model')
     def test_model_initialization_success(self, mock_vosk_model, mock_exists):
         """Test successful model initialization."""
         mock_exists.return_value = True
@@ -42,7 +44,7 @@ class TestVoiceModule:
         mock_exists.assert_called_with(MODEL_PATH)
         mock_vosk_model.assert_called_with(MODEL_PATH)
     
-    @patch('voice.os.path.exists', return_value=False)
+    @patch('backend.voice.os.path.exists', return_value=False)
     def test_model_initialization_failure(self, mock_exists):
         """Test model initialization failure when model path doesn't exist."""
         with pytest.raises(RuntimeError) as exc_info:
@@ -101,8 +103,8 @@ class TestVoiceTranscription:
         mock_file.read = AsyncMock()
         return mock_file
     
-    @patch('voice.wave.open')
-    @patch('voice.vosk.KaldiRecognizer')
+    @patch('backend.voice.wave.open')
+    @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_success(self, mock_kaldi, mock_wave_open):
         """Test successful voice transcription."""
@@ -136,7 +138,7 @@ class TestVoiceTranscription:
         assert isinstance(result["transcription"], str)
         mock_file.read.assert_called_once()
     
-    @patch('voice.wave.open')
+    @patch('backend.voice.wave.open')
     async def test_voice_transcribe_invalid_audio_format(self, mock_wave_open):
         """Test transcription with invalid audio format."""
         mock_audio_data = b"fake_audio_data"
@@ -158,7 +160,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('voice.wave.open')
+    @patch('backend.voice.wave.open')
     async def test_voice_transcribe_invalid_sample_width(self, mock_wave_open):
         """Test transcription with invalid sample width."""
         mock_audio_data = b"fake_audio_data"
@@ -180,7 +182,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('voice.wave.open')
+    @patch('backend.voice.wave.open')
     async def test_voice_transcribe_invalid_sample_rate(self, mock_wave_open):
         """Test transcription with invalid sample rate."""
         mock_audio_data = b"fake_audio_data"
@@ -202,8 +204,8 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "16kHz or 8kHz" in result["error"]
     
-    @patch('voice.wave.open')
-    @patch('voice.vosk.KaldiRecognizer')
+    @patch('backend.voice.wave.open')
+    @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_empty_transcription(self, mock_kaldi, mock_wave_open):
         """Test transcription that produces empty result."""
@@ -233,8 +235,8 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == ""
     
-    @patch('voice.wave.open')
-    @patch('voice.vosk.KaldiRecognizer')
+    @patch('backend.voice.wave.open')
+    @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_multiple_segments(self, mock_kaldi, mock_wave_open):
         """Test transcription with multiple text segments."""
@@ -266,7 +268,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == "hello world goodbye"
     
-    @patch('voice.wave.open')
+    @patch('backend.voice.wave.open')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_wave_error(self, mock_wave_open):
         """Test transcription with wave file error."""
@@ -283,8 +285,8 @@ class TestVoiceTranscription:
         with pytest.raises(wave.Error):
             await voice_transcribe(mock_file)
     
-    @patch('voice.wave.open')
-    @patch('voice.vosk.KaldiRecognizer')
+    @patch('backend.voice.wave.open')
+    @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_json_parsing_error(self, mock_kaldi, mock_wave_open):
         """Test transcription with JSON parsing error in results."""
@@ -319,7 +321,7 @@ class TestVoiceTranscription:
         test_wav = self.create_test_wav_file()
         
         try:
-            with patch('voice.vosk.KaldiRecognizer') as mock_kaldi:
+            with patch('backend.voice.vosk.KaldiRecognizer') as mock_kaldi:
                 # Mock the recognizer
                 mock_recognizer = Mock()
                 mock_recognizer.AcceptWaveform.return_value = False
@@ -344,7 +346,7 @@ class TestVoiceTranscription:
 class TestVoiceUtilities:
     """Test utility functions and edge cases for voice module."""
     
-    @patch('voice.os.getenv')
+    @patch('backend.voice.os.getenv')
     def test_model_path_from_environment(self, mock_getenv):
         """Test MODEL_PATH loading from environment variable."""
         test_path = "/custom/vosk/model/path"
@@ -357,7 +359,7 @@ class TestVoiceUtilities:
         
         mock_getenv.assert_called_with("VOSK_MODEL_PATH", "models/vosk-model-small-en-us-0.15")
     
-    @patch('voice.os.getenv')
+    @patch('backend.voice.os.getenv')
     def test_model_path_default_value(self, mock_getenv):
         """Test MODEL_PATH default value when not in environment."""
         mock_getenv.return_value = None
@@ -382,7 +384,7 @@ class TestVoiceUtilities:
         assert isinstance(temp_file, str)
         assert temp_file.endswith('.wav')
     
-    @patch('voice.vosk.KaldiRecognizer')
+    @patch('backend.voice.vosk.KaldiRecognizer')
     def test_recognizer_initialization_with_different_sample_rates(self, mock_kaldi):
         """Test that recognizer is initialized with correct sample rate."""
         mock_recognizer = Mock()

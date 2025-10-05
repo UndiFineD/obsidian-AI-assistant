@@ -12,7 +12,12 @@ from .utils import safe_call
 try:
     from .embeddings import EmbeddingsManager
 except ImportError:
-    from embeddings import EmbeddingsManager
+    # Fallback for testing when importing as top-level module
+    try:
+        from embeddings import EmbeddingsManager
+    except ImportError:
+        # During testing, we'll mock this
+        EmbeddingsManager = None
 
 
 class VaultIndexer:

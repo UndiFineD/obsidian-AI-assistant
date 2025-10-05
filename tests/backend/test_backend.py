@@ -1,9 +1,12 @@
 # tests/backend/test_backend.py
 import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+# 🎵 Work it HARDER - add project root to path! 🎵
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, project_root)
+
 # Import the backend modules - made STRONGER! 💪
-from backend.backend import app, shutdown_handler
+from backend.backend import app, AskRequest, ReindexRequest, WebRequest
 import backend.backend as backend_module
 
 import pytest

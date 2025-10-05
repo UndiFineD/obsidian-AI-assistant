@@ -5,8 +5,20 @@ from dotenv import load_dotenv
 import huggingface_hub
 try:
     from .llm_router import HybridLLMRouter  # adjust your wrapper import
+    from .utils import safe_call
 except ImportError:
-    from llm_router import HybridLLMRouter
+    try:
+        from llm_router import HybridLLMRouter
+        from utils import safe_call
+    except ImportError:
+        from llm_router import HybridLLMRouter
+        # Define safe_call locally if utils not found
+        def safe_call(fn, *args, error_msg=None, default=None, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except Exception as e:
+                print(error_msg or f"Error in {fn.__name__}: {e}")
+                return default
 
 
 class ModelManager:
