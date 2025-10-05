@@ -292,6 +292,33 @@ def mock_vault_structure(temp_dir: str) -> str:
 
 
 # ============================================================================
+# MODEL FIXTURES FOR MODEL MANAGER TESTS
+# ============================================================================
+
+@pytest.fixture
+def temp_models_dir() -> Generator[str, None, None]:
+    """Temporary models directory for tests expecting a models_dir path."""
+    d = tempfile.mkdtemp(prefix="models_")
+    try:
+        yield d
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+@pytest.fixture
+def mock_models_file(temp_models_dir: str) -> str:
+    """Create a simple models.txt file in the temporary models directory."""
+    path = Path(temp_models_dir) / "models.txt"
+    content = "\n".join([
+        "gpt4all-lora",
+        "llama-7b-q4",
+        "code-llama-13b",
+    ])
+    path.write_text(content, encoding="utf-8")
+    return str(path)
+
+
+# ============================================================================
 # APPLICATION FIXTURES
 # ============================================================================
 
