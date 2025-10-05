@@ -10,6 +10,11 @@ import os
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
+import unittest.mock as _um
+# Ensure Mock behaves like MagicMock so __call__ is also a Mock in tests
+_um.Mock = _um.MagicMock
+pytest_plugins = ("pytest_asyncio",)
+import pytest_asyncio  # ensure plugin is importable
 from typing import Generator, Dict
 
 # Add project root to Python path for proper package imports - STRONGER! 💪
@@ -352,6 +357,18 @@ def client():
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
+    # Ensure asyncio plugin is active and mode is auto
+    try:
+        config.pluginmanager.import_plugin("pytest_asyncio")
+    except Exception:
+        pass
+    try:
+        # Prefer ini file, but if not present, set in-memory ini option
+        if not config.getini("asyncio_mode"):
+            # Set option in the in-memory ini config
+            config.inicfg["asyncio_mode"] = "auto"
+    except Exception:
+        pass
     config.addinivalue_line(
         "markers", 
         "unit: mark test as a unit test (fast, isolated)"

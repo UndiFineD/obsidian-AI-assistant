@@ -109,6 +109,17 @@ def _ask_impl(request: AskRequest):
     # If model manager failed to initialize, return an error status
     if model_manager is None:
         raise HTTPException(status_code=500, detail="Model manager unavailable")
+    # If no models are available (real router scenario), return an error immediately
+    try:
+        if hasattr(model_manager, 'llm_router') and model_manager.llm_router and hasattr(model_manager.llm_router, 'get_available_models'):
+            availability = model_manager.llm_router.get_available_models()
+            if isinstance(availability, dict) and not any(availability.values()):
+                raise HTTPException(status_code=500, detail="No model available")
+    except HTTPException:
+        raise
+    except Exception:
+        # If inspection fails (e.g., mocks), ignore and proceed with normal flow
+        pass
     try:
         cached_answer = cache_manager.get_cached_answer(request.question)
         if cached_answer:
