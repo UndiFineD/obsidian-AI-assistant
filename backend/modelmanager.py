@@ -3,7 +3,10 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import huggingface_hub
-from .llm_router import HybridLLMRouter  # adjust your wrapper import
+try:
+    from .llm_router import HybridLLMRouter  # adjust your wrapper import
+except ImportError:
+    from llm_router import HybridLLMRouter
 
 
 class ModelManager:

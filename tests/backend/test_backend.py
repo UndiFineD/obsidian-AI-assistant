@@ -9,11 +9,11 @@ from fastapi.testclient import TestClient
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "backend"))
 
 # Import after path setup
-from backend.backend import app, AskRequest, ReindexRequest, WebRequest
-from backend.embeddings import EmbeddingsManager
-from backend.indexing import VaultIndexer
-from backend.caching import CacheManager
-from backend.modelmanager import ModelManager
+from backend import app, AskRequest, ReindexRequest, WebRequest
+from embeddings import EmbeddingsManager
+from indexing import VaultIndexer
+from caching import CacheManager
+from modelmanager import ModelManager
 
 
 class TestBackendAPI:

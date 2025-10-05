@@ -9,14 +9,23 @@ router = APIRouter()
 
 MODEL_PATH = os.getenv("VOSK_MODEL_PATH", "models/vosk-model-small-en-us-0.15")
 
-if not os.path.exists(MODEL_PATH):
-    raise RuntimeError(f"Vosk model not found at {MODEL_PATH}. Download from https://alphacephei.com/vosk/models")
-
-model = vosk.Model(MODEL_PATH)
+# Initialize model with error handling for testing
+model = None
+try:
+    if os.path.exists(MODEL_PATH):
+        model = vosk.Model(MODEL_PATH)
+    else:
+        print(f"Warning: Vosk model not found at {MODEL_PATH}. Voice features disabled.")
+except Exception as e:
+    print(f"Warning: Failed to initialize Vosk model: {e}. Voice features disabled.")
+    model = None
 
 @router.post("/api/voice_transcribe")
 async def voice_transcribe(file: UploadFile = File(...)):
     """Transcribe uploaded audio file to text using Vosk (offline)."""
+    if model is None:
+        return {"error": "Voice transcription not available - Vosk model not loaded"}
+    
     audio_data = await file.read()
 
     # Save to temporary wav

@@ -10,10 +10,17 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 
 # --- Local imports ---
-from .embeddings import EmbeddingsManager
-from .indexing import VaultIndexer
-from .caching import CacheManager
-from .modelmanager import ModelManager
+try:
+    from .embeddings import EmbeddingsManager
+    from .indexing import VaultIndexer
+    from .caching import CacheManager
+    from .modelmanager import ModelManager
+except ImportError:
+    # Fallback to direct imports when not running as package
+    from embeddings import EmbeddingsManager
+    from indexing import VaultIndexer
+    from caching import CacheManager
+    from modelmanager import ModelManager
 
 # --- Load environment variables ---
 load_dotenv()

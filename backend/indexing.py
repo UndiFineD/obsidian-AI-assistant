@@ -8,7 +8,10 @@ import requests
 from readability import Document
 from PyPDF2 import PdfReader
 
-from .embeddings import EmbeddingsManager
+try:
+    from .embeddings import EmbeddingsManager
+except ImportError:
+    from embeddings import EmbeddingsManager
 
 
 class VaultIndexer:
