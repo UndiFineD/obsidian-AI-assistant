@@ -10,11 +10,14 @@ class AIModal extends Modal {
     this.plugin = plugin;
   }
 
-  onOpen() {
+  async onOpen() {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.createEl("h2", { text: "AI Assistant" });
     contentEl.createEl("p", { text: "Ask your AI assistant a question or use voice input." });
+    // Backend status and reload button
+    const statusDiv = contentEl.createEl("div", { attr: { style: "margin-bottom: 10px;" } });
+    await this.checkBackendStatus(statusDiv);
     const textarea = contentEl.createEl("textarea", { placeholder: "Type your question here...", attr: { rows: "4", style: "width: 100%; margin-bottom: 10px;" } });
     const askButton = contentEl.createEl("button", { text: "Ask AI" });
     askButton.onclick = async () => {
@@ -22,6 +25,42 @@ class AIModal extends Modal {
     };
     const closeButton = contentEl.createEl("button", { text: "Close" });
     closeButton.onclick = () => this.close();
+  }
+
+  async checkBackendStatus(statusDiv) {
+    statusDiv.empty();
+    let statusText = "Checking backend...";
+    let offline = false;
+    try {
+      const res = await fetch(this.plugin.settings.backendUrl + "/status", { method: "GET" });
+      if (res.ok) {
+        statusText = "Backend is online";
+      } else {
+        statusText = "Backend is offline";
+        offline = true;
+      }
+    } catch (e) {
+      statusText = "Backend is offline";
+      offline = true;
+    }
+    statusDiv.createEl("span", { text: statusText });
+    if (offline) {
+      const reloadBtn = statusDiv.createEl("button", { text: "Reload" });
+      reloadBtn.onclick = async () => {
+        reloadBtn.disabled = true;
+        reloadBtn.textContent = "Restarting...";
+        // Attempt to restart backend using /restart endpoint
+        try {
+          await fetch(this.plugin.settings.backendUrl + "/restart", { method: "POST" });
+          new Notice("Restart command sent to backend.");
+        } catch (err) {
+          new Notice("Failed to restart backend. Please restart manually.");
+        }
+        reloadBtn.disabled = false;
+        reloadBtn.textContent = "Reload";
+        await this.checkBackendStatus(statusDiv);
+      };
+    }
   }
 }
 
@@ -64,7 +103,7 @@ class AIAssistantSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
-    }
   }
+}
 
-  module.exports = ObsidianAIAssistant;
+module.exports = ObsidianAIAssistant;

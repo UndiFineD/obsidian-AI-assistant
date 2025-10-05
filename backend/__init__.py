@@ -17,18 +17,12 @@ __author__ = "Obsidian AI Assistant"
 # Make key classes available at package level
 try:
     import importlib.util
-    if importlib.util.find_spec(f"{__name__}.backend"):
-        from .backend import AskRequest, ReindexRequest, WebRequest
-    if importlib.util.find_spec(f"{__name__}.caching"):
-        pass  # caching module is available
-    if importlib.util.find_spec(f"{__name__}.embeddings"):
-        from .embeddings import EmbeddingsManager
-    if importlib.util.find_spec(f"{__name__}.llm_router"):
-        from .llm_router import HybridLLMRouter
-    if importlib.util.find_spec(f"{__name__}.modelmanager"):
-        from .modelmanager import ModelManager
-    if importlib.util.find_spec(f"{__name__}.security"):
-        from .security import encrypt_data, decrypt_data
+    importlib.util.find_spec(f"{__name__}.backend")
+    importlib.util.find_spec(f"{__name__}.caching")
+    importlib.util.find_spec(f"{__name__}.embeddings")
+    importlib.util.find_spec(f"{__name__}.llm_router")
+    importlib.util.find_spec(f"{__name__}.modelmanager")
+    importlib.util.find_spec(f"{__name__}.security")
 except ImportError:
     # Handle imports gracefully during testing or when dependencies are missing
     pass
