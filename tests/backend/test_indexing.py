@@ -204,16 +204,16 @@ def test_fetch_web_content_request_error(mock_requests, vault_indexer):
     assert content is None
 
 @patch('backend.indexing.requests.get')
-def test_fetch_web_content_http_error(self, mock_requests, vault_indexer):
+def test_fetch_web_content_http_error(mock_get, vault_indexer):
     """Test web content fetching with HTTP error."""
     mock_response = Mock()
     mock_response.raise_for_status.side_effect = Exception("HTTP 404")
-    mock_requests.return_value = mock_response
+    mock_get.return_value = mock_response
     
     content = vault_indexer._fetch_web_content("https://example.com")
     assert content is None
 
-def test_reindex_vault_with_markdown_files(self, vault_indexer, temp_cache_dir, mock_embeddings_manager):
+def test_reindex_vault_with_markdown_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with markdown files."""
     # Create test vault directory
     vault_dir = Path(temp_cache_dir) / "vault"
@@ -242,7 +242,7 @@ def test_reindex_vault_with_markdown_files(self, vault_indexer, temp_cache_dir, 
     assert result["files"] == 3
     assert result["chunks"] == 6  # 3 files * 2 chunks each
 
-def test_reindex_vault_with_mixed_files(self, vault_indexer, temp_cache_dir, mock_embeddings_manager):
+def test_reindex_vault_with_mixed_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with mixed file types."""
     vault_dir = Path(temp_cache_dir) / "vault"
     vault_dir.mkdir()
@@ -262,7 +262,7 @@ def test_reindex_vault_with_mixed_files(self, vault_indexer, temp_cache_dir, moc
         assert result["files"] == 2
         assert result["chunks"] == 2
 
-def test_reindex_empty_vault(self, vault_indexer, temp_cache_dir, mock_embeddings_manager):
+def test_reindex_empty_vault(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing empty vault."""
     vault_dir = Path(temp_cache_dir) / "empty_vault"
     vault_dir.mkdir()
@@ -277,7 +277,7 @@ def test_reindex_empty_vault(self, vault_indexer, temp_cache_dir, mock_embedding
     assert result["chunks"] == 0
     mock_embeddings_manager.add_documents.assert_not_called()
 
-def test_reindex_nonexistent_vault(self, vault_indexer, mock_embeddings_manager):
+def test_reindex_nonexistent_vault(vault_indexer, mock_embeddings_manager):
     """Test reindexing non-existent vault directory."""
     result = vault_indexer.reindex("non_existent_directory")
     
@@ -288,7 +288,7 @@ def test_reindex_nonexistent_vault(self, vault_indexer, mock_embeddings_manager)
     assert result["files"] == 0
     assert result["chunks"] == 0
 
-def test_index_web_content_new_url(self, vault_indexer, mock_embeddings_manager):
+def test_index_web_content_new_url(vault_indexer, mock_embeddings_manager):
     """Test indexing new web content."""
     url = "https://example.com"
     
@@ -302,7 +302,7 @@ def test_index_web_content_new_url(self, vault_indexer, mock_embeddings_manager)
         assert result["chunks"] == 2
         mock_embeddings_manager.add_documents.assert_called_once()
 
-def test_index_web_content_cached(self, vault_indexer, mock_embeddings_manager):
+def test_index_web_content_cached(vault_indexer, mock_embeddings_manager):
     """Test indexing cached web content."""
     url = "https://example.com"
     cached_content = "Cached web content"
@@ -320,7 +320,7 @@ def test_index_web_content_cached(self, vault_indexer, mock_embeddings_manager):
     assert result["chunks"] == 1
     mock_embeddings_manager.add_documents.assert_called_once()
 
-def test_index_web_content_fetch_failure(self, vault_indexer, mock_embeddings_manager):
+def test_index_web_content_fetch_failure(vault_indexer, mock_embeddings_manager):
     """Test indexing web content when fetching fails."""
     url = "https://example.com"
     

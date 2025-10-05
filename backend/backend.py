@@ -1,8 +1,6 @@
 # backend/backend.py
 import os
 from typing import List, Optional
-
-import uvicorn
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -11,7 +9,6 @@ import sys as _sys
 
 # --- Local imports ---
 try:
-    from .utils import safe_call
     from .embeddings import EmbeddingsManager
     from .indexing import VaultIndexer
     from .caching import CacheManager
@@ -109,6 +106,9 @@ def _ask_impl(request: AskRequest):
     global model_manager, cache_manager
     if model_manager is None or cache_manager is None:
         init_services()
+    # If model manager failed to initialize, return an error status
+    if model_manager is None:
+        raise HTTPException(status_code=500, detail="Model manager unavailable")
     try:
         cached_answer = cache_manager.get_cached_answer(request.question)
         if cached_answer:
@@ -123,6 +123,10 @@ def _ask_impl(request: AskRequest):
             prefer_fast=request.prefer_fast,
             max_tokens=request.max_tokens,
         )
+        if isinstance(answer, str) and "No model available" in answer:
+            raise RuntimeError("Model unavailable")
+        if answer is None or (isinstance(answer, str) and answer.strip() == ""):
+            raise RuntimeError("No answer generated")
     except Exception as e:
         print(f"[_ask_impl] Error generating answer: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
