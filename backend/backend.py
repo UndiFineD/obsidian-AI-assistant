@@ -12,7 +12,6 @@ import sys as _sys
 # --- Local imports ---
 try:
     from .utils import safe_call
-    
     from .embeddings import EmbeddingsManager
     from .indexing import VaultIndexer
     from .caching import CacheManager

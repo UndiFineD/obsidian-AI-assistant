@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microphone Permission Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        .test-container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+        .test-button {
+            background: #007acc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover { background: #005a9e; }
+        .test-button:disabled { background: #555; cursor: not-allowed; }
+        .status { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .success { background: #22c55e; color: white; }
+        .error { background: #ef4444; color: white; }
+        .warning { background: #f59e0b; color: black; }
+        .info { background: #3b82f6; color: white; }
+        pre { background: #111; padding: 10px; border-radius: 4px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>🎤 Microphone Permission Diagnostic Tool</h1>
+    
+    <div class="test-container">
+        <h3>Step 1: Browser Compatibility Check</h3>
+        <div id="compatibility-status"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Step 2: Permission Status</h3>
+        <button class="test-button" onclick="checkPermissions()">Check Microphone Permissions</button>
+        <div id="permission-status"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Step 3: Request Microphone Access</h3>
+        <button class="test-button" onclick="requestMicrophone()">Request Microphone Access</button>
+        <div id="microphone-status"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Step 4: System Information</h3>
+        <button class="test-button" onclick="getSystemInfo()">Get System Info</button>
+        <div id="system-info"></div>
+    </div>
+    
+    <div class="test-container">
+        <h3>Troubleshooting Guide</h3>
+        <div class="info status">
+            <strong>If microphone access is denied:</strong><br>
+            <ol>
+                <li><strong>Browser Permissions:</strong> Look for a microphone icon in your browser's address bar</li>
+                <li><strong>Windows Settings:</strong> Go to Settings > Privacy & Security > Microphone</li>
+                <li><strong>Chrome:</strong> Go to Settings > Privacy & Security > Site Settings > Microphone</li>
+                <li><strong>Firefox:</strong> Click the shield icon in address bar > Permissions</li>
+                <li><strong>HTTPS Required:</strong> Some browsers require HTTPS for microphone access</li>
+                <li><strong>Other Apps:</strong> Close apps like Discord, Teams, Zoom that might be using the mic</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // Check browser compatibility
+        function checkCompatibility() {
+            const statusDiv = document.getElementById('compatibility-status');
+            let compatible = true;
+            let issues = [];
+            
+            if (!navigator.mediaDevices) {
+                compatible = false;
+                issues.push('navigator.mediaDevices not supported');
+            }
+            
+            if (!navigator.mediaDevices.getUserMedia) {
+                compatible = false;
+                issues.push('getUserMedia not supported');
+            }
+            
+            if (!window.MediaRecorder) {
+                compatible = false;
+                issues.push('MediaRecorder not supported');
+            }
+            
+            if (compatible) {
+                statusDiv.innerHTML = '<div class="success status">✅ Browser is compatible with microphone access</div>';
+            } else {
+                statusDiv.innerHTML = `<div class="error status">❌ Browser compatibility issues:<br>${issues.join('<br>')}</div>`;
+            }
+            
+            // Additional info
+            const info = `
+                <div class="info status">
+                    <strong>Browser Info:</strong><br>
+                    User Agent: ${navigator.userAgent}<br>
+                    HTTPS: ${location.protocol === 'https:' ? 'Yes' : 'No'}<br>
+                    Origin: ${location.origin}
+                </div>
+            `;
+            statusDiv.innerHTML += info;
+        }
+        
+        // Check current permissions
+        async function checkPermissions() {
+            const statusDiv = document.getElementById('permission-status');
+            
+            try {
+                if (!navigator.permissions) {
+                    statusDiv.innerHTML = '<div class="warning status">⚠️ Permissions API not available</div>';
+                    return;
+                }
+                
+                const permission = await navigator.permissions.query({ name: 'microphone' });
+                
+                let statusClass, message;
+                switch (permission.state) {
+                    case 'granted':
+                        statusClass = 'success';
+                        message = '✅ Microphone permission granted';
+                        break;
+                    case 'denied':
+                        statusClass = 'error';
+                        message = '❌ Microphone permission denied';
+                        break;
+                    case 'prompt':
+                        statusClass = 'warning';
+                        message = '⚠️ Microphone permission will be requested';
+                        break;
+                    default:
+                        statusClass = 'info';
+                        message = `ℹ️ Microphone permission state: ${permission.state}`;
+                }
+                
+                statusDiv.innerHTML = `<div class="${statusClass} status">${message}</div>`;
+                
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="error status">❌ Error checking permissions: ${error.message}</div>`;
+            }
+        }
+        
+        // Request microphone access
+        async function requestMicrophone() {
+            const statusDiv = document.getElementById('microphone-status');
+            statusDiv.innerHTML = '<div class="info status">🎤 Requesting microphone access...</div>';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                // Success - show details
+                const tracks = stream.getAudioTracks();
+                const track = tracks[0];
+                
+                let deviceInfo = 'Unknown device';
+                if (track.label) {
+                    deviceInfo = track.label;
+                } else {
+                    deviceInfo = 'Device detected (label unavailable)';
+                }
+                
+                const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+                const settings = track.getSettings ? track.getSettings() : {};
+                
+                statusDiv.innerHTML = `
+                    <div class="success status">
+                        ✅ Microphone access granted!<br>
+                        <strong>Device:</strong> ${deviceInfo}<br>
+                        <strong>Sample Rate:</strong> ${settings.sampleRate || 'Unknown'} Hz<br>
+                        <strong>Channel Count:</strong> ${settings.channelCount || 'Unknown'}<br>
+                        <strong>Ready State:</strong> ${track.readyState}
+                    </div>
+                `;
+                
+                // Test recording
+                try {
+                    const mediaRecorder = new MediaRecorder(stream);
+                    statusDiv.innerHTML += '<div class="success status">✅ MediaRecorder can be created</div>';
+                    
+                    // Clean up
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                } catch (recorderError) {
+                    statusDiv.innerHTML += `<div class="error status">❌ MediaRecorder error: ${recorderError.message}</div>`;
+                }
+                
+                // Stop the stream
+                stream.getTracks().forEach(track => track.stop());
+                
+            } catch (error) {
+                let errorMessage = `❌ Microphone access failed: ${error.name}`;
+                
+                switch (error.name) {
+                    case 'NotAllowedError':
+                        errorMessage += '<br><strong>Solution:</strong> Please allow microphone access in your browser settings';
+                        break;
+                    case 'NotFoundError':
+                        errorMessage += '<br><strong>Solution:</strong> Please connect a microphone to your computer';
+                        break;
+                    case 'NotSupportedError':
+                        errorMessage += '<br><strong>Solution:</strong> Try a different browser (Chrome, Firefox, or Edge)';
+                        break;
+                    case 'NotReadableError':
+                        errorMessage += '<br><strong>Solution:</strong> Close other applications using the microphone';
+                        break;
+                    default:
+                        errorMessage += `<br><strong>Details:</strong> ${error.message}`;
+                }
+                
+                statusDiv.innerHTML = `<div class="error status">${errorMessage}</div>`;
+                console.error('Microphone error:', error);
+            }
+        }
+        
+        // Get system information
+        function getSystemInfo() {
+            const statusDiv = document.getElementById('system-info');
+            
+            const info = {
+                'Browser': navigator.userAgent,
+                'Platform': navigator.platform,
+                'Language': navigator.language,
+                'Online': navigator.onLine,
+                'Cookie Enabled': navigator.cookieEnabled,
+                'HTTPS': location.protocol === 'https:',
+                'Host': location.host,
+                'MediaDevices Available': !!navigator.mediaDevices,
+                'getUserMedia Available': !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia),
+                'MediaRecorder Available': !!window.MediaRecorder,
+                'Permissions API Available': !!navigator.permissions
+            };
+            
+            let html = '<pre>';
+            for (const [key, value] of Object.entries(info)) {
+                html += `${key}: ${value}\n`;
+            }
+            html += '</pre>';
+            
+            statusDiv.innerHTML = html;
+        }
+        
+        // Run compatibility check on page load
+        window.onload = checkCompatibility;
+    </script>
+</body>
+</html>

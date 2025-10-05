@@ -1,0 +1,36 @@
+/* Simple styles for AI Assistant Plugin */
+
+.ai-assistant-modal {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.ai-assistant-modal textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.ai-assistant-modal button {
+  padding: 8px 16px;
+  margin-right: 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--interactive-accent);
+  color: var(--text-on-accent);
+  cursor: pointer;
+}
+
+.ai-assistant-modal button:hover {
+  background-color: var(--interactive-accent-hover);
+}
+
+.ai-assistant-modal button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

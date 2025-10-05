@@ -202,24 +202,50 @@ This project includes comprehensive test suites to ensure reliability and mainta
 #### **Test Structure**
 
 ```
-tests/
-├─ backend/               # Python backend tests
-│  ├─ test_backend.py     # FastAPI endpoint tests
-│  ├─ test_caching.py     # Cache management tests
-│  ├─ test_embeddings.py  # Vector database tests
-│  ├─ test_indexing.py    # Document indexing tests
-│  ├─ test_llm_router.py  # LLM routing tests
-│  ├─ test_modelmanager.py # Model management tests
-│  ├─ test_security.py    # Encryption/security tests
-│  └─ test_voice.py       # Voice transcription tests
-├─ setup/                 # Setup script tests
-│  ├─ test_setup_ps1.ps1  # PowerShell setup tests
-│  ├─ test_setup_sh.bats  # Bash setup tests
-│  └─ README.md           # Testing documentation
-└─ conftest.py            # Pytest configuration
+tests/                           # All tests organized in single directory
+├─ backend/                      # Python backend tests
+│  ├─ test_backend.py           # FastAPI endpoint tests
+│  ├─ test_caching.py           # Cache management tests
+│  ├─ test_embeddings.py        # Vector database tests
+│  ├─ test_indexing.py          # Document indexing tests
+│  ├─ test_llm_router.py        # LLM routing tests
+│  ├─ test_modelmanager.py      # Model management tests
+│  ├─ test_security.py          # Encryption/security tests
+│  └─ test_voice.py             # Voice transcription tests
+├─ setup/                        # Setup script tests
+│  ├─ test_setup_ps1.ps1        # PowerShell setup tests
+│  ├─ test_setup_sh.bats        # Bash setup tests
+│  └─ README.md                 # Setup testing documentation
+├─ comprehensive_integration_test.py  # Complete integration test
+├─ test_final.py                 # Plugin integration tests
+├─ test_plugin*.py               # Plugin functionality tests
+├─ test_server.py                # Development server tests
+├─ microphone_test.html          # Microphone permission testing
+├─ test_push_to_talk.html        # Voice input testing
+├─ conftest.py                   # Pytest configuration and fixtures
+├─ pytest.ini                   # Pytest settings and coverage config
+└─ run_tests_stronger.py         # Enhanced test runner script
+
+run_tests.py                     # Main test runner (project root)
 ```
 
 #### **Running Tests**
+
+**All Tests (Recommended):**
+```bash
+# Run all tests using the main test runner
+python run_tests.py
+
+# Run all tests with verbose output
+python run_tests.py -v
+
+# Run specific test files or patterns
+python run_tests.py backend/test_backend.py
+python run_tests.py test_plugin*.py
+
+# Collect tests without running (useful for debugging)
+python run_tests.py --collect-only
+```
 
 **Backend Tests (Python):**
 ```bash
@@ -231,14 +257,21 @@ source venv/bin/activate  # Linux/macOS
 # Install test dependencies
 pip install pytest pytest-cov pytest-asyncio
 
-# Run all tests
-pytest tests/backend/
+# Run all tests from project root
+python run_tests.py
 
-# Run with coverage
-pytest tests/backend/ --cov=backend --cov-report=html
+# Or run directly from tests directory
+cd tests
+pytest -v
+
+# Run with coverage (generates coverage reports)
+pytest --cov=../backend --cov-report=html
 
 # Run specific test file
-pytest tests/backend/test_backend.py -v
+pytest backend/test_backend.py -v
+
+# Run comprehensive integration test
+python comprehensive_integration_test.py
 ```
 
 **Setup Script Tests:**
@@ -306,11 +339,11 @@ Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for Gi
 
 ### **10. License / Author**
 
-- Author: **Your Name**
+- Author: **Keimpe de Jong**
     
 - License: MIT
     
-- GitHub: _(optional link)_
+- GitHub: _(https://github.com/UndiFineD/obsidian-AI-assistant)_
     
 
 ---

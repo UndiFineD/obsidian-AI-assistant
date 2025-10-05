@@ -1,201 +1,377 @@
-const {
-  App,
-  Modal,
-  Notice,
-  Plugin,
-  PluginSettingTab,
-  Setting,
-  TFile,
-  WorkspaceLeaf
-} = require("obsidian");
+const { App, Modal, Notice, Plugin, PluginSettingTab, Setting } = require("obsidian");
 
-const { TaskQueue, VIEW_TYPE_TASK_QUEUE, TaskQueueView } = require("./taskQueue");
-const { AnalyticsView, AnalyticsState, VIEW_TYPE_ANALYTICS } = require("./analyticsPane");
-const { VoiceRecorder } = require("./voice");
-
-// ----------------------------
-// Plugin Settings
-// ----------------------------
+// Default settings for the plugin
 const DEFAULT_SETTINGS = {
-  backendUrl: "http://localhost:8000",
-  vaultPath: "",
-  preferFastModel: true,
-  voiceMode: "offline",
+  backendUrl: "http://localhost:8000"
 };
 
-// ----------------------------
-// Main Plugin Class
-// ----------------------------
-class AssistantPlugin extends Plugin {
-  constructor() {
-    super();
-    this.settings = null;
-    this.queue = null;
-    this.analytics = null;
-    this.voice = null;
+// Simple modal for AI interaction
+class AIModal extends Modal {
+  constructor(app, plugin) {
+    super(app);
+    this.plugin = plugin;
   }
 
-  async onload() {
-    await this.loadSettings();
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
 
-    // Initialize Task Queue
-    this.queue = new TaskQueue(this.settings.backendUrl, this.app);
+    // Header with title and status indicator
+    const headerContainer = contentEl.createDiv({ cls: "ai-header-container" });
+    
+    headerContainer.createEl("h2", { text: "AI Assistant" });
+    
+    // Status indicator
+    const statusContainer = headerContainer.createDiv({ cls: "ai-status-container" });
+    
+    const statusDot = statusContainer.createEl("div", { cls: "ai-status-dot checking" });
+    
+    const statusText = statusContainer.createEl("span", { 
+      text: "Checking...", 
+      cls: "ai-status-text",
+      attr: { style: "color: var(--text-muted);" }
+    });
+    
+    // Refresh status button
+    const refreshBtn = statusContainer.createEl("button", {
+      text: "🔄",
+      attr: { 
+        style: "background: none; border: none; cursor: pointer; font-size: 14px; padding: 2px; opacity: 0.7;",
+        title: "Refresh backend status"
+      }
+    });
+    
+    refreshBtn.onclick = () => this.checkBackendStatus(statusDot, statusText, askButton, micButton);
 
-    // Initialize Analytics State
-    this.analytics = {
-      processedNotes: {},
-      qaHistory: [],
-      modelUsage: {},
+    const inputContainer = contentEl.createDiv();
+    const textarea = inputContainer.createEl("textarea", {
+      placeholder: "Ask your AI assistant a question...",
+      attr: { rows: "4", style: "width: 100%; margin-bottom: 10px;" }
+    });
+
+    const buttonContainer = contentEl.createDiv();
+    const askButton = buttonContainer.createEl("button", { text: "Ask AI" });
+    const micButton = buttonContainer.createEl("button", { 
+      text: "🎤", 
+      cls: "ai-mic-button",
+      attr: { 
+        title: "Voice input - Hold to record"
+      }
+    });
+    const closeButton = buttonContainer.createEl("button", { text: "Close" });
+    closeButton.style.marginLeft = "10px";
+
+    // Check backend status
+    this.checkBackendStatus(statusDot, statusText, askButton, micButton);
+
+    // Voice input functionality - Push to talk
+    let isRecording = false;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    // Push-to-talk: Start recording on mousedown/touchstart
+    micButton.addEventListener('mousedown', async (e) => {
+      e.preventDefault();
+      if (!isRecording && !micButton.disabled) {
+        await this.startVoiceRecording(micButton, textarea);
+        isRecording = true;
+      }
+    });
+
+    micButton.addEventListener('touchstart', async (e) => {
+      e.preventDefault();
+      if (!isRecording && !micButton.disabled) {
+        await this.startVoiceRecording(micButton, textarea);
+        isRecording = true;
+      }
+    });
+
+    // Stop recording on mouseup/touchend/mouseleave
+    const stopRecording = async () => {
+      if (isRecording) {
+        await this.stopVoiceRecording(micButton, textarea);
+        isRecording = false;
+      }
     };
 
-    // Initialize Voice Recorder
-    this.voice = new VoiceRecorder();
+    micButton.addEventListener('mouseup', stopRecording);
+    micButton.addEventListener('mouseleave', stopRecording);
+    micButton.addEventListener('touchend', stopRecording);
+    micButton.addEventListener('touchcancel', stopRecording);
 
-    // ----------------------------
-    // Register Task Queue View
-    // ----------------------------
-    this.registerView(VIEW_TYPE_TASK_QUEUE, (leaf) =>
-      new TaskQueueView(leaf, this.queue, this.analytics)
-    );
+    // Prevent context menu on right click
+    micButton.addEventListener('contextmenu', (e) => e.preventDefault());
 
-    this.addCommand({
-      id: "open-task-queue-view",
-      name: "Open Task Queue View",
-      callback: () => this.activateTaskQueueView(),
-    });
+    askButton.onclick = async () => {
+      const question = textarea.value.trim();
+      if (!question) {
+        new Notice("Please enter a question");
+        return;
+      }
 
-    this.addRibbonIcon("list-checks", "Task Queue", () => this.activateTaskQueueView());
+      askButton.disabled = true;
+      askButton.textContent = "Processing...";
 
-    // ----------------------------
-    // Register Analytics View
-    // ----------------------------
-    this.registerView(VIEW_TYPE_ANALYTICS, (leaf) =>
-      new AnalyticsView(leaf, this.analytics)
-    );
+      try {
+        await this.plugin.askAI(question);
+      } finally {
+        askButton.disabled = false;
+        askButton.textContent = "Ask AI";
+        this.close();
+      }
+    };
 
-    this.addCommand({
-      id: "open-analytics-dashboard",
-      name: "Open Analytics Dashboard",
-      callback: () => this.activateAnalyticsView(),
-    });
+    closeButton.onclick = () => this.close();
+  }
 
-    this.addRibbonIcon("bar-chart", "Analytics Dashboard", () => this.activateAnalyticsView());
+  async startVoiceRecording(micButton, textarea) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.recordedChunks = [];
 
-    // ----------------------------
-    // Voice Input Ribbon
-    // ----------------------------
-    this.addRibbonIcon("mic", "Voice Ask", async () => {
-      await this.voice.startRecording();
-      new Notice("🎙️ Voice recording started. Click stop to finish.");
-
-      // Temporary stop icon
-      const stopIcon = this.addRibbonIcon("square", "Stop Recording", async () => {
-        const audioBlob = await this.voice.stopRecording();
-        const transcription = await this.voice.sendToBackend(
-          audioBlob,
-          this.settings.backendUrl,
-          this.settings.voiceMode
-        );
-
-        if (transcription && transcription.trim().length > 0) {
-          new Notice(`📝 Transcribed: ${transcription}`);
-
-          try {
-            const resp = await fetch(`${this.settings.backendUrl}/api/ask`, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                question: transcription,
-                prefer_fast: this.settings.preferFastModel,
-              }),
-            });
-            const data = await resp.json();
-
-            this.trackQA(
-              transcription,
-              data.answer,
-              this.settings.preferFastModel ? "fast" : "deep"
-            );
-
-            new Notice("Assistant answered. See analytics dashboard for details.");
-          } catch (err) {
-            new Notice("Error sending transcription to backend: " + err);
-          }
-        } else {
-          new Notice("Transcription was empty.");
+      this.mediaRecorder.addEventListener('dataavailable', event => {
+        if (event.data.size > 0) {
+          this.recordedChunks.push(event.data);
         }
-
-        stopIcon.remove();
       });
+
+      this.mediaRecorder.start();
+      this.isRecording = true;
+
+      // Update button appearance for push-to-talk
+      micButton.textContent = "🔴";
+      micButton.title = "Recording... Release to stop";
+      micButton.addClass("recording");
+      micButton.addClass("pressed");
+
+      new Notice("🎤 Recording... Release button to stop", 2000);
+
+    } catch (error) {
+      console.error('Error starting voice recording:', error);
+      
+      // More specific error handling
+      let errorMessage = 'Microphone access issue: ';
+      if (error.name === 'NotAllowedError') {
+        errorMessage = '🎤 Microphone permission denied. Please:\n' +
+                      '1. Click the microphone icon in your browser address bar\n' +
+                      '2. Allow microphone access for this site\n' +
+                      '3. Refresh the page and try again';
+      } else if (error.name === 'NotFoundError') {
+        errorMessage = '🎤 No microphone found. Please check your microphone is connected and try again.';
+      } else if (error.name === 'NotSupportedError') {
+        errorMessage = '🎤 Microphone not supported in this browser. Try Chrome, Firefox, or Edge.';
+      } else if (error.name === 'NotReadableError') {
+        errorMessage = '🎤 Microphone is being used by another application. Please close other apps using the mic.';
+      } else {
+        errorMessage = `🎤 Microphone error: ${error.message}. Check browser permissions and microphone settings.`;
+      }
+      
+      new Notice(errorMessage, 8000);
+      this.isRecording = false;
+      
+      // Reset button state on error
+      micButton.textContent = "🎤";
+      micButton.title = "Voice input - Hold to record";
+      micButton.removeClass("recording");
+      micButton.removeClass("pressed");
+    }
+  }
+
+  async stopVoiceRecording(micButton, textarea) {
+    if (!this.mediaRecorder || !this.isRecording) return;
+
+    return new Promise((resolve) => {
+      this.mediaRecorder.addEventListener('stop', async () => {
+        const audioBlob = new Blob(this.recordedChunks, { type: 'audio/webm' });
+        
+        // Reset button appearance
+        micButton.textContent = "🎤";
+        micButton.title = "Voice input - Hold to record";
+        micButton.removeClass("recording");
+        micButton.removeClass("pressed");
+
+        // Stop all audio tracks
+        this.mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        new Notice("🎤 Recording stopped. Processing audio...", 2000);
+
+        // For now, just indicate that we would process the audio
+        // In a full implementation, this would send to speech-to-text service
+        new Notice("Voice processing would happen here. For now, type your question manually.", 5000);
+        
+        // Focus back to textarea
+        textarea.focus();
+        
+        resolve();
+      });
+
+      this.mediaRecorder.stop();
+      this.isRecording = false;
     });
-
-    // ----------------------------
-    // Settings Tab
-    // ----------------------------
-    this.addSettingTab(new AssistantSettingTab(this.app, this));
   }
 
-  onunload() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_TASK_QUEUE);
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_ANALYTICS);
+  async checkBackendStatus(statusDot, statusText, askButton, micButton) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+      
+      const response = await fetch(`${this.plugin.settings.backendUrl}/status`, {
+        method: 'GET',
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (response.ok) {
+        // Server is online - green status
+        statusDot.className = "ai-status-dot online";
+        statusText.textContent = "Backend Online";
+        statusText.style.color = "#22c55e";
+        askButton.disabled = false;
+        if (micButton) {
+          micButton.disabled = false;
+          micButton.title = "Voice input - Click to start recording";
+        }
+      } else {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+    } catch (error) {
+      // Server is offline - red status
+      statusDot.className = "ai-status-dot offline";
+      statusText.textContent = "Backend Offline";
+      statusText.style.color = "#ef4444";
+      askButton.disabled = true;
+      askButton.title = "Backend server is not running. Start the server first.";
+      if (micButton) {
+        micButton.disabled = true;
+        micButton.title = "Voice input unavailable - Backend server not running";
+      }
+    }
   }
 
-  // ----------------------------
-  // View Activation
-  // ----------------------------
-  async activateTaskQueueView() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_TASK_QUEUE);
-    const leaf = this.app.workspace.getRightLeaf(false);
-    await leaf.setViewState({ type: VIEW_TYPE_TASK_QUEUE, active: true });
-    this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_TASK_QUEUE)[0]
-    );
-  }
-
-  async activateAnalyticsView() {
-    this.app.workspace.detachLeavesOfType(VIEW_TYPE_ANALYTICS);
-    const leaf = this.app.workspace.getRightLeaf(false);
-    await leaf.setViewState({ type: VIEW_TYPE_ANALYTICS, active: true });
-    this.app.workspace.revealLeaf(
-      this.app.workspace.getLeavesOfType(VIEW_TYPE_ANALYTICS)[0]
-    );
-  }
-
-  // ----------------------------
-  // Analytics Tracking
-  // ----------------------------
-  trackQA(prompt, answer, model) {
-    const entry = {
-      timestamp: Date.now(),
-      prompt,
-      answer,
-    };
-    this.analytics.qaHistory.push(entry);
-    this.analytics.modelUsage[model] = (this.analytics.modelUsage[model] || 0) + 1;
-    this.saveAnalytics();
-  }
-
-  async saveAnalytics() {
-    await this.saveData({ settings: this.settings, analytics: this.analytics });
-  }
-
-  // ----------------------------
-  // Settings
-  // ----------------------------
-  async loadSettings() {
-    const loaded = await this.loadData();
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded.settings || {});
-  }
-
-  async saveSettings() {
-    await this.saveData({ settings: this.settings, analytics: this.analytics });
+  onClose() {
+    const { contentEl } = this;
+    contentEl.empty();
   }
 }
 
-// ----------------------------
+// Main Plugin Class
+class ObsidianAIAssistant extends Plugin {
+
+  async onload() {
+    console.log('Loading Obsidian AI Assistant Plugin');
+    
+    // Load settings
+    await this.loadSettings();
+
+    // Add ribbon icon
+    this.addRibbonIcon('brain', 'AI Assistant', () => {
+      new AIModal(this.app, this).open();
+    });
+
+    // Add command to command palette
+    this.addCommand({
+      id: 'open-ai-assistant',
+      name: 'Open AI Assistant',
+      callback: () => {
+        new AIModal(this.app, this).open();
+      }
+    });
+
+    // Add another command for quick ask
+    this.addCommand({
+      id: 'ask-ai-about-selection',
+      name: 'Ask AI about selected text',
+      editorCallback: async (editor) => {
+        const selectedText = editor.getSelection();
+        if (selectedText) {
+          await this.askAI(`Explain this text: ${selectedText}`);
+        } else {
+          new Notice('No text selected');
+        }
+      }
+    });
+
+    // Add settings tab
+    this.addSettingTab(new AIAssistantSettingTab(this.app, this));
+
+    new Notice('AI Assistant Plugin loaded successfully!');
+  }
+
+  onunload() {
+    console.log('Unloading Obsidian AI Assistant Plugin');
+  }
+
+  // Method to interact with AI backend
+  async askAI(question) {
+    try {
+      new Notice('Asking AI...', 2000);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(`${this.settings.backendUrl}/ask`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          question: question,
+          model_name: "qwen2.5-0.5b-instruct",
+          max_tokens: 512
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.response) {
+        // Create a new note with the AI response
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        const fileName = `AI Response ${timestamp}.md`;
+        
+        const content = `# AI Response\n\n**Question:** ${question}\n\n**Answer:** ${data.response}\n\n---\n*Generated on: ${new Date().toLocaleString()}*`;
+        
+        await this.app.vault.create(fileName, content);
+        new Notice(`AI response saved to: ${fileName}`);
+      } else {
+        new Notice('No response from AI backend');
+      }
+
+    } catch (error) {
+      console.error('Error asking AI:', error);
+      
+      // Better error messages
+      if (error.name === 'AbortError') {
+        new Notice('Request timed out. Check if backend server is running.', 5000);
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('refused')) {
+        new Notice(`Backend server not available. Please start the server at ${this.settings.backendUrl}`, 5000);
+      } else {
+        new Notice(`Error: ${error.message}`, 5000);
+      }
+    }
+  }
+
+  // Settings management
+  async loadSettings() {
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  async saveSettings() {
+    await this.saveData(this.settings);
+  }
+}
+
 // Settings Tab
-// ----------------------------
-class AssistantSettingTab extends PluginSettingTab {
+class AIAssistantSettingTab extends PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -204,58 +380,20 @@ class AssistantSettingTab extends PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: "Assistant Settings" });
+    containerEl.createEl("h2", { text: "AI Assistant Settings" });
 
     new Setting(containerEl)
       .setName("Backend URL")
-      .setDesc("URL of backend server for AI assistant")
+      .setDesc("URL of your AI backend server")
       .addText((text) =>
         text
           .setValue(this.plugin.settings.backendUrl)
-          .onChange(async (v) => {
-            this.plugin.settings.backendUrl = v;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Vault Path")
-      .setDesc("Path to your vault for backend indexing")
-      .addText((text) =>
-        text
-          .setValue(this.plugin.settings.vaultPath)
-          .onChange(async (v) => {
-            this.plugin.settings.vaultPath = v;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Prefer Fast Model")
-      .setDesc("Use lightweight/fast model vs deeper model")
-      .addToggle((toggle) =>
-        toggle
-          .setValue(this.plugin.settings.preferFastModel)
-          .onChange(async (v) => {
-            this.plugin.settings.preferFastModel = v;
-            await this.plugin.saveSettings();
-          })
-      );
-
-    new Setting(containerEl)
-      .setName("Voice Mode")
-      .setDesc("Offline (Vosk) or Online (Whisper/API) transcription")
-      .addDropdown((dd) =>
-        dd
-          .addOption("offline", "Offline (Vosk)")
-          .addOption("online", "Online")
-          .setValue(this.plugin.settings.voiceMode)
-          .onChange(async (v) => {
-            this.plugin.settings.voiceMode = v;
+          .onChange(async (value) => {
+            this.plugin.settings.backendUrl = value;
             await this.plugin.saveSettings();
           })
       );
   }
 }
 
-module.exports = AssistantPlugin;
+module.exports = ObsidianAIAssistant;

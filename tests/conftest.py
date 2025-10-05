@@ -13,7 +13,7 @@ from unittest.mock import Mock, patch
 from typing import Generator, Dict
 
 # Add project root to Python path for proper package imports - STRONGER! 💪
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent  # Go up one level from tests to project root
 sys.path.insert(0, str(project_root))
 
 
@@ -24,7 +24,7 @@ sys.path.insert(0, str(project_root))
 @pytest.fixture(scope="session")
 def project_root_path() -> Path:
     """Get the project root directory path."""
-    return Path(__file__).parent
+    return Path(__file__).parent.parent  # Project root is parent of tests directory
 
 
 @pytest.fixture(scope="session") 

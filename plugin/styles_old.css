@@ -1,0 +1,23 @@
+.task-queue-pane {
+    padding: 10px;
+    background-color: var(--background-primary);
+}
+
+.queue-item {
+    border: 1px solid var(--interactive-border);
+    padding: 5px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.queue-item.high-priority {
+    border-left: 5px solid var(--accent-color);
+}
+
+.queue-progress {
+    height: 6px;
+    background-color: var(--interactive-accent);
+    border-radius: 3px;
+}

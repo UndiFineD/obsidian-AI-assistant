@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 
 # Ensure project root is in Python path for imports
-project_root = Path(__file__).parent
+project_root = Path(__file__).parent.parent  # Go up one level from tests to project root
 sys.path.insert(0, str(project_root))
 
 # Verify imports work
