@@ -29,6 +29,11 @@ class TestCacheManager:
         """Create a CacheManager instance for testing."""
         return CacheManager(cache_dir=temp_cache_dir, ttl=3600)
     
+    @pytest.fixture
+    def temp_cache_dir(self, temp_dir):
+        """Create a temporary cache directory."""
+        return temp_dir
+    
     def test_cache_manager_initialization(self, temp_cache_dir):
         """Test CacheManager initialization."""
         cache_mgr = CacheManager(cache_dir=temp_cache_dir, ttl=1800)
@@ -43,16 +48,16 @@ class TestCacheManager:
         with patch('pathlib.Path.mkdir'):
             cache_mgr = CacheManager()
             
-            assert str(cache_mgr.cache_dir) == "./cache"
+            assert str(cache_mgr.cache_dir) == "cache"
             assert cache_mgr.ttl == 86400  # Default 24 hours
     
-    def test_cache_answer_and_retrieval(self, cache_manager):
+    def test_store_answer_and_retrieval(self, cache_manager):
         """Test caching and retrieving an answer."""
         question = "What is Python?"
         answer = "Python is a programming language."
         
         # Cache the answer
-        cache_manager.cache_answer(question, answer)
+        cache_manager.store_answer(question, answer)
         
         # Retrieve the answer
         retrieved = cache_manager.get_cached_answer(question)
@@ -70,7 +75,7 @@ class TestCacheManager:
         
         # Create first instance and cache answer
         cache_mgr1 = CacheManager(cache_dir=temp_cache_dir)
-        cache_mgr1.cache_answer(question, answer)
+        cache_mgr1.store_answer(question, answer)
         
         # Create second instance and check persistence
         cache_mgr2 = CacheManager(cache_dir=temp_cache_dir)
@@ -84,7 +89,7 @@ class TestCacheManager:
         
         # Cache with short TTL
         cache_manager.ttl = 1  # 1 second TTL
-        cache_manager.cache_answer(question, answer)
+        cache_manager.store_answer(question, answer)
         
         # Immediate retrieval should work
         assert cache_manager.get_cached_answer(question) == answer
@@ -114,7 +119,7 @@ class TestCacheManager:
         # Mock file operations to raise exception
         with patch('builtins.open', side_effect=PermissionError("Permission denied")):
             # Should not raise exception, just continue
-            cache_manager.cache_answer(question, answer)
+            cache_manager.store_answer(question, answer)
             
             # Answer should still be in memory cache
             assert cache_manager.get_cached_answer(question) == answer
@@ -136,7 +141,7 @@ class TestCacheManager:
         answer = "Answer to long question"
         
         # Should handle long questions gracefully
-        cache_manager.cache_answer(long_question, answer)
+        cache_manager.store_answer(long_question, answer)
         retrieved = cache_manager.get_cached_answer(long_question)
         assert retrieved == answer
     
@@ -147,11 +152,11 @@ class TestCacheManager:
         answer2 = "Updated answer about AI"
         
         # Cache first answer
-        cache_manager.cache_answer(question, answer1)
+        cache_manager.store_answer(question, answer1)
         assert cache_manager.get_cached_answer(question) == answer1
         
         # Overwrite with second answer
-        cache_manager.cache_answer(question, answer2)
+        cache_manager.store_answer(question, answer2)
         assert cache_manager.get_cached_answer(question) == answer2
     
     def test_cache_file_creation(self, temp_cache_dir):
@@ -160,7 +165,7 @@ class TestCacheManager:
         question = "Test creation"
         answer = "Test answer"
         
-        cache_mgr.cache_answer(question, answer)
+        cache_mgr.store_answer(question, answer)
         
         cache_file = Path(temp_cache_dir) / "answers.json"
         assert cache_file.exists()
@@ -177,7 +182,7 @@ class TestCacheManager:
         question = "¿Qué es Python? 🐍"
         answer = "Python es un lenguaje de programación 💻"
         
-        cache_manager.cache_answer(question, answer)
+        cache_manager.store_answer(question, answer)
         retrieved = cache_manager.get_cached_answer(question)
         assert retrieved == answer
 
@@ -190,7 +195,7 @@ class TestCacheManagerEdgeCases:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_mgr = CacheManager(cache_dir=temp_dir)
             
-            cache_mgr.cache_answer("", "")
+            cache_mgr.store_answer("", "")
             assert cache_mgr.get_cached_answer("") == ""
     
     def test_none_values(self):
@@ -202,17 +207,18 @@ class TestCacheManagerEdgeCases:
             result = cache_mgr.get_cached_answer(None)
             assert result is None
     
-    def test_concurrent_access_simulation(self, cache_manager):
+    def test_concurrent_access_simulation(self, temp_dir):
         """Test behavior under simulated concurrent access."""
         import threading
         import time
         
+        cache_manager = CacheManager(cache_dir=temp_dir, ttl=3600)
         results = []
         
         def cache_worker(i):
             question = f"Question {i}"
             answer = f"Answer {i}"
-            cache_manager.cache_answer(question, answer)
+            cache_manager.store_answer(question, answer)
             result = cache_manager.get_cached_answer(question)
             results.append(result == answer)
         
