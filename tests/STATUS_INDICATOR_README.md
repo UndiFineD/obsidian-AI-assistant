@@ -6,13 +6,15 @@
 
 The AI Assistant modal now includes a **real-time status indicator** that shows whether the backend server is running:
 
-**🟢 Green Dot = "Backend Online"** - Ready to ask questions
-**🔴 Red Dot = "Backend Offline"** - Server needs to be started  
-**🟡 Yellow Dot = "Checking..."** - Testing connection (animated pulse)
+#### 🟢 Green Dot = "Backend Online" - Ready to ask questions
+
+#### 🔴 Red Dot = "Backend Offline" - Server needs to be started
+
+#### 🟡 Yellow Dot = "Checking..." - Testing connection (animated pulse)
 
 ### 🎨 **Visual Features:**
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │ AI Assistant              🟢 Backend Online 🔄 │
 ├─────────────────────────────────────────┤
@@ -33,18 +35,20 @@ The AI Assistant modal now includes a **real-time status indicator** that shows 
 1. **Auto-Check:** Status is checked automatically when modal opens
 2. **Smart Disable:** "Ask AI" button is disabled if backend is offline
 3. **Manual Refresh:** Click the 🔄 button to recheck status
-4. **Visual Feedback:** 
+4. **Visual Feedback:**
    - Smooth color transitions
    - Glowing effects for online/offline states
    - Pulsing animation while checking
 
 ### 📋 **Technical Details:**
 
-**Files Updated:**
+#### Files Updated
+
 - ✅ `main.js` (5,641 → 7,792 bytes) - Added status checking logic
 - ✅ `styles.css` (755 → 1,698 bytes) - Added status indicator styles
 
-**New Features:**
+#### New Features
+
 - 3-second timeout for status checks
 - CSS animations and transitions
 - Automatic button state management

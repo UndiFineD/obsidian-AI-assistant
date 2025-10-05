@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import time
 import sys as _sys
+import http.server
+import socketserver
 
 # --- Local imports ---
 try:
@@ -208,26 +210,26 @@ async def transcribe_audio(request: TranscribeRequest):
         import io
         import tempfile
         import os
-        
+
         # Decode base64 audio data
         audio_bytes = base64.b64decode(request.audio_data)
-        
+
         # For now, return a placeholder response
         # In a production environment, you would integrate with:
         # - OpenAI Whisper (local or API)
         # - Google Cloud Speech-to-Text
         # - Azure Cognitive Services
         # - AWS Transcribe
-        
+
         # Placeholder implementation
         transcription = "Server-side speech recognition not yet implemented. Please use browser speech recognition."
-        
+
         return {
             "transcription": transcription,
             "confidence": 0.0,
             "status": "placeholder"
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
@@ -251,10 +253,8 @@ async def index_pdf(pdf_path: str):
 # Run server
 # ----------------------
 if __name__ == "__main__":
+    # Minimal Python webserver for demo (no nodejs, no node modules)
     init_services()
-        # Minimal Python webserver for demo (no nodejs, no node modules)
-    import http.server
-    import socketserver
     PORT = 8000
     Handler = http.server.SimpleHTTPRequestHandler
     with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:

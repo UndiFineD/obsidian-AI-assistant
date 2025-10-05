@@ -4,6 +4,7 @@ import os
 import tempfile
 import json
 import wave
+import builtins as _builtins
 from types import SimpleNamespace
 from fastapi import APIRouter, UploadFile
 from .utils import safe_call
@@ -65,7 +66,6 @@ async def voice_transcribe(file: UploadFile):
     # Save to temp wav using builtins.open so tests can patch file writes
     fd, temp_path = tempfile.mkstemp(suffix=".wav")
     try:
-        import builtins as _builtins
         with _builtins.open(fd, "wb", closefd=True) as temp_wav:
             temp_wav.write(audio_data)
     except Exception:
@@ -107,7 +107,6 @@ async def voice_transcribe(file: UploadFile):
 
 # Make the model object accessible as a global name for tests that reference `model` directly
 try:
-    import builtins as _builtins
     _builtins.model = model
 except Exception:
     pass

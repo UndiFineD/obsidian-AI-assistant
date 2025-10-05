@@ -1,15 +1,15 @@
-# Setup Script Tests
+#Setup Script Tests
 
 This directory contains comprehensive test suites for the PowerShell (`setup.ps1`) and Bash (`setup.sh`) setup scripts.
 
-## Test Files
+##Test Files
 
 - `test_setup_ps1.ps1` - Pester tests for PowerShell setup script
 - `test_setup_sh.bats` - BATS tests for Bash setup script
 
-## Prerequisites
+##Prerequisites
 
-### For PowerShell Tests (Windows)
+###For PowerShell Tests (Windows)
 
 Install Pester testing framework:
 
@@ -17,30 +17,36 @@ Install Pester testing framework:
 Install-Module -Name Pester -Force -SkipPublisherCheck
 ```
 
-### For Bash Tests (Linux/macOS/WSL)
+###For Bash Tests (Linux/macOS/WSL)
 
 Install BATS (Bash Automated Testing System):
 
 **Using npm:**
+
 ```bash
 npm install -g bats
 ```
 
+
 **Using package manager:**
 
 Ubuntu/Debian:
+
 ```bash
 sudo apt-get install bats
 ```
 
+
 macOS (Homebrew):
+
 ```bash
 brew install bats-core
 ```
 
-## Running the Tests
 
-### PowerShell Tests
+##Running the Tests
+
+###PowerShell Tests
 
 ```powershell
 # Navigate to the setup tests directory
@@ -56,7 +62,7 @@ Invoke-Pester test_setup_ps1.ps1 -Output Detailed
 Invoke-Pester test_setup_ps1.ps1 -CodeCoverage
 ```
 
-### Bash Tests
+###Bash Tests
 
 ```bash
 # Navigate to the setup tests directory
@@ -72,9 +78,9 @@ bats -t test_setup_sh.bats
 bats -f "virtual environment" test_setup_sh.bats
 ```
 
-## Test Coverage
+##Test Coverage
 
-### PowerShell Setup Script Tests (`test_setup_ps1.ps1`)
+###PowerShell Setup Script Tests (`test_setup_ps1.ps1`)
 
 The tests cover:
 
@@ -118,7 +124,7 @@ The tests cover:
    - Input validation
    - Path handling
 
-### Bash Setup Script Tests (`test_setup_sh.bats`)
+###Bash Setup Script Tests (`test_setup_sh.bats`)
 
 The tests cover:
 
@@ -163,7 +169,7 @@ The tests cover:
    - Dangerous command detection
    - File operation safety
 
-## Test Isolation
+##Test Isolation
 
 Both test suites use isolated test environments:
 
@@ -171,16 +177,17 @@ Both test suites use isolated test environments:
 - **Bash tests**: Create temporary workspace in `/tmp`
 
 This ensures:
+
 - No interference with actual project files
 - Safe testing of file operations
 - Reproducible test results
 - Easy cleanup after test completion
 
-## Continuous Integration
+##Continuous Integration
 
 These tests can be integrated into CI/CD pipelines:
 
-### GitHub Actions Example
+###GitHub Actions Example
 
 ```yaml
 # .github/workflows/setup-tests.yml
@@ -208,11 +215,12 @@ jobs:
         run: bats tests/setup/test_setup_sh.bats
 ```
 
-## Troubleshooting
+##Troubleshooting
 
-### Common Issues
+###Common Issues
 
 1. **Pester Not Found (Windows)**
+
    ```powershell
    # Update PowerShell execution policy if needed
    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
@@ -222,6 +230,7 @@ jobs:
    ```
 
 2. **BATS Not Found (Linux/macOS)**
+
    ```bash
    # Ensure BATS is in PATH
    which bats
@@ -231,6 +240,7 @@ jobs:
    ```
 
 3. **Permission Denied (Linux/macOS)**
+
    ```bash
    # Make test files executable
    chmod +x tests/setup/test_setup_sh.bats
@@ -238,19 +248,20 @@ jobs:
 
 4. **Test Workspace Cleanup**
    If tests fail to clean up temporary directories:
+
    ```bash
    # Manual cleanup
    rm -rf /tmp/obsidian-ai-test-*
    ```
 
-### Debugging Tests
+###Debugging Tests
 
 To debug failing tests:
 
 1. **PowerShell**: Add `-Verbose` flag to see detailed output
 2. **BATS**: Use `-t` flag for verbose output and `--verbose-run` for command tracing
 
-## Contributing
+##Contributing
 
 When modifying setup scripts:
 

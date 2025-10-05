@@ -3,19 +3,20 @@
 Pytest configuration and shared fixtures for Obsidian AI Assistant tests.
 """
 
-import pytest
-import tempfile
-import shutil
 import os
+import shutil
 import sys
+import tempfile
 from pathlib import Path
+from typing import Generator, Dict
 from unittest.mock import Mock, patch
 import unittest.mock as _um
+import pytest
+import pytest_asyncio  # ensure plugin is importable
+
 # Ensure Mock behaves like MagicMock so __call__ is also a Mock in tests
 _um.Mock = _um.MagicMock
 pytest_plugins = ("pytest_asyncio",)
-import pytest_asyncio  # ensure plugin is importable
-from typing import Generator, Dict
 
 # Add project root to Python path for proper package imports - STRONGER! 💪
 project_root = Path(__file__).parent.parent  # Go up one level from tests to project root
@@ -32,7 +33,7 @@ def project_root_path() -> Path:
     return Path(__file__).parent.parent  # Project root is parent of tests directory
 
 
-@pytest.fixture(scope="session") 
+@pytest.fixture(scope="session")
 def backend_path(project_root_path: Path) -> Path:
     """Get the backend directory path."""
     return project_root_path / "backend"
@@ -140,7 +141,7 @@ def mock_llama_cpp():
         yield mock_instance
 
 
-@pytest.fixture  
+@pytest.fixture
 def mock_gpt4all():
     """Mock GPT4All model."""
     with patch('gpt4all.GPT4All') as mock:
@@ -370,15 +371,15 @@ def pytest_configure(config):
     except Exception:
         pass
     config.addinivalue_line(
-        "markers", 
+        "markers",
         "unit: mark test as a unit test (fast, isolated)"
     )
     config.addinivalue_line(
-        "markers", 
+        "markers",
         "integration: mark test as an integration test (slower)"
     )
     config.addinivalue_line(
-        "markers", 
+        "markers",
         "slow: mark test as slow (model loading, etc.)"
     )
 

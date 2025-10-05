@@ -25,45 +25,55 @@ Added a **microphone button (🎤)** next to the "Ask AI" button for voice input
 
 ### 🚀 **Features:**
 
-**🎤 Click to Start Recording:**
+#### 🎤 Click to Start Recording
+
 - Browser requests microphone permission
 - Button changes to 🔴 with red pulsing animation
 - "Recording..." status message
 
-**🔴 Click to Stop Recording:**
+#### 🔴 Click to Stop Recording
+
 - Stops recording and processes audio
 - Button returns to 🎤 normal state
 - Shows processing status
 
-**⚠️ Smart Disable:**
+#### ⚠️ Smart Disable
+
 - Disabled when backend is offline
 - Tooltip shows "Voice input unavailable - Backend server not running"
 
 ### 🎛️ **Technical Features:**
 
-**Audio Recording:**
+#### Audio Recording
+
 - Uses native browser MediaRecorder API
 - Records in WebM audio format
 - Proper cleanup of audio streams
 
-**Visual Feedback:**
+#### Visual Feedback
+
 - Smooth animations and transitions
 - Color changes during recording (red pulsing)
 - Hover effects and scaling
 
-**Error Handling:**
+#### Error Handling
+
 - Graceful fallback if microphone access denied
 - Clear error messages for user
 
 ### 📋 **File Updates:**
 
-**main.js:** 10,739 bytes (was 7,792)
+#### main.js
+
+10,739 bytes (was 7,792)
 - Added `startVoiceRecording()` method
 - Added `stopVoiceRecording()` method
 - Integrated with backend status checking
 - Microphone button state management
 
-**styles.css:** 2,464 bytes (was 1,698)
+#### styles.css
+
+2,464 bytes (was 1,698)
 - Added `.ai-mic-button` styles
 - Added `.recording` state with pulse animation
 - Hover effects and transitions
@@ -77,16 +87,18 @@ Added a **microphone button (🎤)** next to the "Ask AI" button for voice input
 5. **Click Red Button (🔴):** Stops recording
 6. **Wait for Processing:** (Currently shows placeholder message)
 
-### 🔧 **Current Implementation:**
+### �️ **Current Implementation:**
 
-**✅ Working Features:**
+#### ✅ Working Features
+
 - Microphone permission request
 - Audio recording start/stop
 - Visual feedback and animations
 - Backend status integration
 - Error handling
 
-**🚧 Future Enhancement:**
+#### 🚧 Future Enhancement
+
 - Speech-to-text processing integration
 - Auto-populate textarea with transcription
 - Send transcribed text to AI backend
@@ -95,4 +107,4 @@ Added a **microphone button (🎤)** next to the "Ask AI" button for voice input
 
 The microphone button currently records audio and provides all the UI feedback, but the speech-to-text processing shows a placeholder message. This provides the foundation for integrating with speech recognition services later.
 
-**Ready to test!** Restart Obsidian and try the new microphone button! 🎤✨
+Ready to test! Restart Obsidian and try the new microphone button! 🎤✨

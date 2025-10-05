@@ -1,6 +1,6 @@
 # tests/backend/test_llm_router.py
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, MagicMock, patch
 import sys
 import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -10,8 +10,9 @@ from backend.llm_router import HybridLLMRouter
 def mock_llama():
     """Mock LLaMA model."""
     with patch('backend.llm_router.Llama') as mock_llama_class:
-        mock_llama_instance = Mock()
-        mock_llama_instance.return_value = {"choices": [{"text": "LLaMA response"}]}
+        # Use MagicMock and explicitly set __call__ as a MagicMock
+        mock_llama_instance = MagicMock()
+        mock_llama_instance.__call__ = MagicMock(return_value={"choices": [{"text": "LLaMA response"}]})
         mock_llama_class.return_value = mock_llama_instance
         yield mock_llama_instance
 
@@ -43,8 +44,8 @@ def test_router_initialization_defaults():
         assert router.session_memory is True
         assert router.memory_limit == 5
         assert router.llama is None  # No model loaded since files don't exist
-        assert router.gpt4all is None
-        
+    assert router.gpt4all is None
+
 def test_router_initialization_custom():
     """Test router initialization with custom values."""
     with patch('os.path.exists', return_value=False), \
@@ -262,7 +263,7 @@ class TestLLMRouterIntegration:
             responses = []
             questions = [
                 "What is machine learning?",
-                "Can you explain neural networks?", 
+                "Can you explain neural networks?",
                 "How does deep learning work?",
                 "What about reinforcement learning?"
             ]

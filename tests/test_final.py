@@ -146,7 +146,7 @@ def test_backend_endpoints():
         
         if response.status_code == 200:
             data = response.json()
-            print(f"✅ /ask endpoint working")
+            print("✅ /ask endpoint working")
             print(f"   Response: {data.get('response', 'No response')[:50]}...")
             return True
         else:
@@ -165,7 +165,7 @@ def main():
     
     tests = [
         ("Plugin Structure", test_plugin_structure),
-        ("Manifest Content", test_manifest_content), 
+    ("Manifest Content", test_manifest_content),
         ("Main.js Structure", test_main_js_structure),
         ("Backend Availability", test_backend_availability),
         ("Backend Endpoints", test_backend_endpoints)

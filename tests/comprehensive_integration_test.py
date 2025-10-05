@@ -50,7 +50,7 @@ class IntegrationTester:
                 data = response.json()
                 print_test("Backend Server", True, f"Status: {data.get('status', 'unknown')}")
                 print_test("Backend Mode", True, f"Mode: {data.get('backend_mode', 'unknown')}")
-                print_test("Response Time", True, f"< 5 seconds")
+                print_test("Response Time", True, "< 5 seconds")
                 self.passed_tests += 3
             else:
                 print_test("Backend Server", False, f"HTTP {response.status_code}")
@@ -99,7 +99,7 @@ class IntegrationTester:
                     )
                     
                     print_test(
-                        f"{category} Question", 
+                        f"{category} Question",
                         is_valid,
                         f"Response: {response_text[:60]}... (Model: {model_used}, {processing_time}s)"
                     )
