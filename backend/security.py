@@ -10,5 +10,5 @@ def encrypt_data(data: str) -> bytes:
 
 def decrypt_data(data: bytes) -> str:
     return fernet.decrypt(data).decode()
-	
+
 	

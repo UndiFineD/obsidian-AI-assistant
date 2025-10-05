@@ -14,15 +14,15 @@ def main():
     # Get the project root (where this script is located)
     project_root = Path(__file__).parent
     tests_dir = project_root / "tests"
-    
+
     # Verify tests directory exists
     if not tests_dir.exists():
         print(f"❌ Tests directory not found: {tests_dir}")
         return 1
-    
+
     # Change to tests directory to run pytest
     original_cwd = os.getcwd()
-    
+
     try:
         os.chdir(tests_dir)
         

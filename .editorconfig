@@ -1,0 +1,17 @@
+# EditorConfig helps maintain consistent coding styles for multiple developers working on the same project
+root = true
+
+[*]
+end_of_line = crlf
+insert_final_newline = true
+charset = utf-8
+trim_trailing_whitespace = true
+
+[*.md]
+# Keep two spaces at end of lines for explicit line breaks in Markdown
+trim_trailing_whitespace = false
+
+[*.{png,jpg,jpeg,gif,bin}]
+# Binary files
+insert_final_newline = false
+trim_trailing_whitespace = false

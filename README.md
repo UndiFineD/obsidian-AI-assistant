@@ -48,7 +48,7 @@
 
 ## **Project Structure**
 
-```
+```text
 obsidian-llm-assistant/
 ├─ backend/                # FastAPI backend modules
 ├─ plugin/                 # Obsidian plugin
@@ -183,15 +183,15 @@ The backend will start at `http://localhost:8000` by default.
 ### **7. Screenshots / Placeholders**
 
 > _(Add screenshots here if desired)_
-> 
+>
 > - Task Queue Pane
->     
+>
 > - Ribbon Buttons
->     
+>
 > - Analytics Dashboard
->     
+>
 > - Inline Note Formatting
->     
+>
 
 ---
 
@@ -201,7 +201,7 @@ This project includes comprehensive test suites to ensure reliability and mainta
 
 #### **Test Structure**
 
-```
+```text
 tests/                           # All tests organized in single directory
 ├─ backend/                      # Python backend tests
 │  ├─ test_backend.py           # FastAPI endpoint tests
@@ -349,6 +349,8 @@ Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for Gi
 ---
 
 This `README.md` provides **everything a user needs** to install, configure, and start using your offline-first Obsidian LLM assistant.
+
+
 
 
 

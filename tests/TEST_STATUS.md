@@ -1,5 +1,6 @@
 # Test Status Report
-*Generated: $(date)*
+
+## Generated: $(date)
 
 ## Overview
 
@@ -14,7 +15,7 @@ This document summarizes the current state of the comprehensive test suite creat
 ### Test Files
 
 - `tests/backend/test_backend.py` - FastAPI endpoint tests (❌ Import issues)
-- `tests/backend/test_caching.py` - Cache management tests (⚠️ API mismatches) 
+- `tests/backend/test_caching.py` - Cache management tests (⚠️ API mismatches)
 - `tests/backend/test_embeddings.py` - Vector database tests (⚠️ API mismatches)
 - `tests/backend/test_indexing.py` - Document indexing tests (❌ Import issues)
 - `tests/backend/test_llm_router.py` - LLM routing tests (⚠️ API mismatches)
@@ -33,6 +34,7 @@ This document summarizes the current state of the comprehensive test suite creat
 **Status**: 33 passed, 30 failed, 16 errors out of 79 tests
 
 ### Working Tests (33 passed)
+
 - ✅ Security module tests: 22/24 tests passing
 - ✅ Basic cache initialization tests
 - ✅ Some embedding manager tests
@@ -43,6 +45,7 @@ This document summarizes the current state of the comprehensive test suite creat
 #### 1. API Mismatches (Most Common Issue)
 
 **CacheManager**:
+
 ```python
 # Tests expect:
 cache_manager.cache_answer(question, answer)
@@ -51,6 +54,7 @@ cache_manager.save_cache(question, answer)
 ```
 
 **EmbeddingsManager**:
+
 ```python
 # Tests expect:
 embeddings_manager.add_documents(documents, metadatas)
@@ -59,6 +63,7 @@ embeddings_manager.search_similar(query, top_k=2)
 ```
 
 **HybridLLMRouter**:
+
 ```python
 # Tests expect:
 router.generate("prompt", prefer_fast=True)
@@ -68,6 +73,7 @@ router.generate("prompt", prefer_fast=True)
 #### 2. Import Issues
 
 Several modules use relative imports but tests import them directly:
+
 - `backend.backend` has relative imports to other modules
 - `indexing` module has relative import issues
 - `modelmanager` module has relative import issues
@@ -81,6 +87,7 @@ Several modules use relative imports but tests import them directly:
 #### 4. Mock Configuration Issues
 
 Some fixtures in `conftest.py` have naming mismatches:
+
 - `mock_sentence_transformer` vs `mock_sentence_transformers`
 - `mock_llama` vs `mock_llama_cpp`
 
@@ -132,6 +139,7 @@ Some fixtures in `conftest.py` have naming mismatches:
 ### For Immediate Use
 
 1. **Run Working Tests Only**:
+
    ```bash
    # Run only security tests (mostly working)
    pytest tests/backend/test_security.py -v
