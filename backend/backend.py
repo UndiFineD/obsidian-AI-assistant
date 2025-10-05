@@ -85,6 +85,11 @@ class WebRequest(BaseModel):
     url: str
     question: Optional[str] = None
 
+class TranscribeRequest(BaseModel):
+    audio_data: str  # Base64 encoded audio
+    format: str = "webm"  # Audio format
+    language: str = "en"  # Language code
+
 # ----------------------
 # API Endpoints
 # ----------------------
@@ -176,6 +181,40 @@ async def reindex(request: ReindexRequest):
     if vault_indexer is None:
         init_services()
     return vault_indexer.reindex(request.vault_path)
+
+@app.post("/transcribe")
+async def transcribe_audio(request: TranscribeRequest):
+    """
+    Transcribe audio to text using a speech-to-text service.
+    This is a fallback when browser-based speech recognition is not available.
+    """
+    try:
+        import base64
+        import io
+        import tempfile
+        import os
+        
+        # Decode base64 audio data
+        audio_bytes = base64.b64decode(request.audio_data)
+        
+        # For now, return a placeholder response
+        # In a production environment, you would integrate with:
+        # - OpenAI Whisper (local or API)
+        # - Google Cloud Speech-to-Text
+        # - Azure Cognitive Services
+        # - AWS Transcribe
+        
+        # Placeholder implementation
+        transcription = "Server-side speech recognition not yet implemented. Please use browser speech recognition."
+        
+        return {
+            "transcription": transcription,
+            "confidence": 0.0,
+            "status": "placeholder"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
 
 @app.post("/api/search")
 async def search(query: str, top_k: int = 5):

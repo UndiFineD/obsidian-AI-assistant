@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech-to-Text Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1e1e1e;
+            color: white;
+        }
+        
+        .test-container {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            background-color: #2a2a2a;
+            max-width: 600px;
+            width: 90%;
+        }
+        
+        .ai-mic-button {
+            font-size: 24px;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 8px;
+            background-color: #007acc;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 20px;
+        }
+        
+        .ai-mic-button:hover:not(:disabled) {
+            background-color: #005a9e;
+            transform: scale(1.05);
+        }
+        
+        .ai-mic-button:active,
+        .ai-mic-button.pressed {
+            background-color: #dc2626 !important;
+            color: white !important;
+            transform: scale(0.95);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .ai-mic-button.recording {
+            background-color: #dc2626;
+            color: white;
+            animation: pulse-red 1.5s infinite;
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.5);
+        }
+        
+        .ai-mic-button.recording.pressed {
+            animation: pulse-red-pressed 1.5s infinite;
+            transform: scale(0.95);
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+        }
+        
+        @keyframes pulse-red-pressed {
+            0%, 100% { opacity: 1; transform: scale(0.95); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+        
+        .status {
+            margin: 20px 0;
+            font-size: 18px;
+        }
+        
+        textarea {
+            width: 100%;
+            height: 150px;
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 4px;
+            background-color: #333;
+            color: white;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .log {
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            background: #111;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 20px 0;
+        }
+        
+        .log div {
+            margin: 2px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h2>🎤 Speech-to-Text Test</h2>
+        <p>Hold down the microphone button and speak. Release to process speech.</p>
+        <div style="background:#222;padding:10px;border-radius:6px;margin:10px 0 20px 0;font-size:15px;color:#ffd700;">
+            <b>Tip:</b> To permanently allow microphone access, click "Allow" when prompted.<br>
+            To always allow, go to your browser's site settings and set microphone permission to <b>Allow</b> for this site.<br>
+            <span style="font-size:13px;color:#ccc;">(For Chrome: Click the lock icon in the address bar &rarr; Site settings &rarr; Microphone &rarr; Allow)</span>
+        </div>
+        
+        <button class="ai-mic-button" title="Hold to record">🎤</button>
+        
+        <div class="status" id="status">Ready to record</div>
+        
+        <textarea id="transcription" placeholder="Transcribed text will appear here..."></textarea>
+        
+        <div class="log" id="log"></div>
+    </div>
+
+    <script>
+        const micButton = document.querySelector('.ai-mic-button');
+        const status = document.getElementById('status');
+        const textarea = document.getElementById('transcription');
+        const log = document.getElementById('log');
+        
+        let isRecording = false;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let speechRecognition = null;
+        let currentTranscription = '';
+        
+        function addLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logEntry.style.color = '#888';
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function updateStatus(message) {
+            status.textContent = message;
+            addLog(message);
+        }
+        
+        function supportsBrowserSpeechRecognition() {
+            return ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+        }
+        
+        function startLiveSpeechRecognition() {
+            if (!supportsBrowserSpeechRecognition()) {
+                addLog('Browser speech recognition not supported');
+                return;
+            }
+            
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                speechRecognition = new SpeechRecognition();
+                
+                speechRecognition.continuous = true;
+                speechRecognition.interimResults = true;
+                speechRecognition.lang = 'en-US';
+                
+                let finalTranscript = '';
+                
+                speechRecognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        const transcript = event.results[i][0].transcript;
+                        
+                        if (event.results[i].isFinal) {
+                            finalTranscript += transcript + ' ';
+                            addLog(`Final: ${transcript}`);
+                        } else {
+                            interimTranscript += transcript;
+                        }
+                    }
+                    
+                    currentTranscription = finalTranscript.trim();
+                    
+                    if (interimTranscript) {
+                        addLog(`Interim: ${interimTranscript}`);
+                    }
+                };
+                
+                speechRecognition.onerror = (event) => {
+                    addLog(`Speech recognition error: ${event.error}`);
+                };
+                
+                speechRecognition.onend = () => {
+                    addLog('Speech recognition ended');
+                };
+                
+                speechRecognition.start();
+                addLog('Speech recognition started');
+                
+            } catch (error) {
+                addLog(`Failed to start speech recognition: ${error.message}`);
+            }
+        }
+        
+        function stopLiveSpeechRecognition() {
+            if (speechRecognition) {
+                try {
+                    speechRecognition.stop();
+                    speechRecognition = null;
+                    addLog('Speech recognition stopped');
+                } catch (error) {
+                    addLog(`Error stopping speech recognition: ${error.message}`);
+                }
+            }
+        }
+        
+        async function startRecording() {
+            if (isRecording) return;
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                recordedChunks = [];
+                
+                mediaRecorder.addEventListener('dataavailable', event => {
+                    if (event.data.size > 0) {
+                        recordedChunks.push(event.data);
+                    }
+                });
+                
+                mediaRecorder.start();
+                isRecording = true;
+                
+                // Start live speech recognition
+                startLiveSpeechRecognition();
+                
+                micButton.textContent = "🔴";
+                micButton.title = "Recording... Release to stop";
+                micButton.classList.add("recording", "pressed");
+                
+                updateStatus("Recording... Speak now");
+                
+            } catch (error) {
+                addLog(`Error starting recording: ${error.message}`);
+                updateStatus('Recording failed');
+            }
+        }
+        
+        async function stopRecording() {
+            if (!isRecording || !mediaRecorder) return;
+            
+            return new Promise((resolve) => {
+                mediaRecorder.addEventListener('stop', async () => {
+                    const audioBlob = new Blob(recordedChunks, { type: 'audio/webm' });
+                    
+                    micButton.textContent = "🎤";
+                    micButton.title = "Hold to record";
+                    micButton.classList.remove("recording", "pressed");
+                    
+                    mediaRecorder.stream.getTracks().forEach(track => track.stop());
+                    
+                    updateStatus("Processing speech...");
+                    
+                    // Stop live speech recognition and get results
+                    stopLiveSpeechRecognition();
+                    
+                    // Use the transcription from live recognition
+                    setTimeout(() => {
+                        if (currentTranscription && currentTranscription.trim()) {
+                            const existingText = textarea.value.trim();
+                            const newText = existingText ? `${existingText} ${currentTranscription}` : currentTranscription;
+                            textarea.value = newText;
+                            
+                            updateStatus(`Speech recognized: "${currentTranscription.substring(0, 50)}${currentTranscription.length > 50 ? '...' : ''}"`);
+                            addLog(`Added to textarea: ${currentTranscription}`);
+                        } else {
+                            updateStatus("No speech detected. Try speaking more clearly.");
+                        }
+                        
+                        currentTranscription = '';
+                        resolve();
+                    }, 500); // Small delay to catch final results
+                });
+                
+                mediaRecorder.stop();
+                isRecording = false;
+            });
+        }
+        
+        // Event listeners for push-to-talk
+        micButton.addEventListener('mousedown', async (e) => {
+            e.preventDefault();
+            await startRecording();
+        });
+        
+        micButton.addEventListener('touchstart', async (e) => {
+            e.preventDefault();
+            await startRecording();
+        });
+        
+        const stopHandler = async () => {
+            await stopRecording();
+        };
+        
+        micButton.addEventListener('mouseup', stopHandler);
+        micButton.addEventListener('mouseleave', stopHandler);
+        micButton.addEventListener('touchend', stopHandler);
+        micButton.addEventListener('touchcancel', stopHandler);
+        
+        micButton.addEventListener('contextmenu', (e) => e.preventDefault());
+        
+        // Initialize
+        if (supportsBrowserSpeechRecognition()) {
+            addLog('Browser speech recognition supported');
+        } else {
+            addLog('Browser speech recognition NOT supported - fallback needed');
+        }
+    </script>
+</body>
+</html>
