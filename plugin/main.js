@@ -1,8 +1,27 @@
 const { Plugin, Modal, Notice, PluginSettingTab, Setting } = require("obsidian");
 
 const DEFAULT_SETTINGS = {
-  backendUrl: "http://localhost:8000"
+  backendUrl: "http://localhost:8000",
+  features: { enableVoice: true, allowNetwork: false },
 };
+
+function loadPluginConfigFile(app) {
+  try {
+    // Resolve plugin folder from app.vault.adapter if available; fallback to relative path
+    const base = app?.vault?.adapter?.basePath || "";
+    // Try to load config.json adjacent to main.js if user copied the template
+    const path = require("path");
+    const fs = require("fs");
+    const here = __dirname;
+    const candidate = path.join(here, "config.json");
+    if (fs.existsSync(candidate)) {
+      const raw = fs.readFileSync(candidate, "utf-8");
+      const data = JSON.parse(raw);
+      return data;
+    }
+  } catch (_) {}
+  return null;
+}
 
 class AIModal extends Modal {
   constructor(app, plugin) {
@@ -67,6 +86,12 @@ class AIModal extends Modal {
 class ObsidianAIAssistant extends Plugin {
   async onload() {
     await this.loadSettings();
+    // Optional: overlay config.json values if present
+    const external = loadPluginConfigFile(this.app);
+    if (external && typeof external === "object") {
+      this.settings = Object.assign({}, this.settings, external);
+      await this.saveSettings();
+    }
     this.addRibbonIcon("bot", "AI Assistant", () => {
       new AIModal(this.app, this).open();
     });
@@ -103,6 +128,81 @@ class AIAssistantSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl)
+      .setName("Enable Voice")
+      .setDesc("Show voice features in UI")
+      .addToggle((tgl) =>
+        tgl
+          .setValue(!!(this.plugin.settings.features?.enableVoice))
+          .onChange(async (v) => {
+            this.plugin.settings.features = this.plugin.settings.features || {};
+            this.plugin.settings.features.enableVoice = v;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName("Allow Network (backend)")
+      .setDesc("Hint to backend to allow outbound network features")
+      .addToggle((tgl) =>
+        tgl
+          .setValue(!!(this.plugin.settings.features?.allowNetwork))
+          .onChange(async (v) => {
+            this.plugin.settings.features = this.plugin.settings.features || {};
+            this.plugin.settings.features.allowNetwork = v;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    const controls = containerEl.createEl("div");
+    const fetchBtn = controls.createEl("button", { text: "Fetch Backend Config" });
+    fetchBtn.onclick = async () => {
+      try {
+        const res = await fetch(this.plugin.settings.backendUrl + "/api/config");
+        if (res.ok) {
+          const cfg = await res.json();
+          new Notice("Config loaded: api_port=" + cfg.api_port);
+        } else {
+          new Notice("Failed to fetch backend config");
+        }
+      } catch (_) {
+        new Notice("Failed to reach backend");
+      }
+    };
+    const reloadBtn = controls.createEl("button", { text: "Reload Backend Config" });
+    reloadBtn.onclick = async () => {
+      try {
+        const res = await fetch(this.plugin.settings.backendUrl + "/api/config/reload", { method: "POST" });
+        if (res.ok) new Notice("Backend config reloaded");
+        else new Notice("Reload failed");
+      } catch (_) {
+        new Notice("Failed to reach backend");
+      }
+    };
+
+    const saveBtn = controls.createEl("button", { text: "Save to Backend" });
+    saveBtn.onclick = async () => {
+      try {
+        const updates = {
+          allow_network: !!(this.plugin.settings.features && this.plugin.settings.features.allowNetwork),
+        };
+        const res = await fetch(this.plugin.settings.backendUrl + "/api/config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
+        if (!res.ok) {
+          new Notice("Failed to save config to backend");
+          return;
+        }
+        // Reload backend config to apply
+        await fetch(this.plugin.settings.backendUrl + "/api/config/reload", { method: "POST" });
+        new Notice("Backend settings saved and reloaded");
+      } catch (_) {
+        new Notice("Failed to reach backend");
+      }
+    };
   }
 }
 
