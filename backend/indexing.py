@@ -8,6 +8,7 @@ import requests
 from readability import Document
 from PyPDF2 import PdfReader
 from .utils import safe_call
+from .settings import get_settings
 
 try:
     from .embeddings import EmbeddingsManager
@@ -23,8 +24,14 @@ except ImportError:
 class VaultIndexer:
     """Indexes Markdown, PDF, and web content into embeddings DB."""
 
-    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: str = "cache"):
+    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: Optional[str] = None):
         self.emb_mgr = emb_mgr or EmbeddingsManager()
+        # Prefer centralized settings when cache_dir not provided
+        if cache_dir is None:
+            try:
+                cache_dir = str(get_settings().abs_cache_dir)
+            except Exception:
+                cache_dir = "cache"
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -141,6 +148,8 @@ class VaultIndexer:
         # Always attempt to clear collection even if directory doesn't exist
         if getattr(self.emb_mgr, "clear_collection", None):
             safe_call(self.emb_mgr.clear_collection, error_msg="[VaultIndexer] Error clearing collection")
+        elif getattr(self.emb_mgr, "reset_db", None):
+            safe_call(self.emb_mgr.reset_db, error_msg="[VaultIndexer] Error resetting DB")
 
         if not os.path.isdir(vault_path):
             return summary
@@ -196,8 +205,8 @@ class VaultIndexer:
             if not text:
                 return 0
             cache_key = self._hash_url(pdf_path)
-            self._cache_file(cache_key, text)
-            return self.emb_mgr.index_file(str(cache_key))
+            cached_path = self._cache_file(cache_key, text)
+            return self.emb_mgr.index_file(str(cached_path))
         return safe_call(do_index_pdf, error_msg=f"[VaultIndexer] Error indexing PDF {pdf_path}", default=0)
 
     # -------------------
@@ -234,8 +243,8 @@ class VaultIndexer:
             if not text:
                 return 0
             cache_key = self._hash_url(url)
-            self._cache_file(cache_key, text)
-            return self.emb_mgr.index_file(str(cache_key))
+            cached_path = self._cache_file(cache_key, text)
+            return self.emb_mgr.index_file(str(cached_path))
         return safe_call(do_index_web, error_msg=f"[VaultIndexer] Error indexing web page {url}", default=0)
 
     def index_web_content(self, url: str) -> Dict[str, Any]:
@@ -263,8 +272,15 @@ class IndexingService:
     Provides a single entry point for backend.py.
     """
 
-    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: str = "cache"):
-        self.emb_mgr = emb_mgr or EmbeddingsManager()
+    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: Optional[str] = None):
+        if emb_mgr is None:
+            emb_mgr = EmbeddingsManager()
+        if cache_dir is None:
+            try:
+                cache_dir = str(get_settings().abs_cache_dir)
+            except Exception:
+                cache_dir = "cache"
+        self.emb_mgr = emb_mgr
         self.vault_indexer = VaultIndexer(emb_mgr=self.emb_mgr, cache_dir=cache_dir)
 
     def index_file(self, file_path: str) -> int:
@@ -281,3 +297,24 @@ class IndexingService:
 
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
         return self.vault_indexer.reindex_all(vault_path)
+
+    @classmethod
+    def from_settings(cls) -> "IndexingService":
+        """Create an IndexingService honoring centralized settings.
+
+        Falls back gracefully if settings-based construction fails.
+        """
+        try:
+            from .embeddings import EmbeddingsManager as _EM
+            emb = getattr(_EM, "from_settings", None)
+            if callable(emb):
+                emb_mgr = emb()
+            else:
+                emb_mgr = _EM()
+        except Exception:
+            emb_mgr = EmbeddingsManager()
+        try:
+            cache_dir = str(get_settings().abs_cache_dir)
+        except Exception:
+            cache_dir = "cache"
+        return cls(emb_mgr=emb_mgr, cache_dir=cache_dir)

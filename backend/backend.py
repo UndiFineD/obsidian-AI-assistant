@@ -10,18 +10,18 @@ import sys as _sys
 import http.server
 import socketserver
 try:
-    from .utils import safe_call
     from .embeddings import EmbeddingsManager
     from .indexing import VaultIndexer
     from .llm_router import HybridLLMRouter
     from .modelmanager import ModelManager
+    from .caching import CacheManager
 except Exception:
     # For tests that manipulate sys.path or import paths
-    from utils import safe_call  # type: ignore
     from embeddings import EmbeddingsManager  # type: ignore
     from indexing import VaultIndexer  # type: ignore
     from llm_router import HybridLLMRouter  # type: ignore
     from modelmanager import ModelManager  # type: ignore
+    from caching import CacheManager  # type: ignore
 
 # --- FastAPI app ---
 app = FastAPI(title="Obsidian AI Assistant")
@@ -60,10 +60,35 @@ def init_services():
         load_dotenv()
     except Exception as e:
         print(f"[init_services] Error loading .env: {e}")
-    hf_token = os.getenv("HUGGINGFACE_TOKEN")
-    model_manager = safe_init(ModelManager, hf_token=hf_token)
-    emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
-    vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
+    # Prefer settings-based initialization; fall back to defaults if it fails
+    try:
+        if hasattr(ModelManager, "from_settings"):
+            model_manager = safe_init(ModelManager.from_settings)
+        else:
+            hf_token = os.getenv("HUGGINGFACE_TOKEN")
+            model_manager = safe_init(ModelManager, hf_token=hf_token)
+    except Exception:
+        hf_token = os.getenv("HUGGINGFACE_TOKEN")
+        model_manager = safe_init(ModelManager, hf_token=hf_token)
+
+    try:
+        if hasattr(EmbeddingsManager, "from_settings"):
+            emb_manager = safe_init(EmbeddingsManager.from_settings)
+        else:
+            emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
+    except Exception:
+        emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
+
+    # Use IndexingService.from_settings if available, otherwise use VaultIndexer with settings-based cache
+    try:
+        if hasattr(IndexingService, "from_settings"):
+            indexing_service = safe_init(IndexingService.from_settings)
+            vault_indexer = indexing_service.vault_indexer if indexing_service else None
+        else:
+            vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
+    except Exception:
+        vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
+
     cache_manager = safe_init(CacheManager, "./cache")
 
 # ----------------------
@@ -100,11 +125,17 @@ def _health_payload():
 async def api_health():
     return _health_payload()
 
+@app.get("/status")
+async def status():
+    """Lightweight status endpoint for quick liveness checks."""
+    return {"status": "ok"}
+
 @app.get("/health")
 async def health():
+    # Return minimal health payload required by tests, while including a settings snapshot
+    base = _health_payload()
     s = get_settings()
-    return {
-        "status": "healthy",
+    base.update({
         "backend_url": s.backend_url,
         "api_port": s.api_port,
         "vault_path": str(s.vault_path),
@@ -115,7 +146,8 @@ async def health():
         "vector_db": s.vector_db,
         "allow_network": s.allow_network,
         "gpu": s.gpu,
-    }
+    })
+    return base
 
 
 @app.get("/api/config")

@@ -80,7 +80,6 @@ def test_chunk_text_basic(embeddings_manager):
     """Test basic text chunking functionality."""
     text = "This is a test document. " * 20  # Create longer text
     chunks = embeddings_manager.chunk_text(text)
-    
     assert isinstance(chunks, list)
     assert len(chunks) > 0
     assert all(isinstance(chunk, str) for chunk in chunks)
@@ -90,7 +89,6 @@ def test_chunk_text_short_text(embeddings_manager):
     """Test chunking of text shorter than chunk size."""
     text = "Short text."
     chunks = embeddings_manager.chunk_text(text)
-    
     assert len(chunks) == 1
     assert chunks[0] == text
 
@@ -102,13 +100,10 @@ def test_chunk_text_empty_text(embeddings_manager):
 def test_get_collection_info(embeddings_manager, mock_chroma_client):
     """Test getting collection information."""
     mock_chroma_client['collection'].count.return_value = 42
-    
     info = embeddings_manager.get_collection_info()
-    
     assert info['name'] == embeddings_manager.collection_name
     assert info['count'] == 42
     assert info['model'] == embeddings_manager.model_name
-
     # Note: hash generation is internal; no public API to test here
 
 def test_model_loading_error_handling(temp_db_path):
@@ -124,7 +119,6 @@ def test_database_connection_error(temp_db_path, mock_sentence_transformer):
         mgr = EmbeddingsManager(db_path=temp_db_path)
         # safe_call should swallow the exception and set chroma_client to None
         assert mgr.chroma_client is None
-
 
 class TestEmbeddingsIntegration:
     pass

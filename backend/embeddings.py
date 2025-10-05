@@ -9,6 +9,7 @@ from sentence_transformers import SentenceTransformer
 from chromadb import PersistentClient
 from chromadb.utils import embedding_functions
 from .utils import safe_call
+from .settings import get_settings
 
 
 class EmbeddingsManager:
@@ -64,6 +65,28 @@ class EmbeddingsManager:
                 self.collection = None
         else:
             self.collection = None
+
+    @classmethod
+    def from_settings(cls) -> "EmbeddingsManager":
+        """Build an EmbeddingsManager using centralized settings.
+
+        Does not alter the default constructor behavior used by tests; this is
+        a convenience for the runtime backend to honor user config without
+        changing test expectations.
+        """
+        s = get_settings()
+        # Derive a persistent vector DB path under project root unless the
+        # caller later supplies a different location. Keep the collection name
+        # stable.
+        vector_db_path = str(Path(s.project_root) / "vector_db")
+        return cls(
+            chunk_size=s.chunk_size,
+            overlap=s.chunk_overlap,
+            top_k=s.top_k,
+            db_path=vector_db_path,
+            collection_name="obsidian_notes",
+            model_name=s.embed_model,
+        )
 
     # ----------------------
     # Core embedding methods
@@ -125,6 +148,33 @@ class EmbeddingsManager:
                 embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(self.model_name)
             )
         safe_call(do_reset, error_msg="[EmbeddingsManager] Error resetting DB")
+
+    def clear_collection(self):
+        """Alias for reset_db to maintain backward compatibility with tests."""
+        self.reset_db()
+
+    def add_documents(self, chunks: List[str], metadatas: Optional[List[Dict]] = None):
+        """Add multiple document chunks to the collection.
+        
+        Expected by tests and indexing workflows for batch document insertion.
+        """
+        if not chunks or self.collection is None:
+            return
+        
+        def do_add():
+            # Generate IDs for chunks 
+            ids = [self._hash_text(chunk) for chunk in chunks]
+            # Use provided metadata or generate basic metadata
+            if metadatas is None:
+                metadatas = [{"chunk_index": i} for i in range(len(chunks))]
+            
+            self.collection.add(
+                documents=chunks,
+                ids=ids,
+                metadatas=metadatas
+            )
+            
+        safe_call(do_add, error_msg="[EmbeddingsManager] Error adding documents")
 
     def close(self):
         """Attempt to release any resources held by the Chroma client.
