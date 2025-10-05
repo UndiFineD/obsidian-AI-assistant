@@ -30,21 +30,38 @@ class EmbeddingsManager:
         self.collection_name = collection_name
         self.model_name = model_name
 
-        # Load embedding model with error boundary
-        self.model = safe_call(SentenceTransformer, model_name, error_msg="[EmbeddingsManager] Error loading embedding model", default=None)
+        # Load embedding model; tests expect failures to be swallowed
+        self.model = safe_call(
+            SentenceTransformer,
+            model_name,
+            error_msg="[EmbeddingsManager] Error loading embedding model",
+            default=None,
+        )
 
-        # Initialize persistent Chroma client
-        self.chroma_client = safe_call(PersistentClient, path=self.db_path, error_msg="[EmbeddingsManager] Error initializing Chroma client", default=None)
+        # If model failed to load, skip DB initialization to avoid file locks
+        if self.model is None:
+            self.chroma_client = None
+            self.collection = None
+            return
+
+        # Initialize persistent Chroma client; swallow errors
+        self.chroma_client = safe_call(
+            PersistentClient,
+            path=self.db_path,
+            error_msg="[EmbeddingsManager] Error initializing Chroma client",
+            default=None,
+        )
 
         # Create or get collection using the **model name**, not the model object
         if self.chroma_client:
-            self.collection = safe_call(
-                self.chroma_client.get_or_create_collection,
-                name=self.collection_name,
-                embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name),
-                error_msg="[EmbeddingsManager] Error creating/getting collection",
-                default=None
-            )
+            try:
+                self.collection = self.chroma_client.get_or_create_collection(
+                    name=self.collection_name,
+                    embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name),
+                )
+            except Exception:
+                logging.error("[EmbeddingsManager] Error creating/getting collection")
+                self.collection = None
         else:
             self.collection = None
 
@@ -109,9 +126,38 @@ class EmbeddingsManager:
             )
         safe_call(do_reset, error_msg="[EmbeddingsManager] Error resetting DB")
 
+    def close(self):
+        """Attempt to release any resources held by the Chroma client.
+
+        Chroma's PersistentClient does not expose an explicit close, but clearing
+        references may help Windows file lock issues in tests.
+        """
+        try:
+            # Best-effort cleanup
+            self.collection = None
+            self.chroma_client = None
+            self.model = None
+        except Exception:
+            pass
+
     # ----------------------
     # Utilities
     # ----------------------
+
+    def get_collection_info(self) -> Dict[str, Optional[object]]:
+        """Return basic info about the current collection.
+
+        Includes collection name, total document count, and model name.
+        Safe for cases where the collection is None.
+        """
+        count = 0
+        if self.collection is not None:
+            count = safe_call(self.collection.count, error_msg="[EmbeddingsManager] Error getting collection count", default=0)
+        return {
+            "name": self.collection_name,
+            "count": count,
+            "model": self.model_name,
+        }
 
     def _hash_text(self, text: str) -> str:
         return hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()

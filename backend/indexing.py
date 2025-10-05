@@ -2,7 +2,7 @@
 import os
 import hashlib
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Any
 from bs4 import BeautifulSoup
 import requests
 from readability import Document
@@ -42,6 +42,69 @@ class VaultIndexer:
             f.write(text)
         return cache_path
 
+    def _load_cached(self, key: str) -> Optional[str]:
+        """Load cached text if present; return None if missing or read fails."""
+        cache_path = self.cache_dir / f"{key}.txt"
+        if not cache_path.exists():
+            return None
+        def do_read():
+            with open(cache_path, "r", encoding="utf-8") as f:
+                return f.read()
+        return safe_call(do_read, error_msg=f"[VaultIndexer] Error reading cache for {key}", default=None)
+
+    def _read_markdown(self, md_path: str) -> Optional[str]:
+        """Read a Markdown file to string, returning None on failure.
+
+        Uses builtins.open so tests patching open() can intercept.
+        """
+        path = Path(md_path)
+        if not path.exists():
+            return None
+
+        def do_read_md():
+            with open(path, "r", encoding="utf-8") as f:
+                return f.read()
+
+        return safe_call(do_read_md, error_msg=f"[VaultIndexer] Error reading markdown {md_path}", default=None)
+
+    def _read_pdf(self, pdf_path: str) -> Optional[str]:
+        """Read and extract text from a PDF file; return None on failure or if missing.
+
+        Joins per-page text with newlines.
+        """
+        path = Path(pdf_path)
+        if not path.exists():
+            return None
+
+        def do_read_pdf():
+            reader = PdfReader(str(path))
+            pieces = []
+            for page in reader.pages:
+                txt = page.extract_text() or ""
+                txt = txt.strip()
+                if txt:
+                    pieces.append(txt)
+            return "\n".join(pieces)
+
+        return safe_call(do_read_pdf, error_msg=f"[VaultIndexer] Error reading PDF {pdf_path}", default=None)
+
+    def _fetch_web_content(self, url: str) -> Optional[str]:
+        """Fetch a URL and extract readable text using readability + BeautifulSoup.
+
+        Returns None on any error.
+        """
+
+        def do_fetch():
+            resp = requests.get(url, timeout=10)
+            resp.raise_for_status()
+            doc = Document(resp.text)
+            summary_html = doc.summary()
+            soup = BeautifulSoup(summary_html, "html.parser")
+            text = soup.get_text()
+            return text or None
+
+        return safe_call(do_fetch, error_msg=f"[VaultIndexer] Error fetching web content from {url}", default=None)
+
     # -------------------
     # Vault / Markdown
     # -------------------
@@ -67,6 +130,50 @@ class VaultIndexer:
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
         """Re-scan all files in the vault."""
         return self.index_vault(vault_path)
+
+    def reindex(self, vault_path: str) -> Dict[str, int]:
+        """Clear collection and index all Markdown and PDF files in a vault directory.
+
+        Returns a summary dict: {"files": <count>, "chunks": <count>}.
+        """
+        summary = {"files": 0, "chunks": 0}
+
+        # Always attempt to clear collection even if directory doesn't exist
+        if getattr(self.emb_mgr, "clear_collection", None):
+            safe_call(self.emb_mgr.clear_collection, error_msg="[VaultIndexer] Error clearing collection")
+
+        if not os.path.isdir(vault_path):
+            return summary
+
+        for root, _, files in os.walk(vault_path):
+            for file in files:
+                full_path = os.path.join(root, file)
+
+                def do_index():
+                    if file.endswith(".md"):
+                        content = self._read_markdown(full_path)
+                    elif file.endswith(".pdf"):
+                        content = self._read_pdf(full_path)
+                    else:
+                        return 0  # unsupported
+
+                    if not content:
+                        return 0
+
+                    chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+                    if not chunks:
+                        return 0
+
+                    if getattr(self.emb_mgr, "add_documents", None):
+                        self.emb_mgr.add_documents(chunks)
+
+                    summary["files"] += 1
+                    summary["chunks"] += len(chunks)
+                    return len(chunks)
+
+                safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
+
+        return summary
 
     # -------------------
     # PDF
@@ -130,6 +237,24 @@ class VaultIndexer:
             self._cache_file(cache_key, text)
             return self.emb_mgr.index_file(str(cache_key))
         return safe_call(do_index_web, error_msg=f"[VaultIndexer] Error indexing web page {url}", default=0)
+
+    def index_web_content(self, url: str) -> Dict[str, Any]:
+        """Fetch or load cached web content, chunk it, and add documents.
+
+        Returns {"url": url, "chunks": n} and includes an "error" key on failure.
+        """
+        url_hash = self._hash_url(url)
+        cached = self._load_cached(f"web_{url_hash}")
+        content = cached if cached is not None else self._fetch_web_content(url)
+
+        if not content:
+            return {"url": url, "chunks": 0, "error": "Failed to fetch content"}
+
+        chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+        if chunks and getattr(self.emb_mgr, "add_documents", None):
+            self.emb_mgr.add_documents(chunks)
+
+        return {"url": url, "chunks": len(chunks or [])}
 
 
 class IndexingService:

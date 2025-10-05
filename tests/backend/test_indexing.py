@@ -77,7 +77,7 @@ def test_cache_file(vault_indexer):
         cached_content = f.read()
     assert cached_content == text
     
-def test_load_cached_file_exists(self, vault_indexer):
+def test_load_cached_file_exists(vault_indexer):
     """Test loading existing cached file."""
     key = "existing_key"
     content = "Cached content"
@@ -90,14 +90,14 @@ def test_load_cached_file_exists(self, vault_indexer):
     loaded_content = vault_indexer._load_cached(key)
     assert loaded_content == content
 
-def test_load_cached_file_not_exists(self, vault_indexer):
+def test_load_cached_file_not_exists(vault_indexer):
     """Test loading non-existing cached file."""
     key = "non_existing_key"
     
     loaded_content = vault_indexer._load_cached(key)
     assert loaded_content is None
 
-def test_load_cached_file_error(self, vault_indexer):
+def test_load_cached_file_error(vault_indexer):
     """Test loading cached file with read error."""
     key = "error_key"
     
@@ -109,7 +109,7 @@ def test_load_cached_file_error(self, vault_indexer):
         loaded_content = vault_indexer._load_cached(key)
         assert loaded_content is None
 
-def test_read_markdown_file(self, vault_indexer, temp_cache_dir):
+def test_read_markdown_file(vault_indexer, temp_cache_dir):
     """Test reading markdown file."""
     # Create test markdown file
     md_file = Path(temp_cache_dir) / "test.md"
@@ -119,12 +119,12 @@ def test_read_markdown_file(self, vault_indexer, temp_cache_dir):
     content = vault_indexer._read_markdown(str(md_file))
     assert content == md_content
 
-def test_read_markdown_file_not_exists(self, vault_indexer):
+def test_read_markdown_file_not_exists(vault_indexer):
     """Test reading non-existing markdown file."""
     content = vault_indexer._read_markdown("non_existing_file.md")
     assert content is None
 
-def test_read_markdown_file_error(self, vault_indexer, temp_cache_dir):
+def test_read_markdown_file_error(vault_indexer, temp_cache_dir):
     """Test reading markdown file with error."""
     md_file = Path(temp_cache_dir) / "test.md"
     md_file.write_text("content")
@@ -134,7 +134,7 @@ def test_read_markdown_file_error(self, vault_indexer, temp_cache_dir):
         assert content is None
 
 @patch('backend.indexing.PdfReader')
-def test_read_pdf_success(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
+def test_read_pdf_success(mock_pdf_reader, vault_indexer, temp_cache_dir):
     """Test successful PDF reading."""
     # Mock PDF reader
     mock_reader = Mock()
@@ -153,7 +153,7 @@ def test_read_pdf_success(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
     assert content == "Page 1 content\nPage 2 content"
 
 @patch('backend.indexing.PdfReader')
-def test_read_pdf_error(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
+def test_read_pdf_error(mock_pdf_reader, vault_indexer, temp_cache_dir):
     """Test PDF reading with error."""
     mock_pdf_reader.side_effect = Exception("PDF read error")
     
@@ -163,14 +163,14 @@ def test_read_pdf_error(self, mock_pdf_reader, vault_indexer, temp_cache_dir):
     content = vault_indexer._read_pdf(str(pdf_file))
     assert content is None
 
-def test_read_pdf_file_not_exists(self, vault_indexer):
+def test_read_pdf_file_not_exists(vault_indexer):
     """Test reading non-existing PDF file."""
     content = vault_indexer._read_pdf("non_existing_file.pdf")
     assert content is None
 
 @patch('backend.indexing.requests.get')
 @patch('backend.indexing.Document')
-def test_fetch_web_content_success(self, mock_document, mock_requests, vault_indexer):
+def test_fetch_web_content_success(mock_document, mock_requests, vault_indexer):
     """Test successful web content fetching."""
     # Mock requests response
     mock_response = Mock()
@@ -196,7 +196,7 @@ def test_fetch_web_content_success(self, mock_document, mock_requests, vault_ind
         mock_requests.assert_called_once_with(url, timeout=10)
 
 @patch('backend.indexing.requests.get')
-def test_fetch_web_content_request_error(self, mock_requests, vault_indexer):
+def test_fetch_web_content_request_error(mock_requests, vault_indexer):
     """Test web content fetching with request error."""
     mock_requests.side_effect = Exception("Network error")
     
