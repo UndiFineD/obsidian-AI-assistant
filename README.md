@@ -195,7 +195,94 @@ The backend will start at `http://localhost:8000` by default.
 
 ---
 
-### **8. Dependencies**
+### **8. Testing**
+
+This project includes comprehensive test suites to ensure reliability and maintainability.
+
+#### **Test Structure**
+
+```
+tests/
+├─ backend/               # Python backend tests
+│  ├─ test_backend.py     # FastAPI endpoint tests
+│  ├─ test_caching.py     # Cache management tests
+│  ├─ test_embeddings.py  # Vector database tests
+│  ├─ test_indexing.py    # Document indexing tests
+│  ├─ test_llm_router.py  # LLM routing tests
+│  ├─ test_modelmanager.py # Model management tests
+│  ├─ test_security.py    # Encryption/security tests
+│  └─ test_voice.py       # Voice transcription tests
+├─ setup/                 # Setup script tests
+│  ├─ test_setup_ps1.ps1  # PowerShell setup tests
+│  ├─ test_setup_sh.bats  # Bash setup tests
+│  └─ README.md           # Testing documentation
+└─ conftest.py            # Pytest configuration
+```
+
+#### **Running Tests**
+
+**Backend Tests (Python):**
+```bash
+# Activate virtual environment
+source venv/bin/activate  # Linux/macOS
+# or
+& venv\Scripts\Activate.ps1  # Windows
+
+# Install test dependencies
+pip install pytest pytest-cov pytest-asyncio
+
+# Run all tests
+pytest tests/backend/
+
+# Run with coverage
+pytest tests/backend/ --cov=backend --cov-report=html
+
+# Run specific test file
+pytest tests/backend/test_backend.py -v
+```
+
+**Setup Script Tests:**
+
+*PowerShell (Windows):*
+```powershell
+# Install Pester
+Install-Module -Name Pester -Force -SkipPublisherCheck
+
+# Run PowerShell tests
+Invoke-Pester tests/setup/test_setup_ps1.ps1 -Verbose
+```
+
+*Bash (Linux/macOS):*
+```bash
+# Install BATS
+npm install -g bats
+# or: sudo apt-get install bats (Ubuntu)
+# or: brew install bats-core (macOS)
+
+# Run Bash tests
+bats tests/setup/test_setup_sh.bats
+```
+
+#### **Test Coverage**
+
+The test suite covers:
+
+- **API Endpoints**: All FastAPI routes with mock data
+- **LLM Integration**: Model loading, text generation, routing logic
+- **Vector Database**: Embeddings, similarity search, document indexing
+- **Caching**: TTL-based caching, persistence, cleanup
+- **Security**: Encryption/decryption, token handling
+- **Voice Processing**: Audio transcription, format validation
+- **Setup Scripts**: Environment creation, dependency installation, error handling
+- **Error Handling**: Edge cases, network failures, invalid inputs
+
+#### **Continuous Integration**
+
+Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for GitHub Actions examples.
+
+---
+
+### **9. Dependencies**
 
 - Python 3.10+
     
@@ -208,11 +295,16 @@ The backend will start at `http://localhost:8000` by default.
 - `beautifulsoup4`, `readability-lxml`, `PyPDF2`
     
 - Obsidian 1.5+
+
+**Development Dependencies:**
+- `pytest`, `pytest-cov`, `pytest-asyncio` (Python testing)
+- `Pester` (PowerShell testing)
+- `bats` (Bash testing)
     
 
 ---
 
-### **9. License / Author**
+### **10. License / Author**
 
 - Author: **Your Name**
     

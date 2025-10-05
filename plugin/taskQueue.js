@@ -1,31 +1,20 @@
-import { App, Notice } from "obsidian";
+const { App, Notice } = require("obsidian");
 
-export interface QueueTask {
-  id: string;
-  type: "ask" | "format" | "link";
-  content: string;
-  notePath?: string;
-  priority?: number; // Higher number = higher priority
-}
-
-export const VIEW_TYPE_TASK_QUEUE = "task-queue-view";
+const VIEW_TYPE_TASK_QUEUE = "task-queue-view";
 
 // ----------------------------
 // Core Task Queue
 // ----------------------------
-export class TaskQueue {
-  private backendUrl: string;
-  private app: App;
-  private queue: QueueTask[] = [];
-  private isRunning: boolean = false;
-  private filteredQueue: QueueTask[] = [];
-
-  constructor(app: App, backendUrl: string) {
+class TaskQueue {
+  constructor(backendUrl, app) {
     this.app = app;
     this.backendUrl = backendUrl;
+    this.queue = [];
+    this.isRunning = false;
+    this.filteredQueue = [];
   }
 
-  addTask(task: QueueTask) {
+  addTask(task) {
     if (!task.priority) task.priority = 1;
     if (!task.id) task.id = crypto.randomUUID();
 
@@ -40,7 +29,7 @@ export class TaskQueue {
     new Notice("Queue paused");
   }
 
-  async startQueue(batchSize: number = 3) {
+  async startQueue(batchSize = 3) {
     if (this.isRunning) return;
     this.isRunning = true;
 
@@ -57,14 +46,14 @@ export class TaskQueue {
     this.queue.sort((a, b) => (b.priority || 1) - (a.priority || 1));
   }
 
-  filterQueue(keyword: string) {
+  filterQueue(keyword) {
     this.filteredQueue = this.queue.filter(task =>
       task.content.toLowerCase().includes(keyword.toLowerCase()) ||
       (task.notePath && task.notePath.toLowerCase().includes(keyword.toLowerCase()))
     );
   }
 
-  private async processTask(task: QueueTask) {
+  async processTask(task) {
     switch (task.type) {
       case "ask":
         await this.askQuestion(task.content);
@@ -78,7 +67,7 @@ export class TaskQueue {
     }
   }
 
-  private async askQuestion(question: string) {
+  async askQuestion(question) {
     try {
       const response = await fetch(`${this.backendUrl}/api/ask`, {
         method: "POST",
@@ -92,7 +81,7 @@ export class TaskQueue {
     }
   }
 
-  private async formatNote(notePath: string, content: string) {
+  async formatNote(notePath, content) {
     try {
       const response = await fetch(`${this.backendUrl}/api/format_note`, {
         method: "POST",
@@ -106,7 +95,7 @@ export class TaskQueue {
     }
   }
 
-  private async linkNote(notePath: string, content: string) {
+  async linkNote(notePath, content) {
     try {
       const response = await fetch(`${this.backendUrl}/api/link_notes`, {
         method: "POST",
@@ -125,3 +114,5 @@ export class TaskQueue {
     return [...this.queue];
   }
 }
+
+module.exports = { TaskQueue, VIEW_TYPE_TASK_QUEUE };

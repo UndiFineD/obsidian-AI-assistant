@@ -1,43 +1,20 @@
-import { ItemView, WorkspaceLeaf, Notice } from "obsidian";
+const { ItemView, WorkspaceLeaf, Notice } = require("obsidian");
 
 // --- Constants ---
-export const VIEW_TYPE_ANALYTICS = "AI-analytics";
-
-// --- Types ---
-export interface QAEntry {
-    timestamp: number;
-    prompt: string;
-    answer: string;
-}
-
-export interface NoteAnalytics {
-    file: string;
-    processed: number;
-    summary: string;
-    inVaultLinks: string[];
-    externalLinks: string[];
-}
-
-export interface AnalyticsState {
-    processedNotes: Record<string, NoteAnalytics>;
-    qaHistory: QAEntry[];
-    modelUsage: Record<string, number>;
-}
+const VIEW_TYPE_ANALYTICS = "AI-analytics";
 
 // --- Analytics View ---
-export class AnalyticsView extends ItemView {
-    state: AnalyticsState;
-
-    constructor(leaf: WorkspaceLeaf, state: AnalyticsState) {
+class AnalyticsView extends ItemView {
+    constructor(leaf, state) {
         super(leaf);
         this.state = state;
     }
 
-    getViewType(): string {
+    getViewType() {
         return VIEW_TYPE_ANALYTICS;
     }
 
-    getDisplayText(): string {
+    getDisplayText() {
         return "AI Analytics Dashboard";
     }
 
@@ -98,8 +75,10 @@ export class AnalyticsView extends ItemView {
     }
 
     // --- Update state and refresh ---
-    updateState(newState: AnalyticsState) {
+    updateState(newState) {
         this.state = newState;
         this.render();
     }
 }
+
+module.exports = { AnalyticsView, VIEW_TYPE_ANALYTICS };

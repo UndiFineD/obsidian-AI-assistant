@@ -1,7 +1,9 @@
-// plugin/voice.ts
-export class VoiceRecorder {
-  mediaRecorder: MediaRecorder | null = null;
-  chunks: Blob[] = [];
+// plugin/voice.js
+class VoiceRecorder {
+  constructor() {
+    this.mediaRecorder = null;
+    this.chunks = [];
+  }
 
   async startRecording() {
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -16,7 +18,7 @@ export class VoiceRecorder {
     console.log("🎙️ Recording started");
   }
 
-  async stopRecording(): Promise<Blob> {
+  async stopRecording() {
     return new Promise((resolve) => {
       if (!this.mediaRecorder) return resolve(new Blob());
 
@@ -28,9 +30,10 @@ export class VoiceRecorder {
     });
   }
 
-  async sendToBackend(blob: Blob, backendUrl: string): Promise<string> {
+  async sendToBackend(blob, backendUrl, voiceMode) {
     const formData = new FormData();
     formData.append("file", blob, "voice.wav");
+    formData.append("mode", voiceMode || "offline");
 
     const res = await fetch(`${backendUrl}/api/voice_transcribe`, {
       method: "POST",
@@ -41,3 +44,5 @@ export class VoiceRecorder {
     return data.transcription || "";
   }
 }
+
+module.exports = { VoiceRecorder };
