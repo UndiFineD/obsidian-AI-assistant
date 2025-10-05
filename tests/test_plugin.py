@@ -4,6 +4,13 @@ Pure Python test script for the Obsidian AI Assistant Plugin
 Tests plugin files, structure, and backend API functionality
 """
 
+# This file is a standalone script, not a pytest suite. Skip during pytest collection.
+try:
+    import pytest  # type: ignore
+    pytestmark = pytest.mark.skip(reason="tests/test_plugin.py is a standalone script, not a pytest test")
+except Exception:
+    pass
+
 import os
 import json
 import requests
