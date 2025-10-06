@@ -4,6 +4,7 @@ Integration tests for FastAPI endpoints and HTTP workflows.
 Tests the complete HTTP request/response cycle.
 """
 import pytest
+import pytest_asyncio
 import asyncio
 import sys
 from pathlib import Path
@@ -20,35 +21,45 @@ from backend.backend import app
 class TestAPIIntegration:
     """Test API endpoints with full HTTP request/response cycle."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def client(self):
         """Create async HTTP client for testing."""
-        async with AsyncClient(app=app, base_url="http://testserver") as client:
+        from fastapi.testclient import TestClient
+        from httpx import AsyncClient
+        import httpx
+        
+        # Use HTTPX AsyncClient with transport for FastAPI
+        transport = httpx.ASGITransport(app=app)
+        async with AsyncClient(transport=transport, base_url="http://testserver") as client:
             yield client
 
     @pytest.fixture
     def mock_all_services(self):
-        """Mock all backend services for API testing."""
+        """Mock all backend services for API testing using standardized patterns."""
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em, \
+             patch('backend.backend.embeddings_manager') as mock_em, \
              patch('backend.backend.vault_indexer') as mock_vi, \
              patch('backend.backend.cache_manager') as mock_cm:
             
-            # Configure realistic service responses
+            # Configure realistic service responses matching actual API behavior
             mock_mm.generate.return_value = "AI generated response for your question."
-            mock_mm.get_model_info.return_value = {
-                "available_models": ["gpt-3.5-turbo", "claude-3"],
-                "default_model": "gpt-3.5-turbo"
-            }
+            mock_mm.is_ready.return_value = True
+            mock_mm.get_available_models.return_value = ["test-model"]
+            mock_mm.initialize.return_value = True
             
+            mock_em.generate_embeddings.return_value = [0.1, 0.2, 0.3]
+            mock_em.is_ready.return_value = True
             mock_em.search.return_value = [
                 {"text": "Relevant context from your notes", "score": 0.92, "source": "note1.md"}
             ]
             
-            mock_vi.index_vault.return_value = ["note1.md", "note2.md", "subfolder/note3.md"]
+            mock_vi.index_vault.return_value = {"files_indexed": 5}
+            mock_vi.scan_vault.return_value = {"files_found": 5}
             mock_vi.reindex.return_value = {"indexed": 3, "updated": 1}
+            mock_vi.search.return_value = [{"content": "test", "score": 0.9}]
             
-            mock_cm.get.return_value = None  # No cache hits
+            mock_cm.get_cached_answer.return_value = None  # No cache hits
+            mock_cm.cache_answer.return_value = True
             mock_cm.set.return_value = True
             
             yield {
@@ -65,7 +76,7 @@ class TestAPIIntegration:
         
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data["status"] == "ok"  # Backend returns "ok", not "healthy"
         assert "timestamp" in data
         
         print("✓ Health endpoint integration test passed")

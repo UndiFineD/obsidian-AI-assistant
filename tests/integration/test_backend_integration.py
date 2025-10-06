@@ -108,27 +108,33 @@ class TestMockedWorkflowIntegration:
     def mock_services(self):
         """Create comprehensive service mocks."""
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em, \
+             patch('backend.backend.embeddings_manager') as mock_em, \
              patch('backend.backend.vault_indexer') as mock_vi, \
              patch('backend.backend.cache_manager') as mock_cm:
             
-            # Configure realistic mock responses
+            # Configure realistic mock responses using standardized patterns
             mock_mm.generate.return_value = "AI response from model"
-            mock_mm.get_model_info.return_value = {"model": "test-model"}
+            mock_mm.is_ready.return_value = True
+            mock_mm.get_available_models.return_value = ["test-model"]
+            mock_mm.initialize.return_value = True
             
+            mock_em.generate_embeddings.return_value = [0.1, 0.2, 0.3]
+            mock_em.is_ready.return_value = True
             mock_em.search.return_value = [
                 {"text": "Relevant context", "score": 0.9, "source": "test.md"}
             ]
             
-            mock_vi.index_vault.return_value = ["file1.md", "file2.md"]
+            mock_vi.index_vault.return_value = {"files_indexed": 5}
+            mock_vi.scan_vault.return_value = {"files_found": 5}
             mock_vi.reindex.return_value = {"indexed": 2, "updated": 1}
+            mock_vi.search.return_value = [{"content": "test", "score": 0.9}]
             
-            mock_cm.get.return_value = None  # Cache miss
-            mock_cm.set.return_value = True
+            mock_cm.get_cached_answer.return_value = None  # Cache miss
+            mock_cm.cache_answer.return_value = True
             
             yield {
                 "model_manager": mock_mm,
-                "emb_manager": mock_em,
+                "embeddings_manager": mock_em,
                 "vault_indexer": mock_vi,
                 "cache_manager": mock_cm
             }

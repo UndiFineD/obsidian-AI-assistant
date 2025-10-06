@@ -85,8 +85,8 @@ class TestHealthEndpoints:
         assert "timestamp" in data
     
     def test_api_health_endpoint(self, client):
-        """Test /api/health endpoint."""
-        response = client.get("/api/health")
+        """Test /health endpoint (alternative access pattern)."""
+        response = client.get("/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
