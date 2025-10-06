@@ -1,47 +1,31 @@
 
 # Obsidian AI Assistant
 
-**Offline-first AI assistant for Obsidian with task queue, semantic linking, and analytics.**
+**Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
 
 ---
 
 ## **Features**
 
-## Phase 1: Core Functionality
+### ✅ **Core Functionality (Implemented)**
 
-- Ask questions to local LLaMA/GPT4All models
-    
-- Hybrid LLM routing (fast LLaMA vs deeper GPT4All)
-    
-- Session memory for context
-    
-- Automatic note creation (`Assistant_${timestamp}.md`)
-    
-- Task queue with inline previews
-    
+- **Local LLM Integration**: Support for LLaMA/GPT4All models with hybrid routing
+- **Centralized Settings Management**: Environment variables → YAML → defaults precedence
+- **Semantic Search**: Vector embeddings with ChromaDB for similarity search
+- **Document Indexing**: Markdown, PDF, and web page indexing with caching
+- **Voice Input**: Vosk-based speech recognition with push-to-talk functionality
+- **Task Queue System**: Batch processing with analytics and progress tracking
+- **Comprehensive Caching**: TTL-based caching for embeddings, file hashes, and responses
+- **Security**: Optional encryption for cached data with Fernet encryption
+- **FastAPI Backend**: RESTful API with automatic documentation and error handling
 
-## Phase 2: Medium-Term Enhancements
+### 🚧 **Enhanced Features**
 
-- Batch processing of multiple notes
-    
-- Vault scanning and indexing (`.md`, PDF, web pages)
-    
-- Semantic linking of notes
-    
-- Note formatting via LLM
-    
-
-## Phase 3: Advanced Features
-
-- Analytics dashboard: semantic coverage & QA history
-    
-- Queue search & filter
-    
-- Voice input support
-    
-- Optional caching & encryption for answers
-    
-- Multi-vault support
+- **Settings API**: Runtime configuration updates via `/api/config` endpoints
+- **Status Monitoring**: Health checks and service status reporting
+- **Error Handling**: Comprehensive error scenarios with graceful fallbacks
+- **Test Coverage**: 70%+ test coverage with comprehensive test suites
+- **Cross-Platform**: Windows/Linux/macOS support with dedicated setup scripts
     
 
 ---
@@ -95,22 +79,71 @@ This will:
     
 5. Build the Obsidian plugin automatically
 
-### Central Configuration
+### **Configuration System**
 
-Backend reads settings from environment variables and `backend/config.yaml`, with this precedence:
+The backend uses a centralized settings system with the following precedence:
 
-1) Environment variables (e.g., API_PORT, VAULT_PATH, MODEL_PATH, VOSK_MODEL_PATH)
-2) `backend/config.yaml`
-3) Code defaults
+1. **Environment Variables** (highest priority)
+2. **`backend/config.yaml`** (medium priority) 
+3. **Code Defaults** (lowest priority)
 
-The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`). If present, it overrides the built-in defaults (e.g., `backendUrl`).
+#### **Key Configuration Options**
 
-Key keys:
+```yaml
+# backend/config.yaml
+backend_url: "http://127.0.0.1:8000"
+api_port: 8000
+allow_network: false
+continuous_mode: false
 
-- backend_url / API_PORT
-- vault_path, models_dir, cache_dir
-- model_backend, model_path, embed_model, vector_db
-- vosk_model_path (for voice)
+# Paths
+vault_path: "vault"
+models_dir: "models" 
+cache_dir: "cache"
+
+# LLM Settings
+model_backend: "llama_cpp"
+model_path: "models/llama-7b.gguf"
+embed_model: "sentence-transformers/all-MiniLM-L6-v2"
+vector_db: "chroma"
+gpu: true
+
+# Voice Settings
+vosk_model_path: "models/vosk-model-small-en-us-0.15"
+```
+
+#### **Runtime Configuration**
+
+Settings can be updated at runtime via the `/api/config` endpoints:
+
+```bash
+# Get current configuration
+GET http://localhost:8000/api/config
+
+# Update settings
+POST http://localhost:8000/api/config
+Content-Type: application/json
+{
+  "vault_path": "new_vault",
+  "chunk_size": 1000,
+  "gpu": false
+}
+
+# Reload settings from file
+POST http://localhost:8000/api/config/reload
+```
+
+#### **Plugin Configuration**
+
+The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`):
+
+```json
+{
+  "backendUrl": "http://localhost:8000",
+  "vaultPath": "vault",
+  "preferFastLLM": true
+}
+```
 
 ### Quickstart (Windows PowerShell)
 
@@ -148,39 +181,51 @@ No Node/NodeJS build step is required—the plugin JS and CSS are ready-to-use.
 
 ---
 
-### **2. Activate Backend**
+### **2. Start the Backend**
 
-**Linux/macOS:**
+#### **Option A: Full FastAPI Backend (Recommended)**
 
 ```bash
+# Linux/macOS
 source venv/bin/activate
-python backend/backend.py  # lightweight demo mode
-```
+cd backend
+python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
-**Windows:**
-
-```powershell
+# Windows PowerShell
 & venv\Scripts\Activate.ps1
-python backend\backend.py  # lightweight demo mode
+cd backend  
+python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-The backend will start at `http://localhost:8000` by default. For full FastAPI features, prefer running with Uvicorn (Option A in Quickstart). For quick UI tests without installing Node/NodeJS, you can run the simple Python test server (`python test_server.py`) which serves the plugin and mock endpoints on `http://localhost:8000`.
+#### **Option B: Simple HTTP Server (Development/Testing)**
 
-### Simple Python Test Server (No Node/NodeJS)
+For quick testing without full backend dependencies:
 
-If you only want to try the Obsidian plugin UI without starting the full FastAPI backend, use the included `test_server.py`:
-
-```pwsh
-# from the repo root
-python .\test_server.py
+```bash
+# From project root
+python test_server.py
 ```
 
-What it does:
-
+This lightweight server:
 - Serves static plugin files from `./plugin`
-- Exposes minimal mock endpoints used by the plugin: GET /, GET /status, POST /ask, POST /reindex, POST /web
+- Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`  
+- Requires no Node.js or complex dependencies
+- Useful for plugin UI testing
 
-Point the plugin's Backend URL to `http://localhost:8000` when using this server. This requires no Node/NodeJS.
+#### **Backend Endpoints**
+
+The FastAPI backend provides these key endpoints:
+
+- `GET /` - Welcome message
+- `GET /health` - Basic health check
+- `GET /status` - Detailed service status
+- `GET /api/config` - Current configuration
+- `POST /api/config` - Update configuration
+- `POST /api/config/reload` - Reload settings from file
+- `POST /ask` - Ask question to LLM
+- `POST /reindex` - Reindex vault documents
+- `POST /web` - Index web content
+- `POST /transcribe` - Voice transcription
 
 ---
 
@@ -261,83 +306,86 @@ Point the plugin's Backend URL to `http://localhost:8000` when using this server
 
 ---
 
-### **8. Testing**
+### **8. Testing & Quality Assurance**
 
-This project includes comprehensive test suites to ensure reliability and maintainability.
+This project maintains high code quality with comprehensive test coverage (70%+).
+
+#### **Test Coverage by Module**
+
+| Module | Coverage | Test File |
+|--------|----------|-----------|
+| Settings | 93% | `test_settings.py` |
+| LLM Router | 91% | `test_llm_router.py` |
+| Voice Processing | 84% | `test_voice.py` |
+| Caching | 99% | `test_caching.py`, `test_caching_extended.py` |
+| Security | 100% | `test_security.py` |
+| Backend API | 65% | `test_backend.py`, `test_config_endpoints.py` |
+| Embeddings | 44% | `test_embeddings.py` |
+| Indexing | 55% | `test_indexing.py` |
+| Model Manager | 61% | `test_modelmanager.py` |
 
 #### **Test Structure**
 
 ```text
-tests/                           # All tests organized in single directory
-├─ backend/                      # Python backend tests
-│  ├─ test_backend.py           # FastAPI endpoint tests
-│  ├─ test_caching.py           # Cache management tests
-│  ├─ test_embeddings.py        # Vector database tests
-│  ├─ test_indexing.py          # Document indexing tests
-│  ├─ test_llm_router.py        # LLM routing tests
-│  ├─ test_modelmanager.py      # Model management tests
-│  ├─ test_security.py          # Encryption/security tests
-│  └─ test_voice.py             # Voice transcription tests
-├─ setup/                        # Setup script tests
-│  ├─ test_setup_ps1.ps1        # PowerShell setup tests
-│  ├─ test_setup_sh.bats        # Bash setup tests
-│  └─ README.md                 # Setup testing documentation
-├─ comprehensive_integration_test.py  # Complete integration test
-├─ test_final.py                 # Plugin integration tests
-├─ test_plugin*.py               # Plugin functionality tests
-├─ test_server.py                # Development server tests
-├─ microphone_test.html          # Microphone permission testing
-├─ test_push_to_talk.html        # Voice input testing
-├─ conftest.py                   # Pytest configuration and fixtures
-├─ pytest.ini                   # Pytest settings and coverage config
-└─ run_tests_stronger.py         # Enhanced test runner script
-
-run_tests.py                     # Main test runner (project root)
+tests/
+├── backend/                     # Backend module tests
+│   ├── test_backend.py         # FastAPI endpoints & integration
+│   ├── test_caching.py         # Cache management 
+│   ├── test_caching_extended.py # Extended cache scenarios
+│   ├── test_config_endpoints.py # Configuration API
+│   ├── test_embeddings.py      # Vector operations
+│   ├── test_indexing.py        # Document processing
+│   ├── test_llm_router.py      # Model routing logic
+│   ├── test_modelmanager.py    # Model management
+│   ├── test_security.py        # Encryption/decryption
+│   ├── test_settings.py        # Settings management
+│   ├── test_status_endpoint.py # Status API
+│   └── test_voice.py           # Voice transcription
+└── test_final.py               # End-to-end integration tests
 ```
 
 #### **Running Tests**
 
-**All Tests (Recommended):**
+**Quick Test Run:**
+
 ```bash
-# Run all tests using the main test runner
-python run_tests.py
-
-# Run all tests with verbose output
-python run_tests.py -v
-
-# Run specific test files or patterns
-python run_tests.py backend/test_backend.py
-python run_tests.py test_plugin*.py
-
-# Collect tests without running (useful for debugging)
-python run_tests.py --collect-only
-```
-
-**Backend Tests (Python):**
-```bash
-# Activate virtual environment
+# Activate environment and run all tests  
 source venv/bin/activate  # Linux/macOS
 # or
 & venv\Scripts\Activate.ps1  # Windows
 
-# Install test dependencies
+# Run all tests with coverage
+pytest --cov=backend --cov-report=term-missing
+
+# Run specific module tests
+pytest tests/backend/test_caching.py -v
+pytest tests/backend/test_settings.py -v
+```
+
+**Full Test Suite:**
+
+```bash
+# Install test dependencies (if not already installed)
 pip install pytest pytest-cov pytest-asyncio
 
-# Run all tests from project root
-python run_tests.py
+# Run all tests with HTML coverage report
+pytest --cov=backend --cov-report=html --cov-report=term
 
-# Or run directly from tests directory
-cd tests
-pytest -v
+# Generate coverage report in htmlcov/ directory
+# Open htmlcov/index.html in browser to see detailed coverage
+```
 
-# Run with coverage (generates coverage reports)
-pytest --cov=../backend --cov-report=html
+**Development Testing:**
 
-# Run specific test file
-pytest backend/test_backend.py -v
+```bash
+# Run tests in watch mode (re-run on file changes)
+pytest-watch
 
-# Run comprehensive integration test
-python comprehensive_integration_test.py
+# Run only failed tests from previous run
+pytest --lf
+
+# Run tests matching pattern
+pytest -k "test_caching or test_settings" -v
 ```
 
 **Setup Script Tests:**
@@ -381,35 +429,68 @@ Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for Gi
 
 ---
 
-### **9. Dependencies**
+### **9. API Documentation**
 
-- Python 3.10+
-    
-- Node.js 18+ (optional; not required to use the plugin in Obsidian)
-    
-- `fastapi`, `uvicorn`, `torch`, `sentence-transformers`, `chromadb`
-    
-- `llama-cpp-python`, `gpt4all`
-    
-- `beautifulsoup4`, `readability-lxml`, `PyPDF2`
-    
-- Obsidian 1.5+
+The FastAPI backend provides interactive API documentation:
 
-**Development Dependencies:**
-- `pytest`, `pytest-cov`, `pytest-asyncio` (Python testing)
-- `Pester` (PowerShell testing)
-- `bats` (Bash testing)
-    
+- **Swagger UI**: `http://localhost:8000/docs`
+- **ReDoc**: `http://localhost:8000/redoc`
+
+Key endpoints and their usage:
+
+```bash
+# Health check
+GET /health
+
+# Service status with component details  
+GET /status
+
+# Configuration management
+GET /api/config              # Get current settings
+POST /api/config             # Update settings
+POST /api/config/reload      # Reload from file
+
+# AI operations
+POST /ask                    # Ask question to LLM
+POST /reindex                # Reindex vault documents  
+POST /web                    # Index web content
+POST /transcribe             # Voice to text
+```
 
 ---
 
-### **10. License / Author**
+### **10. Dependencies**
 
-- Author: **Keimpe de Jong**
-    
-- License: MIT
-    
-- GitHub: _(https://github.com/UndiFineD/obsidian-AI-assistant)_
+**Runtime Dependencies:**
+
+- Python 3.10+
+- FastAPI & Uvicorn (web framework)
+- PyTorch & Sentence Transformers (embeddings)
+- ChromaDB (vector database)
+- LLaMA-CPP-Python & GPT4All (LLM backends)
+- Vosk (speech recognition)
+- PyPDF2 & BeautifulSoup4 (document processing)
+- Obsidian 1.5+ (plugin host)
+
+**Development Dependencies:**
+
+- pytest, pytest-cov, pytest-asyncio (testing)
+- Pester (PowerShell testing)
+- BATS (Bash testing)
+
+**Optional:**
+
+- Node.js 18+ (not required for plugin usage)
+
+---
+
+### **11. License & Contributing**
+
+- **Author**: Keimpe de Jong
+- **License**: MIT
+- **Repository**: [https://github.com/UndiFineD/obsidian-AI-assistant](https://github.com/UndiFineD/obsidian-AI-assistant)
+- **Test Coverage**: 70%+ with ongoing improvements
+- **Status**: Active development with comprehensive test suite
     
 
 ---

@@ -9,19 +9,11 @@ import time
 import sys as _sys
 import http.server
 import socketserver
-try:
-    from .embeddings import EmbeddingsManager
-    from .indexing import VaultIndexer
-    from .llm_router import HybridLLMRouter
-    from .modelmanager import ModelManager
-    from .caching import CacheManager
-except Exception:
-    # For tests that manipulate sys.path or import paths
-    from embeddings import EmbeddingsManager  # type: ignore
-    from indexing import VaultIndexer  # type: ignore
-    from llm_router import HybridLLMRouter  # type: ignore
-    from modelmanager import ModelManager  # type: ignore
-    from caching import CacheManager  # type: ignore
+from .embeddings import EmbeddingsManager
+from .indexing import VaultIndexer
+from .llm_router import HybridLLMRouter
+from .modelmanager import ModelManager
+from .caching import CacheManager
 
 # --- FastAPI app ---
 app = FastAPI(title="Obsidian AI Assistant")
@@ -95,6 +87,8 @@ def init_services():
 # Request models (exported via package)
 # ----------------------
 class AskRequest(BaseModel):
+    model_config = {"protected_namespaces": ()}
+    
     question: str
     prefer_fast: bool = True
     max_tokens: int = 256
@@ -152,20 +146,29 @@ async def health():
 
 @app.get("/api/config")
 async def get_config():
+    from backend.settings import _ALLOWED_UPDATE_KEYS
     s = get_settings()
-    return s.dict()
+    # Only return whitelisted fields to avoid exposing sensitive data
+    data = s.dict()
+    return {k: v for k, v in data.items() if k in _ALLOWED_UPDATE_KEYS}
 
 
 @app.post("/api/config/reload")
 async def post_reload_config():
-    s = reload_settings()
-    return {"ok": True, "settings": s.dict()}
+    try:
+        s = reload_settings()
+        return {"ok": True, "settings": s.dict()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}")
 
 
 @app.post("/api/config")
 async def post_update_config(partial: dict):
-    s = update_settings(dict(partial or {}))
-    return {"ok": True, "settings": s.dict()}
+    try:
+        s = update_settings(dict(partial or {}))
+        return {"ok": True, "settings": s.dict()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to update settings: {str(e)}")
 
 def _ask_impl(request: AskRequest):
     # Ensure services

@@ -161,17 +161,16 @@ class EmbeddingsManager:
         if not chunks or self.collection is None:
             return
         
+        # Generate IDs for chunks 
+        ids = [self._hash_text(chunk) for chunk in chunks]
+        # Use provided metadata or generate basic metadata
+        final_metadatas = metadatas if metadatas is not None else [{"chunk_index": i} for i in range(len(chunks))]
+        
         def do_add():
-            # Generate IDs for chunks 
-            ids = [self._hash_text(chunk) for chunk in chunks]
-            # Use provided metadata or generate basic metadata
-            if metadatas is None:
-                metadatas = [{"chunk_index": i} for i in range(len(chunks))]
-            
             self.collection.add(
                 documents=chunks,
                 ids=ids,
-                metadatas=metadatas
+                metadatas=final_metadatas
             )
             
         safe_call(do_add, error_msg="[EmbeddingsManager] Error adding documents")
