@@ -3,9 +3,9 @@ import pytest
 import tempfile
 import shutil
 import os
+import sys
 from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
-import sys
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from backend.modelmanager import ModelManager
@@ -37,7 +37,7 @@ class TestModelManagerInit:
         env_file.write_text("HF_TOKEN=test_token\n")
         
         with patch('backend.modelmanager.load_dotenv') as mock_load_dotenv, \
-             patch('backend.modelmanager.huggingface_hub.login'), \
+             patch.dict('sys.modules', {'huggingface_hub': sys.modules['huggingface_hub']}), \
              patch('os.getenv', return_value="test_token"), \
              patch('backend.modelmanager.HybridLLMRouter'):
             

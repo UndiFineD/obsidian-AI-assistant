@@ -9,7 +9,7 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Generator, Dict
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 import unittest.mock as _um
 import pytest
 import pytest_asyncio  # ensure plugin is importable
@@ -21,6 +21,58 @@ pytest_plugins = ("pytest_asyncio",)
 # Add project root to Python path for proper package imports - STRONGER! 💪
 project_root = Path(__file__).parent.parent  # Go up one level from tests to project root
 sys.path.insert(0, str(project_root))
+
+
+# ============================================================================
+# CRITICAL: PREVENT HUGGINGFACE LIBRARY CONFLICTS
+# Mock HuggingFace modules BEFORE any imports can cause metaclass conflicts
+# ============================================================================
+
+def create_mock_huggingface_hub():
+    """Create comprehensive HuggingFace Hub mock module."""
+    hub_mock = MagicMock()
+    
+    # Mock login function
+    hub_mock.login = MagicMock(return_value=None)
+    
+    # Mock download function
+    hub_mock.hf_hub_download = MagicMock(return_value="/fake/model/path.bin")
+    
+    # Mock other commonly used functions
+    hub_mock.snapshot_download = MagicMock(return_value="/fake/model/dir")
+    hub_mock.HfApi = MagicMock
+    hub_mock.HfFolder = MagicMock
+    hub_mock.Repository = MagicMock
+    
+    # Mock constants
+    hub_mock.HUGGINGFACE_HUB_CACHE = "/fake/cache"
+    
+    return hub_mock
+
+def create_mock_transformers():
+    """Create comprehensive transformers mock module."""
+    transformers_mock = MagicMock()
+    
+    # Mock common classes
+    transformers_mock.AutoTokenizer = MagicMock
+    transformers_mock.AutoModel = MagicMock
+    transformers_mock.AutoModelForCausalLM = MagicMock
+    transformers_mock.pipeline = MagicMock(return_value=MagicMock())
+    
+    return transformers_mock
+
+# Apply module-level mocks BEFORE any other imports
+sys.modules['huggingface_hub'] = create_mock_huggingface_hub()
+sys.modules['huggingface_hub.login'] = MagicMock()
+sys.modules['huggingface_hub._login'] = MagicMock()  # Prevent the problematic _login module
+sys.modules['transformers'] = create_mock_transformers()
+
+# Also mock sentence-transformers early
+sentence_transformers_mock = MagicMock()
+sentence_transformers_mock.SentenceTransformer = MagicMock
+sys.modules['sentence_transformers'] = sentence_transformers_mock
+
+print("🔧 HuggingFace library conflicts prevented with early module mocking")
 
 
 # ============================================================================
@@ -153,17 +205,22 @@ def mock_gpt4all():
 
 @pytest.fixture
 def mock_huggingface_hub():
-    """Mock Hugging Face Hub functions."""
-    with patch('huggingface_hub.login') as mock_login, \
-         patch('huggingface_hub.hf_hub_download') as mock_download:
-        
-        mock_login.return_value = None
-        mock_download.return_value = "/fake/path/to/model.bin"
-        
-        yield {
-            'login': mock_login,
-            'download': mock_download
-        }
+    """Mock Hugging Face Hub functions - enhanced version."""
+    # Use the already mocked module from sys.modules
+    hub_mock = sys.modules['huggingface_hub']
+    
+    # Reset and configure mocks for this test
+    hub_mock.login.reset_mock()
+    hub_mock.hf_hub_download.reset_mock()
+    
+    hub_mock.login.return_value = None
+    hub_mock.hf_hub_download.return_value = "/fake/path/to/model.bin"
+    
+    yield {
+        'login': hub_mock.login,
+        'download': hub_mock.hf_hub_download,
+        'module': hub_mock
+    }
 
 
 @pytest.fixture
