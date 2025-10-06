@@ -1,5 +1,5 @@
 allow_network: true
-model_backend: llama_cpp
+model_backend: updated-model
 model_path: models/llama-7b.gguf
 embed_model: sentence-transformers/all-MiniLM-L6-v2
 vector_db: chroma
