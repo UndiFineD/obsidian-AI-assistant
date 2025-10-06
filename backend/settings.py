@@ -21,6 +21,8 @@ except Exception:
 
 
 class Settings(BaseModel):
+    model_config = {"protected_namespaces": ()}  # Allow model_ prefixed fields
+    
     # Core server
     backend_url: str = "http://127.0.0.1:8000"
     api_port: int = 8000

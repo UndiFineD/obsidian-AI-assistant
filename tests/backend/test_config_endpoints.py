@@ -36,10 +36,12 @@ class TestConfigEndpoints:
         # Should not include sensitive or non-whitelisted fields
         assert "project_root" not in data
     
-    @patch('backend.settings.update_settings')
+    @patch('backend.backend.update_settings')
     def test_post_config_endpoint_valid_updates(self, mock_update):
         """Test POST /api/config with valid updates."""
-        mock_update.return_value = Mock(vault_path="new_vault", chunk_size=1000)
+        mock_settings = Mock()
+        mock_settings.dict.return_value = {"vault_path": "new_vault", "chunk_size": 1000}
+        mock_update.return_value = mock_settings
         
         updates = {
             "vault_path": "new_vault",
@@ -54,14 +56,15 @@ class TestConfigEndpoints:
         mock_update.assert_called_once_with(updates)
         
         data = response.json()
-        assert data["status"] == "updated"
+        assert data["ok"] is True
+        assert "settings" in data
     
     def test_post_config_endpoint_invalid_json(self):
         """Test POST /api/config with invalid JSON."""
         response = self.client.post("/api/config", data="invalid json")
         assert response.status_code == 422  # Unprocessable Entity
     
-    @patch('backend.settings.update_settings')
+    @patch('backend.backend.update_settings')
     def test_post_config_endpoint_update_failure(self, mock_update):
         """Test POST /api/config handles update failures gracefully."""
         mock_update.side_effect = Exception("Update failed")
@@ -70,15 +73,17 @@ class TestConfigEndpoints:
         
         response = self.client.post("/api/config", json=updates)
         assert response.status_code == 500
-        
+
         data = response.json()
-        assert data["status"] == "error"
-        assert "Update failed" in data["message"]
+        assert "detail" in data  # FastAPI error response format
+        assert "Update failed" in data["detail"]
     
-    @patch('backend.settings.reload_settings')
+    @patch('backend.backend.reload_settings')
     def test_post_config_reload_endpoint(self, mock_reload):
         """Test POST /api/config/reload."""
-        mock_reload.return_value = Mock(vault_path="reloaded_vault")
+        mock_settings = Mock()
+        mock_settings.dict.return_value = {"vault_path": "reloaded_vault"}
+        mock_reload.return_value = mock_settings
         
         response = self.client.post("/api/config/reload")
         assert response.status_code == 200
@@ -86,19 +91,20 @@ class TestConfigEndpoints:
         mock_reload.assert_called_once()
         
         data = response.json()
-        assert data["status"] == "reloaded"
+        assert data["ok"] is True
+        assert "settings" in data
     
-    @patch('backend.settings.reload_settings')
+    @patch('backend.backend.reload_settings')
     def test_post_config_reload_failure(self, mock_reload):
         """Test POST /api/config/reload handles failures gracefully."""
         mock_reload.side_effect = Exception("Reload failed")
         
         response = self.client.post("/api/config/reload")
         assert response.status_code == 500
-        
+
         data = response.json()
-        assert data["status"] == "error"
-        assert "Reload failed" in data["message"]
+        assert "detail" in data  # FastAPI error response format
+        assert "Reload failed" in data["detail"]
 
 
 class TestConfigEndpointIntegration:
