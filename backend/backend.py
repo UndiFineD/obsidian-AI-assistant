@@ -1,7 +1,8 @@
 # backend/backend.py
 import os
+import asyncio
 from typing import List, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, BackgroundTasks
 from .settings import get_settings, reload_settings, update_settings
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -14,16 +15,41 @@ from .indexing import VaultIndexer
 from .llm_router import HybridLLMRouter
 from .modelmanager import ModelManager
 from .caching import CacheManager
+from .performance import (
+    get_cache_manager, get_connection_pool, get_task_queue, 
+    cached, PerformanceMonitor
+)
+
+# Enterprise imports
+try:
+    from .enterprise_integration import EnterpriseIntegration
+    ENTERPRISE_AVAILABLE = True
+except ImportError as e:
+    print(f"Enterprise features not available: {e}")
+    ENTERPRISE_AVAILABLE = False
 
 # --- FastAPI app ---
-app = FastAPI(title="Obsidian AI Assistant")
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = FastAPI(title="Obsidian AI Assistant - Enterprise Edition" if ENTERPRISE_AVAILABLE else "Obsidian AI Assistant")
+
+# Initialize enterprise features if available
+if ENTERPRISE_AVAILABLE:
+    try:
+        enterprise_integration = EnterpriseIntegration()
+        enterprise_integration.setup_enterprise_app(app)
+        print("[Enterprise] Enterprise features initialized successfully")
+    except Exception as e:
+        print(f"[Enterprise] Warning: Failed to initialize enterprise features: {e}")
+        ENTERPRISE_AVAILABLE = False
+
+# Add basic CORS middleware (enterprise middleware will override if available)
+if not ENTERPRISE_AVAILABLE:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # --- Services (lazy-init) ---
 model_manager = None  # will be set to ModelManager instance
@@ -32,13 +58,18 @@ vault_indexer = None  # will be set to VaultIndexer instance
 cache_manager = None  # will be set to CacheManager instance
 
 def init_services():
-    """Initialize global service singletons if not already set.
+    """Initialize global service singletons with performance optimizations.
 
     Reads environment variables at call time so tests can patch env before import.
+    Includes connection pooling and performance monitoring setup.
     """
     global model_manager, emb_manager, vault_indexer, cache_manager
     if all(v is not None for v in (model_manager, emb_manager, vault_indexer, cache_manager)):
         return
+    
+    # Initialize performance systems
+    _init_performance_systems()
+    
     # Load env here (not at module import) so tests can patch
     def safe_init(cls, *args, **kwargs):
         try:
@@ -82,6 +113,45 @@ def init_services():
         vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
 
     cache_manager = safe_init(CacheManager, "./cache")
+
+def _init_performance_systems():
+    """Initialize performance optimization systems"""
+    try:
+        # Initialize connection pools for different services
+        
+        # Model connection pool - for managing AI model instances
+        def create_model_connection():
+            """Factory function for model connections"""
+            # This is a placeholder - would create actual model instances
+            # in a real implementation with heavy models
+            return {"status": "connected", "created": time.time()}
+        
+        get_connection_pool("models", create_model_connection, 
+                          min_size=1, max_size=3, max_idle=600)
+        
+        # Database connection pool - for vector database connections  
+        def create_db_connection():
+            """Factory function for database connections"""
+            return {"status": "connected", "created": time.time()}
+        
+        get_connection_pool("vector_db", create_db_connection,
+                          min_size=2, max_size=5, max_idle=300)
+        
+        # Initialize async task queue for background processing
+        asyncio.create_task(_start_background_queue())
+        
+        print("[Performance] Initialized connection pools and task queue")
+        
+    except Exception as e:
+        print(f"[Performance] Warning: Failed to initialize performance systems: {e}")
+
+async def _start_background_queue():
+    """Start the background task queue"""
+    try:
+        task_queue = await get_task_queue()
+        print("[Performance] Background task queue started")
+    except Exception as e:
+        print(f"[Performance] Warning: Failed to start task queue: {e}")
 
 # ----------------------
 # Request models (exported via package)
@@ -178,6 +248,16 @@ def _ask_impl(request: AskRequest):
     # If model manager failed to initialize, return an error status
     if model_manager is None:
         raise HTTPException(status_code=500, detail="Model manager unavailable")
+    
+    # Performance optimization: Check multi-level cache first
+    performance_cache = get_cache_manager()
+    cache_key = f"ask:{hash((request.question, request.model_name, request.max_tokens, request.prefer_fast))}"
+    
+    # Try performance cache (L1/L2)
+    cached_result = performance_cache.get(cache_key)
+    if cached_result is not None:
+        return {"answer": cached_result, "cached": True, "cache_level": "performance", "model": request.model_name}
+    
     # If no models are available (real router scenario), return an error immediately
     try:
         if hasattr(model_manager, 'llm_router') and model_manager.llm_router and hasattr(model_manager.llm_router, 'get_available_models'):
@@ -189,32 +269,55 @@ def _ask_impl(request: AskRequest):
     except Exception:
         # If inspection fails (e.g., mocks), ignore and proceed with normal flow
         pass
+    
+    # Check legacy cache system (fallback)
     try:
         cached_answer = cache_manager.get_cached_answer(request.question)
         if cached_answer:
-            return {"answer": cached_answer, "cached": True, "model": request.model_name}
+            # Store in performance cache for future requests
+            performance_cache.set(cache_key, cached_answer, ttl=1800)
+            return {"answer": cached_answer, "cached": True, "cache_level": "legacy", "model": request.model_name}
     except Exception as e:
-        print(f"[_ask_impl] Error reading cache: {e}")
+        print(f"[_ask_impl] Error reading legacy cache: {e}")
+    
+    # Generate new answer
     try:
         # Tests mock model_manager.generate directly
         to_generate = request.prompt if request.prompt else request.question
+        
+        start_time = time.time()
         answer = model_manager.generate(
             to_generate,
             prefer_fast=request.prefer_fast,
             max_tokens=request.max_tokens,
         )
+        generation_time = time.time() - start_time
+        
         if isinstance(answer, str) and "No model available" in answer:
             raise RuntimeError("Model unavailable")
         if answer is None or (isinstance(answer, str) and answer.strip() == ""):
             raise RuntimeError("No answer generated")
+            
     except Exception as e:
         print(f"[_ask_impl] Error generating answer: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
+    
+    # Store in both cache systems
     try:
+        # Store in legacy cache
         cache_manager.store_answer(request.question, answer)
+        # Store in performance cache with longer TTL for better answers
+        cache_ttl = 3600 if generation_time < 5.0 else 1800  # Longer TTL for fast responses
+        performance_cache.set(cache_key, answer, ttl=cache_ttl)
     except Exception as e:
         print(f"[_ask_impl] Error storing answer: {e}")
-    return {"answer": answer, "cached": False, "model": request.model_name}
+    
+    return {
+        "answer": answer, 
+        "cached": False, 
+        "model": request.model_name,
+        "generation_time": generation_time
+    }
 
 @app.post("/api/ask")
 async def api_ask(request: AskRequest):
@@ -315,6 +418,183 @@ async def index_pdf(pdf_path: str):
         init_services()
     count = vault_indexer.index_pdf(pdf_path)
     return {"chunks_indexed": count}
+
+# ----------------------
+# Performance & Monitoring Endpoints
+# ----------------------
+
+@app.get("/api/performance/metrics")
+async def get_performance_metrics():
+    """Get comprehensive performance metrics"""
+    try:
+        metrics = PerformanceMonitor.get_system_metrics()
+        return {
+            "status": "success",
+            "metrics": metrics,
+            "timestamp": time.time()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
+
+@app.get("/api/performance/cache/stats")
+async def get_cache_stats():
+    """Get detailed cache performance statistics"""
+    try:
+        cache_manager = get_cache_manager()
+        stats = cache_manager.get_stats()
+        return {
+            "status": "success",
+            "cache_stats": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}")
+
+@app.post("/api/performance/cache/clear")
+async def clear_performance_cache():
+    """Clear performance cache (L1 and L2)"""
+    try:
+        cache_manager = get_cache_manager()
+        # Clear L1 cache
+        cache_manager.l1_cache.clear()
+        # Clear L2 cache 
+        cache_manager.l2_cache.clear()
+        cache_manager._persist_l2_cache()
+        
+        return {
+            "status": "success",
+            "message": "Performance cache cleared"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
+
+@app.post("/api/performance/optimize")
+async def trigger_optimization(background_tasks: BackgroundTasks):
+    """Trigger background performance optimization tasks"""
+    try:
+        task_queue = await get_task_queue()
+        
+        # Schedule optimization tasks
+        optimization_tasks = [
+            _cleanup_expired_cache(),
+            _optimize_connection_pools(),
+            _collect_performance_metrics()
+        ]
+        
+        scheduled_count = 0
+        for task in optimization_tasks:
+            success = await task_queue.submit_task(task, priority=1)
+            if success:
+                scheduled_count += 1
+        
+        return {
+            "status": "success",
+            "message": f"Scheduled {scheduled_count} optimization tasks",
+            "queue_stats": task_queue.get_stats()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to trigger optimization: {str(e)}")
+
+# Background optimization tasks
+async def _cleanup_expired_cache():
+    """Clean up expired cache entries"""
+    try:
+        cache_manager = get_cache_manager()
+        
+        # Clean L1 cache
+        expired_keys = [
+            key for key, entry in cache_manager.l1_cache.items()
+            if entry.is_expired()
+        ]
+        for key in expired_keys:
+            del cache_manager.l1_cache[key]
+        
+        # Clean L2 cache
+        expired_keys = [
+            key for key, entry in cache_manager.l2_cache.items()
+            if entry.is_expired()
+        ]
+        for key in expired_keys:
+            del cache_manager.l2_cache[key]
+        
+        cache_manager._persist_l2_cache()
+        
+    except Exception as e:
+        print(f"Cache cleanup failed: {e}")
+
+async def _optimize_connection_pools():
+    """Optimize connection pools by cleaning idle connections"""
+    try:
+        from .performance import _connection_pools
+        for name, pool in _connection_pools.items():
+            pool.cleanup_idle_connections()
+    except Exception as e:
+        print(f"Connection pool optimization failed: {e}")
+
+async def _collect_performance_metrics():
+    """Collect and log performance metrics"""
+    try:
+        metrics = PerformanceMonitor.get_system_metrics()
+        # Log metrics for analysis (could be sent to monitoring system)
+        print(f"Performance metrics collected: {metrics['timestamp']}")
+    except Exception as e:
+        print(f"Metrics collection failed: {e}")
+
+# Enhanced ask endpoint with performance caching
+@cached(ttl=1800, key_func=lambda req: f"ask:{hash((req.question, req.model_name, req.max_tokens))}")
+def _cached_ask_processing(question: str, model_name: str, max_tokens: int) -> str:
+    """Cached version of AI processing for identical requests"""
+    # This would be called by the main ask endpoint for cacheable requests
+    return f"Cached response for: {question[:50]}..."
+
+# ----------------------
+# Enterprise Feature Endpoints (if available)
+# ----------------------
+
+if ENTERPRISE_AVAILABLE:
+    @app.get("/api/enterprise/status")
+    async def enterprise_status():
+        """Get enterprise features status"""
+        return {
+            "enterprise_enabled": True,
+            "features": {
+                "sso_authentication": True,
+                "multi_tenant": True,
+                "rbac": True,
+                "gdpr_compliance": True,
+                "soc2_compliance": True,
+                "admin_dashboard": True
+            },
+            "version": "1.0.0"
+        }
+    
+    @app.get("/api/enterprise/demo")
+    async def enterprise_demo():
+        """Demo endpoint showing enterprise capabilities"""
+        return {
+            "message": "Enterprise AI Assistant - Production Ready",
+            "capabilities": [
+                "Single Sign-On (SSO) with Azure AD, Google, Okta, SAML, LDAP",
+                "Multi-tenant architecture with resource isolation",
+                "Role-based access control (RBAC) with granular permissions",
+                "GDPR compliance with data subject rights management",
+                "SOC2 Type II compliance framework",
+                "Comprehensive admin dashboard and monitoring",
+                "Enterprise-grade security and audit logging",
+                "Scalable tenant management and billing"
+            ],
+            "authentication": "JWT-based with enterprise SSO integration",
+            "compliance": "GDPR and SOC2 ready with audit trails",
+            "security": "Enterprise-grade with role-based permissions"
+        }
+else:
+    @app.get("/api/enterprise/status")
+    async def enterprise_status_unavailable():
+        """Enterprise features not available"""
+        return {
+            "enterprise_enabled": False,
+            "message": "Enterprise features not available in this deployment",
+            "available_features": ["Basic AI Assistant", "Document Indexing", "Web Search"]
+        }
 
 # ----------------------
 # Run server

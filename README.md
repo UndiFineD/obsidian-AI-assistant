@@ -19,6 +19,19 @@
 - **Security**: Optional encryption for cached data with Fernet encryption
 - **FastAPI Backend**: RESTful API with automatic documentation and error handling
 
+### 🏢 **Enterprise Features (Implemented)**
+
+- **Multi-Tenant Architecture**: Isolated data and configurations per tenant
+- **SSO Authentication**: Support for Azure AD, Google, Okta, SAML, and LDAP
+- **Role-Based Access Control (RBAC)**: Granular permissions and user management
+- **Enterprise Admin Dashboard**: Comprehensive management interface with analytics
+- **GDPR Compliance**: Data export, deletion, and consent management
+- **SOC2 Compliance**: Audit logging, security monitoring, and compliance reporting
+- **Enterprise Configuration**: Advanced settings for security, compliance, and integrations
+- **Tenant Management**: Multi-organization support with isolated environments
+- **Security Dashboard**: Real-time monitoring of security events and incidents
+- **Compliance Reporting**: Automated GDPR and SOC2 compliance status tracking
+
 ### 🚧 **Enhanced Features**
 
 - **Settings API**: Runtime configuration updates via `/api/config` endpoints
@@ -26,7 +39,6 @@
 - **Error Handling**: Comprehensive error scenarios with graceful fallbacks
 - **Test Coverage**: 70%+ test coverage with comprehensive test suites
 - **Cross-Platform**: Windows/Linux/macOS support with dedicated setup scripts
-    
 
 ---
 
@@ -45,13 +57,77 @@ obsidian-llm-assistant/
 └─ README.md
 ```
 
-
 ![[diagram.png]]
-
 
 ---
 
 ## **Setup Instructions**
+
+### **Enterprise Setup (Optional)**
+
+For organizations requiring enterprise features, additional backend modules are available:
+
+#### **Enterprise Backend Modules**
+
+```bash
+# Enterprise modules (automatically loaded if available)
+backend/enterprise/
+├── auth.py           # SSO authentication providers
+├── tenant.py         # Multi-tenant management  
+├── rbac.py          # Role-based access control
+├── gdpr.py          # GDPR compliance tools
+├── soc2.py          # SOC2 compliance monitoring
+├── admin.py         # Admin dashboard API
+└── integrations.py  # Enterprise integrations
+```
+
+#### **Enterprise Plugin Components**
+
+```bash
+plugin/
+├── adminDashboard.js    # Admin interface
+├── enterpriseAuth.js    # SSO authentication
+├── enterpriseConfig.js  # Enterprise settings
+└── styles.css          # Enterprise UI styling
+```
+
+#### **Enterprise Configuration**
+
+```yaml
+# backend/config.yaml - Enterprise settings
+enterprise:
+  enabled: true
+  sso:
+    providers:
+      - azure_ad
+      - google
+      - okta
+      - saml
+      - ldap
+  tenant:
+    multi_tenant: true
+    default_tenant: "default"
+  compliance:
+    gdpr: true
+    soc2: true
+    audit_logging: true
+  security:
+    session_timeout: 3600
+    mfa_required: false
+    password_policy: "strong"
+```
+
+#### **Enterprise Features Access**
+
+Once enterprise backend is running:
+
+1. **Admin Dashboard**: Settings → Enterprise → Admin Dashboard
+2. **SSO Login**: Settings → Enterprise → Enterprise Login  
+3. **Configuration**: Settings → Enterprise → Enterprise Configuration
+4. **User Management**: Admin Dashboard → Users tab
+5. **Tenant Management**: Admin Dashboard → Tenants tab
+6. **Security Monitoring**: Admin Dashboard → Security tab
+7. **Compliance Reports**: Admin Dashboard → Compliance tab
 
 ### **1. Run Setup Script**
 
@@ -64,19 +140,15 @@ bash setup.sh
 **Windows:**
 
 ```powershell
-.\setup.ps1
+./setup.ps1
 ```
 
 This will:
 
 1. Create a Python virtual environment
-    
 2. Install dependencies (`fastapi`, `torch`, `chromadb`, `llama-cpp-python`, `gpt4all`, etc.)
-    
 3. Detect GPU/CPU
-    
 4. Download default models (LLaMA 7B Q4, GPT4All Lora)
-    
 5. Build the Obsidian plugin automatically
 
 ### **Configuration System**
@@ -84,8 +156,9 @@ This will:
 The backend uses a centralized settings system with the following precedence:
 
 1. **Environment Variables** (highest priority)
-2. **`backend/config.yaml`** (medium priority) 
+2. **`backend/config.yaml`** (medium priority)
 3. **Code Defaults** (lowest priority)
+
 
 #### **Key Configuration Options**
 
@@ -98,7 +171,7 @@ continuous_mode: false
 
 # Paths
 vault_path: "vault"
-models_dir: "models" 
+models_dir: "models"
 cache_dir: "cache"
 
 # LLM Settings
@@ -206,9 +279,11 @@ For quick testing without full backend dependencies:
 python test_server.py
 ```
 
+
 This lightweight server:
+
 - Serves static plugin files from `./plugin`
-- Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`  
+- Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`
 - Requires no Node.js or complex dependencies
 - Useful for plugin UI testing
 
@@ -390,7 +465,9 @@ pytest -k "test_caching or test_settings" -v
 
 **Setup Script Tests:**
 
-*PowerShell (Windows):*
+
+_PowerShell (Windows):_
+
 ```powershell
 # Install Pester
 Install-Module -Name Pester -Force -SkipPublisherCheck
@@ -399,7 +476,9 @@ Install-Module -Name Pester -Force -SkipPublisherCheck
 Invoke-Pester tests/setup/test_setup_ps1.ps1 -Verbose
 ```
 
-*Bash (Linux/macOS):*
+
+_Bash (Linux/macOS):_
+
 ```bash
 # Install BATS
 npm install -g bats
@@ -455,6 +534,17 @@ POST /ask                    # Ask question to LLM
 POST /reindex                # Reindex vault documents  
 POST /web                    # Index web content
 POST /transcribe             # Voice to text
+
+# Enterprise operations (if enterprise enabled)
+GET /api/enterprise/status           # Enterprise feature status
+POST /api/enterprise/auth/sso        # SSO authentication
+GET /api/enterprise/tenants          # List tenants
+POST /api/enterprise/tenants         # Create tenant
+GET /api/enterprise/users            # List users
+POST /api/enterprise/users           # Create user
+GET /api/enterprise/compliance/gdpr  # GDPR compliance status
+GET /api/enterprise/compliance/soc2  # SOC2 compliance status
+GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 ```
 
 ---
