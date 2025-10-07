@@ -1,8 +1,11 @@
 // plugin/voice.js
+const BackendClient = require("./backendClient.js");
+
 class VoiceRecorder {
-  constructor() {
+  constructor(backendUrl, getAuthToken = null) {
     this.mediaRecorder = null;
     this.chunks = [];
+    this.backendClient = backendUrl ? new BackendClient(backendUrl, getAuthToken) : null;
   }
 
   async startRecording() {
@@ -31,16 +34,17 @@ class VoiceRecorder {
   }
 
   async sendToBackend(blob, backendUrl, voiceMode) {
-    const formData = new FormData();
-    formData.append("file", blob, "voice.wav");
-    formData.append("mode", voiceMode || "offline");
-
-    const res = await fetch(`${backendUrl}/api/voice_transcribe`, {
-      method: "POST",
-      body: formData,
+    // Convert blob to base64 for JSON API
+    const arrayBuffer = await blob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    
+    const client = this.backendClient || new BackendClient(backendUrl);
+    const data = await client.post("/transcribe", {
+      audio_data: base64,
+      format: "wav",
+      language: "en"
     });
-
-    const data = await res.json();
+    
     return data.transcription || "";
   }
 }

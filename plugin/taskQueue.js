@@ -1,4 +1,5 @@
 const { App, Notice } = require("obsidian");
+const BackendClient = require("./backendClient.js");
 
 const VIEW_TYPE_TASK_QUEUE = "task-queue-view";
 
@@ -6,9 +7,10 @@ const VIEW_TYPE_TASK_QUEUE = "task-queue-view";
 // Core Task Queue
 // ----------------------------
 class TaskQueue {
-  constructor(backendUrl, app) {
+  constructor(backendUrl, app, getAuthToken = null) {
     this.app = app;
     this.backendUrl = backendUrl;
+    this.backendClient = new BackendClient(backendUrl, getAuthToken);
     this.queue = [];
     this.isRunning = false;
     this.filteredQueue = [];
@@ -69,43 +71,28 @@ class TaskQueue {
 
   async askQuestion(question) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question, prefer_fast: true }),
-      });
-      const data = await response.json();
+      const data = await this.backendClient.post("/ask", { question, prefer_fast: true });
       new Notice(`Answer received: ${data.answer.substring(0, 100)}...`);
     } catch (e) {
-      new Notice(`Error asking question: ${e}`);
+      new Notice(`Error asking question: ${e.message}`);
     }
   }
 
   async formatNote(notePath, content) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/format_note`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note_path: notePath, content }),
-      });
-      const data = await response.json();
+      await this.backendClient.post("/api/format_note", { note_path: notePath, content });
       new Notice(`Note formatted: ${notePath}`);
     } catch (e) {
-      new Notice(`Error formatting note: ${e}`);
+      new Notice(`Error formatting note: ${e.message}`);
     }
   }
 
   async linkNote(notePath, content) {
     try {
-      const response = await fetch(`${this.backendUrl}/api/link_notes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ note_path: notePath, content }),
-      });
-      const data = await response.json();
-      new Notice(`Linked notes: ${data.related_notes.join(", ")}`);
+      const data = await this.backendClient.post("/api/link_notes", { note_path: notePath, content });
+      new Notice(`Linked notes: ${data.related_notes?.join(", ") || "none"}`);
     } catch (e) {
-      new Notice(`Error linking note: ${e}`);
+      new Notice(`Error linking note: ${e.message}`);
     }
   }
 
