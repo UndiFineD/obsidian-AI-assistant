@@ -23,11 +23,11 @@ class TestVoiceModule:
     def test_model_path_configuration(self):
         """Test that MODEL_PATH is properly configured."""
         assert MODEL_PATH is not None
-        assert isinstance(MODEL_PATH, str
+        assert isinstance(MODEL_PATH, str)
         # Should be either from environment or default
         assert "vosk-model" in MODEL_PATH
     
-    @patch('backend.voice.os.path.exists'
+    @patch('backend.voice.os.path.exists')
     @patch('backend.voice.vosk.Model')
     def test_model_initialization_success(self, mock_vosk_model, mock_exists):
         """Test successful model initialization."""
@@ -51,9 +51,8 @@ class TestVoiceModule:
             import importlib
             import voice
             importlib.reload(voice)
-        
-        assert "Vosk model not found" in str(exc_info.value
-        assert MODEL_PATH in str(exc_info.value
+        assert "Vosk model not found" in str(exc_info.value)
+        assert MODEL_PATH in str(exc_info.value)
     
     def test_router_is_created(self):
         """Test that FastAPI router is properly created."""
@@ -126,7 +125,7 @@ class TestVoiceTranscription:
         from voice import voice_transcribe
         result = await voice_transcribe(mock_file)
         assert "transcription" in result
-        assert isinstance(result["transcription"], str
+        assert isinstance(result["transcription"], str)
         mock_file.read.assert_called_once()
     
     @patch('backend.voice.wave.open')
@@ -146,7 +145,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('backend.voice.wave.open'
+    @patch('backend.voice.wave.open')
     async def test_voice_transcribe_invalid_sample_width(self, mock_wave_open):
         """Test transcription with invalid sample width."""
         mock_audio_data = b"fake_audio_data"
@@ -163,7 +162,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('backend.voice.wave.open'
+    @patch('backend.voice.wave.open')
     async def test_voice_transcribe_invalid_sample_rate(self, mock_wave_open):
         """Test transcription with invalid sample rate."""
         mock_audio_data = b"fake_audio_data"
@@ -181,7 +180,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "16kHz or 8kHz" in result["error"]
     
-    @patch('backend.voice.wave.open'
+    @patch('backend.voice.wave.open')
     @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_empty_transcription(self, mock_kaldi, mock_wave_open):
@@ -207,7 +206,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == ""
     
-    @patch('backend.voice.wave.open'
+    @patch('backend.voice.wave.open')
     @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_multiple_segments(self, mock_kaldi, mock_wave_open):
@@ -234,7 +233,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == "hello world goodbye"
     
-    @patch('backend.voice.wave.open'
+    @patch('backend.voice.wave.open')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_wave_error(self, mock_wave_open):
         """Test transcription with wave file error."""
@@ -290,11 +289,11 @@ class TestVoiceTranscription:
                         files={"file": ("test.wav", f, "audio/wav")}
                     )
                 assert response.status_code == 200
-                data = response.json(
+                data = response.json()
                 assert "transcription" in data
         finally:
             # Clean up
-            os.unlink(test_wav
+            os.unlink(test_wav)
 
 class TestVoiceUtilities:
     """Test utility functions and edge cases for voice module."""
@@ -329,8 +328,8 @@ class TestVoiceUtilities:
         temp_file = "temp_audio.wav"
         # If the file exists from a previous test, it should be overwritten
         # In a real implementation, we'd want proper cleanup
-        assert isinstance(temp_file, str
-        assert temp_file.endswith('.wav'
+        assert isinstance(temp_file, str)
+        assert temp_file.endswith('.wav')
     
     @patch('backend.voice.vosk.KaldiRecognizer')
     def test_recognizer_initialization_with_different_sample_rates(self, mock_kaldi):

@@ -80,16 +80,16 @@ def test_chunk_text_basic(embeddings_manager):
     """Test basic text chunking functionality."""
     text = "This is a test document. " * 20  # Create longer text
     chunks = embeddings_manager.chunk_text(text)
-    assert isinstance(chunks, list
-    assert len(chunks > 0
-    assert all(isinstance(chunk, str for chunk in chunks)
+    assert isinstance(chunks, list)
+    assert len(chunks) > 0
+    assert all(isinstance(chunk, str) for chunk in chunks)
     # Remove strict length check, as chunking may exceed chunk_size + overlap due to word boundaries
 
 def test_chunk_text_short_text(embeddings_manager):
     """Test chunking of text shorter than chunk size."""
     text = "Short text."
     chunks = embeddings_manager.chunk_text(text)
-    assert len(chunks == 1
+    assert len(chunks) == 1
     assert chunks[0] == text
 
 def test_chunk_text_empty_text(embeddings_manager):
@@ -124,4 +124,4 @@ class TestEmbeddingsIntegration:
     pass
 
 if __name__ == "__main__":
-    pytest.main([__file__]
+    pytest.main([__file__])
