@@ -4,11 +4,8 @@ End-to-End integration tests for complete workflows
 """
 
 import pytest
-import tempfile
 import time
-import json
-from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 class TestCompleteWorkflows:
     """Test complete user workflows end-to-end"""
@@ -47,7 +44,8 @@ class TestCompleteWorkflows:
         # Step 2: Get initial configuration
         response = client.get("/api/config")
         assert response.status_code == 200
-        config = response.json()
+        # Verify config is accessible
+        response.json()
         
         # Step 3: Index user's vault for first time
         response = client.post("/api/scan_vault", params={"vault_path": "./test_vault"})
@@ -160,7 +158,8 @@ class TestCompleteWorkflows:
         # Step 1: Initial vault scan
         response = client.post("/api/scan_vault", params={"vault_path": "./vault1"})
         assert response.status_code == 200
-        initial_index = response.json()
+        # Verify scan completed
+        response.json()
         
         # Step 2: Search for existing content
         response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
@@ -194,7 +193,8 @@ class TestCompleteWorkflows:
         # Step 1: Get current configuration
         response = client.get("/api/config")
         assert response.status_code == 200
-        original_config = response.json()
+        # Verify config retrieval
+        response.json()
         
         # Step 2: Update specific settings
         config_updates = {
@@ -205,7 +205,8 @@ class TestCompleteWorkflows:
         
         response = client.post("/api/config", json=config_updates)
         assert response.status_code == 200
-        update_result = response.json()
+        # Verify update successful
+        response.json()
         
         # Step 3: Verify configuration changes took effect
         response = client.get("/api/config")
@@ -218,7 +219,8 @@ class TestCompleteWorkflows:
         # Step 4: Test configuration reload
         response = client.post("/api/config/reload")
         assert response.status_code == 200
-        reload_result = response.json()
+        # Verify reload successful
+        response.json()
         
         # Step 5: Test with updated configuration
         response = client.post("/api/ask", json={
@@ -413,12 +415,15 @@ class TestPerformanceBenchmarks:
         assert memory_increase < 100, f"Memory increase too high: {memory_increase:.1f} MB"
         
         # Get performance metrics
-    response = client.get("/api/performance/metrics")
-    assert response.status_code == 200
-        
-    metrics = response.json()["metrics"]
-    assert "cache" in metrics
+    def test_performance_metrics(self):
+        from fastapi.testclient import TestClient
+        from backend.backend import app
+        client = TestClient(app)
+        response = client.get("/api/performance/metrics")
+        assert response.status_code == 200
+        metrics = response.json()["metrics"]
+        assert "cache" in metrics
 
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v", "--tb=short"]
+    pytest.main([__file__, "-v", "--tb=short"])

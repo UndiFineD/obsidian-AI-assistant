@@ -66,19 +66,7 @@ if (Test-Path $Requirements) {
 }
 
 # ----- 4. Node dependencies via package-lock (npm ci) -----
-if (Get-Command npm -ErrorAction SilentlyContinue) {
-    Push-Location $RepoRoot
-    if (Test-Path (Join-Path $RepoRoot "package-lock.json")) {
-        Write-Host "Installing Node deps with npm ci (locked)..."
-        npm ci --no-audit --no-fund
-    } else {
-        Write-Host "No package-lock.json found; running npm install..."
-        npm install --no-audit --no-fund
-    }
-    Pop-Location
-} else {
-    Write-Warning "npm not found; skipping JS dependency installation."
-}
+## Node.js and npm installation steps removed; only Python dependencies are installed
 
 # ----- 5. Optional: Hugging Face login -----
 if (-not $env:HUGGINGFACE_TOKEN) {

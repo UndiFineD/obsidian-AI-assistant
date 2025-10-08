@@ -234,7 +234,7 @@ notepad .\backend\config.yaml
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
 
-# Option B: Simple Python test server (no Node/NodeJS required)
+## Option B: Simple Python test server (no Node.js required)
 # This serves the plugin files and provides mock endpoints for quick UI testing.
 cd ..
 python .\test_server.py
@@ -249,7 +249,7 @@ notepad .\plugin\config.json
 ```
 
 Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
-No Node/NodeJS build step is required—the plugin JS and CSS are ready-to-use.
+No Node.js build step is required—the plugin JS and CSS are ready-to-use.
     
 
 ---
@@ -284,7 +284,7 @@ This lightweight server:
 
 - Serves static plugin files from `./plugin`
 - Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`
-- Requires no Node.js or complex dependencies
+Requires only Python, no Node.js or npm.
 - Useful for plugin UI testing
 
 #### **Backend Endpoints**
@@ -481,7 +481,8 @@ _Bash (Linux/macOS):_
 
 ```bash
 # Install BATS
-npm install -g bats
+sudo apt-get install bats # (Ubuntu)
+brew install bats-core # (macOS)
 # or: sudo apt-get install bats (Ubuntu)
 # or: brew install bats-core (macOS)
 
@@ -570,7 +571,6 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 
 **Optional:**
 
-- Node.js 18+ (not required for plugin usage)
 
 ---
 

@@ -8,23 +8,13 @@ Tests end-to-end scenarios: Plugin → Backend → AI Mo        assert isinstanc
         print("✓ Vault reindexing workflow integration test passed")→ Embeddings → Responses
 """
 import pytest
-import asyncio
-import tempfile
-import json
 import time
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-# Import backend components
-from backend.backend import app, init_services
-from backend.modelmanager import ModelManager  
-from backend.embeddings import EmbeddingsManager
-from backend.indexing import VaultIndexer
-from backend.caching import CacheManager
 
 
 class TestFullWorkflowIntegration:
@@ -418,10 +408,13 @@ class TestPerformanceAndLimits:
             for request in requests:
                 response = _ask_impl(request)
                 responses.append(response)
+                assert response["answer"] == "Quick response"
+            print("✓ Concurrent requests handling test passed")
             
             # All should succeed
             assert len(responses) == 5
-            assert all(r["answer"]) == "Quick response" for r in responses
+            for r in responses:
+                assert r["answer"] == "Quick response"
             
             print("✓ Concurrent requests handling test passed")
 

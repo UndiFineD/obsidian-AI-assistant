@@ -1,4 +1,7 @@
+
 name: Comprehensive CI/CD Pipeline
+permissions:
+  contents: read
 
 on:
   push:
@@ -9,9 +12,49 @@ on:
 
 env:
   PYTHON_VERSION: '3.11'
-  NODE_VERSION: '18'
 
 jobs:
+  # Job: Plugin Integration Tests (Python http.server)
+  plugin-integration-tests:
+    runs-on: ubuntu-latest
+    name: Plugin Integration Tests (Python)
+    needs: [backend-tests]
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest httpx
+
+    - name: Start Plugin Static Server
+      run: |
+        cd plugin
+        python -m http.server 8080 &
+        SERVER_PID=$!
+        echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+        sleep 3
+        curl -f http://127.0.0.1:8080 || exit 1
+
+    - name: Run Plugin Integration Tests
+      run: |
+        pytest tests/plugin/ -v --tb=short
+      env:
+        PYTHONPATH: .
+
+    - name: Cleanup
+      if: always()
+      run: |
+        if [ ! -z "$SERVER_PID" ]; then
+          kill $SERVER_PID || true
+        fi
   # Job 1: Code Quality & Security
   code-quality:
     runs-on: ubuntu-latest
@@ -135,65 +178,6 @@ jobs:
         flags: backend
         name: codecov-backend
 
-  # Job 3: Plugin Tests (TypeScript/JavaScript)
-  plugin-tests:
-    runs-on: ubuntu-latest
-    name: Plugin Tests (TypeScript/JavaScript)
-    
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: plugin/package.json
-    
-    - name: Install Plugin Dependencies
-      working-directory: plugin
-      run: |
-        if [ -f package.json ]; then
-          npm ci || npm install
-        else
-          npm init -y
-          npm install --save-dev typescript jest @types/jest ts-jest obsidian
-        fi
-    
-    - name: TypeScript Compilation Check
-      working-directory: plugin
-      run: |
-        if [ -f tsconfig.json ]; then
-          npx tsc --noEmit
-        else
-          echo "No tsconfig.json found, skipping TypeScript compilation check"
-        fi
-    
-    - name: Run Plugin Unit Tests
-      working-directory: plugin
-      run: |
-        if [ -f jest.config.js ] || [ -f jest.config.json ]; then
-          npm test
-        else
-          echo "No Jest configuration found, creating basic test setup"
-          echo 'module.exports = { preset: "ts-jest", testEnvironment: "node", testMatch: ["**/__tests__/**/*.test.ts"] };' > jest.config.js
-          mkdir -p __tests__
-          echo 'describe("Plugin", () => { test("loads successfully", () => { expect(true).toBe(true); }); });' > __tests__/basic.test.ts
-          npm test || echo "Plugin tests need to be implemented"
-        fi
-    
-    - name: Plugin Linting
-      working-directory: plugin
-      run: |
-        if [ -f .eslintrc.json ] || [ -f .eslintrc.js ]; then
-          npx eslint . --ext .ts,.js
-        else
-          echo "No ESLint configuration found, installing and running basic linting"
-          npm install --save-dev eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin
-          echo '{"extends": ["@typescript-eslint/recommended"], "parser": "@typescript-eslint/parser"}' > .eslintrc.json
-          npx eslint . --ext .ts,.js || true
-        fi
 
   # Job 4: End-to-End Integration Tests
   e2e-tests:
@@ -222,10 +206,7 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
+
     
     - name: Install Dependencies
       run: |
@@ -398,8 +379,8 @@ jobs:
   build-package:
     runs-on: ubuntu-latest
     name: Build and Package
-    needs: [code-quality, backend-tests, plugin-tests]
-    if: github.ref == 'refs/heads/main'
+  needs: [code-quality, backend-tests]
+  if: github.ref == 'refs/heads/main'
     
     steps:
     - name: Checkout Code
@@ -410,10 +391,7 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
     
-    - name: Set up Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
+
     
     - name: Build Documentation
       run: |
@@ -512,8 +490,8 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     name: Notify Results
-    needs: [code-quality, backend-tests, plugin-tests, e2e-tests, performance-benchmarks]
-    if: always()
+  needs: [code-quality, backend-tests, e2e-tests, performance-benchmarks]
+  if: always()
     
     steps:
     - name: Workflow Summary
@@ -524,9 +502,9 @@ jobs:
         echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY  
-        echo "| Plugin Tests | ${{ needs.plugin-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
+    echo "| Plugin Integration Tests | ${{ needs.plugin-integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+    echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+    echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ "${{ needs.backend-tests.result }}" == "success" ] && [ "${{ needs.e2e-tests.result }}" == "success" ]; then

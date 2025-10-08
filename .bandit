@@ -1,0 +1,12 @@
+[bandit]
+# Bandit configuration file
+
+# Skip assert warnings in test files (B101)
+skips = B101
+
+# Exclude test directories from B101 checks
+exclude_dirs = tests,*/tests/*
+
+# Test files are allowed to use assert statements
+# B101 is acceptable in test files as asserts are expected behavior
+tests = B101
