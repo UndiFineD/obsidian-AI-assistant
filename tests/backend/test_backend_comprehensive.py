@@ -1,19 +1,16 @@
 import sys
 from pathlib import Path
+from unittest.mock import Mock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
+
 # tests/backend/test_backend_comprehensive.py
 """
 Fixed comprehensive test suite for backend.py FastAPI application.
 This version has proper imports, mocking, and alignment with actual API endpoints.
 Target: Achieve 80%+ coverage by testing all endpoints, service integration, and error handling.
 """
-import pytest
- 
-from fastapi.testclient import TestClient
-from unittest.mock import Mock, patch
- 
 
 # Add backend to path BEFORE any imports
 backend_path = str(Path(__file__).parent.parent.parent)

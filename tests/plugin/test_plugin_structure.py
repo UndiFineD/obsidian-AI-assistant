@@ -34,23 +34,22 @@ class TestPluginStructure:
         # Validate specific values
         assert manifest["id"] == "obsidian-ai-assistant"
         assert manifest["name"] == "AI Assistant"
-        assert re.match(r"\d+\.\d+\.\d+", manifest["version"], "Version should follow semantic versioning"
-        
+        assert re.match(r"\d+\.\d+\.\d+", manifest["version"]), "Version should follow semantic versioning"
         print("✓ Manifest.json is valid and complete")
 
     def test_main_js_exists(self):
         """Test that main.js exists and has basic structure."""
         main_path = self.plugin_dir / "main.js"
-        assert main_path.exists(, "main.js should exist in plugin directory"
+        assert main_path.exists(), "main.js should exist in plugin directory"
         
         with open(main_path, 'r', encoding='utf-8') as f:
             content = f.read()
         
-        assert len(content > 1000, "main.js should contain substantial code"
+        assert len(content) > 1000, "main.js should contain substantial code"
         assert 'require("obsidian"' in content, "main.js should import from obsidian"
         assert 'class' in content, "main.js should contain class definitions"
         
-        print(f"✓ main.js exists and contains {len(content} characters")
+        print(f"✓ main.js exists and contains {len(content)} characters")
 
     def test_essential_plugin_files_exist(self):
         """Test that all essential plugin files exist."""
@@ -72,7 +71,7 @@ class TestPluginStructure:
                 missing_files.append(filename)
         
         assert not missing_files, f"Missing essential plugin files: {missing_files}"
-        print(f"✓ All {len(essential_files} essential plugin files exist")
+    print(f"✓ All {len(essential_files)} essential plugin files exist")
 
 
 class TestMainPluginFile:
@@ -93,11 +92,11 @@ class TestMainPluginFile:
             "Should have ObsidianAIAssistant class extending Plugin"
         
         # Check for essential methods (onload is required, onunload is optional
-        assert 'onload(' in content or 'onload (' in content, "Plugin should have onload method"
-        assert 'loadSettings(' in content or 'loadSettings (' in content, "Plugin should have loadSettings method"
-        assert 'saveSettings(' in content or 'saveSettings (' in content, "Plugin should have saveSettings method"
+    assert 'onload(' in content or 'onload (' in content, "Plugin should have onload method"
+    assert 'loadSettings(' in content or 'loadSettings (' in content, "Plugin should have loadSettings method"
+    assert 'saveSettings(' in content or 'saveSettings (' in content, "Plugin should have saveSettings method"
         
-        print("✓ Main plugin class structure is correct"
+    print("✓ Main plugin class structure is correct")
 
     def test_modal_classes_defined(self):
         """Test that modal classes are properly defined."""
@@ -109,9 +108,9 @@ class TestMainPluginFile:
         
         # Check for onOpen method (onClose is optional
         pattern = r'onOpen\s*\([^)]*\)\s*\{'
-        assert re.search(pattern, content, "AIModal should have onOpen method"
+    assert re.search(pattern, content), "AIModal should have onOpen method"
         
-        print("✓ Modal classes are properly defined")
+    print("✓ Modal classes are properly defined")
 
     def test_settings_tab_structure(self):
         """Test that settings tab is properly implemented."""
@@ -125,7 +124,7 @@ class TestMainPluginFile:
         assert 'display(' in content or 'display ()' in content, \
             "Settings tab should have display method"
         
-        print("✓ Settings tab structure is correct")
+    print("✓ Settings tab structure is correct")
 
     def test_default_settings_defined(self):
         """Test that default settings are properly defined."""
@@ -161,7 +160,7 @@ class TestMainPluginFile:
             if re.search(pattern, content, re.IGNORECASE):
                 found_patterns.append(pattern)
         
-        assert len(found_patterns >= 2, \
+        assert len(found_patterns) >= 2, \
             f"Should have backend communication setup. Found patterns: {found_patterns}"
         
         print("✓ Backend communication setup detected")
@@ -177,7 +176,7 @@ class TestPluginModules:
     def test_analytics_pane_structure(self):
         """Test analyticsPane.js structure."""
         file_path = self.plugin_dir / "analyticsPane.js"
-        assert file_path.exists(, "analyticsPane.js should exist"
+    assert file_path.exists(), "analyticsPane.js should exist"
         
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -190,12 +189,12 @@ class TestPluginModules:
         ])
         assert has_structure, "analyticsPane.js should contain function or class definitions"
         
-        print("✓ analyticsPane.js has proper structure"
+    print("✓ analyticsPane.js has proper structure")
 
     def test_task_queue_structure(self):
         """Test taskQueue.js structure."""
         file_path = self.plugin_dir / "taskQueue.js"
-        assert file_path.exists(, "taskQueue.js should exist"
+    assert file_path.exists(), "taskQueue.js should exist"
         
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -216,7 +215,7 @@ class TestPluginModules:
         assert found_queue_patterns >= 2, \
             f"taskQueue.js should contain queue functionality. Found {found_queue_patterns} patterns"
         
-        print("✓ taskQueue.js has queue functionality"
+    print("✓ taskQueue.js has queue functionality")
 
     def test_voice_modules_structure(self):
         """Test voice.js and voiceInput.js structure."""
@@ -224,7 +223,7 @@ class TestPluginModules:
         
         for filename in voice_files:
             file_path = self.plugin_dir / filename
-            assert file_path.exists(, f"{filename} should exist"
+            assert file_path.exists(), f"{filename} should exist"
             
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
@@ -244,12 +243,12 @@ class TestPluginModules:
             assert found_patterns >= 1, \
                 f"{filename} should contain voice-related functionality. Found {found_patterns} patterns"
         
-        print("✓ Voice modules have proper structure"
+    print("✓ Voice modules have proper structure")
 
     def test_styles_css_exists(self):
         """Test that styles.css exists and contains CSS."""
         file_path = self.plugin_dir / "styles.css"
-        assert file_path.exists(, "styles.css should exist"
+    assert file_path.exists(), "styles.css should exist"
         
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -265,7 +264,7 @@ class TestPluginModules:
                        if re.search(pattern, content))
         
         assert found_css >= 2, f"styles.css should contain valid CSS. Found {found_css} patterns"
-        print("✓ styles.css contains valid CSS"
+    print("✓ styles.css contains valid CSS")
 
 
 class TestPluginConfiguration:
@@ -283,7 +282,7 @@ class TestPluginConfiguration:
                 config = json.load(f)
             
             # Should be valid JSON with some configuration
-            assert isinstance(config, dict, "config.template.json should be a JSON object"
+            assert isinstance(config, dict), "config.template.json should be a JSON object"
             print("✓ config.template.json exists and is valid JSON")
         else:
             print("⚠ config.template.json not found (optional)")
@@ -308,7 +307,7 @@ class TestPluginConfiguration:
                 assert not matches, \
                     f"Found potential sensitive data in {js_file.name}: {matches}"
         
-        print("✓ No sensitive data found in plugin files"
+    print("✓ No sensitive data found in plugin files")
 
 
 if __name__ == "__main__":
