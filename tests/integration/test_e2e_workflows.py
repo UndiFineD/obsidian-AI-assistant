@@ -47,14 +47,14 @@ class TestCompleteWorkflows:
         # Step 2: Get initial configuration
         response = client.get("/api/config")
         assert response.status_code == 200
-        config = response.json(
+        config = response.json()
         
         # Step 3: Index user's vault for first time
         response = client.post("/api/scan_vault", params={"vault_path": "./test_vault"})
         assert response.status_code == 200
-        indexed = response.json(
+        indexed = response.json()
         assert "indexed_files" in indexed
-        assert len(indexed["indexed_files"] == 3
+        assert len(indexed["indexed_files"]) == 3
         
         # Step 4: Ask first question (should not be cached)
         first_question = {
@@ -65,7 +65,7 @@ class TestCompleteWorkflows:
         response = client.post("/api/ask", json=first_question)
         assert response.status_code == 200
         
-        first_answer = response.json(
+        first_answer = response.json()
         assert first_answer["cached"] is False
         assert "AI response to: What is machine learning?" in first_answer["answer"]
         
@@ -73,27 +73,27 @@ class TestCompleteWorkflows:
         response = client.post("/api/ask", json=first_question)
         assert response.status_code == 200
         
-        cached_answer = response.json(
+        cached_answer = response.json()
         assert cached_answer["answer"] == first_answer["answer"]
         # Note: Cache behavior depends on implementation
         
         # Step 6: Perform semantic search
         response = client.post("/api/search", 
-                              params={"query": "machine learning", "top_k": 5}
+                              params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
         
-        search_results = response.json(
-        assert len(search_results["results"] == 2
+        search_results = response.json()
+        assert len(search_results["results"]) == 2
         assert search_results["results"][0]["score"] > 0.9
     
-    def test_power_user_workflow(self, test_client_with_real_cache:
+    def test_power_user_workflow(self, test_client_with_real_cache):
         """Test advanced power user workflow with performance monitoring"""
         client = test_client_with_real_cache
         
         # Step 1: Get baseline performance metrics
         response = client.get("/api/performance/metrics")
         assert response.status_code == 200
-        baseline = response.json(["metrics"]
+        baseline = response.json(["metrics"])
         
         # Step 2: Perform batch operations
         questions = [
@@ -112,18 +112,18 @@ class TestCompleteWorkflows:
                 "max_tokens": 150
             })
             assert response.status_code == 200
-            answers.append(response.json()
+            answers.append(response.json())
         
         # Verify all answers received
-        assert len(answers == 5
+        assert len(answers) == 5
         for answer in answers:
             assert "answer" in answer
-            assert answer["answer"].startswith("AI response to:"
+            assert answer["answer"].startswith("AI response to:")
         
         # Step 3: Check updated performance metrics
         response = client.get("/api/performance/metrics")
         assert response.status_code == 200
-        updated = response.json(["metrics"]
+        updated = response.json(["metrics"])
         
         # Should show increased activity
         assert updated["timestamp"] > baseline["timestamp"]
@@ -132,73 +132,69 @@ class TestCompleteWorkflows:
         search_queries = ["AI", "machine learning", "neural networks", "deep learning"]
         
         for query in search_queries:
-            response = client.post("/api/search",
-                                  params={"query": query, "top_k": 3}
+            response = client.post("/api/search", params={"query": query, "top_k": 3})
             assert response.status_code == 200
-            results = response.json(["results"]
-            assert len(results <= 3
+            results = response.json(["results"])
+            assert len(results) <= 3
         
         # Step 5: Get cache statistics
         response = client.get("/api/performance/cache/stats")
         assert response.status_code == 200
-        cache_stats = response.json(["cache_stats"]
+        cache_stats = response.json(["cache_stats"])
         
         # Should show cache activity
         assert "hit_rate" in cache_stats
         assert cache_stats["l1_size"] >= 0
         
         # Step 6: Trigger performance optimization
-        response = client.post("/api/performance/optimize"
+        response = client.post("/api/performance/optimize")
         assert response.status_code == 200
         
-        optimization = response.json(
+        optimization = response.json()
         assert optimization["status"] == "success"
     
-    def test_content_management_workflow(self, test_client_with_real_cache:
+    def test_content_management_workflow(self, test_client_with_real_cache):
         """Test content management and reindexing workflow"""
         client = test_client_with_real_cache
         
         # Step 1: Initial vault scan
         response = client.post("/api/scan_vault", params={"vault_path": "./vault1"})
         assert response.status_code == 200
-        initial_index = response.json(
+        initial_index = response.json()
         
         # Step 2: Search for existing content
-        response = client.post("/api/search", 
-                              params={"query": "machine learning", "top_k": 5})
+        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
-        initial_results = response.json(["results"]
+        initial_results = response.json(["results"])
         
         # Step 3: Simulate content update by reindexing
         response = client.post("/api/reindex", json={"vault_path": "./vault1"})
         assert response.status_code == 200
-        reindex_result = response.json(
+        reindex_result = response.json()
         assert reindex_result["status"] == "reindexed"
         
         # Step 4: Search again to verify updated index
-        response = client.post("/api/search",
-                              params={"query": "machine learning", "top_k": 5}
+        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
-        updated_results = response.json(["results"]
+        updated_results = response.json(["results"])
         
         # Results structure should be consistent
-        assert len(updated_results == len(initial_results)
+        assert len(updated_results) == len(initial_results)
         
         # Step 5: Test PDF indexing workflow
-        response = client.post("/api/index_pdf", 
-                              params={"pdf_path": "./documents/test.pdf"})
+        response = client.post("/api/index_pdf", params={"pdf_path": "./documents/test.pdf"})
         assert response.status_code == 200
-        pdf_result = response.json(
+        pdf_result = response.json()
         assert "chunks_indexed" in pdf_result
     
-    def test_configuration_and_settings_workflow(self, test_client_with_real_cache:
+    def test_configuration_and_settings_workflow(self, test_client_with_real_cache):
         """Test configuration management workflow"""
         client = test_client_with_real_cache
         
         # Step 1: Get current configuration
         response = client.get("/api/config")
         assert response.status_code == 200
-        original_config = response.json(
+        original_config = response.json()
         
         # Step 2: Update specific settings
         config_updates = {
@@ -209,20 +205,20 @@ class TestCompleteWorkflows:
         
         response = client.post("/api/config", json=config_updates)
         assert response.status_code == 200
-        update_result = response.json(
+        update_result = response.json()
         
         # Step 3: Verify configuration changes took effect
         response = client.get("/api/config")
         assert response.status_code == 200
-        updated_config = response.json(
+        updated_config = response.json()
         
         # Basic validation that endpoint works
         assert "backend_url" in updated_config
         
         # Step 4: Test configuration reload
-        response = client.post("/api/config/reload"
+        response = client.post("/api/config/reload")
         assert response.status_code == 200
-        reload_result = response.json(
+        reload_result = response.json()
         
         # Step 5: Test with updated configuration
         response = client.post("/api/ask", json={
@@ -232,10 +228,10 @@ class TestCompleteWorkflows:
         assert response.status_code == 200
         
         # Should work with new configuration
-        answer = response.json(
+        answer = response.json()
         assert "answer" in answer
     
-    def test_error_recovery_workflow(self, test_client_with_real_cache:
+    def test_error_recovery_workflow(self, test_client_with_real_cache):
         """Test error scenarios and recovery workflows"""
         client = test_client_with_real_cache
         
@@ -261,20 +257,20 @@ class TestCompleteWorkflows:
             "prefer_fast": True
         }
         
-        response = client.post("/api/ask", json=valid_request
+        response = client.post("/api/ask", json=valid_request)
         assert response.status_code == 200
         
         # Step 3: Verify system is still functional
-        response = client.get("/health"
+        response = client.get("/health")
         assert response.status_code == 200
-        assert response.json(["status"] == "healthy"
+        assert response.json(["status"] == "healthy")
         
         # Step 4: Test cache clear and recovery
         response = client.post("/api/performance/cache/clear")
         assert response.status_code == 200
         
         # System should still work after cache clear
-        response = client.post("/api/ask", json=valid_request
+        response = client.post("/api/ask", json=valid_request)
         assert response.status_code == 200
 
 
@@ -282,7 +278,7 @@ class TestPerformanceBenchmarks:
     """Performance benchmarking integration tests"""
     
     @pytest.fixture
-    def benchmark_client(self:
+    def benchmark_client(self):
         """Client configured for performance testing"""
         from backend.backend import app
         from fastapi.testclient import TestClient
@@ -290,7 +286,7 @@ class TestPerformanceBenchmarks:
         with patch('backend.backend.init_services'):
             # Fast mock responses for benchmarking
             with patch('backend.backend.model_manager') as mock_model, \
-                 patch('backend.backend.emb_manager') as mock_emb:
+                patch('backend.backend.emb_manager') as mock_emb:
                 
                 mock_model.generate.return_value = "Fast AI response"
                 mock_emb.search.return_value = [{"text": "Result", "score": 0.9}]
@@ -335,12 +331,12 @@ class TestPerformanceBenchmarks:
             thread.join()
         
         # Analyze results
-        assert len(errors == 0, f"Errors occurred: {errors}"
-        assert len(results == 10
+        assert len(errors) == 0, f"Errors occurred: {errors}"
+        assert len(results) == 10
         
         # All requests should succeed
         successful_requests = [r for r in results if r["status_code"] == 200]
-        assert len(successful_requests == 10
+        assert len(successful_requests) == 10
         
         # Calculate performance metrics
         response_times = [r["response_time"] for r in results]
@@ -351,7 +347,7 @@ class TestPerformanceBenchmarks:
         assert avg_response_time < 1.0, f"Average response time too high: {avg_response_time:.3f}s"
         assert max_response_time < 2.0, f"Max response time too high: {max_response_time:.3f}s"
     
-    def test_cache_performance_benchmark(self, benchmark_client:
+    def test_cache_performance_benchmark(self, benchmark_client):
         """Benchmark cache performance improvements"""
         client = benchmark_client
         
@@ -376,7 +372,7 @@ class TestPerformanceBenchmarks:
         assert response2.status_code == 200
         
         # Responses should be identical
-        assert response1.json(["answer"] == response2.json()["answer"]
+        assert response1.json(["answer"] == response2.json()["answer"])
         
         # Performance metrics
         print(f"First request: {first_response_time:.3f}s")
@@ -386,7 +382,7 @@ class TestPerformanceBenchmarks:
         assert first_response_time < 1.0
         assert second_response_time < 1.0
     
-    def test_memory_usage_monitoring(self, benchmark_client:
+    def test_memory_usage_monitoring(self, benchmark_client):
         """Monitor memory usage during operations"""
         import psutil
         import os
@@ -406,7 +402,7 @@ class TestPerformanceBenchmarks:
             assert response.status_code == 200
         
         # Get final memory
-        final_memory = process.memory_info(.rss / 1024 / 1024  # MB
+        final_memory = process.memory_info().rss / 1024 / 1024  # MB
         memory_increase = final_memory - initial_memory
         
         print(f"Initial memory: {initial_memory:.1f} MB")
@@ -417,11 +413,11 @@ class TestPerformanceBenchmarks:
         assert memory_increase < 100, f"Memory increase too high: {memory_increase:.1f} MB"
         
         # Get performance metrics
-        response = client.get("/api/performance/metrics"
-        assert response.status_code == 200
+    response = client.get("/api/performance/metrics")
+    assert response.status_code == 200
         
-        metrics = response.json(["metrics"]
-        assert "cache" in metrics
+    metrics = response.json()["metrics"]
+    assert "cache" in metrics
 
 
 if __name__ == "__main__":

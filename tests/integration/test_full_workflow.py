@@ -1,7 +1,11 @@
 # tests/integration/test_full_workflow.py
 """
 Integration tests for the complete Obsidian AI Assistant workflow.
-Tests end-to-end scenarios: Plugin → Backend → AI Models → Embeddings → Responses
+Tests end-to-end scenarios: Plugin → Backend → AI Mo        assert isinstance(result, dict)
+        assert result["indexed"] == 3
+        assert result["updated"] == 1
+        
+        print("✓ Vault reindexing workflow integration test passed")→ Embeddings → Responses
 """
 import pytest
 import asyncio
@@ -120,14 +124,14 @@ class TestFullWorkflowIntegration:
         # 2. Model generation was called with context
         mock_services["model_manager"].generate.assert_called_once()
         call_args = mock_services["model_manager"].generate.call_args
-        assert "What is AI?" in str(call_args
+        assert "What is AI?" in str(call_args)
         
         # 3. Response structure is correct
         assert isinstance(response, dict)
         assert "answer" in response
         assert response["answer"] == "AI generated response based on your query."
         
-        print("✓ Complete ask workflow integration test passed"
+        print("✓ Complete ask workflow integration test passed")
 
     @pytest.mark.asyncio
     async def test_vault_indexing_workflow(self, mock_services, temp_workspace):
@@ -144,12 +148,12 @@ class TestFullWorkflowIntegration:
         mock_services["vault_indexer"].index_vault.assert_called_once_with(vault_path)
         
         # 2. Response contains indexed files
-        assert isinstance(result, dict
+        assert isinstance(result, dict)
         assert "indexed_files" in result
-        assert len(result["indexed_files"] == 3
+        assert len(result["indexed_files"]) == 3
         assert "note1.md" in result["indexed_files"]
         
-        print("✓ Vault indexing workflow integration test passed"
+        print("✓ Vault indexing workflow integration test passed")
 
     @pytest.mark.asyncio 
     async def test_reindex_workflow(self, mock_services, temp_workspace):
@@ -166,11 +170,11 @@ class TestFullWorkflowIntegration:
             str(temp_workspace["vault_dir"])
         )
         
-        assert isinstance(result, dict
+        assert isinstance(result, dict)
         assert result["indexed"] == 3
         assert result["updated"] == 1
         
-        print("✓ Vault reindexing workflow integration test passed"
+        print("✓ Vault reindexing workflow integration test passed")
 
     @pytest.mark.asyncio
     async def test_search_workflow(self, mock_services):
@@ -187,12 +191,12 @@ class TestFullWorkflowIntegration:
             query, top_k=3
         )
         
-        assert isinstance(result, dict
+        assert isinstance(result, dict)
         assert "results" in result
-        assert len(result["results"] == 2
+        assert len(result["results"]) == 2
         assert result["results"][0]["score"] == 0.95
         
-        print("✓ Semantic search workflow integration test passed"
+        print("✓ Semantic search workflow integration test passed")
 
 
 class TestErrorScenarios:
@@ -202,8 +206,8 @@ class TestErrorScenarios:
     def failing_services(self):
         """Set up services that simulate failures."""
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em, \
-             patch('backend.backend.vault_indexer') as mock_vi:
+            patch('backend.backend.emb_manager') as mock_em, \
+            patch('backend.backend.vault_indexer') as mock_vi:
             
             # Configure services to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
@@ -270,10 +274,9 @@ class TestRealWorldScenarios:
     def realistic_services(self):
         """Set up services with realistic responses."""
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em, \
-             patch('backend.backend.vault_indexer') as mock_vi, \
-             patch('backend.backend.cache_manager') as mock_cm:
-            
+            patch('backend.backend.emb_manager') as mock_em, \
+            patch('backend.backend.vault_indexer') as mock_vi, \
+            patch('backend.backend.cache_manager') as mock_cm:
             # Realistic AI responses
             mock_mm.generate.return_value = """Based on your notes about machine learning, here are the key concepts:
 
@@ -330,10 +333,10 @@ Your research notes mention these applications effectively."""
         response = _ask_impl(request)
         
         # Verify comprehensive response
-        assert isinstance(response, dict
+        assert isinstance(response, dict)
         assert "answer" in response
-        assert len(response["answer"] > 100  # Substantial response
-        assert "supervised learning" in response["answer"].lower(
+        assert len(response["answer"]) > 100  # Substantial response
+        assert "supervised learning" in response["answer"].lower()
         
         # Verify context was used
         realistic_services["emb_manager"].search.assert_called_once()
@@ -364,7 +367,7 @@ Your research notes mention these applications effectively."""
         assert response["answer"] == "Cached response about machine learning concepts."
         
         # Verify cache was checked
-        realistic_services["cache_manager"].get.assert_called(
+        realistic_services["cache_manager"].get.assert_called()
         
         print("✓ Cached response scenario test passed")
 
@@ -381,8 +384,8 @@ Your research notes mention these applications effectively."""
         result = await scan_vault("./large_vault")
         
         # Verify large batch handling
-        assert isinstance(result, dict
-        assert len(result["indexed_files"] == 100
+        assert isinstance(result, dict)
+        assert len(result["indexed_files"]) == 100
         
         realistic_services["vault_indexer"].index_vault.assert_called_once_with("./large_vault")
         
@@ -398,7 +401,7 @@ class TestPerformanceAndLimits:
         from backend.backend import _ask_impl, AskRequest
         
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em:
+            patch('backend.backend.emb_manager') as mock_em:
             
             # Configure fast responses
             mock_mm.generate.return_value = "Quick response"
@@ -417,8 +420,8 @@ class TestPerformanceAndLimits:
                 responses.append(response)
             
             # All should succeed
-            assert len(responses == 5
-            assert all(r["answer"] == "Quick response" for r in responses
+            assert len(responses) == 5
+            assert all(r["answer"]) == "Quick response" for r in responses
             
             print("✓ Concurrent requests handling test passed")
 
@@ -428,7 +431,7 @@ class TestPerformanceAndLimits:
         from backend.backend import _ask_impl, AskRequest
         
         with patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em:
+            patch('backend.backend.emb_manager') as mock_em:
             
             # Simulate many search results (large context)
             large_results = [
@@ -455,7 +458,7 @@ class TestPerformanceAndLimits:
             assert response["answer"] == "Response based on extensive context"
             
             # Verify search returned many results
-            mock_em.search.assert_called_once(
+            mock_em.search.assert_called_once()
             
             print("✓ Large context handling test passed")
 
