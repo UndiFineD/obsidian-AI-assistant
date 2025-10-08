@@ -55,7 +55,7 @@ def test_cache_manager_error_handling_save(cache_manager):
         # Should not raise exception, just continue
         cache_manager.store_answer(question, answer)
         # Answer should still be in memory cache
-        assert cache_manager.get_cached_answer(question == answer
+        assert cache_manager.get_cached_answer(question) == answer
 
 def test_cache_manager_error_handling_load(temp_cache_dir):
     """Test error handling during cache load."""
@@ -83,10 +83,10 @@ def test_cache_manager_overwrite(cache_manager):
     answer2 = "Updated answer about AI"
     # Cache first answer
     cache_manager.store_answer(question, answer1)
-    assert cache_manager.get_cached_answer(question == answer1)
+    assert cache_manager.get_cached_answer(question) == answer1
     # Overwrite with second answer
     cache_manager.store_answer(question, answer2)
-    assert cache_manager.get_cached_answer(question == answer2)
+    assert cache_manager.get_cached_answer(question) == answer2
 
 def test_cache_file_creation(temp_cache_dir):
     """Test that cache file is created properly."""
@@ -102,7 +102,7 @@ def test_empty_question_and_answer():
     with tempfile.TemporaryDirectory() as temp_dir:
         cache_mgr = CacheManager(cache_dir=temp_dir)
         cache_mgr.store_answer("", "")
-        assert cache_mgr.get_cached_answer("" == "")
+        assert cache_mgr.get_cached_answer("") == ""
 
 def test_none_values():
     """Test handling of None values."""

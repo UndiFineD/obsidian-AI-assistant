@@ -30,7 +30,7 @@ class TestBackendHealthAndBasics:
         except ImportError as e:
             pytest.fail(f"Backend module import failed: {e}"
 
-    def test_fastapi_app_creation(self):
+def test_fastapi_app_creation(self):
         """Test that FastAPI app is created correctly."""
         from backend.backend import app
         

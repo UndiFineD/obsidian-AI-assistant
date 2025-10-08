@@ -129,9 +129,9 @@ class TestSettingsPrecedence:
 class TestSettingsHelpers:
     """Test helper functions for settings management."""
     
-    def setup_method(self:
+    def setup_method(self):
         get_settings.cache_clear()
-    
+
     def test_load_yaml_config_missing_file(self):
         """Test loading YAML when file doesn't exist."""
         with patch('backend.settings.Path') as mock_path_cls:
@@ -139,63 +139,56 @@ class TestSettingsHelpers:
             mock_path.exists.return_value = False
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = "/fake/settings.py"
-            
             result = _load_yaml_config()
             assert result == {}
-    
-    def test_load_yaml_config_no_yaml_module(self:
+
+    def test_load_yaml_config_no_yaml_module(self):
         """Test loading YAML when yaml module is not available."""
         with patch('backend.settings.yaml', None):
             result = _load_yaml_config()
             assert result == {}
-    
-    def test_load_yaml_config_invalid_yaml(self, tmp_path:
+
+    def test_load_yaml_config_invalid_yaml(self, tmp_path):
         """Test loading YAML with invalid content."""
         config_path = tmp_path / "config.yaml"
         config_path.write_text("invalid: yaml: content: :[")
-        
         with patch('backend.settings.Path') as mock_path_cls:
             mock_path = Mock()
             mock_path.parent = tmp_path
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            
             with patch('backend.settings.open', create=True) as mock_open:
                 mock_open.side_effect = Exception("YAML parse error")
-                
                 result = _load_yaml_config()
                 assert result == {}
-    
+
     @patch.dict(os.environ, {
         'API_PORT': '3000',
         'ALLOW_NETWORK': '1', 
         'GPU': 'true',
         'CHUNK_SIZE': 'invalid',
         'SIMILARITY_THRESHOLD': 'also_invalid'
-    }
+    })
     def test_merge_env_type_coercion(self):
         """Test that environment variable type coercion works correctly."""
         overrides = {}
         result = _merge_env(overrides)
-        
         assert result['api_port'] == 3000  # int
         assert result['allow_network'] is True  # bool
         assert result['gpu'] is True  # bool
         # Invalid values should not be included
         assert 'chunk_size' not in result
         assert 'similarity_threshold' not in result
-    
-    def test_reload_settings_clears_cache(self:
+
+    def test_reload_settings_clears_cache(self):
         """Test that reload_settings clears the cache."""
         # Get settings once to populate cache
         s1 = get_settings()
-        
         # Reload should clear cache and return new instance
         s2 = reload_settings()
-        
         # Should be same values but different instances due to cache clear
         assert s1.api_port == s2.api_port
-        assert isinstance(s2, Settings
+        assert isinstance(s2, Settings)
 
 
 class TestUpdateSettings:
@@ -235,7 +228,7 @@ class TestUpdateSettings:
                 assert 'api_port' not in saved_data
                 assert 'malicious_key' not in saved_data
     
-    def test_update_settings_type_coercion(self, tmp_path:
+    def test_update_settings_type_coercion(self, tmp_path):
         """Test that update_settings coerces types correctly."""
         with patch('backend.settings.Path') as mock_path_cls:
             mock_path = Mock()
@@ -261,7 +254,7 @@ class TestUpdateSettings:
                 assert saved_data['similarity_threshold'] == 0.9
                 assert saved_data['vault_path'] == '123'
     
-    def test_update_settings_invalid_types_removed(self, tmp_path:
+    def test_update_settings_invalid_types_removed(self, tmp_path):
         """Test that invalid type coercions are removed from updates."""
         with patch('backend.settings.Path') as mock_path_cls:
             mock_path = Mock()
@@ -289,4 +282,4 @@ class TestUpdateSettings:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__]
+    pytest.main([__file__])

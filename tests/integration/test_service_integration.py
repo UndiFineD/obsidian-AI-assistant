@@ -94,7 +94,7 @@ class TestServiceInitialization:
             # Verify VaultIndexer received EmbeddingsManager dependency
             MockVI.assert_called_once()
             call_args = MockVI.call_args
-            assert 'emb_mgr' in call_args.kwargs or len(call_args.args > 0
+            assert 'emb_mgr' in call_args.kwargs or len(call_args.args) > 0
             
             print("✓ Service dependency injection test passed")
 

@@ -20,7 +20,7 @@ class TestPluginStructure:
     def test_manifest_exists_and_valid(self):
         """Test that manifest.json exists and is valid."""
         manifest_path = self.plugin_dir / "manifest.json"
-        assert manifest_path.exists(, "manifest.json should exist in plugin directory"
+        assert manifest_path.exists(), "manifest.json should exist in plugin directory"
         
         with open(manifest_path, 'r') as f:
             manifest = json.load(f)

@@ -123,7 +123,7 @@ class TestFullWorkflowIntegration:
         assert "What is AI?" in str(call_args
         
         # 3. Response structure is correct
-        assert isinstance(response, dict
+        assert isinstance(response, dict)
         assert "answer" in response
         assert response["answer"] == "AI generated response based on your query."
         
