@@ -178,8 +178,8 @@ class TestEmbeddingsFromSettings:
         assert emb_mgr.top_k == 8
         assert emb_mgr.model_name == "sentence-transformers/all-mpnet-base-v2"
         # Check path contains expected components regardless of OS path separators
-        assert "test_project" in str(emb_mgr.db_path.replace("\\", "/"))
-        assert "vector_db" in str(emb_mgr.db_path.replace("\\", "/"))
+        db_path_str = str(emb_mgr.db_path.replace("\\", "/"))
+        assert "vector_db" in db_path_str
         assert emb_mgr.collection_name == "obsidian_notes"
 
     @patch('backend.embeddings.get_settings')
@@ -263,7 +263,7 @@ class TestEmbeddingOperations:
         # Should call upsert with proper structure
         mock_chroma_collection.upsert.assert_called_once()
         call_args = mock_chroma_collection.upsert.call_args[0][0]
-        assert len(call_args == 1)
+        assert len(call_args) == 1
         assert call_args[0]["id"] == "test_note.md"
         assert call_args[0]["embedding"] == [0.1, 0.2, 0.3, 0.4, 0.5]
         assert call_args[0]["metadata"]["note_path"] == "test_note.md"
@@ -300,7 +300,7 @@ class TestSearchOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path, top_k=5)
         results = emb_mgr.search("test query")
         
-        assert len(results == 2)
+        assert len(results) == 2
         assert results[0]["text"] == "Sample document 1"
         assert results[0]["source"] == "test1.md"
         assert results[1]["text"] == "Sample document 2"
@@ -465,7 +465,7 @@ class TestBatchOperations:
         
         assert call_args["documents"] == chunks
         assert call_args["metadatas"] == metadatas
-        assert len(call_args["ids"] == 3)
+        assert len(call_args["ids"]) == 3
         # Check that IDs are MD5 hashes
         expected_id = hashlib.md5("Document 1 content".encode("utf-8"), usedforsecurity=False).hexdigest()
         assert call_args["ids"][0] == expected_id
@@ -614,7 +614,7 @@ class TestUtilityMethods:
             # Test text shorter than chunk size
             short_text = "short text here"
             result = emb_mgr.chunk_text(short_text)
-            assert len(result == 1)
+            assert len(result) == 1
             assert result[0] == short_text
 
     def test_close_method(self):
@@ -690,7 +690,7 @@ class TestIndexingMethods:
         results = emb_mgr.index_vault(temp_vault_path)
         
         # Should find and index all .md files (including nested ones)
-        assert len(results == 3)
+        assert len(results) == 3
         assert all(str(Path(k).endswith('.md') for k in results.keys()))
         assert all(v > 0 for v in results.values())
 

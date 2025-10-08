@@ -5,9 +5,9 @@ Trim trailing whitespace across the repository.
 Rules:
 - For non-Markdown text files (.py, .ts, .css, .json, .ps1, .sh, .txt, .yml, .yaml): remove all trailing spaces/tabs.
 - For Markdown (.md):
-  - If a line ends with 3+ spaces, reduce to exactly 2 spaces (explicit line break).
-  - If a line ends with 1-2 spaces, leave as-is.
-  - Remove trailing tabs.
+    - If a line ends with 3+ spaces, reduce to exactly 2 spaces (explicit line break).
+    - If a line ends with 1-2 spaces, leave as-is.
+    - Remove trailing tabs.
 - Ensure files end with a single newline when appropriate.
 
 Skips: .git/, node_modules/, models/, vector_db/, cache/, __pycache__/, .venv/, venv/
