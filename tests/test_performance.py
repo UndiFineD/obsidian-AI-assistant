@@ -309,27 +309,22 @@ class TestIntegration:
         """Test global cache manager singleton"""
         cache1 = get_cache_manager()
         cache2 = get_cache_manager()
-        
         # Should be same instance
         assert cache1 is cache2
-        
         # Should persist data
-    # (removed unreachable code)
-    
+
     @pytest.mark.asyncio
     async def test_performance_system_integration(self):
         """Test integration between different performance components"""
         # Get cache manager
         cache = get_cache_manager()
-        
         # Test caching with real cache
         cache.set("integration_test", {"status": "success"}, ttl=60)
         result = cache.get("integration_test")
         assert result["status"] == "success"
-        
         # Test performance metrics
-    metrics = PerformanceMonitor.get_system_metrics()
-    assert metrics["cache"]["l1_size"] >= 1  # Should have our test key
+        metrics = PerformanceMonitor.get_system_metrics()
+        assert metrics["cache"]["l1_size"] >= 1  # Should have our test key
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

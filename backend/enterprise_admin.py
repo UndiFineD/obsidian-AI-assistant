@@ -1,10 +1,9 @@
 # Enterprise Admin Dashboard Module
 # Comprehensive administrative interface for enterprise features
 
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-import json
 import logging
 from fastapi import HTTPException
 from .enterprise_auth import SSOManager
@@ -104,9 +103,9 @@ class EnterpriseAdminDashboard:
                 "alerts": await self._get_active_alerts()
             }
             
-        except Exception as e:
-            logger.error(f"Failed to generate dashboard overview: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to load dashboard")
+        except Exception as err:
+            logger.error(f"Failed to generate dashboard overview: {str(err)}")
+            raise HTTPException(status_code=500, detail="Failed to load dashboard") from None
     
     async def _get_user_metrics(self) -> Dict[str, Any]:
         """Get user-related metrics"""
@@ -248,9 +247,9 @@ class EnterpriseAdminDashboard:
                 }
             }
             
-        except Exception as e:
-            logger.error(f"Failed to get user management data: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to load user management")
+        except Exception as err:
+            logger.error(f"Failed to get user management data: {str(err)}")
+            raise HTTPException(status_code=500, detail="Failed to load user management") from None
     
     async def get_tenant_management(self) -> Dict[str, Any]:
         """Get tenant management data"""
@@ -287,9 +286,9 @@ class EnterpriseAdminDashboard:
                 }
             }
             
-        except Exception as e:
-            logger.error(f"Failed to get tenant management data: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to load tenant management")
+        except Exception as err:
+            logger.error(f"Failed to get tenant management data: {str(err)}")
+            raise HTTPException(status_code=500, detail="Failed to load tenant management") from None
     
     async def get_security_dashboard(self) -> Dict[str, Any]:
         """Get security dashboard data"""
@@ -344,9 +343,9 @@ class EnterpriseAdminDashboard:
                 }
             }
             
-        except Exception as e:
-            logger.error(f"Failed to get security dashboard: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to load security dashboard")
+        except Exception as err:
+            logger.error(f"Failed to get security dashboard: {str(err)}")
+            raise HTTPException(status_code=500, detail="Failed to load security dashboard") from None
     
     async def get_compliance_dashboard(self) -> Dict[str, Any]:
         """Get compliance dashboard data"""
@@ -393,9 +392,9 @@ class EnterpriseAdminDashboard:
                 ]
             }
             
-        except Exception as e:
-            logger.error(f"Failed to get compliance dashboard: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to load compliance dashboard")
+        except Exception as err:
+            logger.error(f"Failed to get compliance dashboard: {str(err)}")
+            raise HTTPException(status_code=500, detail="Failed to load compliance dashboard") from None
     
     async def create_system_alert(self, severity: str, title: str, description: str,
                                 component: str) -> SystemAlert:

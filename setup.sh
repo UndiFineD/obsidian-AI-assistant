@@ -28,8 +28,7 @@ else
         cryptography vosk sentence-transformers chromadb huggingface_hub accelerate transformers
 fi
 
-# --- 4. Node.js dependencies removed ---
-# Project now uses only Python dependencies
+## Node.js dependencies and instructions removed; project uses only Python
 
 # --- 5. Run tests ---
 echo "Running Python tests (pytest)..."
@@ -56,9 +55,8 @@ if [ -n "${VAULT_PATH:-}" ] && [ -d "$VAULT_PATH" ]; then
         TARGET_DIR="$VAULT_PATH/.obsidian/plugins/$PLUGIN_ID"
         mkdir -p "$TARGET_DIR"
         echo "Installing plugin to $TARGET_DIR ..."
-        rsync -a "$PLUGIN_DIR/" "$TARGET_DIR/" --exclude node_modules || cp -r "$PLUGIN_DIR"/* "$TARGET_DIR"/
-        if [ ! -f "$TARGET_DIR/main.js" ]; then
-            echo "WARNING: main.js not found. Build plugin with: (cd plugin && npm run build)"
+        rsync -a "$PLUGIN_DIR/" "$TARGET_DIR/" || cp -r "$PLUGIN_DIR"/* "$TARGET_DIR"/
+        # No Node.js build required; plugin JS and CSS are ready-to-use
         fi
     else
         echo "Plugin manifest not found at $MANIFEST; skipping plugin install."

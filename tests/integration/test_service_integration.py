@@ -180,7 +180,7 @@ class TestConfigurationIntegration:
             assert result["ok"] is True
             assert "settings" in result
             
-            print("✓ Configuration reload integration test passed"
+            print("✓ Configuration reload integration test passed")
 
     def test_configuration_update_integration(self):
         """Test configuration updates are applied correctly."""
@@ -208,7 +208,7 @@ class TestConfigurationIntegration:
             assert result["ok"] is True
             assert "settings" in result
             
-            print("✓ Configuration update integration test passed"
+            print("✓ Configuration update integration test passed")
 
 
 class TestCacheIntegration:
@@ -219,39 +219,37 @@ class TestCacheIntegration:
         with patch('backend.backend.cache_manager') as mock_cache, \
              patch('backend.backend.model_manager') as mock_mm, \
              patch('backend.backend.emb_manager') as mock_em:
-            
-            # Configure cache behavior
-            cache_key = "test_question_hash"
+            pass
+
+
+class TestCrossServiceCommunication:
+    def test_cache_integration(self):
+        """Test cache integration across services."""
+        with patch('backend.backend.cache_manager') as mock_cache, \
+             patch('backend.backend.model_manager') as mock_mm, \
+             patch('backend.backend.emb_manager') as mock_em:
             cached_response = {
                 "answer": "Cached answer",
                 "timestamp": 1234567890,
                 "sources": ["note1.md"]
             }
-            
             # First call: cache miss
             mock_cache.get.return_value = None
             mock_mm.generate.return_value = "Fresh AI response"
             mock_em.search.return_value = []
-            
             from backend.backend import _ask_impl, AskRequest
-            
             request = AskRequest(question="Test question", vault_path="./vault")
             response1 = _ask_impl(request)
-            
             # Verify cache was checked and set
             mock_cache.get.assert_called()
             mock_cache.set.assert_called()
-            
-            # Second call: cache hit  
+            # Second call: cache hit
             mock_cache.reset_mock()
             mock_cache.get.return_value = cached_response
-            
             response2 = _ask_impl(request)
-            
             # Should return cached response without calling AI
             mock_cache.get.assert_called()
-            assert mock_mm.generate.call_count == 1  # Only called once (first time
-            
+            assert mock_mm.generate.call_count == 1  # Only called once (first time)
             print("✓ Cache workflow integration test passed")
 
     def test_cache_invalidation_on_reindex(self):
@@ -276,7 +274,7 @@ class TestCacheIntegration:
             assert result["indexed"] == 5
             assert result["updated"] == 2
             
-            print("✓ Cache invalidation on reindex test passed"
+            print("✓ Cache invalidation on reindex test passed")
 
 
 class TestCrossServiceCommunication:
@@ -308,7 +306,7 @@ class TestCrossServiceCommunication:
             files = mock_vi.index_vault("./vault")
             
             # Verify integration
-            assert len(files == 2
+            assert len(files) == 2
             mock_vi.index_vault.assert_called_once_with("./vault")
             
             print("✓ Embeddings and indexing integration test passed")
@@ -345,7 +343,7 @@ class TestCrossServiceCommunication:
             # Verify response contains AI output
             assert response["answer"] == "AI response using provided context"
             
-            print("✓ Model and embeddings context integration test passed"
+            print("✓ Model and embeddings context integration test passed")
 
 
 if __name__ == "__main__":

@@ -2,10 +2,9 @@
 # Integrates all enterprise features with the main backend application
 
 import logging
-from typing import Dict, Any, Optional
-from fastapi import FastAPI, Request, HTTPException, Depends, status
+from typing import Dict, Any
+from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.middleware.base import BaseHTTPMiddleware
 import jwt
 from datetime import datetime
@@ -94,7 +93,7 @@ class EnterpriseAuthMiddleware(BaseHTTPMiddleware):
     
     def _check_endpoint_permission(self, request: Request, permissions: set) -> bool:
         """Check if user has permission for the endpoint"""
-        method = request.method.lower()
+    # method = request.method.lower()  # Removed unused variable
         path = request.url.path
         
         # Admin endpoints require admin permissions

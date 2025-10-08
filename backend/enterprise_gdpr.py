@@ -1,15 +1,12 @@
 # Enterprise GDPR Compliance Module
 # Implements data protection and privacy controls for GDPR compliance
 
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime, timedelta
-import json
-import hashlib
 import logging
 import uuid
-
 logger = logging.getLogger(__name__)
 
 class DataCategory(Enum):

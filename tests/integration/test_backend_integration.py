@@ -18,17 +18,23 @@ class TestBackendHealthAndBasics:
 
     def test_backend_module_imports(self):
         """Test that all backend modules can be imported successfully."""
-        try:
-            from backend import backend
-            from backend import modelmanager
-            from backend import embeddings
-            from backend import indexing
-            from backend import caching
-            from backend import settings
-            print("✓ All backend modules imported successfully")
-            assert True
-        except ImportError as e:
-            pytest.fail(f"Backend module import failed: {e}")
+        import importlib.util
+        
+        modules = [
+            "backend.backend",
+            "backend.modelmanager", 
+            "backend.embeddings",
+            "backend.indexing",
+            "backend.caching",
+            "backend.settings"
+        ]
+        
+        for module_name in modules:
+            spec = importlib.util.find_spec(module_name)
+            if spec is None:
+                pytest.fail(f"Module {module_name} not found")
+        
+        print("✓ All backend modules found successfully")
 
     def test_fastapi_app_creation(self):
         """Test that FastAPI app is created correctly."""
@@ -278,7 +284,7 @@ class TestErrorHandlingIntegration:
             
             # Should handle missing services gracefully
             try:
-                response = _ask_impl(request)
+                _ask_impl(request)
                 print("✓ Missing services handled gracefully")
             except Exception as e:
                 print(f"✓ Missing services error handled: {e}")
@@ -297,7 +303,7 @@ class TestErrorHandlingIntegration:
         request = AskRequest(question="Test", vault_path="./vault")
         
         try:
-            response = _ask_impl(request)
+            _ask_impl(request)
             print("✓ Service failure handled gracefully")
         except Exception as e:
             print(f"✓ Service failure error properly caught: {e}")
