@@ -31,26 +31,26 @@ class TestSettings:
         assert s.chunk_overlap == 200
         assert s.similarity_threshold == 0.75
         
-    def test_derived_properties(self:
+    def test_derived_properties(self):
         """Test that derived path properties work correctly."""
         s = Settings(project_root="/test/project", vault_path="my_vault", models_dir="my_models", cache_dir="my_cache")
-        assert s.base_dir == Path("/test/project"
-        assert s.abs_vault_path == Path("/test/project/my_vault"
-        assert s.abs_models_dir == Path("/test/project/my_models"
-        assert s.abs_cache_dir == Path("/test/project/my_cache"
+        assert s.base_dir == Path("/test/project")
+        assert s.abs_vault_path == Path("/test/project/my_vault")
+        assert s.abs_models_dir == Path("/test/project/my_models")
+        assert s.abs_cache_dir == Path("/test/project/my_cache")
         
     def test_absolute_paths(self):
         """Test that absolute paths are preserved."""
         if os.name == 'nt':  # Windows
             s = Settings(vault_path="C:/abs/vault", models_dir="C:/abs/models", cache_dir="C:/abs/cache")
-            assert s.abs_vault_path == Path("C:/abs/vault"
-            assert s.abs_models_dir == Path("C:/abs/models"
-            assert s.abs_cache_dir == Path("C:/abs/cache"
+            assert s.abs_vault_path == Path("C:/abs/vault")
+            assert s.abs_models_dir == Path("C:/abs/models")
+            assert s.abs_cache_dir == Path("C:/abs/cache")
         else:  # Unix-like
             s = Settings(vault_path="/abs/vault", models_dir="/abs/models", cache_dir="/abs/cache")
-            assert s.abs_vault_path == Path("/abs/vault"
-            assert s.abs_models_dir == Path("/abs/models"
-            assert s.abs_cache_dir == Path("/abs/cache"
+            assert s.abs_vault_path == Path("/abs/vault")
+            assert s.abs_models_dir == Path("/abs/models")
+            assert s.abs_cache_dir == Path("/abs/cache")
 
 
 class TestSettingsPrecedence:
