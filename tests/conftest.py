@@ -9,10 +9,10 @@ import sys
 import tempfile
 from pathlib import Path
 from typing import Generator, Dict
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, mock_open
 import unittest.mock as _um
 import pytest
-import pytest_asyncio  # ensure plugin is importable
+# pytest_asyncio ensures plugin is importable
 
 # Ensure Mock behaves like MagicMock so __call__ is also a Mock in tests
 _um.Mock = _um.MagicMock
@@ -612,7 +612,7 @@ def test_isolation():
             for key, value in list(module_dict.items()):
                 if key.startswith('_') or key in ['__file__', '__name__', '__package__']:
                     continue
-                if hasattr(value, '__call__') and not key.isupper():
+                if callable(value) and not key.isupper():
                     continue  # Skip functions and methods
                 # Reset global variables that might hold state
                 if key in ['model_manager', 'cache_manager', 'embeddings_manager', 'vault_indexer']:

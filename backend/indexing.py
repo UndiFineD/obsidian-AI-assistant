@@ -158,7 +158,7 @@ class VaultIndexer:
             for file in files:
                 full_path = os.path.join(root, file)
 
-                def do_index():
+                def do_index_file():
                     if file.endswith(".md"):
                         content = self._read_markdown(full_path)
                     elif file.endswith(".pdf"):
@@ -180,7 +180,7 @@ class VaultIndexer:
                     summary["chunks"] += len(chunks)
                     return len(chunks)
 
-                safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
+                safe_call(do_index_file, error_msg=f"[VaultIndexer] Error indexing {full_path}")
 
         return summary
 

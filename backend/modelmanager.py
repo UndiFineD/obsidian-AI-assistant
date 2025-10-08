@@ -96,6 +96,7 @@ class ModelManager:
                 path = huggingface_hub.hf_hub_download(
                     repo_id=model_name,
                     filename=filename,
+                    revision=revision or "main",
                     local_dir=str(self.models_dir),
                     token=self.hf_token
                 )

@@ -5,7 +5,6 @@ import tempfile
 import json
 import wave
 import builtins as _builtins
-from types import SimpleNamespace
 from fastapi import APIRouter, UploadFile
 from .utils import safe_call
 from .settings import get_settings
@@ -60,7 +59,7 @@ async def voice_transcribe(file: UploadFile):
     try:
         audio_data = await file.read()
     except Exception as e:
-        raise RuntimeError(str(e))
+        raise RuntimeError(str(e)) from e
 
     # Save to temp wav using builtins.open so tests can patch file writes
     fd, temp_path = tempfile.mkstemp(suffix=".wav")

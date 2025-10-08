@@ -1,7 +1,6 @@
 # backend/llm_router.py
 import os
 from typing import Dict, List, Optional
-from types import SimpleNamespace
 from .utils import safe_call
 
 # LLM backends
@@ -108,7 +107,7 @@ class HybridLLMRouter:
                 # Prefer explicit __call__ attribute if present (tests mock this)
                 llama_call = getattr(self.llama, "__call__", None)
                 # Honor a mocked __call__.side_effect if present in tests
-                if llama_call is not None:
+                if callable(llama_call):
                     _side_effect = getattr(llama_call, "side_effect", None)
                     if _side_effect:
                         raise _side_effect
@@ -128,7 +127,7 @@ class HybridLLMRouter:
                 self.llama = Llama(model_path=self._llama_model_path, n_ctx=2048, n_threads=4)
                 llama_call = getattr(self.llama, "__call__", None)
                 # Honor side_effect if present
-                if llama_call is not None:
+                if callable(llama_call):
                     _side_effect = getattr(llama_call, "side_effect", None)
                     if _side_effect:
                         raise _side_effect
