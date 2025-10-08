@@ -431,7 +431,7 @@ jobs:
         nav:
           - Home: README.md
           - API: api/index.md
-          - Specification: SPECIFICATION.md
+          - Specification: docs/SPECIFICATION.md
         theme: material
         EOF
         fi
@@ -448,7 +448,7 @@ jobs:
         cp -r backend/ release/obsidian-ai-assistant/
         cp -r plugin/ release/obsidian-ai-assistant/
         cp requirements*.txt release/obsidian-ai-assistant/ || true
-        cp README.md SPECIFICATION.md release/obsidian-ai-assistant/
+  cp README.md docs/SPECIFICATION.md release/obsidian-ai-assistant/
         cp setup.sh setup.ps1 release/obsidian-ai-assistant/ || true
         
         # Create version file

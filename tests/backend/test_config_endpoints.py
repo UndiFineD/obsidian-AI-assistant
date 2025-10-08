@@ -28,7 +28,7 @@ class TestConfigEndpoints:
         response = self.client.get("/api/config")
         assert response.status_code == 200
         
-        data = response.json()
+        data = response.json(
         assert "vault_path" in data
         assert "chunk_size" in data
         assert "embed_model" in data
@@ -36,7 +36,7 @@ class TestConfigEndpoints:
         # Should not include sensitive or non-whitelisted fields
         assert "project_root" not in data
     
-    @patch('backend.backend.update_settings')
+    @patch('backend.backend.update_settings'
     def test_post_config_endpoint_valid_updates(self, mock_update):
         """Test POST /api/config with valid updates."""
         mock_settings = Mock()
@@ -53,18 +53,18 @@ class TestConfigEndpoints:
         assert response.status_code == 200
         
         # Should call update_settings with the provided data
-        mock_update.assert_called_once_with(updates)
+        mock_update.assert_called_once_with(updates
         
         data = response.json()
         assert data["ok"] is True
         assert "settings" in data
     
-    def test_post_config_endpoint_invalid_json(self):
+    def test_post_config_endpoint_invalid_json(self:
         """Test POST /api/config with invalid JSON."""
         response = self.client.post("/api/config", data="invalid json")
         assert response.status_code == 422  # Unprocessable Entity
     
-    @patch('backend.backend.update_settings')
+    @patch('backend.backend.update_settings'
     def test_post_config_endpoint_update_failure(self, mock_update):
         """Test POST /api/config handles update failures gracefully."""
         mock_update.side_effect = Exception("Update failed")
@@ -74,11 +74,11 @@ class TestConfigEndpoints:
         response = self.client.post("/api/config", json=updates)
         assert response.status_code == 500
 
-        data = response.json()
+        data = response.json(
         assert "detail" in data  # FastAPI error response format
         assert "Update failed" in data["detail"]
     
-    @patch('backend.backend.reload_settings')
+    @patch('backend.backend.reload_settings'
     def test_post_config_reload_endpoint(self, mock_reload):
         """Test POST /api/config/reload."""
         mock_settings = Mock()
@@ -88,13 +88,13 @@ class TestConfigEndpoints:
         response = self.client.post("/api/config/reload")
         assert response.status_code == 200
         
-        mock_reload.assert_called_once()
+        mock_reload.assert_called_once(
         
         data = response.json()
         assert data["ok"] is True
         assert "settings" in data
     
-    @patch('backend.backend.reload_settings')
+    @patch('backend.backend.reload_settings'
     def test_post_config_reload_failure(self, mock_reload):
         """Test POST /api/config/reload handles failures gracefully."""
         mock_reload.side_effect = Exception("Reload failed")
@@ -102,7 +102,7 @@ class TestConfigEndpoints:
         response = self.client.post("/api/config/reload")
         assert response.status_code == 500
 
-        data = response.json()
+        data = response.json(
         assert "detail" in data  # FastAPI error response format
         assert "Reload failed" in data["detail"]
 
@@ -110,7 +110,7 @@ class TestConfigEndpoints:
 class TestConfigEndpointIntegration:
     """Integration tests for config endpoints with real settings."""
     
-    def setup_method(self):
+    def setup_method(self:
         from backend.settings import get_settings
         try:
             get_settings.cache_clear()
@@ -123,7 +123,7 @@ class TestConfigEndpointIntegration:
         response = self.client.get("/api/config")
         assert response.status_code == 200
         
-        data = response.json()
+        data = response.json(
         
         # Check for expected configuration fields
         expected_fields = [
@@ -137,10 +137,10 @@ class TestConfigEndpointIntegration:
             assert field in data, f"Expected field {field} not found in config response"
         
         # Check types
-        assert isinstance(data["chunk_size"], int)
-        assert isinstance(data["gpu"], bool)
-        assert isinstance(data["similarity_threshold"], float)
-        assert isinstance(data["vault_path"], str)
+        assert isinstance(data["chunk_size"], int
+        assert isinstance(data["gpu"], bool
+        assert isinstance(data["similarity_threshold"], float
+        assert isinstance(data["vault_path"], str
     
     def test_config_persistence_integration(self, tmp_path):
         """Test that config updates persist and can be reloaded."""
@@ -158,10 +158,10 @@ class TestConfigEndpointIntegration:
         assert response.status_code in [200, 500]  # May fail due to file permissions
         
         # Reload should work
-        response = self.client.post("/api/config/reload") 
+        response = self.client.post("/api/config/reload" 
         assert response.status_code in [200, 500]  # May fail due to missing config
     
-    def test_config_whitelist_enforcement(self):
+    def test_config_whitelist_enforcement(self:
         """Test that non-whitelisted keys are filtered out."""
         updates = {
             "vault_path": "test_vault",  # Allowed
@@ -178,4 +178,4 @@ class TestConfigEndpointIntegration:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__]

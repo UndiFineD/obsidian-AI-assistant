@@ -1,17 +1,12 @@
 # tests/backend/test_backend.py
 import sys
 import os
-# 🎵 Work it HARDER - add project root to path! 🎵
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.insert(0, project_root)
-
-# Import the backend modules - made STRONGER! 💪
-from backend.backend import app, AskRequest, ReindexRequest, WebRequest
-import backend.backend as backend_module
 import pytest
-from pathlib import Path
 from unittest.mock import patch
 from fastapi.testclient import TestClient
+from backend.backend import app, AskRequest, ReindexRequest, WebRequest
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+sys.path.insert(0, project_root)
 
 class TestBackendAPI:
     """Test suite for the main backend FastAPI application."""
@@ -39,11 +34,11 @@ class TestBackendAPI:
         """Test the health check endpoint."""
         response = client.get("/health")
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert data["status"] == "ok"
         assert "timestamp" in data
     
-    def test_ask_endpoint_success(self, client, mock_services):
+    def test_ask_endpoint_success(self, client, mock_services:
         """Test successful ask endpoint."""
         # Setup mocks
         mock_services['cache'].get_cached_answer.return_value = None
@@ -56,11 +51,11 @@ class TestBackendAPI:
         }
         response = client.post("/ask", json=request_data)
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert data["answer"] == "Test response"
         assert "cached" in data
     
-    def test_ask_endpoint_cached_response(self, client, mock_services):
+    def test_ask_endpoint_cached_response(self, client, mock_services:
         """Test ask endpoint with cached response."""
         # Setup cache hit
         mock_services['cache'].get_cached_answer.return_value = "Cached response"
@@ -70,11 +65,11 @@ class TestBackendAPI:
         }
         response = client.post("/ask", json=request_data)
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert data["answer"] == "Cached response"
         assert data["cached"] is True
     
-    def test_ask_endpoint_invalid_request(self, client):
+    def test_ask_endpoint_invalid_request(self, client:
         """Test ask endpoint with invalid request data."""
         # Missing required question field
         request_data = {"prefer_fast": True}
@@ -82,17 +77,17 @@ class TestBackendAPI:
         response = client.post("/ask", json=request_data)
         assert response.status_code == 422  # Validation error
     
-    def test_reindex_endpoint(self, client, mock_services):
+    def test_reindex_endpoint(self, client, mock_services:
         """Test the reindex endpoint."""
         mock_services['vault'].reindex.return_value = {"files": 5, "chunks": 25}
         request_data = {"vault_path": "./vault"}
         response = client.post("/reindex", json=request_data)
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert "files" in data
         assert "chunks" in data
     
-    def test_web_search_endpoint(self, client, mock_services):
+    def test_web_search_endpoint(self, client, mock_services:
         """Test the web search endpoint."""
         mock_services['cache'].get_cached_answer.return_value = None
         mock_services['model'].generate.return_value = "Web search result"
@@ -102,13 +97,13 @@ class TestBackendAPI:
         }
         response = client.post("/web", json=request_data)
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert data["answer"] == "Web search result"
 
 
 class TestRequestModels:
     """Test Pydantic request models."""
-    def test_ask_request_validation(self):
+    def test_ask_request_validation(self:
         """Test AskRequest model validation."""
         # Valid request
         request = AskRequest(
@@ -120,19 +115,19 @@ class TestRequestModels:
         assert request.prefer_fast is True
         assert request.max_tokens == 100
         # Test defaults
-        minimal_request = AskRequest(question="Test")
+        minimal_request = AskRequest(question="Test"
         assert minimal_request.prefer_fast is True
         assert minimal_request.max_tokens == 256
     
-    def test_reindex_request_validation(self):
+    def test_reindex_request_validation(self:
         """Test ReindexRequest model validation."""
         request = ReindexRequest(vault_path="./vault")
         assert request.vault_path == "./vault"
         # Test default
-        default_request = ReindexRequest()
+        default_request = ReindexRequest(
         assert default_request.vault_path == "./vault"
     
-    def test_web_request_validation(self):
+    def test_web_request_validation(self:
         """Test WebRequest model validation."""
         request = WebRequest(
             url="https://example.com",
@@ -144,7 +139,7 @@ class TestRequestModels:
 class TestServiceIntegration:
     """Test integration between backend and services."""
     @pytest.fixture
-    def mock_env_vars(self):
+    def mock_env_vars(self:
         """Mock environment variables."""
         with patch.dict('os.environ', {'HUGGINGFACE_TOKEN': 'test-token'}):
             yield
@@ -152,8 +147,8 @@ class TestServiceIntegration:
     def test_service_initialization(self, mock_env_vars):
         """Test that services are properly initialized."""
         with patch('backend.backend.ModelManager') as MockModel, \
-            patch('backend.backend.EmbeddingsManager') as MockEmb, \
-            patch('backend.backend.CacheManager') as MockCache:
+            patch('backend.backend.EmbeddingsManager'), \
+            patch('backend.backend.CacheManager'):
             # Explicitly instantiate ModelManager to trigger the mock
             from backend.backend import ModelManager
             ModelManager(hf_token='test-token')
@@ -165,10 +160,10 @@ class TestServiceIntegration:
         request_data = {"question": "Test question"}
         response = client.post("/ask", json=request_data)
         # Accept either 400 or 500 depending on backend error handling
-        assert response.status_code in (400, 500)
+        assert response.status_code in (400, 500
         data = response.json()
         assert "error" in data or "detail" in data
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__]
     

@@ -46,7 +46,7 @@ def test_router_initialization_defaults():
         assert router.llama is None  # No model loaded since files don't exist
     assert router.gpt4all is None
 
-def test_router_initialization_custom():
+def test_router_initialization_custom(:
     """Test router initialization with custom values."""
     with patch('os.path.exists', return_value=False), \
         patch('backend.llm_router.Llama', None), \
@@ -64,7 +64,7 @@ def test_router_initialization_custom():
         assert router.llama is None  # No model loaded since files don't exist
         assert router.gpt4all is None
                 
-def test_model_loading_no_models_available():
+def test_model_loading_no_models_available(:
     """Test model loading when no models are available."""
     with patch('os.path.exists', return_value=False), \
         patch('backend.llm_router.Llama', None), \
@@ -75,7 +75,7 @@ def test_model_loading_no_models_available():
         assert router.llama is None
         assert router.gpt4all is None
 
-def test_model_loading_file_not_exists(mock_llama, mock_gpt4all):
+def test_model_loading_file_not_exists(mock_llama, mock_gpt4all:
     """Test model loading when model files don't exist."""
     with patch('os.path.exists', return_value=False):
         router = HybridLLMRouter()
@@ -84,7 +84,7 @@ def test_model_loading_file_not_exists(mock_llama, mock_gpt4all):
         assert router.llama is None
         assert router.gpt4all is None
 
-def test_generate_with_llama_preferred_fast(router_with_mocks, mock_llama):
+def test_generate_with_llama_preferred_fast(router_with_mocks, mock_llama:
     """Test generation with LLaMA when preferring fast responses."""
     prompt = "What is AI?"
     
@@ -92,8 +92,8 @@ def test_generate_with_llama_preferred_fast(router_with_mocks, mock_llama):
     response = router_with_mocks.generate(prompt)
     
     # Should return some response (could be "No model available." if not properly mocked)
-    assert isinstance(response, str)
-    assert len(response) > 0
+    assert isinstance(response, str
+    assert len(response > 0
 
 def test_generate_with_gpt4all_not_preferred_fast(router_with_mocks, mock_gpt4all):
     """Test generation with GPT4All when not preferring fast responses."""
@@ -103,7 +103,7 @@ def test_generate_with_gpt4all_not_preferred_fast(router_with_mocks, mock_gpt4al
     
     # Should use GPT4All for more detailed responses
     assert response == "GPT4All response"
-    mock_gpt4all.generate.assert_called_once()
+    mock_gpt4all.generate.assert_called_once(
 
 def test_generate_fallback_to_available_model(mock_gpt4all):
     """Test generation fallback when preferred model is not available."""
@@ -115,7 +115,7 @@ def test_generate_fallback_to_available_model(mock_gpt4all):
         
         # Should fallback to GPT4All even though LLaMA was preferred
         assert response == "GPT4All response"
-        mock_gpt4all.generate.assert_called_once()
+        mock_gpt4all.generate.assert_called_once(
 
 def test_generate_no_models_available():
     """Test generation when no models are available."""
@@ -129,7 +129,7 @@ def test_generate_no_models_available():
         # Should return error message
         assert "No model available" in response
 
-def test_generate_with_context_and_memory(router_with_mocks, mock_llama):
+def test_generate_with_context_and_memory(router_with_mocks, mock_llama:
     """Test generation with context and session memory."""
     router_with_mocks.session_memory = True
     
@@ -144,7 +144,7 @@ def test_generate_with_context_and_memory(router_with_mocks, mock_llama):
     assert response2 == "LLaMA response"
     assert mock_llama.__call__.call_count == 2
 
-def test_generate_memory_limit(router_with_mocks, mock_llama):
+def test_generate_memory_limit(router_with_mocks, mock_llama:
     """Test that memory respects the configured limit."""
     router_with_mocks.memory_limit = 2
     
@@ -153,7 +153,7 @@ def test_generate_memory_limit(router_with_mocks, mock_llama):
         router_with_mocks.generate(f"Question {i}")
     
     # Memory should only contain last 2 interactions
-    assert len(router_with_mocks.memory) <= 2 * 2  # 2 interactions * 2 entries each (Q&A)
+    assert len(router_with_mocks.memory <= 2 * 2  # 2 interactions * 2 entries each (Q&A)
 
 def test_generate_without_memory(router_with_mocks, mock_llama):
     """Test generation without session memory."""
@@ -163,10 +163,10 @@ def test_generate_without_memory(router_with_mocks, mock_llama):
     response2 = router_with_mocks.generate("Second question")
     
     # Ensure responses are strings
-    assert isinstance(response1, str)
-    assert isinstance(response2, str)
+    assert isinstance(response1, str
+    assert isinstance(response2, str
     # Memory should remain empty
-    assert len(router_with_mocks.memory) == 0
+    assert len(router_with_mocks.memory == 0
 
 def test_generate_with_max_tokens(router_with_mocks, mock_llama):
     """Test generation with custom max_tokens parameter."""
@@ -179,10 +179,10 @@ def test_generate_with_max_tokens(router_with_mocks, mock_llama):
     call_args = mock_llama.__call__.call_args
     assert call_args is not None
     # Check if max_tokens was passed in the call
-    # (exact structure depends on LLaMA implementation)
+    # (exact structure depends on LLaMA implementation
     assert response == "LLaMA response"
 
-def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, mock_gpt4all):
+def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, mock_gpt4all:
     """Test model selection based on prompt length."""
     short_prompt = "Short question?"
     long_prompt = "This is a very long prompt that contains many words and should trigger the use of a more capable model for better results. " * 10
@@ -197,14 +197,14 @@ def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, m
     assert mock_llama.__call__.called
     assert mock_gpt4all.generate.called
 
-def test_error_handling_llama_exception(router_with_mocks, mock_llama):
+def test_error_handling_llama_exception(router_with_mocks, mock_llama:
     """Test error handling when LLaMA raises exception."""
     mock_llama.__call__.side_effect = Exception("LLaMA error")
     
     response = router_with_mocks.generate("Test prompt", prefer_fast=True)
     
     # Should handle exception gracefully
-    assert isinstance(response, str)
+    assert isinstance(response, str
     # Might fallback to GPT4All or return error message
 
 def test_error_handling_gpt4all_exception(router_with_mocks, mock_gpt4all):
@@ -215,7 +215,7 @@ def test_error_handling_gpt4all_exception(router_with_mocks, mock_gpt4all):
         response = router_with_mocks.generate("Test prompt", prefer_fast=False)
     
     # Should handle exception gracefully
-    assert isinstance(response, str)
+    assert isinstance(response, str
 
 def test_memory_management_operations(router_with_mocks):
     """Test memory management operations."""
@@ -226,7 +226,7 @@ def test_memory_management_operations(router_with_mocks):
     # Test memory clearing (if implemented)
     if hasattr(router_with_mocks, 'clear_memory'):
         router_with_mocks.clear_memory()
-        assert len(router_with_mocks.memory) == 0
+        assert len(router_with_mocks.memory == 0
 
 def test_check_model_availability(router_with_mocks):
     """Test checking if models are loaded."""
@@ -235,8 +235,8 @@ def test_check_model_availability(router_with_mocks):
     gpt4all_available = router_with_mocks.gpt4all is not None
     
     # At least should have boolean values
-    assert isinstance(llama_available, bool)
-    assert isinstance(gpt4all_available, bool)
+    assert isinstance(llama_available, bool
+    assert isinstance(gpt4all_available, bool
 
 def test_model_import_errors():
     """Test handling of import errors for model libraries."""
@@ -254,7 +254,7 @@ def test_model_import_errors():
 class TestLLMRouterIntegration:
     """Integration tests for HybridLLMRouter."""
     
-    def test_full_conversation_workflow(self, mock_llama, mock_gpt4all):
+    def test_full_conversation_workflow(self, mock_llama, mock_gpt4all:
         """Test a full conversation workflow."""
         with patch('os.path.exists', return_value=True):
             router = HybridLLMRouter(session_memory=True, memory_limit=3)
@@ -273,11 +273,11 @@ class TestLLMRouterIntegration:
                 responses.append(response)
             
             # All responses should be generated
-            assert len(responses) == 4
-            assert all(isinstance(r, str) for r in responses)
+            assert len(responses == 4
+            assert all(isinstance(r, str for r in responses)
             
             # Memory should respect limit
-            assert len(router.memory) <= 3 * 2  # 3 interactions * 2 entries each
+            assert len(router.memory <= 3 * 2  # 3 interactions * 2 entries each
 
 
 if __name__ == "__main__":

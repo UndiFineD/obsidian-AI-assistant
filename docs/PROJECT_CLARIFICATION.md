@@ -304,15 +304,15 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 5. **Read Documentation**: Review README and API docs at `/docs`
 
 ### **For Developers**
-1. **Review Architecture**: Study `PROJECT_SPECIFICATION.md`
+1. **Review Architecture**: Study `docs/PROJECT_SPECIFICATION.md`
 2. **Run Test Suite**: Execute `pytest --cov=backend`
 3. **Check Code Quality**: Review coverage reports in `htmlcov/`
 4. **Understand Configuration**: Review `backend/config.yaml`
 5. **Explore API**: Test endpoints using Swagger UI at `/docs`
 
 ### **For Contributors**
-1. **Read Constitution**: Review `CONSTITUTION.md` for project principles
-2. **Study Specification**: Understand requirements in `PROJECT_SPECIFICATION.md`
+1. **Read Constitution**: Review `docs/CONSTITUTION.md` for project principles
+2. **Study Specification**: Understand requirements in `docs/PROJECT_SPECIFICATION.md`
 3. **Set Up Development**: Run setup script with dev dependencies
 4. **Follow Testing Standards**: Maintain 90%+ coverage requirement
 5. **Review Contribution Guidelines**: Follow established code patterns

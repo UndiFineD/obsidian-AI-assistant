@@ -48,11 +48,11 @@ class TestPluginFunctionality:
         ]
         
         found_error_handling = sum(1 for pattern in error_patterns 
-                                  if re.search(pattern, content, re.IGNORECASE))
+                                  if re.search(pattern, content, re.IGNORECASE)
         
         assert found_error_handling >= 2, "Should have proper error handling"
         
-        print("✓ Backend health check functionality implemented")
+        print("✓ Backend health check functionality implemented"
 
     def test_settings_persistence(self):
         """Test that settings can be saved and loaded."""
@@ -74,7 +74,7 @@ class TestPluginFunctionality:
         # Check for default settings merge
         assert 'DEFAULT_SETTINGS' in content, "Should use default settings"
         
-        print("✓ Settings persistence functionality implemented")
+        print("✓ Settings persistence functionality implemented"
 
     def test_fetch_api_usage(self):
         """Test that fetch API is used for backend communication."""
@@ -86,7 +86,7 @@ class TestPluginFunctionality:
         # Should handle different HTTP methods
         http_methods = ['GET', 'POST', 'PUT', 'DELETE']
         found_methods = sum(1 for method in http_methods 
-                           if method in content)
+                           if method in content
         
         assert found_methods >= 2, f"Should use multiple HTTP methods, found {found_methods}"
         
@@ -98,11 +98,11 @@ class TestPluginFunctionality:
         ]
         
         found_json = sum(1 for pattern in json_patterns 
-                        if re.search(pattern, content))
+                        if re.search(pattern, content)
         
         assert found_json >= 1, "Should handle JSON content"
         
-        print("✓ Fetch API usage is proper")
+        print("✓ Fetch API usage is proper"
 
     def test_user_interface_elements(self):
         """Test that UI elements are properly created."""
@@ -131,11 +131,11 @@ class TestPluginFunctionality:
         ]
         
         found_interactions = sum(1 for pattern in interaction_patterns 
-                                if re.search(pattern, content, re.IGNORECASE))
+                                if re.search(pattern, content, re.IGNORECASE)
         
         assert found_interactions >= 1, "Should handle user interactions"
         
-        print("✓ UI elements and interactions are implemented")
+        print("✓ UI elements and interactions are implemented"
 
     def test_notice_system_usage(self):
         """Test that Obsidian Notice system is used for feedback."""
@@ -151,11 +151,11 @@ class TestPluginFunctionality:
         ]
         
         found_notices = sum(1 for pattern in notice_patterns 
-                           if re.search(pattern, content))
+                           if re.search(pattern, content)
         
         assert found_notices >= 1, "Should provide meaningful user feedback"
         
-        print("✓ Notice system is properly used")
+        print("✓ Notice system is properly used"
 
 
 class TestTaskQueueFunctionality:
@@ -186,7 +186,7 @@ class TestTaskQueueFunctionality:
         
         assert found_queue_ops >= 3, f"Should implement queue operations, found {found_queue_ops}"
         
-        print("✓ Task queue operations implemented")
+        print("✓ Task queue operations implemented"
 
     def test_task_processing(self):
         """Test that task processing logic exists."""
@@ -207,7 +207,7 @@ class TestTaskQueueFunctionality:
         
         assert found_processing >= 2, "Should have task processing logic"
         
-        print("✓ Task processing logic implemented")
+        print("✓ Task processing logic implemented"
 
 
 class TestVoiceFunctionality:
@@ -248,7 +248,7 @@ class TestVoiceFunctionality:
         
         assert found_audio >= 2, f"Should implement audio recording, found {found_audio} patterns"
         
-        print("✓ Audio recording functionality detected")
+        print("✓ Audio recording functionality detected"
 
     def test_voice_processing_workflow(self):
         """Test that voice processing workflow exists."""
@@ -272,7 +272,7 @@ class TestVoiceFunctionality:
         
         assert found_workflow >= 3, "Should have voice processing workflow"
         
-        print("✓ Voice processing workflow implemented")
+        print("✓ Voice processing workflow implemented"
 
 
 class TestAnalyticsFunctionality:
@@ -304,7 +304,7 @@ class TestAnalyticsFunctionality:
         
         assert found_analytics >= 2, "Should handle analytics data"
         
-        print("✓ Analytics data handling implemented")
+        print("✓ Analytics data handling implemented"
 
     def test_ui_rendering_for_analytics(self):
         """Test that analytics UI is rendered."""
@@ -325,7 +325,7 @@ class TestAnalyticsFunctionality:
         
         assert found_ui >= 2, "Should create analytics UI"
         
-        print("✓ Analytics UI rendering implemented")
+        print("✓ Analytics UI rendering implemented"
 
 
 class TestErrorHandlingAndRobustness:
@@ -363,7 +363,7 @@ class TestErrorHandlingAndRobustness:
         assert error_coverage >= 0.40, \
             f"Should have error handling in key files. Coverage: {error_coverage:.2%}"
         
-        print(f"✓ Error handling coverage: {error_coverage:.2%} ({files_with_error_handling}/{len(js_files)} files)")
+        print(f"✓ Error handling coverage: {error_coverage:.2%} ({files_with_error_handling}/{len(js_files} files)")
 
 
 if __name__ == "__main__":

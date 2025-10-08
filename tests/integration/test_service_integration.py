@@ -94,7 +94,7 @@ class TestServiceInitialization:
             # Verify VaultIndexer received EmbeddingsManager dependency
             MockVI.assert_called_once()
             call_args = MockVI.call_args
-            assert 'emb_mgr' in call_args.kwargs or len(call_args.args) > 0
+            assert 'emb_mgr' in call_args.kwargs or len(call_args.args > 0
             
             print("✓ Service dependency injection test passed")
 
@@ -180,7 +180,7 @@ class TestConfigurationIntegration:
             assert result["ok"] is True
             assert "settings" in result
             
-            print("✓ Configuration reload integration test passed")
+            print("✓ Configuration reload integration test passed"
 
     def test_configuration_update_integration(self):
         """Test configuration updates are applied correctly."""
@@ -208,7 +208,7 @@ class TestConfigurationIntegration:
             assert result["ok"] is True
             assert "settings" in result
             
-            print("✓ Configuration update integration test passed")
+            print("✓ Configuration update integration test passed"
 
 
 class TestCacheIntegration:
@@ -250,7 +250,7 @@ class TestCacheIntegration:
             
             # Should return cached response without calling AI
             mock_cache.get.assert_called()
-            assert mock_mm.generate.call_count == 1  # Only called once (first time)
+            assert mock_mm.generate.call_count == 1  # Only called once (first time
             
             print("✓ Cache workflow integration test passed")
 
@@ -276,7 +276,7 @@ class TestCacheIntegration:
             assert result["indexed"] == 5
             assert result["updated"] == 2
             
-            print("✓ Cache invalidation on reindex test passed")
+            print("✓ Cache invalidation on reindex test passed"
 
 
 class TestCrossServiceCommunication:
@@ -308,7 +308,7 @@ class TestCrossServiceCommunication:
             files = mock_vi.index_vault("./vault")
             
             # Verify integration
-            assert len(files) == 2
+            assert len(files == 2
             mock_vi.index_vault.assert_called_once_with("./vault")
             
             print("✓ Embeddings and indexing integration test passed")
@@ -345,7 +345,7 @@ class TestCrossServiceCommunication:
             # Verify response contains AI output
             assert response["answer"] == "AI response using provided context"
             
-            print("✓ Model and embeddings context integration test passed")
+            print("✓ Model and embeddings context integration test passed"
 
 
 if __name__ == "__main__":

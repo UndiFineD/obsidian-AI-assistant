@@ -24,54 +24,54 @@ class TestMultiLevelCache:
         cache = MultiLevelCache(l1_size=10, l2_size=50)
         assert cache.l1_max_size == 10
         assert cache.l2_max_size == 50
-        assert len(cache.l1_cache) == 0
+        assert len(cache.l1_cache == 0
     
     def test_basic_cache_operations(self):
         """Test basic get/set operations"""
         cache = MultiLevelCache(l1_size=5, l2_size=10)
         
         # Test miss
-        assert cache.get("nonexistent") is None
-        assert cache.get("nonexistent", "default") == "default"
+        assert cache.get("nonexistent" is None
+        assert cache.get("nonexistent", "default" == "default"
         
         # Test set and get
         cache.set("key1", "value1", ttl=60)
-        assert cache.get("key1") == "value1"
+        assert cache.get("key1" == "value1"
         
         # Verify it's in L1 cache
         assert "key1" in cache.l1_cache
         assert cache._stats['l1_hits'] == 1
     
-    def test_l1_eviction_to_l2(self):
+    def test_l1_eviction_to_l2(self:
         """Test eviction from L1 to L2 cache"""
         cache = MultiLevelCache(l1_size=2, l2_size=10)
         
         # Fill L1 cache
         cache.set("key1", "value1")
         cache.set("key2", "value2")
-        assert len(cache.l1_cache) == 2
+        assert len(cache.l1_cache == 2
         
         # Add third item, should evict oldest from L1
         cache.set("key3", "value3")
-        assert len(cache.l1_cache) == 2
+        assert len(cache.l1_cache == 2
         
         # First key should now be in L2
         assert "key1" not in cache.l1_cache
-        result = cache.get("key1")  # Should promote from L2 to L1
+        result = cache.get("key1"  # Should promote from L2 to L1
         assert result == "value1"
         assert cache._stats['l2_hits'] >= 1
     
-    def test_ttl_expiration(self):
+    def test_ttl_expiration(self:
         """Test TTL-based expiration"""
         cache = MultiLevelCache()
         
         # Set with very short TTL
         cache.set("short_ttl", "value", ttl=0.1)
-        assert cache.get("short_ttl") == "value"
+        assert cache.get("short_ttl" == "value"
         
         # Wait for expiration
         time.sleep(0.2)
-        assert cache.get("short_ttl") is None
+        assert cache.get("short_ttl" is None
     
     def test_cache_statistics(self):
         """Test cache performance statistics"""
@@ -92,7 +92,7 @@ class TestMultiLevelCache:
 class TestConnectionPool:
     """Test connection pool implementation"""
     
-    def test_pool_creation(self):
+    def test_pool_creation(self:
         """Test connection pool initialization"""
         def factory():
             return Mock(status="connected")
@@ -100,7 +100,7 @@ class TestConnectionPool:
         pool = ConnectionPool(factory, min_size=2, max_size=5)
         assert pool.min_size == 2
         assert pool.max_size == 5
-        assert len(pool._pool) >= 2  # Pre-created connections
+        assert len(pool._pool >= 2  # Pre-created connections
     
     def test_get_and_return_connection(self):
         """Test getting and returning connections"""
@@ -112,11 +112,11 @@ class TestConnectionPool:
         # Get connection
         conn1 = pool.get_connection()
         assert conn1 is not None
-        assert len(pool._active) == 1
+        assert len(pool._active == 1
         
         # Return connection
         pool.return_connection(conn1)
-        assert len(pool._active) == 0
+        assert len(pool._active == 0
     
     def test_pool_exhaustion(self):
         """Test behavior when pool is exhausted"""
@@ -138,7 +138,7 @@ class TestConnectionPool:
         conn3 = pool.get_connection()  # Should work now
         assert conn3 is not None
     
-    def test_connection_validation(self):
+    def test_connection_validation(self:
         """Test connection validation"""
         call_count = 0
         def factory():
@@ -161,20 +161,20 @@ class TestConnectionPool:
 class TestAsyncTaskQueue:
     """Test async task queue implementation"""
     
-    async def test_queue_creation_and_startup(self):
+    async def test_queue_creation_and_startup(self:
         """Test queue initialization and startup"""
         queue = AsyncTaskQueue(max_workers=2, max_queue_size=10)
         assert queue.max_workers == 2
         assert queue.max_queue_size == 10
         assert not queue._running
         
-        await queue.start()
+        await queue.start(
         assert queue._running
-        assert len(queue.workers) == 2
+        assert len(queue.workers == 2
         
         await queue.stop()
         assert not queue._running
-        assert len(queue.workers) == 0
+        assert len(queue.workers == 0
     
     async def test_task_submission_and_execution(self):
         """Test task submission and execution"""
@@ -191,10 +191,10 @@ class TestAsyncTaskQueue:
         assert success
         
         # Wait for execution
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.1
         assert queue.stats['tasks_queued'] >= 1
         
-        await queue.stop()
+        await queue.stop(
     
     async def test_queue_statistics(self):
         """Test queue performance statistics"""
@@ -213,7 +213,7 @@ class TestAsyncTaskQueue:
         assert "tasks_completed" in stats
         assert "workers_active" in stats
         
-        await queue.stop()
+        await queue.stop(
 
 class TestCachedDecorator:
     """Test the @cached decorator"""
@@ -234,17 +234,17 @@ class TestCachedDecorator:
         assert call_count == 1
         
         # Second call should be cached
-        result2 = expensive_function(1, 2)
+        result2 = expensive_function(1, 2
         assert result2 == 3
         assert call_count == 1  # Not incremented
         
         # Different arguments should execute
-        result3 = expensive_function(2, 3)
+        result3 = expensive_function(2, 3
         assert result3 == 5
         assert call_count == 2
     
     @pytest.mark.asyncio
-    async def test_async_function_caching(self):
+    async def test_async_function_caching(self:
         """Test caching on async functions"""
         call_count = 0
         
@@ -261,11 +261,11 @@ class TestCachedDecorator:
         assert call_count == 1
         
         # Second call should be cached
-        result2 = await async_expensive_function(5)
+        result2 = await async_expensive_function(5
         assert result2 == 10
         assert call_count == 1  # Not incremented
     
-    def test_custom_key_function(self):
+    def test_custom_key_function(self:
         """Test custom key generation function"""
         call_count = 0
         
@@ -287,14 +287,14 @@ class TestCachedDecorator:
             assert call_count == 1
         
             # Same attribute on different object, but same key
-            result2 = get_attribute(obj2, "name")  
+            result2 = get_attribute(obj2, "name"  
             assert result2 == "test1"  # Should be cached
             assert call_count == 1
 
 class TestPerformanceMonitor:
     """Test performance monitoring functionality"""
     
-    def test_system_metrics_collection(self):
+    def test_system_metrics_collection(self:
         """Test system metrics collection"""
         metrics = PerformanceMonitor.get_system_metrics()
         
@@ -309,7 +309,7 @@ class TestPerformanceMonitor:
         assert "l1_size" in cache_metrics
         assert "l2_size" in cache_metrics
     
-    def test_metrics_consistency(self):
+    def test_metrics_consistency(self:
         """Test that metrics are consistent over time"""
         metrics1 = PerformanceMonitor.get_system_metrics()
         time.sleep(0.01)
@@ -319,7 +319,7 @@ class TestPerformanceMonitor:
         assert metrics2["timestamp"] > metrics1["timestamp"]
         
         # Cache structure should be consistent
-        assert metrics1["cache"].keys() == metrics2["cache"].keys()
+        assert metrics1["cache"].keys( == metrics2["cache"].keys()
 
 class TestIntegration:
     """Integration tests for performance components"""
@@ -333,8 +333,8 @@ class TestIntegration:
         assert cache1 is cache2
         
         # Should persist data
-        cache1.set("test_key", "test_value")
-        assert cache2.get("test_key") == "test_value"
+        cache1.set("test_key", "test_value"
+        assert cache2.get("test_key" == "test_value"
     
     @pytest.mark.asyncio
     async def test_performance_system_integration(self):
@@ -348,8 +348,8 @@ class TestIntegration:
         assert result["status"] == "success"
         
         # Test performance metrics
-        metrics = PerformanceMonitor.get_system_metrics()
+        metrics = PerformanceMonitor.get_system_metrics(
         assert metrics["cache"]["l1_size"] >= 1  # Should have our test key
 
 if __name__ == "__main__":
-    pytest.main([__file__, "-v"])
+    pytest.main([__file__, "-v"]

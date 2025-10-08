@@ -12,15 +12,14 @@ import sys
 import time
 import asyncio
 import subprocess
-import pytest
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Set
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 import json
 import re
 import shutil
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
 import threading
 
 # Add project root to path
@@ -186,13 +185,16 @@ class AsyncTestRunner:
             "Core Backend": {"priority": 1, "patterns": ["backend/test_backend.py", "backend/test_settings.py"]},
             "Model Management": {"priority": 2, "patterns": ["backend/test_modelmanager*.py"]},
             "Embeddings & Search": {"priority": 3, "patterns": ["backend/test_embeddings*.py", "backend/test_indexing*.py"]},
-            "Caching & Storage": {"priority": 4, "patterns": ["backend/test_caching.py"]},
+            "Caching & Storage": {"priority": 4, "patterns": ["backend/test_caching*.py"]},
             "Security & Config": {"priority": 5, "patterns": ["backend/test_security.py", "backend/test_config*.py"]},
             "Voice & Audio": {"priority": 6, "patterns": ["backend/test_voice.py"]},
             "LLM Router": {"priority": 7, "patterns": ["backend/test_llm_router.py"]},
-            "Plugin System": {"priority": 8, "patterns": ["plugin/test_*.py"]},
+            "Plugin System": {"priority": 8, "patterns": ["plugin/test_*.py", "test_plugin_python.py"]},
             "Integration Tests": {"priority": 9, "patterns": ["integration/test_*.py"]},
-            "Final & Misc": {"priority": 10, "patterns": ["test_final.py", "test_plugin_python.py"]}
+            "Enterprise Tests": {"priority": 10, "patterns": ["integration/test_enterprise*.py"]},
+            "Performance Tests": {"priority": 11, "patterns": ["test_performance.py"]},
+            "Utility & Server": {"priority": 12, "patterns": ["test_server.py", "run_tests.py"]},
+            "Final & Misc": {"priority": 13, "patterns": ["test_final.py"]}
         }
         
         # Discover all test files
@@ -200,9 +202,13 @@ class AsyncTestRunner:
         for pattern in ["test_*.py", "*_test.py"]:
             all_test_files.extend(self.test_root.rglob(pattern))
         
-        # Remove duplicates and __pycache__ files
+        # Remove duplicates and __pycache__ files and test runners
+        excluded_files = {
+            "comprehensive_test_runner.py",
+            "comprehensive_async_test_runner.py"
+        }
         all_test_files = [f for f in set(all_test_files) 
-            if "__pycache__" not in str(f) and f.name != "comprehensive_test_runner.py"]
+            if "__pycache__" not in str(f) and f.name not in excluded_files]
         
         print(f"Found {len(all_test_files)} potential test files:")
         
@@ -248,46 +254,61 @@ class AsyncTestRunner:
         return test_files
         
     def get_test_functions_from_file(self, file_path: Path) -> List[str]:
-        """Extract test function names from a file."""
+        """Extract test function names from a file using improved class context tracking."""
         test_functions = []
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-                
-            # Find test functions and test methods
-            patterns = [
-                r'def\s+(test_\w+)',  # Standalone test functions
-                r'async\s+def\s+(test_\w+)',  # Async test functions  
-                r'class\s+Test\w+.*?:\s*(?:[^{]*?)def\s+(test_\w+)',  # Test methods in classes
-            ]
             
-            for pattern in patterns:
-                matches = re.findall(pattern, content, re.DOTALL)
-                test_functions.extend(matches)
-                
-            # Also look for test classes
-            class_pattern = r'class\s+(Test\w+)'
-            class_matches = re.findall(class_pattern, content)
-            for class_name in class_matches:
-                # For classes, we'll count them as having multiple tests
-                if not any(func.startswith(class_name) for func in test_functions):
-                    test_functions.append(f"{class_name}::*")
+            lines = content.split('\n')
+            current_class = None
+            indent_stack = []
+            
+            for line in lines:
+                stripped = line.strip()
+                if not stripped or stripped.startswith('#'):
+                    continue
                     
+                indent = len(line) - len(line.lstrip())
+                
+                # Track indentation to know when we exit a class
+                while indent_stack and indent <= indent_stack[-1][1]:
+                    popped = indent_stack.pop()
+                    if indent_stack:
+                        current_class = indent_stack[-1][0] if isinstance(indent_stack[-1][0], str) and indent_stack[-1][0].startswith('Test') else None
+                    else:
+                        current_class = None
+                
+                # Find test classes
+                class_match = re.match(r'class\s+(Test\w+)', stripped)
+                if class_match:
+                    current_class = class_match.group(1)
+                    indent_stack.append((current_class, indent))
+                    continue
+                
+                # Find test methods/functions
+                test_match = re.match(r'(?:async\s+)?def\s+(test_\w+)', stripped)
+                if test_match:
+                    test_name = test_match.group(1)
+                    if current_class:
+                        test_functions.append(f"{current_class}::{test_name}")
+                    else:
+                        test_functions.append(test_name)
+                        
         except Exception as e:
-            # If we can't parse the file, assume it has at least one test
-            test_functions = [file_path.stem]
-            
+            # If we can't parse the file, just run the entire file
+            print(f"Warning: Could not parse {file_path}: {e}")
+            test_functions = ["*"]
         return list(set(test_functions)) if test_functions else [file_path.stem]
         
     def print_header(self, test_files: List[TestFile]):
         """Print the comprehensive test runner header."""
         total_functions = sum(len(tf.test_functions) for tf in test_files)
         total_estimated_time = sum(tf.estimated_duration for tf in test_files)
-        
         print("\n" + "=" * 100)
         print(Colors.colorize("🧪 OBSIDIAN AI ASSISTANT - COMPREHENSIVE ASYNC TEST SUITE", Colors.BOLD + Colors.CYAN))
         print("=" * 100)
-        print(f"🔧 Configuration:")
+        print("🔧 Configuration:")
         print(f"   • Max Workers: {Colors.colorize(str(self.max_workers), Colors.GREEN)}")
         print(f"   • Test Files: {Colors.colorize(str(len(test_files)), Colors.GREEN)}")
         print(f"   • Total Tests: {Colors.colorize(str(total_functions), Colors.GREEN)}")
@@ -363,12 +384,12 @@ class AsyncTestRunner:
         """Run a single test file asynchronously."""
         results = []
         relative_path = test_file.path.relative_to(self.project_root)
-        
-        for i, test_func in enumerate(test_file.test_functions):
+
+        for test_func in test_file.test_functions:
             with self.lock:
                 self.test_count += 1
                 current_test_num = self.test_count
-            
+
             # Create test result record
             test_result = TestResult(
                 number=current_test_num,
@@ -380,12 +401,12 @@ class AsyncTestRunner:
                 start_time=time.time(),
                 worker_id=worker_id
             )
-            
+
             # Show running status
             self.print_test_status(test_result, self.total_tests)
-            
+
             start_time = time.time()
-            
+
             try:
                 # Prepare pytest command
                 if test_func.endswith("::*") or "::" in test_func:
@@ -397,7 +418,7 @@ class AsyncTestRunner:
                 else:
                     # Run specific test function
                     cmd = ["python", "-m", "pytest", f"{test_file.path}::{test_func}", "-v", "--tb=short", "-q"]
-                    
+
                 # Run test in thread pool
                 loop = asyncio.get_event_loop()
                 result = await loop.run_in_executor(
@@ -405,20 +426,20 @@ class AsyncTestRunner:
                     self._run_subprocess,
                     cmd
                 )
-                
+
                 duration = time.time() - start_time
-                
+
                 # Determine status based on return code
                 if result["returncode"] == 0:
                     status = TestStatus.PASSED
                     error_msg = None
                 elif result["returncode"] == 5:  # No tests collected
-                    status = TestStatus.SKIPPED 
+                    status = TestStatus.SKIPPED
                     error_msg = "No tests collected"
                 else:
                     status = TestStatus.FAILED
                     error_msg = result["stdout"] + result["stderr"]
-                    
+
             except asyncio.TimeoutError:
                 duration = 60.0
                 status = TestStatus.ERROR
@@ -427,21 +448,21 @@ class AsyncTestRunner:
                 duration = time.time() - start_time
                 status = TestStatus.ERROR
                 error_msg = str(e)
-                
+
             # Update result
             test_result.status = status
             test_result.duration = duration
             test_result.end_time = time.time()
             test_result.error_message = error_msg
-            
+
             results.append(test_result)
-            
+
             with self.lock:
                 self.results.append(test_result)
-            
+
             # Update status display
             self.print_test_status(test_result, self.total_tests)
-            
+
         return results
         
     def _run_subprocess(self, cmd: List[str]) -> Dict[str, str]:
@@ -544,14 +565,14 @@ class AsyncTestRunner:
         print(f"👥 Workers Used: {Colors.colorize(str(self.max_workers), Colors.MAGENTA)}")
         print(f"📈 Pass Rate: {Colors.colorize(f'{pass_rate:.1f}%', Colors.GREEN if pass_rate >= 90 else Colors.YELLOW)}")
         
-        print(f"\n📋 Overall Results:")
+        print("\n📋 Overall Results:")
         print(f"  ✅ Passed:  {Colors.colorize(str(status_counts[TestStatus.PASSED]), Colors.GREEN)}")
         print(f"  ❌ Failed:  {Colors.colorize(str(status_counts[TestStatus.FAILED]), Colors.RED)}")
         print(f"  💥 Errors:  {Colors.colorize(str(status_counts[TestStatus.ERROR]), Colors.RED)}")
         print(f"  ⏭️ Skipped: {Colors.colorize(str(status_counts[TestStatus.SKIPPED]), Colors.YELLOW)}")
-        
+
         # Category breakdown
-        print(f"\n📂 Results by Category:")
+        print("\n📂 Results by Category:")
         for category, stats in sorted(category_stats.items()):
             total_cat = sum(v for k, v in stats.items() if k != "total_time")
             if total_cat > 0:
@@ -559,23 +580,23 @@ class AsyncTestRunner:
                 status_color = Colors.GREEN if cat_pass_rate >= 90 else Colors.YELLOW if cat_pass_rate >= 70 else Colors.RED
                 print(f"  📁 {category:<20} {Colors.colorize(f'{cat_pass_rate:5.1f}%', status_color)} "
                     f"({stats['passed']}/{total_cat}) {stats['total_time']:.2f}s")
-        
+
         # Performance insights
         if self.results:
             slowest_tests = sorted(self.results, key=lambda x: x.duration, reverse=True)[:10]
-            print(f"\n⏱️ Slowest Tests (Top 10):")
+            print("\n⏱️ Slowest Tests (Top 10):")
             for i, result in enumerate(slowest_tests, 1):
                 duration_color = Colors.RED if result.duration > 5 else Colors.YELLOW if result.duration > 2 else Colors.GREEN
                 print(f"  {i:2d}. {result.name:<35} {Colors.colorize(f'{result.duration:.3f}s', duration_color)} [{result.category}]")
-                
+
             # Fastest tests
             fastest_tests = sorted([r for r in self.results if r.status == TestStatus.PASSED], 
                 key=lambda x: x.duration)[:5]
             if fastest_tests:
-                print(f"\n⚡ Fastest Tests (Top 5):")
+                print("\n⚡ Fastest Tests (Top 5):")
                 for i, result in enumerate(fastest_tests, 1):
                     print(f"  {i}. {result.name:<35} {Colors.colorize(f'{result.duration:.3f}s', Colors.GREEN)} [{result.category}]")
-                
+
         # Show failed tests if any
         failed_tests = [r for r in self.results if r.status in [TestStatus.FAILED, TestStatus.ERROR]]
         if failed_tests:

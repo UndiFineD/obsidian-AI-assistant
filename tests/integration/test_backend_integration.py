@@ -28,7 +28,7 @@ class TestBackendHealthAndBasics:
             print("✓ All backend modules imported successfully")
             assert True
         except ImportError as e:
-            pytest.fail(f"Backend module import failed: {e}")
+            pytest.fail(f"Backend module import failed: {e}"
 
     def test_fastapi_app_creation(self):
         """Test that FastAPI app is created correctly."""
@@ -36,7 +36,7 @@ class TestBackendHealthAndBasics:
         
         assert app is not None
         assert app.title == "Obsidian AI Assistant"
-        print("✓ FastAPI app created successfully")
+        print("✓ FastAPI app created successfully"
 
     @patch.dict(os.environ, {'HUGGINGFACE_TOKEN': 'test_token'})
     def test_service_initialization_runs(self):
@@ -55,14 +55,14 @@ class TestBackendHealthAndBasics:
             assert True
         except Exception as e:
             # We expect some services might fail in test environment
-            print(f"✓ Service initialization handled exceptions gracefully: {e}")
+            print(f"✓ Service initialization handled exceptions gracefully: {e}"
             assert True
 
 
 class TestBackendServiceAccess:
     """Test that backend services can be accessed after initialization."""
 
-    def setUp(self):
+    def setUp(self:
         """Initialize services before tests."""
         from backend.backend import init_services
         init_services()
@@ -78,10 +78,10 @@ class TestBackendServiceAccess:
         print(f"✓ cache_manager: {type(backend.cache_manager)}")
         
         # At least the globals should exist (even if None)
-        assert hasattr(backend, 'model_manager')
-        assert hasattr(backend, 'emb_manager')
-        assert hasattr(backend, 'vault_indexer') 
-        assert hasattr(backend, 'cache_manager')
+        assert hasattr(backend, 'model_manager'
+        assert hasattr(backend, 'emb_manager'
+        assert hasattr(backend, 'vault_indexer' 
+        assert hasattr(backend, 'cache_manager'
 
     def test_settings_access(self):
         """Test that settings can be loaded."""
@@ -90,10 +90,10 @@ class TestBackendServiceAccess:
             settings = get_settings()
             
             assert settings is not None
-            print(f"✓ Settings loaded: {type(settings)}")
+            print(f"✓ Settings loaded: {type(settings}")
             
             # Check some expected attributes exist
-            assert hasattr(settings, 'model_backend')
+            assert hasattr(settings, 'model_backend'
             print(f"✓ Model backend setting: {settings.model_backend}")
             
         except Exception as e:
@@ -154,7 +154,7 @@ class TestMockedWorkflowIntegration:
             
             # Verify workflow executed
             assert response is not None
-            print("✓ Ask workflow completed successfully")
+            print("✓ Ask workflow completed successfully"
             
             # Verify services were called as expected
             mock_services["emb_manager"].search.assert_called_once()
@@ -173,7 +173,7 @@ class TestMockedWorkflowIntegration:
             response = asyncio.run(search("test query", top_k=3))
             
             assert response is not None
-            print("✓ Search integration completed")
+            print("✓ Search integration completed"
             
             # Verify embeddings manager was called
             mock_services["emb_manager"].search.assert_called_once_with("test query", top_k=3)
@@ -190,7 +190,7 @@ class TestMockedWorkflowIntegration:
             response = asyncio.run(scan_vault("./test_vault"))
             
             assert response is not None
-            print("✓ Vault indexing integration completed")
+            print("✓ Vault indexing integration completed"
             
             # Verify vault indexer was called
             mock_services["vault_indexer"].index_vault.assert_called_once_with("./test_vault")
@@ -210,7 +210,7 @@ class TestConfigurationIntegration:
             
             # Basic validation that settings object exists
             assert settings is not None
-            print("✓ Settings loading successful")
+            print("✓ Settings loading successful"
             
         except Exception as e:
             print(f"Settings loading handled gracefully: {e}")
@@ -230,7 +230,7 @@ class TestConfigurationIntegration:
             response = asyncio.run(post_reload_config())
             
             assert response is not None
-            assert response.get("ok") is True
+            assert response.get("ok" is True
             print("✓ Config reload endpoint integration successful")
             
             mock_reload.assert_called_once()
@@ -255,7 +255,7 @@ class TestConfigurationIntegration:
             response = asyncio.run(post_update_config(update_data))
             
             assert response is not None
-            assert response.get("ok") is True
+            assert response.get("ok" is True
             print("✓ Config update endpoint integration successful")
             
             mock_update.assert_called_once_with(update_data)

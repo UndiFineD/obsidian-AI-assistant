@@ -13,7 +13,7 @@ import sys
 # 🎵 Work it BETTER - use proper package imports! 🎵
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.voice import router, get_vosk_model
+from backend.voice import router
 # Define MODEL_PATH for tests based on the default path
 MODEL_PATH = "models/vosk-model-small-en-us-0.15"
 
@@ -23,11 +23,11 @@ class TestVoiceModule:
     def test_model_path_configuration(self):
         """Test that MODEL_PATH is properly configured."""
         assert MODEL_PATH is not None
-        assert isinstance(MODEL_PATH, str)
+        assert isinstance(MODEL_PATH, str
         # Should be either from environment or default
         assert "vosk-model" in MODEL_PATH
     
-    @patch('backend.voice.os.path.exists')
+    @patch('backend.voice.os.path.exists'
     @patch('backend.voice.vosk.Model')
     def test_model_initialization_success(self, mock_vosk_model, mock_exists):
         """Test successful model initialization."""
@@ -52,8 +52,8 @@ class TestVoiceModule:
             import voice
             importlib.reload(voice)
         
-        assert "Vosk model not found" in str(exc_info.value)
-        assert MODEL_PATH in str(exc_info.value)
+        assert "Vosk model not found" in str(exc_info.value
+        assert MODEL_PATH in str(exc_info.value
     
     def test_router_is_created(self):
         """Test that FastAPI router is properly created."""
@@ -68,7 +68,7 @@ class TestVoiceTranscription:
     # Ensure async tests in this class run under pytest-asyncio
     pytestmark = pytest.mark.asyncio
     
-    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2):
+    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2:
         """Create a test WAV file with specified parameters."""
         import struct
         temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
@@ -126,7 +126,7 @@ class TestVoiceTranscription:
         from voice import voice_transcribe
         result = await voice_transcribe(mock_file)
         assert "transcription" in result
-        assert isinstance(result["transcription"], str)
+        assert isinstance(result["transcription"], str
         mock_file.read.assert_called_once()
     
     @patch('backend.voice.wave.open')
@@ -146,7 +146,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('backend.voice.wave.open')
+    @patch('backend.voice.wave.open'
     async def test_voice_transcribe_invalid_sample_width(self, mock_wave_open):
         """Test transcription with invalid sample width."""
         mock_audio_data = b"fake_audio_data"
@@ -163,7 +163,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
     
-    @patch('backend.voice.wave.open')
+    @patch('backend.voice.wave.open'
     async def test_voice_transcribe_invalid_sample_rate(self, mock_wave_open):
         """Test transcription with invalid sample rate."""
         mock_audio_data = b"fake_audio_data"
@@ -181,7 +181,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "16kHz or 8kHz" in result["error"]
     
-    @patch('backend.voice.wave.open')
+    @patch('backend.voice.wave.open'
     @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_empty_transcription(self, mock_kaldi, mock_wave_open):
@@ -207,7 +207,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == ""
     
-    @patch('backend.voice.wave.open')
+    @patch('backend.voice.wave.open'
     @patch('backend.voice.vosk.KaldiRecognizer')
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_multiple_segments(self, mock_kaldi, mock_wave_open):
@@ -234,7 +234,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == "hello world goodbye"
     
-    @patch('backend.voice.wave.open')
+    @patch('backend.voice.wave.open'
     @patch('builtins.open', mock_open())
     async def test_voice_transcribe_wave_error(self, mock_wave_open):
         """Test transcription with wave file error."""
@@ -290,11 +290,11 @@ class TestVoiceTranscription:
                         files={"file": ("test.wav", f, "audio/wav")}
                     )
                 assert response.status_code == 200
-                data = response.json()
+                data = response.json(
                 assert "transcription" in data
         finally:
             # Clean up
-            os.unlink(test_wav)
+            os.unlink(test_wav
 
 class TestVoiceUtilities:
     """Test utility functions and edge cases for voice module."""
@@ -329,22 +329,23 @@ class TestVoiceUtilities:
         temp_file = "temp_audio.wav"
         # If the file exists from a previous test, it should be overwritten
         # In a real implementation, we'd want proper cleanup
-        assert isinstance(temp_file, str)
-        assert temp_file.endswith('.wav')
+        assert isinstance(temp_file, str
+        assert temp_file.endswith('.wav'
     
     @patch('backend.voice.vosk.KaldiRecognizer')
     def test_recognizer_initialization_with_different_sample_rates(self, mock_kaldi):
         """Test that recognizer is initialized with correct sample rate."""
         mock_recognizer = Mock()
         mock_kaldi.return_value = mock_recognizer
+        dummy_model = Mock()
         # Test with 16kHz
         sample_rate = 16000
-        mock_kaldi(model, sample_rate)
-        mock_kaldi.assert_called_with(model, sample_rate)
+        mock_kaldi(dummy_model, sample_rate)
+        mock_kaldi.assert_called_with(dummy_model, sample_rate)
         # Test with 8kHz
         sample_rate = 8000
-        mock_kaldi(model, sample_rate)
-        mock_kaldi.assert_called_with(model, sample_rate)
+        mock_kaldi(dummy_model, sample_rate)
+        mock_kaldi.assert_called_with(dummy_model, sample_rate)
 
 class TestVoiceErrorHandling:
     """Test error handling in voice module."""

@@ -67,7 +67,7 @@ def mock_chroma_client(mock_chroma_collection):
 def mock_settings():
     """Mock settings for from_settings() method."""
     mock_settings = Mock()
-    mock_settings.project_root = "/tmp/test_project"  # Security: used only for test isolation, not production
+    mock_settings.project_root = tempfile.mkdtemp()  # Secure temp directory for test isolation
     mock_settings.chunk_size = 600
     mock_settings.chunk_overlap = 100
     mock_settings.top_k = 8
@@ -97,15 +97,15 @@ class TestEmbeddingsManagerInit:
             model_name="test-model"
         )
         
-        pytest.check(emb_mgr.chunk_size == 400)
-        pytest.check(emb_mgr.overlap == 80)
-        pytest.check(emb_mgr.top_k == 7)
-        pytest.check(emb_mgr.db_path == temp_db_path)
-        pytest.check(emb_mgr.collection_name == "test_collection")
-        pytest.check(emb_mgr.model_name == "test-model")
-        pytest.check(emb_mgr.model is not None)
-        pytest.check(emb_mgr.chroma_client is not None)
-        pytest.check(emb_mgr.collection is not None)
+        assert emb_mgr.chunk_size == 400
+        assert emb_mgr.overlap == 80
+        assert emb_mgr.top_k == 7
+        assert emb_mgr.db_path == temp_db_path
+        assert emb_mgr.collection_name == "test_collection"
+        assert emb_mgr.model_name == "test-model"
+        assert emb_mgr.model is not None
+        assert emb_mgr.chroma_client is not None
+        assert emb_mgr.collection is not None
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -118,9 +118,9 @@ class TestEmbeddingsManagerInit:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         
         # Should gracefully handle model loading failure
-        pytest.check(emb_mgr.model is None)
-        pytest.check(emb_mgr.chroma_client is None)  # Should skip DB init if model fails
-        pytest.check(emb_mgr.collection is None)
+        assert emb_mgr.model is None
+        assert emb_mgr.chroma_client is None  # Should skip DB init if model fails
+        assert emb_mgr.collection is None
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -133,9 +133,9 @@ class TestEmbeddingsManagerInit:
         
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         
-        pytest.check(emb_mgr.model is not None)
-        pytest.check(emb_mgr.chroma_client is None)
-        pytest.check(emb_mgr.collection is None)
+        assert emb_mgr.model is not None
+        assert emb_mgr.chroma_client is None
+        assert emb_mgr.collection is None
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -151,9 +151,9 @@ class TestEmbeddingsManagerInit:
         
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         
-        pytest.check(emb_mgr.model is not None)
-        pytest.check(emb_mgr.chroma_client is not None)
-        pytest.check(emb_mgr.collection is None)
+        assert emb_mgr.model is not None
+        assert emb_mgr.chroma_client is not None
+        assert emb_mgr.collection is None
 
 class TestEmbeddingsFromSettings:
     """Test from_settings() class method."""
@@ -173,14 +173,14 @@ class TestEmbeddingsFromSettings:
         
         emb_mgr = EmbeddingsManager.from_settings()
         
-        pytest.check(emb_mgr.chunk_size == 600)
-        pytest.check(emb_mgr.overlap == 100)
-        pytest.check(emb_mgr.top_k == 8)
-        pytest.check(emb_mgr.model_name == "sentence-transformers/all-mpnet-base-v2")
+        assert emb_mgr.chunk_size == 600
+        assert emb_mgr.overlap == 100
+        assert emb_mgr.top_k == 8
+        assert emb_mgr.model_name == "sentence-transformers/all-mpnet-base-v2"
         # Check path contains expected components regardless of OS path separators
-        pytest.check("test_project" in str(emb_mgr.db_path).replace("\\", "/"))
-        pytest.check("vector_db" in str(emb_mgr.db_path).replace("\\", "/"))
-        pytest.check(emb_mgr.collection_name == "obsidian_notes")
+        assert "test_project" in str(emb_mgr.db_path.replace("\\", "/"))
+        assert "vector_db" in str(emb_mgr.db_path.replace("\\", "/"))
+        assert emb_mgr.collection_name == "obsidian_notes"
 
     @patch('backend.embeddings.get_settings')
     def test_from_settings_with_failure(self, mock_get_settings):
@@ -210,7 +210,7 @@ class TestEmbeddingOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         result = emb_mgr.compute_embedding("test text")
         
-        pytest.check(result == [0.1, 0.2, 0.3, 0.4, 0.5])
+        assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
         mock_sentence_transformer.encode.assert_called_once_with("test text")
 
     @patch('backend.embeddings.PersistentClient')
@@ -224,7 +224,7 @@ class TestEmbeddingOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         result = emb_mgr.compute_embedding("test text")
         
-        pytest.check(result == [])
+        assert result == []
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -242,7 +242,7 @@ class TestEmbeddingOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         result = emb_mgr.compute_embedding("test text")
         
-        pytest.check(result == [])
+        assert result == []
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -263,10 +263,10 @@ class TestEmbeddingOperations:
         # Should call upsert with proper structure
         mock_chroma_collection.upsert.assert_called_once()
         call_args = mock_chroma_collection.upsert.call_args[0][0]
-        pytest.check(len(call_args) == 1)
-        pytest.check(call_args[0]["id"] == "test_note.md")
-        pytest.check(call_args[0]["embedding"] == [0.1, 0.2, 0.3, 0.4, 0.5])
-        pytest.check(call_args[0]["metadata"]["note_path"] == "test_note.md")
+        assert len(call_args == 1)
+        assert call_args[0]["id"] == "test_note.md"
+        assert call_args[0]["embedding"] == [0.1, 0.2, 0.3, 0.4, 0.5]
+        assert call_args[0]["metadata"]["note_path"] == "test_note.md"
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -300,11 +300,11 @@ class TestSearchOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path, top_k=5)
         results = emb_mgr.search("test query")
         
-        pytest.check(len(results) == 2)
-        pytest.check(results[0]["text"] == "Sample document 1")
-        pytest.check(results[0]["source"] == "test1.md")
-        pytest.check(results[1]["text"] == "Sample document 2")
-        pytest.check(results[1]["source"] == "test2.md")
+        assert len(results == 2)
+        assert results[0]["text"] == "Sample document 1"
+        assert results[0]["source"] == "test1.md"
+        assert results[1]["text"] == "Sample document 2"
+        assert results[1]["source"] == "test2.md"
         
         mock_chroma_collection.query.assert_called_once()
         call_args = mock_chroma_collection.query.call_args
@@ -315,22 +315,22 @@ class TestSearchOperations:
     @patch('backend.embeddings.SentenceTransformer')
     @patch('backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction')
     def test_search_custom_top_k(self, mock_ef, mock_st, mock_pc, temp_db_path,
-                                mock_sentence_transformer, mock_chroma_collection):
+                                 mock_sentence_transformer, mock_chroma_collection):
         """Test search with custom top_k parameter."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
         mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
-        
+
         from backend.embeddings import EmbeddingsManager
-        
+
         emb_mgr = EmbeddingsManager(db_path=temp_db_path, top_k=3)
-    emb_mgr.search("test query", top_k=10)
-        
+        emb_mgr.search("test query", top_k=10)
+
         # Should use the custom top_k, not the instance default
         mock_chroma_collection.query.assert_called_once()
         call_args = mock_chroma_collection.query.call_args
-        pytest.check(call_args[1]["n_results"] == 10)
+        assert call_args[1]["n_results"] == 10
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -343,7 +343,7 @@ class TestSearchOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         results = emb_mgr.search("test query")
         
-        pytest.check(results == [])
+        assert results == []
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -362,7 +362,7 @@ class TestSearchOperations:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         results = emb_mgr.search("test query")
         
-        pytest.check(results == [])
+        assert results == []
 
 class TestDatabaseOperations:
     """Test database management operations."""
@@ -385,8 +385,8 @@ class TestDatabaseOperations:
         
         mock_chroma_client.delete_collection.assert_called_once_with("test_collection")
         # Should be called twice: once during init, once during reset
-        pytest.check(mock_chroma_client.get_or_create_collection.call_count == 2)
-        pytest.check(emb_mgr.collection == new_collection)
+        assert mock_chroma_client.get_or_create_collection.call_count == 2
+        assert emb_mgr.collection == new_collection
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -463,12 +463,12 @@ class TestBatchOperations:
         mock_chroma_collection.add.assert_called_once()
         call_args = mock_chroma_collection.add.call_args[1]
         
-        pytest.check(call_args["documents"] == chunks)
-        pytest.check(call_args["metadatas"] == metadatas)
-        pytest.check(len(call_args["ids"]) == 3)
+        assert call_args["documents"] == chunks
+        assert call_args["metadatas"] == metadatas
+        assert len(call_args["ids"] == 3)
         # Check that IDs are MD5 hashes
         expected_id = hashlib.md5("Document 1 content".encode("utf-8"), usedforsecurity=False).hexdigest()
-        pytest.check(call_args["ids"][0] == expected_id)
+        assert call_args["ids"][0] == expected_id
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -491,8 +491,8 @@ class TestBatchOperations:
         mock_chroma_collection.add.assert_called_once()
         call_args = mock_chroma_collection.add.call_args[1]
         
-        pytest.check(call_args["documents"] == chunks)
-        pytest.check(call_args["metadatas"] == [{"chunk_index": 0}, {"chunk_index": 1}])
+        assert call_args["documents"] == chunks
+        assert call_args["metadatas"] == [{"chunk_index": 0}, {"chunk_index": 1}]
 
     @patch('backend.embeddings.PersistentClient') 
     @patch('backend.embeddings.SentenceTransformer')
@@ -540,9 +540,9 @@ class TestUtilityMethods:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path, collection_name="test_coll", model_name="test_model")
         info = emb_mgr.get_collection_info()
         
-        pytest.check(info["name"] == "test_coll")
-        pytest.check(info["count"] == 42)
-        pytest.check(info["model"] == "test_model")
+        assert info["name"] == "test_coll"
+        assert info["count"] == 42
+        assert info["model"] == "test_model"
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -555,9 +555,9 @@ class TestUtilityMethods:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path, collection_name="test_coll", model_name="test_model")
         info = emb_mgr.get_collection_info()
         
-        pytest.check(info["name"] == "test_coll")
-        pytest.check(info["count"] == 0)
-        pytest.check(info["model"] == "test_model")
+        assert info["name"] == "test_coll"
+        assert info["count"] == 0
+        assert info["model"] == "test_model"
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -576,7 +576,7 @@ class TestUtilityMethods:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         info = emb_mgr.get_collection_info()
         
-        pytest.check(info["count"] == 0)  # Should use default when count fails
+        assert info["count"] == 0  # Should use default when count fails
 
     def test_hash_text(self):
         """Test text hashing functionality.""" 
@@ -590,32 +590,32 @@ class TestUtilityMethods:
         expected_hash = hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
         
         result = emb_mgr._hash_text(text)
-        pytest.check(result == expected_hash)
+        assert result == expected_hash
 
     def test_chunk_text_various_scenarios(self):
         """Test text chunking with various scenarios."""
         from backend.embeddings import EmbeddingsManager
-        
+
         # Create manager without mocking to test chunking
         with patch('backend.embeddings.SentenceTransformer', side_effect=Exception("Skip model")):
             emb_mgr = EmbeddingsManager(chunk_size=5, overlap=2)
-        
-        # Test normal chunking
+
+            # Test normal chunking
             text = "This is a test document with many words to test chunking behavior"
             chunks = emb_mgr.chunk_text(text)
-        
-            pytest.check(len(chunks) > 1)
-            pytest.check(all(isinstance(chunk, str) for chunk in chunks))
+
+            assert len(chunks) > 1
+            assert all(isinstance(chunk, str) for chunk in chunks)
             # Test empty text
-            pytest.check(emb_mgr.chunk_text("") == [])
+            assert emb_mgr.chunk_text("") == []
             # Test single word
             result = emb_mgr.chunk_text("word")
-            pytest.check(result == ["word"])
+            assert result == ["word"]
             # Test text shorter than chunk size
             short_text = "short text here"
             result = emb_mgr.chunk_text(short_text)
-            pytest.check(len(result) == 1)
-            pytest.check(result[0] == short_text)
+            assert len(result == 1)
+            assert result[0] == short_text
 
     def test_close_method(self):
         """Test resource cleanup with close() method."""
@@ -631,9 +631,9 @@ class TestUtilityMethods:
         
         emb_mgr.close()
         
-        pytest.check(emb_mgr.model is None)
-        pytest.check(emb_mgr.chroma_client is None)
-        pytest.check(emb_mgr.collection is None)
+        assert emb_mgr.model is None
+        assert emb_mgr.chroma_client is None
+        assert emb_mgr.collection is None
 
 class TestIndexingMethods:
     """Test file indexing functionality."""
@@ -656,7 +656,7 @@ class TestIndexingMethods:
         test_file = Path(temp_vault_path) / "note1.md"
         result = emb_mgr.index_file(str(test_file))
         
-        pytest.check(result > 0)  # Should return number of chunks
+        assert result > 0  # Should return number of chunks
         mock_chroma_collection.add.assert_called_once()
         mock_chroma_client.persist.assert_called_once()
 
@@ -671,7 +671,7 @@ class TestIndexingMethods:
         emb_mgr = EmbeddingsManager(db_path=temp_db_path)
         result = emb_mgr.index_file("/nonexistent/file.md")
         
-        pytest.check(result == 0)
+        assert result == 0
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -690,9 +690,9 @@ class TestIndexingMethods:
         results = emb_mgr.index_vault(temp_vault_path)
         
         # Should find and index all .md files (including nested ones)
-        pytest.check(len(results) == 3)
-        pytest.check(all(str(Path(k)).endswith('.md') for k in results.keys()))
-        pytest.check(all(v > 0 for v in results.values()))
+        assert len(results == 3)
+        assert all(str(Path(k).endswith('.md') for k in results.keys()))
+        assert all(v > 0 for v in results.values())
 
     @patch('backend.embeddings.PersistentClient')
     @patch('backend.embeddings.SentenceTransformer')
@@ -715,7 +715,7 @@ class TestIndexingMethods:
         
         emb_mgr.reset_db.assert_called_once()
         emb_mgr.index_vault.assert_called_once_with(temp_vault_path)
-        pytest.check(results == {"file1.md": 5, "file2.md": 3})
+        assert results == {"file1.md": 5, "file2.md": 3}
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
