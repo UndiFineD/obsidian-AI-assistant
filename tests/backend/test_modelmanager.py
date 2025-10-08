@@ -148,7 +148,7 @@ class TestModelManager:
     def test_list_available_models(self, temp_models_dir, mock_models_file):
         """Test listing available models from models.txt."""
         with patch('backend.modelmanager.load_dotenv'), \
-            patch('backend.modelmanager.huggingface_hub.login') as mock_login, \
+            patch('backend.modelmanager.huggingface_hub.login'), \
             patch('os.getenv', return_value=None), \
             patch('backend.modelmanager.HybridLLMRouter'):
             manager = ModelManager(
@@ -204,6 +204,7 @@ class TestModelManager:
             mock_download.assert_called_once_with(
                 repo_id="test-org/test-model",
                 filename="model.bin",
+                revision="main",
                 local_dir=temp_models_dir,
                 token="test_token"
             )

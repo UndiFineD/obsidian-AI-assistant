@@ -1,27 +1,27 @@
 # backend/backend.py
 import os
-import asyncio
-from typing import List, Optional
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from .settings import get_settings, reload_settings, update_settings
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 import time
 import sys as _sys
 import http.server
-
-# Global flag to track background queue initialization
-_background_queue_started = False
 import socketserver
+from typing import List, Optional
+
+from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from .settings import get_settings, reload_settings, update_settings
 from .embeddings import EmbeddingsManager
-from .indexing import VaultIndexer
-from .llm_router import HybridLLMRouter
+from .indexing import VaultIndexer, IndexingService
 from .modelmanager import ModelManager
 from .caching import CacheManager
 from .performance import (
     get_cache_manager, get_connection_pool, get_task_queue, 
     cached, PerformanceMonitor
 )
+
+# Global flag to track background queue initialization
+_background_queue_started = False
 
 # Enterprise imports
 try:
@@ -234,7 +234,7 @@ async def post_reload_config():
         s = reload_settings()
         return {"ok": True, "settings": s.dict()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}") from e
 
 
 @app.post("/api/config")
@@ -243,7 +243,7 @@ async def post_update_config(partial: dict):
         s = update_settings(dict(partial or {}))
         return {"ok": True, "settings": s.dict()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update settings: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to update settings: {str(e)}") from e
 
 def _ask_impl(request: AskRequest):
     # Ensure services
@@ -382,12 +382,11 @@ async def transcribe_audio(request: TranscribeRequest):
     """
     try:
         import base64
-        import io
-        import tempfile
-        import os
 
         # Decode base64 audio data
         audio_bytes = base64.b64decode(request.audio_data)
+        # TODO: Implement actual transcription logic
+        _ = audio_bytes  # Acknowledge variable to avoid unused warning
 
         # For now, return a placeholder response
         # In a production environment, you would integrate with:
@@ -406,7 +405,7 @@ async def transcribe_audio(request: TranscribeRequest):
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}") from e
 
 @app.post("/api/search")
 async def search(query: str, top_k: int = 5):
@@ -439,7 +438,7 @@ async def get_performance_metrics():
             "timestamp": time.time()
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}") from e
 
 @app.get("/api/performance/cache/stats")
 async def get_cache_stats():
@@ -452,7 +451,7 @@ async def get_cache_stats():
             "cache_stats": stats
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}") from e
 
 @app.post("/api/performance/cache/clear")
 async def clear_performance_cache():
@@ -470,7 +469,7 @@ async def clear_performance_cache():
             "message": "Performance cache cleared"
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}") from e
 
 @app.post("/api/performance/optimize")
 async def trigger_optimization(background_tasks: BackgroundTasks):
@@ -497,7 +496,7 @@ async def trigger_optimization(background_tasks: BackgroundTasks):
             "queue_stats": task_queue.get_stats()
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to trigger optimization: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to trigger optimization: {str(e)}") from e
 
 # Background optimization tasks
 async def _cleanup_expired_cache():
@@ -530,7 +529,7 @@ async def _optimize_connection_pools():
     """Optimize connection pools by cleaning idle connections"""
     try:
         from .performance import _connection_pools
-        for name, pool in _connection_pools.items():
+        for _, pool in _connection_pools.items():
             pool.cleanup_idle_connections()
     except Exception as e:
         print(f"Connection pool optimization failed: {e}")

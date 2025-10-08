@@ -58,7 +58,8 @@ class TestModelManagerInit:
              patch('backend.modelmanager.HybridLLMRouter'), \
              patch('builtins.print') as mock_print:
             
-            manager = ModelManager(
+            # Create manager instance for testing
+            _ = ModelManager(
                 models_dir=temp_cache_dir,
                 env_file=non_existent
             )
@@ -76,7 +77,7 @@ class TestModelManagerInit:
              patch('backend.modelmanager.HybridLLMRouter'), \
              patch('builtins.print') as mock_print:
             
-            manager = ModelManager(models_dir=temp_cache_dir)
+            _ = ModelManager(models_dir=temp_cache_dir)  # Create instance to test login
             
             mock_login.assert_called_once_with(token="valid_token")
             # Check success message was printed
@@ -120,7 +121,7 @@ class TestModelManagerInit:
              patch('os.getenv', return_value=None), \
              patch('backend.modelmanager.HybridLLMRouter'):
             
-            manager = ModelManager(models_dir=str(models_dir))
+            _ = ModelManager(models_dir=str(models_dir))  # Create instance to test directory creation
             
             # Directory should be created
             assert models_dir.exists()
@@ -255,6 +256,7 @@ class TestModelDownloading:
             mock_download.assert_called_once_with(
                 repo_id="org/model",
                 filename="model.bin",
+                revision="main",
                 local_dir=temp_cache_dir,
                 token="test_token"
             )
