@@ -84,7 +84,7 @@ class TestSettingsPrecedence:
                 assert s.backend_url == "http://127.0.0.1:9000"  # Computed from api_port
                 assert s.allow_network is False
     
-    def test_env_override_yaml_and_defaults(self:
+    def test_env_override_yaml_and_defaults(self):
         """Test that environment variables override both YAML and defaults."""
         # Mock YAML data that should be overridden by env vars
         mock_yaml_data = {
@@ -115,7 +115,7 @@ class TestSettingsPrecedence:
                 assert s.similarity_threshold == 0.8
                 assert s.backend_url == "http://127.0.0.1:7000"
     
-    def test_invalid_env_values_ignored(self:
+    def test_invalid_env_values_ignored(self):
         """Test that invalid environment values are ignored gracefully."""
         # Use empty YAML and test invalid env vars
         with patch('backend.settings._load_yaml_config', return_value={}):

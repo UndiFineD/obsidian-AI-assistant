@@ -76,7 +76,7 @@ class TestVaultIndexerInit:
         indexer = VaultIndexer()
         
         assert indexer.emb_mgr == mock_emb_instance
-        assert indexer.cache_dir == Path(temp_cache_dir
+        assert indexer.cache_dir == Path(temp_cache_dir)
         mock_emb_class.assert_called_once()
 
     @patch('backend.indexing.get_settings')

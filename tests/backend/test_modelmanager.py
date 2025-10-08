@@ -47,7 +47,7 @@ class TestModelManager:
             assert manager.default_model == "gpt4all-lora"
     
 
-    def test_model_manager_initialization_custom(self, temp_models_dir:
+    def test_model_manager_initialization_custom(self, temp_models_dir):
         """Test ModelManager initialization with custom parameters."""
         with patch('backend.modelmanager.load_dotenv'), \
             patch('backend.modelmanager.huggingface_hub.login'), \

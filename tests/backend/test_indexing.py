@@ -36,8 +36,8 @@ def test_vault_indexer_initialization(temp_cache_dir):
         mock_emb_instance = Mock()
         MockEmb.return_value = mock_emb_instance
         indexer = VaultIndexer(cache_dir=temp_cache_dir)
-        assert indexer.cache_dir == Path(temp_cache_dir
-        assert indexer.cache_dir.exists(
+        assert indexer.cache_dir == Path(temp_cache_dir)
+        assert indexer.cache_dir.exists()
         # Should create EmbeddingsManager if not provided
         MockEmb.assert_called_once()
 
@@ -77,7 +77,7 @@ def test_cache_file(vault_indexer):
         cached_content = f.read()
     assert cached_content == text
     
-def test_load_cached_file_exists(vault_indexer:
+def test_load_cached_file_exists(vault_indexer):
     """Test loading existing cached file."""
     key = "existing_key"
     content = "Cached content"
@@ -90,14 +90,14 @@ def test_load_cached_file_exists(vault_indexer:
     loaded_content = vault_indexer._load_cached(key)
     assert loaded_content == content
 
-def test_load_cached_file_not_exists(vault_indexer:
+def test_load_cached_file_not_exists(vault_indexer):
     """Test loading non-existing cached file."""
     key = "non_existing_key"
     
     loaded_content = vault_indexer._load_cached(key)
     assert loaded_content is None
 
-def test_load_cached_file_error(vault_indexer:
+def test_load_cached_file_error(vault_indexer):
     """Test loading cached file with read error."""
     key = "error_key"
     
@@ -109,7 +109,7 @@ def test_load_cached_file_error(vault_indexer:
         loaded_content = vault_indexer._load_cached(key)
         assert loaded_content is None
 
-def test_read_markdown_file(vault_indexer, temp_cache_dir:
+def test_read_markdown_file(vault_indexer, temp_cache_dir):
     """Test reading markdown file."""
     # Create test markdown file
     md_file = Path(temp_cache_dir) / "test.md"
@@ -119,12 +119,12 @@ def test_read_markdown_file(vault_indexer, temp_cache_dir:
     content = vault_indexer._read_markdown(str(md_file))
     assert content == md_content
 
-def test_read_markdown_file_not_exists(vault_indexer:
+def test_read_markdown_file_not_exists(vault_indexer):
     """Test reading non-existing markdown file."""
     content = vault_indexer._read_markdown("non_existing_file.md")
     assert content is None
 
-def test_read_markdown_file_error(vault_indexer, temp_cache_dir:
+def test_read_markdown_file_error(vault_indexer, temp_cache_dir):
     """Test reading markdown file with error."""
     md_file = Path(temp_cache_dir) / "test.md"
     md_file.write_text("content")
@@ -163,7 +163,7 @@ def test_read_pdf_error(mock_pdf_reader, vault_indexer, temp_cache_dir):
     content = vault_indexer._read_pdf(str(pdf_file))
     assert content is None
 
-def test_read_pdf_file_not_exists(vault_indexer:
+def test_read_pdf_file_not_exists(vault_indexer):
     """Test reading non-existing PDF file."""
     content = vault_indexer._read_pdf("non_existing_file.pdf")
     assert content is None
@@ -213,7 +213,7 @@ def test_fetch_web_content_http_error(mock_get, vault_indexer):
     content = vault_indexer._fetch_web_content("https://example.com")
     assert content is None
 
-def test_reindex_vault_with_markdown_files(vault_indexer, temp_cache_dir, mock_embeddings_manager:
+def test_reindex_vault_with_markdown_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with markdown files."""
     # Create test vault directory
     vault_dir = Path(temp_cache_dir) / "vault"
@@ -242,7 +242,7 @@ def test_reindex_vault_with_markdown_files(vault_indexer, temp_cache_dir, mock_e
     assert result["files"] == 3
     assert result["chunks"] == 6  # 3 files * 2 chunks each
 
-def test_reindex_vault_with_mixed_files(vault_indexer, temp_cache_dir, mock_embeddings_manager:
+def test_reindex_vault_with_mixed_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with mixed file types."""
     vault_dir = Path(temp_cache_dir) / "vault"
     vault_dir.mkdir()
