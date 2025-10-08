@@ -75,11 +75,11 @@ class TestAPIIntegration:
         response = await client.get("/health")
         
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         assert data["status"] == "ok"  # Backend returns "ok", not "healthy"
         assert "timestamp" in data
         
-        print("✓ Health endpoint integration test passed")
+        print("✓ Health endpoint integration test passed"
 
     @pytest.mark.asyncio
     async def test_ask_endpoint_integration(self, client, mock_all_services):
@@ -95,14 +95,14 @@ class TestAPIIntegration:
         response = await client.post("/api/ask", json=request_data)
         
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         
         # Verify response structure
         assert "answer" in data
         assert data["answer"] == "AI generated response for your question."
         
         # Verify services were called
-        mock_all_services["emb_manager"].search.assert_called_once()
+        mock_all_services["emb_manager"].search.assert_called_once(
         mock_all_services["model_manager"].generate.assert_called_once()
         
         print("✓ Ask endpoint integration test passed")
@@ -117,14 +117,14 @@ class TestAPIIntegration:
         response = await client.post("/api/reindex", json=request_data)
         
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         
         # Verify reindex response
         assert data["indexed"] == 3
         assert data["updated"] == 1
         
         # Verify vault indexer was called
-        mock_all_services["vault_indexer"].reindex.assert_called_once_with("./test_vault")
+        mock_all_services["vault_indexer"].reindex.assert_called_once_with("./test_vault"
         
         print("✓ Reindex endpoint integration test passed")
 
@@ -136,17 +136,17 @@ class TestAPIIntegration:
         response = await client.post("/api/search", params=params)
         
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         
         # Verify search response
         assert "results" in data
-        assert len(data["results"]) == 1
+        assert len(data["results"] == 1
         assert data["results"][0]["score"] == 0.92
         
         # Verify embeddings manager was called
         mock_all_services["emb_manager"].search.assert_called_once_with(
             "machine learning concepts", top_k=5
-        )
+        
         
         print("✓ Search endpoint integration test passed")
 
@@ -158,15 +158,15 @@ class TestAPIIntegration:
         response = await client.post("/api/scan_vault", params=params)
         
         assert response.status_code == 200
-        data = response.json()
+        data = response.json(
         
         # Verify scan response
         assert "indexed_files" in data
-        assert len(data["indexed_files"]) == 3
+        assert len(data["indexed_files"] == 3
         assert "note1.md" in data["indexed_files"]
         
         # Verify vault indexer was called
-        mock_all_services["vault_indexer"].index_vault.assert_called_once_with("./my_vault")
+        mock_all_services["vault_indexer"].index_vault.assert_called_once_with("./my_vault"
         
         print("✓ Scan vault endpoint integration test passed")
 
@@ -185,7 +185,7 @@ class TestAPIIntegration:
             response = await client.post("/api/config/reload")
             
             assert response.status_code == 200
-            data = response.json()
+            data = response.json(
             
             # Verify reload response
             assert data["ok"] is True
@@ -193,7 +193,7 @@ class TestAPIIntegration:
             assert data["settings"]["model_backend"] == "gpt-4"
             
             # Verify reload was called
-            mock_reload.assert_called_once()
+            mock_reload.assert_called_once(
             
             print("✓ Config reload endpoint integration test passed")
 
@@ -214,7 +214,7 @@ class TestAPIIntegration:
             response = await client.post("/api/config", json=update_data)
             
             assert response.status_code == 200
-            data = response.json()
+            data = response.json(
             
             # Verify update response
             assert data["ok"] is True
@@ -222,7 +222,7 @@ class TestAPIIntegration:
             assert data["settings"]["model_backend"] == "claude-3"
             
             # Verify update was called with correct data
-            mock_update.assert_called_once_with(update_data)
+            mock_update.assert_called_once_with(update_data
             
             print("✓ Config update endpoint integration test passed")
 
@@ -248,7 +248,7 @@ class TestAPIErrorHandling:
         
         assert response.status_code == 422  # Unprocessable Entity
         
-        print("✓ Invalid request handling test passed")
+        print("✓ Invalid request handling test passed"
 
     @pytest.mark.asyncio
     async def test_missing_required_fields(self, client):
@@ -263,7 +263,7 @@ class TestAPIErrorHandling:
         
         assert response.status_code == 422  # Validation error
         
-        print("✓ Missing required fields test passed")
+        print("✓ Missing required fields test passed"
 
     @pytest.mark.asyncio
     async def test_service_failure_error_handling(self, client):
@@ -282,7 +282,7 @@ class TestAPIErrorHandling:
             # Should return 500 Internal Server Error
             assert response.status_code == 500
             
-            print("✓ Service failure error handling test passed")
+            print("✓ Service failure error handling test passed"
 
     @pytest.mark.asyncio
     async def test_config_endpoint_error_handling(self, client):
@@ -295,11 +295,11 @@ class TestAPIErrorHandling:
             
             # Should return 500 with error details
             assert response.status_code == 500
-            data = response.json()
+            data = response.json(
             assert "detail" in data
             assert "Settings file not found" in data["detail"]
             
-            print("✓ Config endpoint error handling test passed")
+            print("✓ Config endpoint error handling test passed"
 
 
 class TestAPIPerformance:
@@ -335,13 +335,13 @@ class TestAPIPerformance:
             responses = await asyncio.gather(*tasks)
             
             # All should succeed
-            assert len(responses) == 5
+            assert len(responses == 5
             for response in responses:
                 assert response.status_code == 200
-                data = response.json()
+                data = response.json(
                 assert data["answer"] == "Quick response"
             
-            print("✓ Concurrent API requests test passed")
+            print("✓ Concurrent API requests test passed"
 
     @pytest.mark.asyncio
     async def test_large_request_handling(self, client):
@@ -363,10 +363,10 @@ class TestAPIPerformance:
             response = await client.post("/api/ask", json=request_data)
             
             assert response.status_code == 200
-            data = response.json()
+            data = response.json(
             assert data["answer"] == "Response to large question"
             
-            print("✓ Large request handling test passed")
+            print("✓ Large request handling test passed"
 
 
 class TestCORSIntegration:
@@ -394,7 +394,7 @@ class TestCORSIntegration:
         # Should handle preflight request
         assert response.status_code in [200, 204]
         
-        print("✓ CORS preflight request test passed")
+        print("✓ CORS preflight request test passed"
 
     @pytest.mark.asyncio
     async def test_cors_actual_request(self, client):
@@ -415,7 +415,7 @@ class TestCORSIntegration:
             
             assert response.status_code == 200
             
-            # Check for basic CORS functionality (response successful with Origin header)
+            # Check for basic CORS functionality (response successful with Origin header
             # Note: Exact CORS header verification depends on FastAPI CORS implementation
             
             print("✓ CORS actual request test passed")

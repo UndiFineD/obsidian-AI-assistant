@@ -9,6 +9,9 @@ from pydantic import BaseModel
 import time
 import sys as _sys
 import http.server
+
+# Global flag to track background queue initialization
+_background_queue_started = False
 import socketserver
 from .embeddings import EmbeddingsManager
 from .indexing import VaultIndexer
@@ -138,20 +141,22 @@ def _init_performance_systems():
                           min_size=2, max_size=5, max_idle=300)
         
         # Initialize async task queue for background processing
-        asyncio.create_task(_start_background_queue())
-        
-        print("[Performance] Initialized connection pools and task queue")
+        # Note: Background queue will be started when first async endpoint is called
+        print("[Performance] Initialized connection pools (task queue will start on first async call)")
         
     except Exception as e:
         print(f"[Performance] Warning: Failed to initialize performance systems: {e}")
 
-async def _start_background_queue():
-    """Start the background task queue"""
-    try:
-        task_queue = await get_task_queue()
-        print("[Performance] Background task queue started")
-    except Exception as e:
-        print(f"[Performance] Warning: Failed to start task queue: {e}")
+async def _ensure_background_queue():
+    """Ensure the background task queue is started (called from async endpoints)"""
+    global _background_queue_started
+    if not _background_queue_started:
+        try:
+            await get_task_queue()  # Initialize the task queue
+            _background_queue_started = True
+            print("[Performance] Background task queue started")
+        except Exception as e:
+            print(f"[Performance] Warning: Failed to start task queue: {e}")
 
 # ----------------------
 # Request models (exported via package)

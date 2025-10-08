@@ -1,7 +1,6 @@
 # tests/backend/test_settings.py
 import pytest
-import tempfile
-import shutil
+ 
 from pathlib import Path
 from unittest.mock import Mock, patch
 import os
@@ -32,26 +31,26 @@ class TestSettings:
         assert s.chunk_overlap == 200
         assert s.similarity_threshold == 0.75
         
-    def test_derived_properties(self):
+    def test_derived_properties(self:
         """Test that derived path properties work correctly."""
         s = Settings(project_root="/test/project", vault_path="my_vault", models_dir="my_models", cache_dir="my_cache")
-        assert s.base_dir == Path("/test/project")
-        assert s.abs_vault_path == Path("/test/project/my_vault")
-        assert s.abs_models_dir == Path("/test/project/my_models")
-        assert s.abs_cache_dir == Path("/test/project/my_cache")
+        assert s.base_dir == Path("/test/project"
+        assert s.abs_vault_path == Path("/test/project/my_vault"
+        assert s.abs_models_dir == Path("/test/project/my_models"
+        assert s.abs_cache_dir == Path("/test/project/my_cache"
         
     def test_absolute_paths(self):
         """Test that absolute paths are preserved."""
         if os.name == 'nt':  # Windows
             s = Settings(vault_path="C:/abs/vault", models_dir="C:/abs/models", cache_dir="C:/abs/cache")
-            assert s.abs_vault_path == Path("C:/abs/vault")
-            assert s.abs_models_dir == Path("C:/abs/models")
-            assert s.abs_cache_dir == Path("C:/abs/cache")
+            assert s.abs_vault_path == Path("C:/abs/vault"
+            assert s.abs_models_dir == Path("C:/abs/models"
+            assert s.abs_cache_dir == Path("C:/abs/cache"
         else:  # Unix-like
             s = Settings(vault_path="/abs/vault", models_dir="/abs/models", cache_dir="/abs/cache")
-            assert s.abs_vault_path == Path("/abs/vault")
-            assert s.abs_models_dir == Path("/abs/models")
-            assert s.abs_cache_dir == Path("/abs/cache")
+            assert s.abs_vault_path == Path("/abs/vault"
+            assert s.abs_models_dir == Path("/abs/models"
+            assert s.abs_cache_dir == Path("/abs/cache"
 
 
 class TestSettingsPrecedence:
@@ -85,7 +84,7 @@ class TestSettingsPrecedence:
                 assert s.backend_url == "http://127.0.0.1:9000"  # Computed from api_port
                 assert s.allow_network is False
     
-    def test_env_override_yaml_and_defaults(self):
+    def test_env_override_yaml_and_defaults(self:
         """Test that environment variables override both YAML and defaults."""
         # Mock YAML data that should be overridden by env vars
         mock_yaml_data = {
@@ -116,7 +115,7 @@ class TestSettingsPrecedence:
                 assert s.similarity_threshold == 0.8
                 assert s.backend_url == "http://127.0.0.1:7000"
     
-    def test_invalid_env_values_ignored(self):
+    def test_invalid_env_values_ignored(self:
         """Test that invalid environment values are ignored gracefully."""
         # Use empty YAML and test invalid env vars
         with patch('backend.settings._load_yaml_config', return_value={}):
@@ -130,7 +129,7 @@ class TestSettingsPrecedence:
 class TestSettingsHelpers:
     """Test helper functions for settings management."""
     
-    def setup_method(self):
+    def setup_method(self:
         get_settings.cache_clear()
     
     def test_load_yaml_config_missing_file(self):
@@ -144,13 +143,13 @@ class TestSettingsHelpers:
             result = _load_yaml_config()
             assert result == {}
     
-    def test_load_yaml_config_no_yaml_module(self):
+    def test_load_yaml_config_no_yaml_module(self:
         """Test loading YAML when yaml module is not available."""
         with patch('backend.settings.yaml', None):
             result = _load_yaml_config()
             assert result == {}
     
-    def test_load_yaml_config_invalid_yaml(self, tmp_path):
+    def test_load_yaml_config_invalid_yaml(self, tmp_path:
         """Test loading YAML with invalid content."""
         config_path = tmp_path / "config.yaml"
         config_path.write_text("invalid: yaml: content: :[")
@@ -173,7 +172,7 @@ class TestSettingsHelpers:
         'GPU': 'true',
         'CHUNK_SIZE': 'invalid',
         'SIMILARITY_THRESHOLD': 'also_invalid'
-    })
+    }
     def test_merge_env_type_coercion(self):
         """Test that environment variable type coercion works correctly."""
         overrides = {}
@@ -186,7 +185,7 @@ class TestSettingsHelpers:
         assert 'chunk_size' not in result
         assert 'similarity_threshold' not in result
     
-    def test_reload_settings_clears_cache(self):
+    def test_reload_settings_clears_cache(self:
         """Test that reload_settings clears the cache."""
         # Get settings once to populate cache
         s1 = get_settings()
@@ -196,7 +195,7 @@ class TestSettingsHelpers:
         
         # Should be same values but different instances due to cache clear
         assert s1.api_port == s2.api_port
-        assert isinstance(s2, Settings)
+        assert isinstance(s2, Settings
 
 
 class TestUpdateSettings:
@@ -213,7 +212,7 @@ class TestUpdateSettings:
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
             
-            config_path = tmp_path / "config.yaml"
+
             
             # Mock yaml operations
             with patch('backend.settings.yaml') as mock_yaml:
@@ -226,7 +225,7 @@ class TestUpdateSettings:
                     'malicious_key': 'hack_attempt'  # Not in whitelist
                 }
                 
-                result = update_settings(updates)
+                update_settings(updates)
                 
                 # Should only include whitelisted updates
                 mock_yaml.safe_dump.assert_called_once()
@@ -236,7 +235,7 @@ class TestUpdateSettings:
                 assert 'api_port' not in saved_data
                 assert 'malicious_key' not in saved_data
     
-    def test_update_settings_type_coercion(self, tmp_path):
+    def test_update_settings_type_coercion(self, tmp_path:
         """Test that update_settings coerces types correctly."""
         with patch('backend.settings.Path') as mock_path_cls:
             mock_path = Mock()
@@ -262,7 +261,7 @@ class TestUpdateSettings:
                 assert saved_data['similarity_threshold'] == 0.9
                 assert saved_data['vault_path'] == '123'
     
-    def test_update_settings_invalid_types_removed(self, tmp_path):
+    def test_update_settings_invalid_types_removed(self, tmp_path:
         """Test that invalid type coercions are removed from updates."""
         with patch('backend.settings.Path') as mock_path_cls:
             mock_path = Mock()
@@ -290,4 +289,4 @@ class TestUpdateSettings:
 
 
 if __name__ == "__main__":
-    pytest.main([__file__])
+    pytest.main([__file__]
