@@ -68,7 +68,7 @@ class TestVoiceTranscription:
     # Ensure async tests in this class run under pytest-asyncio
     pytestmark = pytest.mark.asyncio
     
-    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2:
+    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2):
         """Create a test WAV file with specified parameters."""
         import struct
         temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)

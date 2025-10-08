@@ -49,7 +49,7 @@ class TestModelManagerInit:
             mock_load_dotenv.assert_called_once()
             assert manager.hf_token == "test_token"
 
-    def test_initialization_without_env_file(self, temp_cache_dir:
+    def test_initialization_without_env_file(self, temp_cache_dir):
         """Test initialization when .env file doesn't exist."""
         non_existent = str(Path(temp_cache_dir) / "missing.env")
         
