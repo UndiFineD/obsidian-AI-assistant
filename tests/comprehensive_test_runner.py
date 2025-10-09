@@ -4,11 +4,9 @@ Comprehensive Test Runner for Obsidian AI Assistant
 Provides numbered tests with timing and colored status results.
 """
 
-import os
 import sys
 import time
 import subprocess
-import pytest
 from pathlib import Path
 from typing import Dict, List, Optional
 from dataclasses import dataclass
@@ -303,7 +301,7 @@ class ComprehensiveTestRunner:
             rel_path = test_file.relative_to(self.test_root.parent)
             print(f"  {i:2d}. {rel_path}")
             
-        print(f"\n🚀 Starting comprehensive test execution...\n")
+        print("\n🚀 Starting comprehensive test execution...\n")
         
         # Run each test file
         for test_file in test_files:
@@ -369,7 +367,7 @@ class ComprehensiveTestRunner:
         # Performance insights
         slowest_tests = sorted(self.results, key=lambda x: x.duration, reverse=True)[:5]
         if slowest_tests:
-            print(f"\n⏱️ Slowest Tests:")
+            print("\n⏱️ Slowest Tests:")
             for i, result in enumerate(slowest_tests, 1):
                 print(f"  {i}. {result.name} - {result.duration:.3f}s")
 

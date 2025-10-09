@@ -99,17 +99,15 @@ class HybridLLMRouter:
         """Invoke the LLaMA model."""
         # This complex logic is to accommodate unittest.mock's behavior in tests.
         # A cleaner approach in the future might be a dedicated, patchable method.
-        llama_call = getattr(self.llama, "__call__", None)
         if callable(self.llama):
             # Honor a mocked side_effect if present in tests
-            _side_effect = getattr(llama_call, "side_effect", None)
+            _side_effect = getattr(self.llama, "side_effect", None)
             if _side_effect:
                 raise _side_effect
-            output = llama_call(prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"])
-            return output["choices"][0]["text"].strip()
-        else:
             output = self.llama(prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"])
             return output["choices"][0]["text"].strip()
+        output = self.llama(prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"])
+        return output["choices"][0]["text"].strip()
 
     def _invoke_gpt4all(self, prompt: str, max_tokens: int) -> str:
         """Invoke the GPT4All model."""

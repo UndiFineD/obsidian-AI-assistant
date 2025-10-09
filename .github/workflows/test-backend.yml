@@ -1,5 +1,7 @@
 # GitHub Actions CI Configuration for Obsidian AI Assistant
 # This workflow runs tests to prevent regression of the fixes implemented
+permissions:
+  contents: read
 
 name: Backend Tests
 
