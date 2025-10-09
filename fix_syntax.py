@@ -59,7 +59,7 @@ def main():
         if not os.path.exists(test_dir):
             continue
             
-        for root, dirs, files in os.walk(test_dir):
+    for root, _, files in os.walk(test_dir):
             for file in files:
                 if file.endswith('.py'):
                     filepath = os.path.join(root, file)

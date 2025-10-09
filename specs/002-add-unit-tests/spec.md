@@ -8,6 +8,7 @@
 ---
 
 ## ⚡ Quick Guidelines
+
 - ✅ Focus on WHAT users need and WHY
 - ❌ Avoid HOW to implement (no tech stack, APIs, code structure)
 - 👥 Written for business stakeholders, not developers
@@ -63,12 +64,15 @@ The Obsidian LLM Assistant project currently lacks comprehensive unit test cover
 ## Key Entities
 
 **TestSuite**: Collection of all unit tests for a module
+
 - Properties: module_name, test_count, coverage_percentage, pass_status
 
 **CoverageReport**: Documentation of test coverage metrics
+
 - Properties: module_name, lines_covered, lines_total, percentage, timestamp
 
 **TestResult**: Outcome of test execution
+
 - Properties: test_name, status, duration, error_message, file_path
 
 ## Review & Acceptance Checklist

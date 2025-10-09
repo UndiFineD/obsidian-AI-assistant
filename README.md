@@ -32,22 +32,13 @@ obsidian-llm-assistant/
 ├─ setup.sh                # Linux/macOS setup script
 ├─ setup.ps1               # Windows setup script
 └─ README.md
-```
-
-![[diagram.png]]
-
----
-
-## **Setup Instructions**
-
-### **Enterprise Setup (Optional)**
 
 For organizations requiring enterprise features, additional backend modules are available:
 
 #### **Enterprise Backend Modules**
 
-```bash
-# Enterprise modules (automatically loaded if available)
+\n# Enterprise modules (automatically loaded if available)
+\n```bash
 backend/enterprise/
 ├── auth.py           # SSO authentication providers
 ├── tenant.py         # Multi-tenant management  
@@ -56,19 +47,19 @@ backend/enterprise/
 ├── soc2.py          # SOC2 compliance monitoring
 ├── admin.py         # Admin dashboard API
 └── integrations.py  # Enterprise integrations
-```
+\n```
 
-#### **Enterprise Plugin Components**
+### **Enterprise Plugin Components**
 
-```bash
+\n```bash
 plugin/
 ├── adminDashboard.js    # Admin interface
 ├── enterpriseAuth.js    # SSO authentication
 ├── enterpriseConfig.js  # Enterprise settings
 └── styles.css          # Enterprise UI styling
-```
+\n```powershell
 
-#### **Enterprise Configuration**
+## **Enterprise Configuration**
 
 ```yaml
 # backend/config.yaml - Enterprise settings
@@ -93,9 +84,9 @@ enterprise:
     session_timeout: 3600
     mfa_required: false
     password_policy: "strong"
-```
+\n```powershell
 
-#### **Enterprise Features Access**
+### **Enterprise Features Access**
 
 Once enterprise backend is running:
 
@@ -111,7 +102,7 @@ Once enterprise backend is running:
 
 **Linux/macOS:**
 
-```bash
+\n```bash
 bash setup.sh
 ```
 
@@ -167,25 +158,25 @@ vosk_model_path: "models/vosk-model-small-en-us-0.15"
 
 Settings can be updated at runtime via the `/api/config` endpoints:
 
-```bash
-# Get current configuration
-GET http://localhost:8000/api/config
+\n# From project root
 
-# Update settings
-POST http://localhost:8000/api/config
+```bash
+python test_server.py
+```
+
+\n## Get current configuration
+[GET current configuration](http://localhost:8000/api/config)
+
+\n## Update settings
+[POST update settings](http://localhost:8000/api/config)
 Content-Type: application/json
 {
   "vault_path": "new_vault",
-  "chunk_size": 1000,
   "gpu": false
 }
 
-# Reload settings from file
-POST http://localhost:8000/api/config/reload
-```
-
-#### **Plugin Configuration**
-The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`):
+\n## Reload settings from file
+[POST reload settings](http://localhost:8000/api/config/reload)
 
 ```json
 {
@@ -195,24 +186,26 @@ The plugin can optionally read `plugin/config.json` (copy from `plugin/config.te
 }
 ```
 
-### Quickstart (Windows PowerShell)
-
-```pwsh
-# 1) Create a .env (optional) or set env vars in your session
+$env:VAULT_PATH="$(Resolve-Path .\vault)"
+$env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 $env:API_PORT=8000
 $env:VAULT_PATH="$(Resolve-Path .\vault)"
 $env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 
-# 2) Edit backend/config.yaml as needed
+\n## 2) Edit backend/config.yaml as needed
 notepad .\backend\config.yaml
 
-# 3) Start backend
-# Option A: FastAPI with Uvicorn (full backend)
+\n## 3) Start backend
+\n### Option A: FastAPI with Uvicorn (full backend)
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
 
-## Option B: Simple Python test server (no Node.js required)
-# This serves the plugin files and provides mock endpoints for quick UI testing.
+\n## Option B: Simple Python test server (no Node.js required)
+\n### This serves the plugin files and provides mock endpoints for quick UI testing
+cd ..
+python .\test_server.py
+
+```bash
 cd ..
 python .\test_server.py
 ```
@@ -255,6 +248,7 @@ For quick testing without full backend dependencies:
 # From project root
 python test_server.py
 ```
+
 This lightweight server:
 
 - Serves static plugin files from `./plugin`
