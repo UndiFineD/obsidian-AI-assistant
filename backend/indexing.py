@@ -121,25 +121,25 @@ class VaultIndexer:
         results = {}
         for root, _, files in os.walk(vault_path):
             for file in files:
-                def do_index(file=file, full_path=full_path):
+                full_path = os.path.join(root, file)
+                def do_index(f=file, fp=full_path):
                     content = None
-                    if file.endswith(".md"):
-                        content = self._read_markdown(full_path)
-                    elif file.endswith(".pdf"):
-                        content = self._read_pdf(full_path)
+                    if f.endswith(".md"):
+                        content = self._read_markdown(fp)
+                    elif f.endswith(".pdf"):
+                        content = self._read_pdf(fp)
                     
                     if content:
                         chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
                         if chunks and getattr(self.emb_mgr, "add_documents", None):
                             self.emb_mgr.add_documents(chunks)
-                        results[full_path] = len(chunks)
+                        results[fp] = len(chunks)
                 safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
         return results
 
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
         """Alias for reindex, which performs a full re-scan and indexing."""
         return self.reindex(vault_path)
-
     def reindex(self, vault_path: str) -> Dict[str, int]:
         """Clear collection and index all Markdown and PDF files in a vault directory.
 
@@ -160,11 +160,11 @@ class VaultIndexer:
             for file in files:
                 full_path = os.path.join(root, file)
 
-                def do_index_file():
-                    if file.endswith(".md"):
-                        content = self._read_markdown(full_path)
-                    elif file.endswith(".pdf"):
-                        content = self._read_pdf(full_path)
+                def do_index_file(f=file, fp=full_path):
+                    if f.endswith(".md"):
+                        content = self._read_markdown(fp)
+                    elif f.endswith(".pdf"):
+                        content = self._read_pdf(fp)
                     else:
                         return 0  # unsupported
 

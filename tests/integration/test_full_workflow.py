@@ -7,12 +7,14 @@ like asking questions, indexing the vault, and performing semantic searches.
 import pytest
 import sys
 from pathlib import Path
+import asyncio
 from unittest.mock import patch
 import tempfile
 
 # Import backend components at the top for clarity
 from backend.backend import app, AskRequest, ReindexRequest
 from httpx import AsyncClient, ASGITransport
+
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -96,11 +98,11 @@ class TestFullWorkflowIntegration:
             yield c
 
     @pytest.mark.asyncio
-    async def test_complete_ask_workflow(self, client, mock_services, temp_workspace):
+    async def test_complete_ask_workflow(self, client, mock_services, temp_workspace: dict):
         """Test complete ask workflow: Question → Search → Context → AI → Response."""
         # Prepare request
         request_data = {
-            question="What is AI?",
+            "question": "What is AI?",
             "vault_path": str(temp_workspace["vault_dir"]),
             "use_context": True,
             "max_tokens": 150,
@@ -132,13 +134,14 @@ class TestFullWorkflowIntegration:
         print("✓ Complete ask workflow integration test passed")
 
     @pytest.mark.asyncio
-    async def test_vault_indexing_workflow(self, mock_services, temp_workspace):
+    async def test_vault_indexing_workflow(self, client, mock_services, temp_workspace: dict):
         """Test vault indexing workflow: Files → Parse → Embed → Store."""
         
         vault_path = str(temp_workspace["vault_dir"])
         
         # Execute vault scanning/indexing
-        result = await scan_vault(vault_path)
+        response = await client.post("/api/scan_vault", params={"vault_path": vault_path})
+        result = response.json()
         
         # Verify indexing workflow
         # 1. Vault indexer was called
@@ -153,12 +156,13 @@ class TestFullWorkflowIntegration:
         print("✓ Vault indexing workflow integration test passed")
 
     @pytest.mark.asyncio 
-    async def test_reindex_workflow(self, mock_services, temp_workspace):
+    async def test_reindex_workflow(self, client, mock_services, temp_workspace: dict):
         """Test vault reindexing workflow."""
-        request = ReindexRequest(vault_path=str(temp_workspace["vault_dir"]))
+        request_data = {"vault_path": str(temp_workspace["vault_dir"])}
         
         # Execute reindexing
-        result = await api_reindex(request)
+        response = await client.post("/api/reindex", json=request_data)
+        result = response.json()
         
         # Verify reindexing
         mock_services["vault_indexer"].reindex.assert_called_once_with(
@@ -172,12 +176,13 @@ class TestFullWorkflowIntegration:
         print("✓ Vault reindexing workflow integration test passed")
 
     @pytest.mark.asyncio
-    async def test_search_workflow(self, mock_services):
+    async def test_search_workflow(self, client, mock_services):
         """Test semantic search workflow."""
         query = "artificial intelligence research"
         
         # Execute search
-        result = await search(query, top_k=3)
+        response = await client.post("/api/search", params={"query": query, "top_k": 3})
+        result = response.json()
         
         # Verify search workflow
         mock_services["emb_manager"].search.assert_called_once_with(
@@ -195,7 +200,13 @@ class TestFullWorkflowIntegration:
 class TestErrorScenarios:
     """Test error handling and edge cases in integration scenarios."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture(scope="class")
+    async def client(self):
+        """Create an async test client for the app."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+            yield c
+
+    @pytest.fixture(scope="class")
     def failing_services(self):
         """Set up services that simulate failures."""
         with patch('backend.backend.model_manager') as mock_mm, \
@@ -214,17 +225,14 @@ class TestErrorScenarios:
             }
 
     @pytest.mark.asyncio
-    async def test_ai_model_failure_handling(self, failing_services):
+    async def test_ai_model_failure_handling(self, client, failing_services):
         """Test handling when AI model fails."""
-        request = AskRequest(
-            question="Test question",
-            vault_path="./vault",
-            use_context=False
-        )
+        request_data = {"question": "Test question"}
         
         # Should handle model failure gracefully
-        with pytest.raises(Exception):
-            _ask_impl(request)
+        response = await client.post("/api/ask", json=request_data)
+        assert response.status_code == 500
+        assert "Model service unavailable" in response.text
         
         # Verify model was attempted
         failing_services["model_manager"].generate.assert_called_once()
@@ -232,22 +240,24 @@ class TestErrorScenarios:
         print("✓ AI model failure handling test passed")
 
     @pytest.mark.asyncio
-    async def test_embeddings_failure_handling(self, failing_services):
+    async def test_embeddings_failure_handling(self, client, failing_services):
         """Test handling when embeddings service fails."""
         # Should handle embeddings failure gracefully
-        with pytest.raises(Exception):
-            await search("test query")
+        response = await client.post("/api/search", params={"query": "test query"})
+        assert response.status_code == 500
+        assert "Embeddings service down" in response.text
         
         failing_services["emb_manager"].search.assert_called_once()
         
         print("✓ Embeddings failure handling test passed")
 
     @pytest.mark.asyncio
-    async def test_indexing_failure_handling(self, failing_services):
+    async def test_indexing_failure_handling(self, client, failing_services):
         """Test handling when indexing fails."""
         # Should handle indexing failure gracefully
-        with pytest.raises(Exception):
-            await scan_vault("./vault")
+        response = await client.post("/api/scan_vault", params={"vault_path": "./vault"})
+        assert response.status_code == 500
+        assert "Indexing failed" in response.text
         
         failing_services["vault_indexer"].index_vault.assert_called_once()
         
@@ -257,7 +267,13 @@ class TestErrorScenarios:
 class TestRealWorldScenarios:
     """Test realistic user scenarios and workflows."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture(scope="class")
+    async def client(self):
+        """Create an async test client for the app."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+            yield c
+
+    @pytest.fixture(scope="class")
     def realistic_services(self):
         """Set up services with realistic responses."""
         with patch('backend.backend.model_manager') as mock_mm, \
@@ -304,18 +320,20 @@ Your research notes mention these applications effectively."""
             }
 
     @pytest.mark.asyncio
-    async def test_research_question_scenario(self, realistic_services):
+    async def test_research_question_scenario(self, client, realistic_services):
         """Test a realistic research question scenario."""
-        request = AskRequest(
-            question="Explain the key concepts of machine learning based on my notes",
-            vault_path="./research_vault",
-            use_context=True,
-            max_tokens=300,
-            prefer_fast=False  # User wants comprehensive answer
-        )
+        request_data = {
+            "question": "Explain the key concepts of machine learning based on my notes",
+            "vault_path": "./research_vault",
+            "use_context": True,
+            "max_tokens": 300,
+            "prefer_fast": False,
+        }
         
         # Execute research workflow
-        response = _ask_impl(request)
+        response = await client.post("/api/ask", json=request_data)
+        assert response.status_code == 200
+        response = response.json()
         
         # Verify comprehensive response
         assert isinstance(response, dict)
@@ -330,24 +348,20 @@ Your research notes mention these applications effectively."""
         print("✓ Research question scenario test passed")
 
     @pytest.mark.asyncio
-    async def test_cached_response_scenario(self, realistic_services):
+    async def test_cached_response_scenario(self, client, realistic_services):
         """Test scenario where cached response is available."""
         # Configure cache to return cached response
-        realistic_services["cache_manager"].get.return_value = {
-            "answer": "Cached response about machine learning concepts.",
-            "timestamp": time.time() - 300,
-            "sources": ["ml_basics.md"]
-        }
+        realistic_services["cache_manager"].get.return_value = "Cached response about machine learning concepts."
         
-        request = AskRequest(
-            question="What is machine learning?",
-            vault_path="./vault"
-        )
+        request_data = {"question": "What is machine learning?"}
         
-        response = _ask_impl(request)
+        response = await client.post("/api/ask", json=request_data)
+        assert response.status_code == 200
+        response = response.json()
         
         # Should return cached response without calling AI model
         assert response["answer"] == "Cached response about machine learning concepts."
+        assert response["cached"] is True
         
         # Verify cache was checked
         realistic_services["cache_manager"].get.assert_called()
@@ -355,14 +369,15 @@ Your research notes mention these applications effectively."""
         print("✓ Cached response scenario test passed")
 
     @pytest.mark.asyncio
-    async def test_large_vault_indexing_scenario(self, realistic_services):
+    async def test_large_vault_indexing_scenario(self, client, realistic_services):
         """Test indexing a large vault with many files."""
         # Simulate large vault indexing
         realistic_services["vault_indexer"].index_vault.return_value = [
             f"note_{i:03d}.md" for i in range(1, 101)  # 100 files
         ]
         
-        result = await scan_vault("./large_vault")
+        response = await client.post("/api/scan_vault", params={"vault_path": "./large_vault"})
+        result = response.json()
         
         # Verify large batch handling
         assert isinstance(result, dict)
@@ -376,8 +391,14 @@ Your research notes mention these applications effectively."""
 class TestPerformanceAndLimits:
     """Test performance characteristics and system limits."""
 
+    @pytest_asyncio.fixture(scope="class")
+    async def client(self):
+        """Create an async test client for the app."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+            yield c
+
     @pytest.mark.asyncio
-    async def test_concurrent_requests_handling(self):
+    async def test_concurrent_requests_handling(self, client):
         """Test handling of multiple concurrent requests."""
         with patch('backend.backend.model_manager') as mock_mm, \
             patch('backend.backend.emb_manager') as mock_em:
@@ -386,29 +407,25 @@ class TestPerformanceAndLimits:
             mock_mm.generate.return_value = "Quick response"
             mock_em.search.return_value = []
             
-            # Create multiple concurrent requests
-            requests = [
-                AskRequest(question=f"Question {i}", vault_path="./vault")
+            # Create multiple concurrent request tasks
+            tasks = [
+                client.post("/api/ask", json={"question": f"Question {i}"})
                 for i in range(5)
             ]
             
-            # Execute concurrently (simulated)
-            responses = []
-            for request in requests:
-                response = _ask_impl(request)
-                responses.append(response)
-                assert response["answer"] == "Quick response"
-            print("✓ Concurrent requests handling test passed")
+            # Execute concurrently
+            http_responses = await asyncio.gather(*tasks)
             
             # All should succeed
-            assert len(responses) == 5
-            for r in responses:
-                assert r["answer"] == "Quick response"
+            assert len(http_responses) == 5
+            for r in http_responses:
+                assert r.status_code == 200
+                assert r.json()["answer"] == "Quick response"
             
             print("✓ Concurrent requests handling test passed")
 
     @pytest.mark.asyncio
-    async def test_large_context_handling(self):
+    async def test_large_context_handling(self, client):
         """Test handling of large context from many search results."""
         with patch('backend.backend.model_manager') as mock_mm, \
             patch('backend.backend.emb_manager') as mock_em:
@@ -426,13 +443,14 @@ class TestPerformanceAndLimits:
             mock_em.search.return_value = large_results
             mock_mm.generate.return_value = "Response based on extensive context"
             
-            request = AskRequest(
-                question="Summarize all my documents",
-                vault_path="./vault",
-                use_context=True
-            )
+            request_data = {
+                "question": "Summarize all my documents",
+                "use_context": True,
+            }
             
-            response = _ask_impl(request)
+            response = await client.post("/api/ask", json=request_data)
+            assert response.status_code == 200
+            response = response.json()
             
             # Should handle large context gracefully
             assert response["answer"] == "Response based on extensive context"
