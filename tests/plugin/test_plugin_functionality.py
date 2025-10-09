@@ -5,7 +5,6 @@ Tests specific features and behaviors without requiring Node.js.
 """
 import pytest
 import re
-import json
 from pathlib import Path
 
 

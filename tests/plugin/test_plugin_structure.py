@@ -4,7 +4,6 @@ Python-based tests for validating Obsidian Plugin JavaScript files.
 Tests structure, syntax, and key functionality without requiring Node.js.
 """
 import pytest
-import os
 import re
 import json
 from pathlib import Path

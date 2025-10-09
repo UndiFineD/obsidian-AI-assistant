@@ -4,7 +4,10 @@ Integration tests for the complete Obsidian AI Assistant workflow.
 Tests end-to-end scenarios from request to response, covering core user journeys
 like asking questions, indexing the vault, and performing semantic searches.
 """
+
+import time
 import pytest
+import pytest_asyncio
 import sys
 from pathlib import Path
 import asyncio
@@ -12,7 +15,7 @@ from unittest.mock import patch
 import tempfile
 
 # Import backend components at the top for clarity
-from backend.backend import app, AskRequest, ReindexRequest
+from backend.backend import app
 from httpx import AsyncClient, ASGITransport
 
 
@@ -200,6 +203,7 @@ class TestFullWorkflowIntegration:
 class TestErrorScenarios:
     """Test error handling and edge cases in integration scenarios."""
 
+    import pytest_asyncio
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
@@ -267,6 +271,7 @@ class TestErrorScenarios:
 class TestRealWorldScenarios:
     """Test realistic user scenarios and workflows."""
 
+    import pytest_asyncio
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
@@ -308,7 +313,7 @@ Your research notes mention these applications effectively."""
             # Cache hit simulation
             mock_cm.get.return_value = {
                 "answer": "Cached response about machine learning concepts.",
-                "timestamp": time.time() - 300,  # 5 minutes ago
+                "timestamp": time.time() - 300,  # 5 minutes ago,
                 "sources": ["ml_basics.md"]
             }
             
@@ -391,6 +396,7 @@ Your research notes mention these applications effectively."""
 class TestPerformanceAndLimits:
     """Test performance characteristics and system limits."""
 
+    import pytest_asyncio
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""

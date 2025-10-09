@@ -7,7 +7,6 @@ Tests the simplified plugin and backend integration
 import os
 import json
 import requests
-import time
 from pathlib import Path
 
 # Configuration
