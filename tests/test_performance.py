@@ -24,10 +24,10 @@ class TestMultiLevelCache:
         cache = MultiLevelCache(l1_size=10, l2_size=50)
         assert cache.l1_max_size == 10
         assert cache.l2_max_size == 50
+
     def test_basic_cache_operations(self):
         """Test basic get/set operations"""
         cache = MultiLevelCache(l1_size=5, l2_size=10)
-
         # Test miss
         assert cache.get("nonexistent") is None
         assert cache.get("nonexistent", "default") == "default"
@@ -41,17 +41,26 @@ class TestMultiLevelCache:
     def test_l1_eviction_to_l2(self):
         """Test eviction from L1 to L2 cache"""
         cache = MultiLevelCache(l1_size=2, l2_size=10)
-        
+        print("Initial L1:", cache.l1_cache)
+        print("Initial L2:", cache.l2_cache)
         # Fill L1 cache
         cache.set("key1", "value1")
         cache.set("key2", "value2")
+        print("After 2 sets L1:", cache.l1_cache)
+        print("After 2 sets L2:", cache.l2_cache)
         assert len(cache.l1_cache) == 2
         # Add third item, should evict oldest from L1
         cache.set("key3", "value3")
+        print("After 3rd set L1:", cache.l1_cache)
+        print("After 3rd set L2:", cache.l2_cache)
         assert len(cache.l1_cache) == 2
         # First key should now be in L2
         assert "key1" not in cache.l1_cache
+        print("L2 after eviction:", cache.l2_cache)
         result = cache.get("key1")  # Should promote from L2 to L1
+        print("Result for key1:", result)
+        print("L1 after promotion:", cache.l1_cache)
+        print("L2 after promotion:", cache.l2_cache)
         assert result == "value1"
         assert cache._stats['l2_hits'] >= 1
 
@@ -68,12 +77,10 @@ class TestMultiLevelCache:
     def test_cache_statistics(self):
         """Test cache performance statistics"""
         cache = MultiLevelCache(l1_size=3, l2_size=5)
-        
         # Generate some cache activity
         cache.set("key1", "value1")
         cache.get("key1")  # L1 hit
         cache.get("nonexistent")  # Miss
-        
         stats = cache.get_stats()
         assert "l1_hits" in stats
         assert "misses" in stats
@@ -88,7 +95,6 @@ class TestConnectionPool:
         """Test connection pool initialization"""
         def factory():
             return Mock(status="connected")
-
         pool = ConnectionPool(factory, min_size=2, max_size=5)
         assert pool.min_size == 2
         assert pool.max_size == 5
@@ -98,9 +104,7 @@ class TestConnectionPool:
         """Test getting and returning connections"""
         def factory():
             return Mock(status="connected")
-
         pool = ConnectionPool(factory, min_size=1, max_size=3)
-
         # Get connection
         conn1 = pool.get_connection()
         assert conn1 is not None
@@ -113,17 +117,13 @@ class TestConnectionPool:
         """Test behavior when pool is exhausted"""
         def factory():
             return Mock(status="connected")
-        
         pool = ConnectionPool(factory, min_size=0, max_size=2)
-        
         # Get all connections
         conn1 = pool.get_connection()
-    # (removed unused variable)
-        
+        # (removed unused variable)
         # Should raise error when exhausted
         with pytest.raises(RuntimeError, match="Connection pool exhausted"):
             pool.get_connection()
-        
         # Return one and try again
         pool.return_connection(conn1)
         conn3 = pool.get_connection()  # Should work now
@@ -138,13 +138,10 @@ class TestConnectionPool:
             mock = Mock(status="connected")
             mock.is_valid = call_count > 1  # First connection invalid
             return mock
-        
         pool = ConnectionPool(factory, min_size=0, max_size=2)
-        
         # Override validation method
-    # (removed unused variable)
+        # (removed unused variable)
         pool._is_connection_valid = lambda conn: getattr(conn, 'is_valid', True)
-        
         conn = pool.get_connection()
         assert conn is not None
 
@@ -169,36 +166,29 @@ class TestAsyncTaskQueue:
         """Test task submission and execution"""
         queue = AsyncTaskQueue(max_workers=2)
         await queue.start()
-        
         # Create test task
         executed = []
         async def test_task(value):
             executed.append(value)
-        
         # Submit task
         success = await queue.submit_task(test_task("test_value"))
         assert success
-        
-    # Wait for execution
-    # (removed unreachable code)
-    
+        # Wait for execution
+        # (removed unreachable code)
+
     async def test_queue_statistics(self):
         """Test queue performance statistics"""
         queue = AsyncTaskQueue(max_workers=1)
         await queue.start()
-
         # Submit a task
         async def dummy_task():
             await asyncio.sleep(0.01)
-
         await queue.submit_task(dummy_task())
         await asyncio.sleep(0.1)  # Let it execute
-
         stats = queue.get_stats()
         assert "tasks_queued" in stats
         assert "tasks_completed" in stats
         assert "workers_active" in stats
-
         await queue.stop()
 
 class TestCachedDecorator:
@@ -213,12 +203,10 @@ class TestCachedDecorator:
             nonlocal call_count
             call_count += 1
             return x + y
-
         # First call
         result1 = expensive_function(1, 2)
         assert result1 == 3
         assert call_count == 1
-
         # Second call should be cached
         result2 = expensive_function(1, 2)
         assert result2 == 3
@@ -278,12 +266,10 @@ class TestPerformanceMonitor:
     def test_system_metrics_collection(self):
         """Test system metrics collection"""
         metrics = PerformanceMonitor.get_system_metrics()
-        
         assert "cache" in metrics
         assert "connection_pools" in metrics
         assert "task_queue" in metrics
         assert "timestamp" in metrics
-        
         # Verify structure
         cache_metrics = metrics["cache"]
         assert "hit_rate" in cache_metrics
@@ -295,10 +281,8 @@ class TestPerformanceMonitor:
         metrics1 = PerformanceMonitor.get_system_metrics()
         time.sleep(0.01)
         metrics2 = PerformanceMonitor.get_system_metrics()
-
         # Timestamps should be different
         assert metrics2["timestamp"] > metrics1["timestamp"]
-
         # Cache structure should be consistent
         assert metrics1["cache"].keys() == metrics2["cache"].keys()
 
