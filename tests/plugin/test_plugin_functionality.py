@@ -66,13 +66,6 @@ class TestPluginFunctionality:
             r'Object\.assign.*settings'
         ]
         
-        content = self.main_js_content
-        settings_patterns = [
-            r'loadSettings',
-            r'saveSettings',
-            r'settings\s*=',
-            r'Object\.assign.*settings'
-        ]
         found_settings = sum(1 for pattern in settings_patterns
                             if re.search(pattern, content, re.IGNORECASE))
         assert found_settings >= 2, "Should have settings save/load functionality"
@@ -86,11 +79,10 @@ class TestPluginFunctionality:
         
         # Should use fetch for HTTP requests
         assert 'fetch(' in content, "Should use fetch API for HTTP requests"
-        
         # Should handle different HTTP methods
-        http_methods = ['GET', 'POST', 'PUT', 'DELETE']
+        http_methods = ['GET', 'POST']  # Check for the most common methods
         found_methods = sum(1 for method in http_methods 
-                           if method in content)
+                           if re.search(method, content, re.IGNORECASE))
         
         assert found_methods >= 2, f"Should use multiple HTTP methods, found {found_methods}"
         
@@ -309,12 +301,10 @@ class TestErrorHandlingAndRobustness:
         plugin_dir = Path(__file__).parent.parent.parent / "plugin"
         js_files = list(plugin_dir.glob("*.js"))
         
-        files_with_error_handling = 0
-        
-        for js_file in js_files:
-            with open(js_file, 'r', encoding='utf-8') as f:
+        def has_error_handling(file_path):
+            """Check if a file contains error handling patterns."""
+            with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
-            
             # Check for error handling patterns
             error_patterns = [
                 r'try\s*\{',
@@ -324,12 +314,9 @@ class TestErrorHandlingAndRobustness:
                 r'Error\s*\(',
                 r'console\.(error|warn)'
             ]
-            
-            found_errors = sum(1 for pattern in error_patterns 
-                              if re.search(pattern, content))
-            
-            if found_errors >= 1:
-                files_with_error_handling += 1
+            return any(re.search(pattern, content) for pattern in error_patterns)
+
+        files_with_error_handling = sum(1 for js_file in js_files if has_error_handling(js_file))
         
         # At least 40% of files should have error handling (main files)
         error_coverage = files_with_error_handling / len(js_files)

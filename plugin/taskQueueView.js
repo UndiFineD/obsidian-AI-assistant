@@ -89,11 +89,8 @@ class TaskQueueView extends ItemView {
   }
 
   removeTask(taskId) {
-    // Remove task from queue
-    const currentTasks = this.taskQueue.getTasks();
-    const index = currentTasks.findIndex(t => t.id === taskId);
-    if (index !== -1) {
-      currentTasks.splice(index, 1);
+    // Call the central task queue to remove the task by its ID
+    if (this.taskQueue.removeTask(taskId)) {
       new Notice("Task removed");
       this.renderTasks();
     }

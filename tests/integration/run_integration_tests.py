@@ -101,23 +101,31 @@ class IntegrationTestRunner:
         for test_file in test_files:
             print(f"  - {test_file.name}")
             
-        # Run tests sequentially
-        total_success = True
-        total_duration = 0.0
+        # Run all tests in a single pytest session for better isolation
+        start_time = time.time()
         
+        pytest_args = [
+            "-v",
+            "--tb=short",
+            "--no-header",
+            "--quiet",
+            # Pass all discovered test files to pytest
+            *[str(p) for p in test_files]
+        ]
+        
+        result_code = pytest.main(pytest_args)
+        total_duration = time.time() - start_time
+        
+        # For simplicity, we'll mark all as passed or failed based on the final exit code.
+        # A more advanced implementation could parse pytest's output for per-file results.
+        overall_success = result_code == 0
         for test_file in test_files:
-            success, results = self.run_test_file(test_file)
-            self.results[test_file.name] = results
-            
-            if not success:
-                total_success = False
-                
-            total_duration += results["duration"]
+            self.results[test_file.name] = {"success": overall_success, "duration": total_duration / len(test_files)}
             
         # Print final summary
-        self.print_summary(total_success, total_duration)
+        self.print_summary(overall_success, total_duration)
         
-        return total_success
+        return overall_success
         
     def print_summary(self, overall_success: bool, total_duration: float):
         """Print comprehensive test results summary."""

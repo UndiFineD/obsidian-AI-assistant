@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 import logging
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 from .enterprise_auth import SSOManager
 from .enterprise_tenant import TenantManager
 from .enterprise_rbac import RBACManager
@@ -128,7 +128,11 @@ class EnterpriseAdminDashboard:
         tenants = self.tenant_manager.list_tenants()
         
         total_tenants = len(tenants)
+        total_users = sum(t.get("user_count", 0) for t in self.tenant_manager.usage_metrics.values())
         active_tenants = len([t for t in tenants if t.status == "active"])
+        
+        # Calculate average users per tenant dynamically
+        avg_users_per_tenant = total_users / total_tenants if total_tenants > 0 else 0
         
         return {
             "total_tenants": total_tenants,
@@ -138,8 +142,8 @@ class EnterpriseAdminDashboard:
                 "professional": len([t for t in tenants if t.tier == "professional"]),
                 "basic": len([t for t in tenants if t.tier == "basic"])
             },
-            "total_revenue_monthly": sum(t.billing_info.get("monthly_cost", 0) for t in tenants),
-            "avg_users_per_tenant": 12.5,
+            "total_revenue_monthly": sum(t.billing_config.get("monthly_cost", 0) for t in tenants),
+            "avg_users_per_tenant": round(avg_users_per_tenant, 2),
             "top_tenants_by_usage": [
                 {"tenant_id": "tenant1", "monthly_queries": 15000},
                 {"tenant_id": "tenant2", "monthly_queries": 12000},
@@ -446,7 +450,8 @@ class EnterpriseAdminDashboard:
                     
                 elif action == "assign_role":
                     role = parameters.get("role")
-                    if role and role in self.rbac_manager.roles:
+                    # Correctly validate the role string against the UserRole enum
+                    if role and self.rbac_manager.is_valid_role(role):
                         # Would integrate with RBAC system
                         success_count += 1
                         results.append({"user_id": user_id, "status": f"role_{role}_assigned"})
@@ -483,7 +488,7 @@ class AdminDashboardEndpoints:
         """Register admin dashboard endpoints with FastAPI"""
         
         @self.app.get("/admin/dashboard")
-        async def get_dashboard_overview(request):
+        async def get_dashboard_overview(request: Request):
             """Get comprehensive dashboard overview"""
             # Verify admin permissions
             user_roles = request.state.user.get("roles", [])
@@ -493,7 +498,7 @@ class AdminDashboardEndpoints:
             return await self.admin_dashboard.get_dashboard_overview()
         
         @self.app.get("/admin/users")
-        async def get_user_management(page: int = 1, limit: int = 50, request=None):
+        async def get_user_management(request: Request, page: int = 1, limit: int = 50):
             """Get user management interface"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles:
@@ -502,7 +507,7 @@ class AdminDashboardEndpoints:
             return await self.admin_dashboard.get_user_management(page, limit)
         
         @self.app.get("/admin/tenants")
-        async def get_tenant_management(request):
+        async def get_tenant_management(request: Request):
             """Get tenant management interface"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles:
@@ -511,7 +516,7 @@ class AdminDashboardEndpoints:
             return await self.admin_dashboard.get_tenant_management()
         
         @self.app.get("/admin/security")
-        async def get_security_dashboard(request):
+        async def get_security_dashboard(request: Request):
             """Get security dashboard"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles and "security_admin" not in user_roles:
@@ -520,7 +525,7 @@ class AdminDashboardEndpoints:
             return await self.admin_dashboard.get_security_dashboard()
         
         @self.app.get("/admin/compliance")
-        async def get_compliance_dashboard(request):
+        async def get_compliance_dashboard(request: Request):
             """Get compliance dashboard"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles and "compliance_admin" not in user_roles:
@@ -529,7 +534,7 @@ class AdminDashboardEndpoints:
             return await self.admin_dashboard.get_compliance_dashboard()
         
         @self.app.post("/admin/alerts")
-        async def create_alert(alert_data: Dict[str, Any], request):
+        async def create_alert(alert_data: Dict[str, Any], request: Request):
             """Create system alert"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles:
@@ -550,7 +555,7 @@ class AdminDashboardEndpoints:
             }
         
         @self.app.post("/admin/users/bulk-action")
-        async def bulk_user_action(action_data: Dict[str, Any], request):
+        async def bulk_user_action(action_data: Dict[str, Any], request: Request):
             """Perform bulk actions on users"""
             user_roles = request.state.user.get("roles", [])
             if "admin" not in user_roles:

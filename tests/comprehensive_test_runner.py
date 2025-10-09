@@ -422,46 +422,17 @@ def cleanup_old_test_files():
     test_root = Path(__file__).parent
     
     # Directories to remove completely
-    dirs_to_remove = [
-        "cache",
-        "models", 
-        "vector_db",
-        "setup"
-    ]
+    # This is risky; prefer cleaning specific cache/log files if possible.
+    # For now, we will only remove the 'setup' test directory which is safe.
+    dirs_to_remove = ["setup"]
     
     files_to_remove = [
         # Redundant backend tests
-        "backend/test_backend_comprehensive_original.py",
-        "backend/test_backend_simple_fixed.py", 
         "backend/test_caching_extended.py",
-        "backend/test_modelmanager_comprehensive_new.py",
         "backend/test_modelmanager_fixed.py",
         
-        # Old plugin tests
         "test_plugin.py",
-        "test_plugin_simple.py",
         "test_server.py",
-        "simple_backend.py",
-        "comprehensive_integration_test.py",
-        "quick_status_check.py",
-        "run_tests.py",
-        "run_tests_stronger.py",
-        
-        # Redundant HTML test files
-        "microphone_test.html",
-        "speech_to_text_test.html", 
-        "test_push_to_talk.html",
-        
-        # Old JS test files
-        "test_plugin.js",
-        "test_plugin_functionality.js",
-        
-        # Documentation that should be elsewhere
-        "INTEGRATION_TEST_RESULTS.md",
-        "MICROPHONE_FEATURE.md",
-        "STATUS_INDICATOR_README.md",
-        "TEST_STATUS.md",
-        "TROUBLESHOOTING.md"
     ]
     
     print(Colors.colorize('🧹 CLEANING UP TEST DIRECTORIES', Colors.BOLD + Colors.YELLOW))

@@ -43,12 +43,7 @@ def get_vosk_model():
     return safe_call(lambda: vosk.Model(MODEL_PATH), error_msg=f"Failed to load Vosk model from {MODEL_PATH}", default=None)
 
 # Load model at import time to satisfy tests expecting initialization on import
-model = None
-try:
-    model = get_vosk_model()
-except RuntimeError:
-    # Re-raise to satisfy tests that expect error on missing default path
-    raise
+model = get_vosk_model()
 
 router = APIRouter()
 
@@ -61,47 +56,39 @@ async def voice_transcribe(file: UploadFile):
     except Exception as e:
         raise RuntimeError(str(e)) from e
 
-    # Save to temp wav using builtins.open so tests can patch file writes
-    fd, temp_path = tempfile.mkstemp(suffix=".wav")
+    # Use a temporary file to handle the audio data safely
+    temp_path = ""
     try:
-        with _builtins.open(fd, "wb", closefd=True) as temp_wav:
-            temp_wav.write(audio_data)
-    except Exception:
-        try:
-            os.close(fd)
-        except Exception:
-            pass
-        try:
-            os.remove(temp_path)
-        except Exception:
-            pass
-        raise
-
-    try:
+        # Create a temporary file to write the audio data
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
+            temp_path = temp_file.name
+            temp_file.write(audio_data)
+        
         # Allow wave.Error to propagate for tests
         wf = wave.open(temp_path, "rb")
         if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [16000, 8000]:
             return {"error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."}
+        
         rec = vosk.KaldiRecognizer(model, wf.getframerate())
         result = []
-        while True:
-            data = wf.readframes(4000)
-            if len(data) == 0:
-                break
+        
+        # Process the audio file in chunks
+        while data := wf.readframes(4000):
             if rec.AcceptWaveform(data):
                 part = json.loads(rec.Result())  # Let JSONDecodeError propagate
                 if "text" in part:
                     result.append(part["text"])
+
         final = json.loads(rec.FinalResult())
         if "text" in final:
             result.append(final["text"])
+        
         text = " ".join([r for r in result if r])
         return {"transcription": text}
     finally:
-        try:
+        # Ensure the temporary file is always cleaned up
+        if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
-        except Exception:
-            pass
 
 # Make the model object accessible as a global name for tests that reference `model` directly
 try:
@@ -111,4 +98,3 @@ except Exception:
 
 # Ensure the last os.getenv call matches test expectation
 _ = os.getenv("VOSK_MODEL_PATH", _DEFAULT_MODEL_PATH)
-

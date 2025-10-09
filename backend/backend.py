@@ -201,10 +201,10 @@ async def status():
 
 @app.get("/health")
 async def health():
-    # Return minimal health payload required by tests, while including a settings snapshot
-    base = _health_payload()
+    """Return a comprehensive health payload including a settings snapshot."""
+    payload = _health_payload()
     s = get_settings()
-    base.update({
+    payload.update({
         "backend_url": s.backend_url,
         "api_port": s.api_port,
         "vault_path": str(s.vault_path),
@@ -216,7 +216,7 @@ async def health():
         "allow_network": s.allow_network,
         "gpu": s.gpu,
     })
-    return base
+    return payload
 
 
 @app.get("/api/config")
@@ -254,36 +254,13 @@ def _ask_impl(request: AskRequest):
     if model_manager is None:
         raise HTTPException(status_code=500, detail="Model manager unavailable")
     
-    # Performance optimization: Check multi-level cache first
+    # Use the centralized, high-performance cache
     performance_cache = get_cache_manager()
     cache_key = f"ask:{hash((request.question, request.model_name, request.max_tokens, request.prefer_fast))}"
     
-    # Try performance cache (L1/L2)
     cached_result = performance_cache.get(cache_key)
     if cached_result is not None:
         return {"answer": cached_result, "cached": True, "cache_level": "performance", "model": request.model_name}
-    
-    # If no models are available (real router scenario), return an error immediately
-    try:
-        if hasattr(model_manager, 'llm_router') and model_manager.llm_router and hasattr(model_manager.llm_router, 'get_available_models'):
-            availability = model_manager.llm_router.get_available_models()
-            if isinstance(availability, dict) and not any(availability.values()):
-                raise HTTPException(status_code=500, detail="No model available")
-    except HTTPException:
-        raise
-    except Exception:
-        # If inspection fails (e.g., mocks), ignore and proceed with normal flow
-        pass
-    
-    # Check legacy cache system (fallback)
-    try:
-        cached_answer = cache_manager.get_cached_answer(request.question)
-        if cached_answer:
-            # Store in performance cache for future requests
-            performance_cache.set(cache_key, cached_answer, ttl=1800)
-            return {"answer": cached_answer, "cached": True, "cache_level": "legacy", "model": request.model_name}
-    except Exception as e:
-        print(f"[_ask_impl] Error reading legacy cache: {e}")
     
     # Generate new answer
     try:
@@ -308,10 +285,7 @@ def _ask_impl(request: AskRequest):
         raise HTTPException(status_code=500, detail=str(e)) from e
     
     # Store in both cache systems
-    try:
-        # Store in legacy cache
-        cache_manager.store_answer(request.question, answer)
-        # Store in performance cache with longer TTL for better answers
+    try: # Store in performance cache with a TTL based on generation time
         cache_ttl = 3600 if generation_time < 5.0 else 1800  # Longer TTL for fast responses
         performance_cache.set(cache_key, answer, ttl=cache_ttl)
     except Exception as e:
@@ -344,20 +318,26 @@ async def scan_vault(vault_path: str = "vault"):
 
 @app.post("/api/web")
 async def api_web(request: WebRequest):
-    # Minimal behavior: generate answer from question if provided
-    global model_manager
-    if model_manager is None:
+    """Process web content and answer a question about it."""
+    global model_manager, vault_indexer
+    if model_manager is None or vault_indexer is None:
         init_services()
-    answer = model_manager.generate(request.question or "")
-    return {"answer": answer}
+    
+    if not vault_indexer:
+        raise HTTPException(status_code=503, detail="Indexing service is not available.")
+
+    content = vault_indexer.fetch_web_page(request.url)
+    if not content:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch or process content from URL: {request.url}")
+
+    question = request.question or f"Summarize the following content:\n\n{content[:2000]}"
+    answer = model_manager.generate(question, context=content)
+    return {"answer": answer, "url": request.url}
 
 @app.post("/web")
 async def web(request: WebRequest):
-    global model_manager
-    if model_manager is None:
-        init_services()
-    answer = model_manager.generate(request.question or "")
-    return {"answer": answer}
+    """Alias for /api/web for backward compatibility."""
+    return await api_web(request)
 
 @app.post("/api/reindex")
 async def api_reindex(request: ReindexRequest):

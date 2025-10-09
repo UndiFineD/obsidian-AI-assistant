@@ -121,22 +121,24 @@ class VaultIndexer:
         results = {}
         for root, _, files in os.walk(vault_path):
             for file in files:
-                full_path = os.path.join(root, file)
                 def do_index(file=file, full_path=full_path):
+                    content = None
                     if file.endswith(".md"):
-                        with open(full_path, "r", encoding="utf-8") as f:
-                            content = f.read()
-                            self.emb_mgr.add_embedding(content, full_path)
-                            results[full_path] = 1
+                        content = self._read_markdown(full_path)
                     elif file.endswith(".pdf"):
-                        count = self.index_pdf(full_path)
-                        results[full_path] = count
+                        content = self._read_pdf(full_path)
+                    
+                    if content:
+                        chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+                        if chunks and getattr(self.emb_mgr, "add_documents", None):
+                            self.emb_mgr.add_documents(chunks)
+                        results[full_path] = len(chunks)
                 safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
         return results
 
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
-        """Re-scan all files in the vault."""
-        return self.index_vault(vault_path)
+        """Alias for reindex, which performs a full re-scan and indexing."""
+        return self.reindex(vault_path)
 
     def reindex(self, vault_path: str) -> Dict[str, int]:
         """Clear collection and index all Markdown and PDF files in a vault directory.
@@ -188,20 +190,11 @@ class VaultIndexer:
     # PDF
     # -------------------
 
-    def extract_pdf_text(self, pdf_path: str) -> str:
-        """Extract text from a PDF file."""
-        def do_extract():
-            reader = PdfReader(pdf_path)
-            text = ""
-            for page in reader.pages:
-                text += page.extract_text() or ""
-            return text.strip()
-        return safe_call(do_extract, error_msg=f"[VaultIndexer] PDF parsing failed for {pdf_path}", default="")
-
     def index_pdf(self, pdf_path: str) -> int:
         """Extract and embed a PDF."""
         def do_index_pdf():
-            text = self.extract_pdf_text(pdf_path)
+            # Use the internal, safe-called method for reading PDFs
+            text = self._read_pdf(pdf_path)
             if not text:
                 return 0
             cache_key = self._hash_url(pdf_path)

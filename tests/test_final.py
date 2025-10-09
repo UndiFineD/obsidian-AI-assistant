@@ -11,7 +11,8 @@ import time
 from pathlib import Path
 
 # Configuration
-PLUGIN_DIR = r"C:\Users\kdejo\DEV\Vault\.obsidian\plugins\obsidian-ai-assistant"
+PROJECT_ROOT = Path(__file__).parent.parent
+PLUGIN_DIR = PROJECT_ROOT / "plugin"
 BACKEND_URL = "http://localhost:8000"
 
 def test_plugin_structure():
@@ -28,7 +29,7 @@ def test_plugin_structure():
     
     all_good = True
     for file, description in required_files.items():
-        path = os.path.join(PLUGIN_DIR, file)
+        path = PLUGIN_DIR / file
         if os.path.exists(path):
             size = os.path.getsize(path)
             print(f"✅ {file} ({size:,} bytes) - {description}")
@@ -43,7 +44,7 @@ def test_manifest_content():
     print("\n📋 Testing Manifest Content")
     print("============================")
     
-    manifest_path = os.path.join(PLUGIN_DIR, 'manifest.json')
+    manifest_path = PLUGIN_DIR / 'manifest.json'
     try:
         with open(manifest_path, 'r', encoding='utf-8') as f:
             manifest = json.load(f)
@@ -75,7 +76,7 @@ def test_main_js_structure():
     print("\n📄 Testing Main.js Structure")
     print("=============================")
     
-    main_path = os.path.join(PLUGIN_DIR, 'main.js')
+    main_path = PLUGIN_DIR / 'main.js'
     try:
         with open(main_path, 'r', encoding='utf-8') as f:
             content = f.read()
@@ -98,7 +99,7 @@ def test_main_js_structure():
                 all_good = False
         
         print(f"📊 File size: {len(content):,} characters")
-        print(f"📊 Lines of code: {content.count(chr(10)) + 1}")
+        print(f"📊 Lines of code: {len(content.splitlines())}")
         
         return all_good
     
@@ -140,14 +141,14 @@ def test_backend_endpoints():
         # Test ask endpoint
         response = requests.post(
             f"{BACKEND_URL}/ask",
-            json={"prompt": "Test question for plugin integration"},
+            json={"question": "Test question for plugin integration"},
             timeout=5
         )
         
         if response.status_code == 200:
             data = response.json()
             print("✅ /ask endpoint working")
-            print(f"   Response: {data.get('response', 'No response')[:50]}...")
+            print(f"   Response: {data.get('answer', 'No answer key in response')[:50]}...")
             return True
         else:
             print(f"❌ /ask endpoint returned {response.status_code}")
@@ -165,7 +166,7 @@ def main():
     
     tests = [
         ("Plugin Structure", test_plugin_structure),
-    ("Manifest Content", test_manifest_content),
+        ("Manifest Content", test_manifest_content),
         ("Main.js Structure", test_main_js_structure),
         ("Backend Availability", test_backend_availability),
         ("Backend Endpoints", test_backend_endpoints)
@@ -174,14 +175,16 @@ def main():
     passed = 0
     total = len(tests)
     
-    for test_name, test_func in tests:
+    for name, func in tests:
         try:
-            if test_func():
+            if func():
                 passed += 1
             else:
-                print(f"⚠️  {test_name} test had issues")
+                print(f"⚠️  {name} test had issues")
         except Exception as e:
-            print(f"❌ {test_name} test failed with error: {e}")
+            import traceback
+            print(f"❌ {name} test failed with an unexpected error: {e}")
+            traceback.print_exc()
         
         print()  # Add spacing between tests
     

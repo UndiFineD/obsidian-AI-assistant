@@ -1,17 +1,18 @@
 # tests/integration/test_full_workflow.py
 """
 Integration tests for the complete Obsidian AI Assistant workflow.
-Tests end-to-end scenarios: Plugin → Backend → AI Mo        assert isinstance(result, dict)
-        assert result["indexed"] == 3
-        assert result["updated"] == 1
-        
-        print("✓ Vault reindexing workflow integration test passed")→ Embeddings → Responses
+Tests end-to-end scenarios from request to response, covering core user journeys
+like asking questions, indexing the vault, and performing semantic searches.
 """
 import pytest
-import time
 import sys
 from pathlib import Path
 from unittest.mock import patch
+import tempfile
+
+# Import backend components at the top for clarity
+from backend.backend import app, AskRequest, ReindexRequest
+from httpx import AsyncClient, ASGITransport
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -20,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 class TestFullWorkflowIntegration:
     """Integration tests for complete AI Assistant workflow."""
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def temp_workspace(self):
         """Create a temporary workspace for testing."""
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -51,7 +52,7 @@ class TestFullWorkflowIntegration:
                 "cache_dir": cache_dir
             }
 
-    @pytest.fixture
+    @pytest.fixture(scope="class")
     def mock_services(self, temp_workspace):
         """Set up mocked services for integration testing."""
         with patch('backend.backend.model_manager') as mock_mm, \
@@ -88,27 +89,34 @@ class TestFullWorkflowIntegration:
                 "cache_manager": mock_cm
             }
 
+    @pytest_asyncio.fixture(scope="class")
+    async def client(self):
+        """Create an async test client for the app."""
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+            yield c
+
     @pytest.mark.asyncio
-    async def test_complete_ask_workflow(self, mock_services, temp_workspace):
+    async def test_complete_ask_workflow(self, client, mock_services, temp_workspace):
         """Test complete ask workflow: Question → Search → Context → AI → Response."""
-        # Import after mocking to avoid initialization issues
-        from backend.backend import _ask_impl, AskRequest
-        
         # Prepare request
-        request = AskRequest(
+        request_data = {
             question="What is AI?",
-            vault_path=str(temp_workspace["vault_dir"]),
-            use_context=True,
-            max_tokens=150
-        )
+            "vault_path": str(temp_workspace["vault_dir"]),
+            "use_context": True,
+            "max_tokens": 150,
+        }
         
         # Execute the complete workflow
-        response = _ask_impl(request)
+        response = await client.post("/api/ask", json=request_data)
+        
+        # Assert HTTP success
+        assert response.status_code == 200
+        data = response.json()
         
         # Verify workflow steps
         # 1. Embeddings search was called
         mock_services["emb_manager"].search.assert_called_once_with(
-            "What is AI?", top_k=5
+            "What is AI?", top_k=10  # Default top_k from settings
         )
         
         # 2. Model generation was called with context
@@ -117,16 +125,15 @@ class TestFullWorkflowIntegration:
         assert "What is AI?" in str(call_args)
         
         # 3. Response structure is correct
-        assert isinstance(response, dict)
-        assert "answer" in response
-        assert response["answer"] == "AI generated response based on your query."
+        assert isinstance(data, dict)
+        assert "answer" in data
+        assert data["answer"] == "AI generated response based on your query."
         
         print("✓ Complete ask workflow integration test passed")
 
     @pytest.mark.asyncio
     async def test_vault_indexing_workflow(self, mock_services, temp_workspace):
         """Test vault indexing workflow: Files → Parse → Embed → Store."""
-        from backend.backend import scan_vault
         
         vault_path = str(temp_workspace["vault_dir"])
         
@@ -148,8 +155,6 @@ class TestFullWorkflowIntegration:
     @pytest.mark.asyncio 
     async def test_reindex_workflow(self, mock_services, temp_workspace):
         """Test vault reindexing workflow."""
-        from backend.backend import api_reindex, ReindexRequest
-        
         request = ReindexRequest(vault_path=str(temp_workspace["vault_dir"]))
         
         # Execute reindexing
@@ -169,8 +174,6 @@ class TestFullWorkflowIntegration:
     @pytest.mark.asyncio
     async def test_search_workflow(self, mock_services):
         """Test semantic search workflow."""
-        from backend.backend import search
-        
         query = "artificial intelligence research"
         
         # Execute search
@@ -178,7 +181,7 @@ class TestFullWorkflowIntegration:
         
         # Verify search workflow
         mock_services["emb_manager"].search.assert_called_once_with(
-            query, top_k=3
+            query, top_k=10  # Default top_k from settings
         )
         
         assert isinstance(result, dict)
@@ -213,8 +216,6 @@ class TestErrorScenarios:
     @pytest.mark.asyncio
     async def test_ai_model_failure_handling(self, failing_services):
         """Test handling when AI model fails."""
-        from backend.backend import _ask_impl, AskRequest
-        
         request = AskRequest(
             question="Test question",
             vault_path="./vault",
@@ -233,8 +234,6 @@ class TestErrorScenarios:
     @pytest.mark.asyncio
     async def test_embeddings_failure_handling(self, failing_services):
         """Test handling when embeddings service fails."""
-        from backend.backend import search
-        
         # Should handle embeddings failure gracefully
         with pytest.raises(Exception):
             await search("test query")
@@ -246,8 +245,6 @@ class TestErrorScenarios:
     @pytest.mark.asyncio
     async def test_indexing_failure_handling(self, failing_services):
         """Test handling when indexing fails."""
-        from backend.backend import scan_vault
-        
         # Should handle indexing failure gracefully
         with pytest.raises(Exception):
             await scan_vault("./vault")
@@ -309,8 +306,6 @@ Your research notes mention these applications effectively."""
     @pytest.mark.asyncio
     async def test_research_question_scenario(self, realistic_services):
         """Test a realistic research question scenario."""
-        from backend.backend import _ask_impl, AskRequest
-        
         request = AskRequest(
             question="Explain the key concepts of machine learning based on my notes",
             vault_path="./research_vault",
@@ -337,8 +332,6 @@ Your research notes mention these applications effectively."""
     @pytest.mark.asyncio
     async def test_cached_response_scenario(self, realistic_services):
         """Test scenario where cached response is available."""
-        from backend.backend import _ask_impl, AskRequest
-        
         # Configure cache to return cached response
         realistic_services["cache_manager"].get.return_value = {
             "answer": "Cached response about machine learning concepts.",
@@ -364,8 +357,6 @@ Your research notes mention these applications effectively."""
     @pytest.mark.asyncio
     async def test_large_vault_indexing_scenario(self, realistic_services):
         """Test indexing a large vault with many files."""
-        from backend.backend import scan_vault
-        
         # Simulate large vault indexing
         realistic_services["vault_indexer"].index_vault.return_value = [
             f"note_{i:03d}.md" for i in range(1, 101)  # 100 files
@@ -388,8 +379,6 @@ class TestPerformanceAndLimits:
     @pytest.mark.asyncio
     async def test_concurrent_requests_handling(self):
         """Test handling of multiple concurrent requests."""
-        from backend.backend import _ask_impl, AskRequest
-        
         with patch('backend.backend.model_manager') as mock_mm, \
             patch('backend.backend.emb_manager') as mock_em:
             
@@ -421,8 +410,6 @@ class TestPerformanceAndLimits:
     @pytest.mark.asyncio
     async def test_large_context_handling(self):
         """Test handling of large context from many search results."""
-        from backend.backend import _ask_impl, AskRequest
-        
         with patch('backend.backend.model_manager') as mock_mm, \
             patch('backend.backend.emb_manager') as mock_em:
             

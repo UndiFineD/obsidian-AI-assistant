@@ -452,19 +452,16 @@ class SOC2ComplianceManager:
         now = datetime.utcnow()
         current_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
-        monthly_incidents = [
-            incident for incident in self.incidents.values()
-            if incident.reported_at >= current_month
-        ]
+        monthly_incidents = list(
+            incident for incident in self.incidents.values() if incident.reported_at >= current_month
+        )
         
-        critical_incidents = [
-            incident for incident in monthly_incidents
-            if incident.severity == IncidentSeverity.CRITICAL
-        ]
+        critical_incident_count = sum(
+            1 for incident in monthly_incidents if incident.severity == IncidentSeverity.CRITICAL
+        )
         
         resolved_incidents = [
-            incident for incident in self.incidents.values()
-            if incident.resolved_at is not None
+            incident for incident in self.incidents.values() if incident.resolved_at is not None
         ]
         
         avg_resolution_time = 0.0
@@ -477,7 +474,7 @@ class SOC2ComplianceManager:
         
         return {
             "monthly_incident_count": len(monthly_incidents),
-            "critical_incident_count": len(critical_incidents),
+            "critical_incident_count": critical_incident_count,
             "avg_resolution_time_hours": avg_resolution_time,
             "open_incidents": len([i for i in self.incidents.values() if i.status == "open"]),
             "incidents_by_severity": {
@@ -516,20 +513,20 @@ class SOC2ComplianceManager:
     def _generate_recommendations(self) -> List[str]:
         """Generate compliance improvement recommendations"""
         recommendations = []
+        def add_rec(condition, message):
+            if condition:
+                recommendations.append(message)
         
         control_status = self.get_control_testing_status()
-        if control_status["deficient_controls"] > 0:
-            recommendations.append(f"Address {control_status['deficient_controls']} deficient controls")
-        
-        if control_status["overdue_tests"] > 0:
-            recommendations.append(f"Complete {control_status['overdue_tests']} overdue control tests")
+        add_rec(control_status["deficient_controls"] > 0, f"Address {control_status['deficient_controls']} deficient controls")
+        add_rec(control_status["overdue_tests"] > 0, f"Complete {control_status['overdue_tests']} overdue control tests")
         
         incident_metrics = self.get_incident_metrics()
-        if incident_metrics["critical_incident_count"] > 0:
-            recommendations.append("Review and strengthen incident response procedures")
+        add_rec(incident_metrics["critical_incident_count"] > 0, "Review and strengthen incident response procedures")
         
-        if self.monitoring_metrics["system_availability"]["current"] < 99.9:
-            recommendations.append("Improve system availability measures")
+        # Check for availability metric being below target
+        availability = self.monitoring_metrics.get("system_availability", {})
+        add_rec(availability.get("current", 100.0) < availability.get("target", 99.9), "Improve system availability measures")
         
         return recommendations
 
@@ -546,7 +543,7 @@ class SOC2Endpoints:
         """Register SOC2 endpoints with FastAPI"""
         
         @self.app.get("/soc2/controls")
-        async def get_controls():
+        async def get_controls(request: Request):
             """Get all SOC2 controls"""
             return {
                 "controls": [
@@ -563,7 +560,7 @@ class SOC2Endpoints:
             }
         
         @self.app.post("/soc2/incident")
-        async def report_incident(incident_data: Dict[str, Any], request):
+        async def report_incident(incident_data: Dict[str, Any], request: Request):
             """Report a security incident"""
             user_id = request.state.user.get("user_id")
             
@@ -587,7 +584,7 @@ class SOC2Endpoints:
                 return {"error": f"Invalid severity: {severity_str}", "status_code": 400}
         
         @self.app.get("/soc2/incidents")
-        async def get_incidents():
+        async def get_incidents(request: Request):
             """Get security incidents"""
             return {
                 "incidents": [
@@ -604,7 +601,7 @@ class SOC2Endpoints:
             }
         
         @self.app.post("/soc2/access-review")
-        async def conduct_access_review(review_data: Dict[str, Any], request):
+        async def conduct_access_review(review_data: Dict[str, Any], request: Request):
             """Conduct user access review"""
             reviewer = request.state.user.get("user_id")
             
@@ -626,7 +623,7 @@ class SOC2Endpoints:
             }
         
         @self.app.get("/soc2/metrics")
-        async def get_metrics():
+        async def get_metrics(request: Request):
             """Get SOC2 compliance metrics"""
             return {
                 "control_testing": self.soc2_manager.get_control_testing_status(),
@@ -635,12 +632,12 @@ class SOC2Endpoints:
             }
         
         @self.app.get("/soc2/report")
-        async def get_compliance_report():
+        async def get_compliance_report(request: Request):
             """Get comprehensive SOC2 compliance report"""
             return self.soc2_manager.generate_soc2_report()
         
         @self.app.post("/soc2/vulnerability-assessment")
-        async def schedule_vulnerability_assessment(assessment_data: Dict[str, Any], request):
+        async def schedule_vulnerability_assessment(assessment_data: Dict[str, Any], request: Request):
             """Schedule vulnerability assessment"""
             conducted_by = request.state.user.get("user_id")
             

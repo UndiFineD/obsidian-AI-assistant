@@ -48,11 +48,14 @@ class ModelManager:
         self.loaded_models = {}
 
         self.available_models = self._load_models_file(models_file)
-        # Add local installed models (directories) to available_models
-        local_model_dirs = ["claude", "gemini", "gpt4all", "merlin", "perplexity", "vosk-model-small-en-us-0.15"]
-        for local_model in local_model_dirs:
-            if (Path(self.models_dir) / local_model).exists():
-                self.available_models[local_model] = f"local:{local_model}"
+        # Dynamically discover local models by file extension
+        models_path = Path(self.models_dir)
+        if models_path.exists() and models_path.is_dir():
+            for model_file in models_path.rglob("*"):
+                if model_file.is_file() and model_file.suffix in {".bin", ".gguf"}:
+                    model_key = model_file.stem.lower()
+                    if model_key not in self.available_models:
+                        self.available_models[model_key] = f"local:{model_file.name}"
         # Initialize LLM router for tests that expect it on init
         try:
             self.llm_router = HybridLLMRouter()
@@ -132,12 +135,18 @@ class ModelManager:
 
         # Robust error boundary for model instantiation
         def do_instantiate():
-            return HybridLLMRouter(
-                llama_model_path=str(model_path / "model.bin"),
-                gpt4all_model_path=str(model_path / "gpt4all.bin"),
-                prefer_fast=True,
-                memory_limit=8 * 1024 ** 3
-            )
+            # If the model_path is a file, use it directly. Otherwise, assume it's a directory.
+            if model_path.is_file():
+                return HybridLLMRouter(
+                    llama_model_path=str(model_path),
+                    gpt4all_model_path=str(model_path) # GPT4All can also load gguf
+                )
+            else:
+                return HybridLLMRouter(
+                    llama_model_path=str(model_path / "model.bin"),
+                    gpt4all_model_path=str(model_path / "gpt4all.bin")
+                )
+
         llm = safe_call(do_instantiate, error_msg=f"[ModelManager] Error instantiating HybridLLMRouter for {model_name}", default=None)
         if llm is None:
             raise RuntimeError(f"Failed to instantiate model router for {model_name}")
@@ -171,11 +180,11 @@ class ModelManager:
         # Initialize router on first use
         if not hasattr(self, 'llm_router') or self.llm_router is None:
             self.llm_router = HybridLLMRouter()
-        # Only pass context if provided to satisfy strict call assertions in tests
-        if context is None:
-            return self.llm_router.generate(prompt, prefer_fast=prefer_fast, max_tokens=max_tokens)
-        else:
-            return self.llm_router.generate(prompt, prefer_fast=prefer_fast, max_tokens=max_tokens, context=context)
+        
+        kwargs = {'prefer_fast': prefer_fast, 'max_tokens': max_tokens}
+        if context is not None:
+            kwargs['context'] = context
+        return self.llm_router.generate(prompt, **kwargs)
 
     def get_model_info(self):
         if not hasattr(self, 'llm_router') or self.llm_router is None:
