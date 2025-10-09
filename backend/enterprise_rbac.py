@@ -195,7 +195,7 @@ class RBACManager:
         }
     
     def assign_role(self, user_id: str, tenant_id: str, role: UserRole, 
-                   granted_by: str, expires_at: Optional[datetime] = None) -> bool:
+        granted_by: str, expires_at: Optional[datetime] = None) -> bool:
         """Assign a role to a user"""
         key = f"{user_id}:{tenant_id}"
         
@@ -258,6 +258,14 @@ class RBACManager:
         key = f"{user_id}:{tenant_id}"
         return self.user_permissions.get(key)
     
+    def is_valid_role(self, role_name: str) -> bool:
+        """Check if a role name string is a valid UserRole."""
+        try:
+            UserRole(role_name)
+            return True
+        except ValueError:
+            return False
+    
     def _calculate_effective_permissions(self, user_perms: UserPermissions):
         """Calculate effective permissions from all assigned roles"""
         effective_perms = set()
@@ -276,7 +284,7 @@ class RBACManager:
         user_perms.effective_permissions = effective_perms
     
     def create_custom_role(self, role_name: str, display_name: str, 
-                          description: str, permissions: List[Permission]) -> bool:
+        description: str, permissions: List[Permission]) -> bool:
         """Create a custom role"""
         if role_name in self.custom_roles:
             return False
@@ -359,7 +367,7 @@ class AuditLogger:
         self.audit_log: List[Dict[str, Any]] = []
     
     def log_permission_check(self, user_id: str, tenant_id: str, 
-                           permission: Permission, granted: bool, resource: str = ""):
+        permission: Permission, granted: bool, resource: str = ""):
         """Log permission check events"""
         audit_entry = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -375,7 +383,7 @@ class AuditLogger:
         logger.info(f"Permission check: {user_id} -> {permission.value} = {granted}")
     
     def log_role_assignment(self, user_id: str, tenant_id: str, 
-                           role: UserRole, granted_by: str, action: str):
+        role: UserRole, granted_by: str, action: str):
         """Log role assignment/removal events"""
         audit_entry = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -391,8 +399,8 @@ class AuditLogger:
         logger.info(f"Role {action}: {user_id} -> {role.value} by {granted_by}")
     
     def get_audit_log(self, user_id: Optional[str] = None, 
-                     start_date: Optional[datetime] = None,
-                     end_date: Optional[datetime] = None) -> List[Dict[str, Any]]:
+        start_date: Optional[datetime] = None,
+        end_date: Optional[datetime] = None) -> List[Dict[str, Any]]:
         """Retrieve audit log entries"""
         filtered_log = self.audit_log
         
@@ -401,11 +409,11 @@ class AuditLogger:
         
         if start_date:
             filtered_log = [entry for entry in filtered_log 
-                           if datetime.fromisoformat(entry["timestamp"]) >= start_date]
+                if datetime.fromisoformat(entry["timestamp"]) >= start_date]
         
         if end_date:
             filtered_log = [entry for entry in filtered_log 
-                           if datetime.fromisoformat(entry["timestamp"]) <= end_date]
+                if datetime.fromisoformat(entry["timestamp"]) <= end_date]
         
         return filtered_log
 

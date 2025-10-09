@@ -46,7 +46,8 @@ class TestPluginStructure:
             content = f.read()
         
         assert len(content) > 1000, "main.js should contain substantial code"
-        assert 'require("obsidian"' in content, "main.js should import from obsidian"
+        assert 'require("obsidian"' in content or 'from "obsidian"' in content, \
+            "main.js should import from obsidian"
         assert 'class' in content, "main.js should contain class definitions"
         
         print(f"✓ main.js exists and contains {len(content)} characters")
@@ -121,8 +122,8 @@ class TestMainPluginFile:
             "Should have AIAssistantSettingTab class"
         
         # Check for display method
-        assert 'display(' in content or 'display ()' in content, \
-            "Settings tab should have display method"
+        assert re.search(r'display\s*\(', content), \
+            "Settings tab should have a display() method"
         
         print("✓ Settings tab structure is correct")
 
@@ -303,8 +304,8 @@ class TestPluginConfiguration:
                 matches = re.findall(pattern, content, re.IGNORECASE)
                 assert not matches, \
                     f"Found potential sensitive data in {js_file.name}: {matches}"
-        
-    print("✓ No sensitive data found in plugin files")
+
+        print("✓ No sensitive data found in plugin files")
 
 
 if __name__ == "__main__":

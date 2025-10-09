@@ -61,6 +61,7 @@ class MultiLevelCache:
         self.l2_cache: Dict[str, CacheEntry] = {}
         self.l2_max_size = l2_size
         
+        self._l2_lock = threading.Lock()  # Lock for thread-safe L2 cache operations
         self._load_l2_cache()
         self._stats = {
             'l1_hits': 0, 'l2_hits': 0, 'misses': 0,
@@ -81,16 +82,17 @@ class MultiLevelCache:
                 del self.l1_cache[key]
         
         # Check L2 (medium speed)
-        if key in self.l2_cache:
-            entry = self.l2_cache[key]
-            if not entry.is_expired():
-                entry.touch()
-                # Promote to L1
-                self._promote_to_l1(key, entry)
-                self._stats['l2_hits'] += 1
-                return entry.value
-            else:
-                del self.l2_cache[key]
+        with self._l2_lock:
+            if key in self.l2_cache:
+                entry = self.l2_cache[key]
+                if not entry.is_expired():
+                    entry.touch()
+                    # Promote to L1
+                    self._promote_to_l1(key, entry)
+                    self._stats['l2_hits'] += 1
+                    return entry.value
+                else:
+                    del self.l2_cache[key]
         
         self._stats['misses'] += 1
         return default
@@ -130,11 +132,12 @@ class MultiLevelCache:
         lru_entry = self.l1_cache.pop(lru_key)
         
         # Move to L2 if not expired
-        if not lru_entry.is_expired():
-            if len(self.l2_cache) >= self.l2_max_size:
-                self._evict_l2_lru()
-            self.l2_cache[lru_key] = lru_entry
-            self._persist_l2_cache()
+        with self._l2_lock:
+            if not lru_entry.is_expired():
+                if len(self.l2_cache) >= self.l2_max_size:
+                    self._evict_l2_lru()
+                self.l2_cache[lru_key] = lru_entry
+                self._persist_l2_cache()
         
         self._stats['evictions'] += 1
     
@@ -153,41 +156,44 @@ class MultiLevelCache:
             return
             
         try:
-            with open(self.l2_file, 'r') as f:
-                data = json.load(f)
-                for key, entry_data in data.items():
-                    entry = CacheEntry(**entry_data)
-                    if not entry.is_expired():
-                        self.l2_cache[key] = entry
+            with self._l2_lock:
+                with open(self.l2_file, 'r') as f:
+                    data = json.load(f)
+                    for key, entry_data in data.items():
+                        entry = CacheEntry(**entry_data)
+                        if not entry.is_expired():
+                            self.l2_cache[key] = entry
         except Exception as e:
             logger.warning(f"Failed to load L2 cache: {e}")
     
     def _persist_l2_cache(self):
         """Persist L2 cache to disk (async in background)"""
         def save_cache():
-            try:
-                data = {}
-                for key, entry in self.l2_cache.items():
-                    if not entry.is_expired():
-                        data[key] = {
-                            'value': entry.value,
-                            'timestamp': entry.timestamp,
-                            'ttl': entry.ttl,
-                            'access_count': entry.access_count,
-                            'last_access': entry.last_access
-                        }
-                
-                with open(self.l2_file, 'w') as f:
-                    json.dump(data, f)
-            except Exception as e:
-                logger.warning(f"Failed to persist L2 cache: {e}")
+            with self._l2_lock:
+                try:
+                    data = {}
+                    for key, entry in self.l2_cache.items():
+                        if not entry.is_expired():
+                            data[key] = {
+                                'value': entry.value,
+                                'timestamp': entry.timestamp,
+                                'ttl': entry.ttl,
+                                'access_count': entry.access_count,
+                                'last_access': entry.last_access
+                            }
+                    
+                    with open(self.l2_file, 'w') as f:
+                        json.dump(data, f)
+                except Exception as e:
+                    # Log error but don't crash the thread
+                    logger.warning(f"Failed to persist L2 cache: {e}")
         
         # Run in background thread
         threading.Thread(target=save_cache, daemon=True).start()
     
     def get_stats(self) -> Dict[str, Any]:
         """Get cache performance statistics"""
-        total_requests = sum(self._stats.values()) - self._stats['writes'] - self._stats['evictions']
+        total_requests = self._stats['l1_hits'] + self._stats['l2_hits'] + self._stats['misses']
         hit_rate = (self._stats['l1_hits'] + self._stats['l2_hits']) / max(total_requests, 1)
         
         return {
@@ -291,20 +297,17 @@ class ConnectionPool:
     def cleanup_idle_connections(self):
         """Remove idle connections exceeding max_idle time"""
         current_time = time.time()
+        kept_connections = []
         with self._lock:
-            active_conns = []
             for conn in self._pool:
                 conn_id = id(conn)
                 last_used = self._last_used.get(conn_id, current_time)
                 
                 if current_time - last_used <= self.max_idle:
-                    active_conns.append(conn)
+                    kept_connections.append(conn)
                 else:
                     self._cleanup_connection(conn)
-                    if conn_id in self._last_used:
-                        del self._last_used[conn_id]
-            
-            self._pool = active_conns
+            self._pool = kept_connections
 
 class AsyncTaskQueue:
     """

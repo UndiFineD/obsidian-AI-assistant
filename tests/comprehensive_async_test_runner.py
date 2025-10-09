@@ -576,10 +576,10 @@ class AsyncTestRunner:
         for category, stats in sorted(category_stats.items()):
             total_cat = sum(v for k, v in stats.items() if k != "total_time")
             if total_cat > 0:
-                cat_pass_rate = (stats["passed"] / total_cat * 100)
+                cat_pass_rate = (stats.get("passed", 0) / total_cat * 100)
                 status_color = Colors.GREEN if cat_pass_rate >= 90 else Colors.YELLOW if cat_pass_rate >= 70 else Colors.RED
                 print(f"  📁 {category:<20} {Colors.colorize(f'{cat_pass_rate:5.1f}%', status_color)} "
-                    f"({stats['passed']}/{total_cat}) {stats['total_time']:.2f}s")
+                    f"({stats.get('passed', 0)}/{total_cat}) {stats['total_time']:.2f}s")
 
         # Performance insights
         if self.results:

@@ -8,6 +8,7 @@ import json
 import logging
 from datetime import datetime, timedelta
 import uuid
+from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -100,6 +101,13 @@ class TenantManager:
     def create_tenant(self, name: str, tier: TenantTier, admin_email: str, 
                      custom_limits: Optional[TenantLimits] = None) -> TenantConfig:
         """Create a new tenant"""
+        if not name or not isinstance(name, str):
+            raise ValueError("Tenant name must be a non-empty string.")
+        if not admin_email or "@" not in admin_email:
+            raise ValueError("A valid admin email is required.")
+        if not isinstance(tier, TenantTier):
+            raise ValueError(f"Invalid tenant tier provided. Must be one of {list(TenantTier)}.")
+
         tenant_id = str(uuid.uuid4())
         
         # Use custom limits or default tier limits
@@ -218,10 +226,9 @@ class TenantManager:
     
     def list_tenants(self, status: Optional[str] = None) -> List[TenantConfig]:
         """List all tenants, optionally filtered by status"""
-        tenants = list(self.tenants.values())
         if status:
-            tenants = [t for t in tenants if t.status == status]
-        return tenants
+            return [t for t in self.tenants.values() if t.status == status]
+        return list(self.tenants.values())
 
 class TenantIsolation:
     """Provides data and resource isolation between tenants"""
@@ -320,11 +327,17 @@ class MultiTenantMiddleware:
         tenant_id = self._extract_tenant_id(request)
         
         if not tenant_id:
-            return {"error": "Tenant ID required", "status_code": 400}
+            return JSONResponse(
+                status_code=400,
+                content={"error": "Tenant ID required", "type": "tenant_error"}
+            )
         
         # Check tenant status and limits
         if not self.tenant_manager.check_resource_limit(tenant_id, "concurrent_requests"):
-            return {"error": "Concurrent request limit exceeded", "status_code": 429}
+            return JSONResponse(
+                status_code=429,
+                content={"error": "Concurrent request limit exceeded", "type": "rate_limit_error"}
+            )
         
         # Add tenant context to request
         request.state.tenant_id = tenant_id

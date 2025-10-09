@@ -23,18 +23,24 @@ class CacheManager:
                     return json.load(f)
             self.cache = safe_call(do_load, error_msg="[CacheManager] Error loading cache file", default={})
 
+    def _hash_question(self, question: str) -> str:
+        """Create a consistent hash for a question string."""
+        return hashlib.sha256(question.encode("utf-8")).hexdigest()
+
     def get_cached_answer(self, question: str, timeout: float = 2.0) -> Optional[str]:
-        def do_get():
-            entry = self.cache.get(question)
-            if not entry:
-                return None
-            if "timestamp" in entry and time.time() - entry["timestamp"] > self.ttl:
-                return None
-            return entry["answer"]
-        return safe_call(do_get, error_msg="[CacheManager] Error reading cache", default=None)
+        if not question:
+            return None
+        key = self._hash_question(question)
+        entry = self.cache.get(key)
+        if not entry:
+            return None
+        if "timestamp" in entry and time.time() - entry["timestamp"] > self.ttl:
+            return None
+        return entry.get("answer")
 
     def store_answer(self, question: str, answer: str, timeout: float = 2.0):
-        self.cache[question] = {"answer": answer, "timestamp": time.time()}
+        key = self._hash_question(question)
+        self.cache[key] = {"answer": answer, "timestamp": time.time()}
         def do_store():
             with open(self.cache_file, "w", encoding="utf-8") as f:
                 json.dump(self.cache, f, ensure_ascii=False, indent=2)
@@ -89,6 +95,8 @@ class FileHashCache:
 
     def _hash_file(self, path: Path) -> str:
         def do_hash():
+            if not path.is_file():
+                return ""
             h = hashlib.sha256()
             with open(path, "rb") as f:
                 while chunk := f.read(8192):

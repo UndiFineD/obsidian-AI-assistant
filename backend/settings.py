@@ -84,6 +84,27 @@ def _load_yaml_config() -> dict:
         return {}
 
 
+def _coerce_value_for_field(field_name: str, value: Any) -> Optional[Any]:
+    """Coerce a string value to the correct type for a given Settings field."""
+    field_info = Settings.model_fields.get(field_name)
+    if not field_info:
+        return None
+
+    target_type = field_info.annotation
+    try:
+        if target_type is bool:
+            return str(value).lower() in {"1", "true", "yes", "on"}
+        elif target_type is int:
+            return int(value)
+        elif target_type is float:
+            return float(value)
+        else:
+            return str(value)
+    except (ValueError, TypeError):
+        # If coercion fails, return None to indicate the value should be skipped.
+        return None
+
+
 def _merge_env(overrides: dict) -> dict:
     """Map selected environment variables into settings fields."""
     env_map = {
@@ -109,21 +130,10 @@ def _merge_env(overrides: dict) -> dict:
     for env_key, field in env_map.items():
         if env_key in os.environ and os.environ[env_key] != "":
             val = os.environ[env_key]
-            # Cast simple types
-            if field in {"api_port", "top_k", "chunk_size", "chunk_overlap"}:
-                try:
-                    overrides[field] = int(val)
-                except ValueError:
-                    continue
-            elif field in {"allow_network", "continuous_mode", "gpu"}:
-                overrides[field] = str(val).lower() in {"1", "true", "yes", "on"}
-            elif field in {"similarity_threshold"}:
-                try:
-                    overrides[field] = float(val)
-                except ValueError:
-                    continue
-            else:
-                overrides[field] = val
+            coerced_value = _coerce_value_for_field(field, val)
+            if coerced_value is not None:
+                overrides[field] = coerced_value
+
     return overrides
 
 
@@ -173,30 +183,18 @@ def update_settings(updates: dict) -> Settings:
     current = _load_yaml_config()
     if not isinstance(current, dict):
         current = {}
-    # Filter and coerce
-    for k, v in list(updates.items()):
-        if k not in _ALLOWED_UPDATE_KEYS:
-            updates.pop(k, None)
-            continue
-        # Basic coercions
-        if k in {"top_k", "chunk_size", "chunk_overlap"}:
-            try:
-                updates[k] = int(v)
-            except Exception:
-                updates.pop(k, None)
-        elif k in {"similarity_threshold"}:
-            try:
-                updates[k] = float(v)
-            except Exception:
-                updates.pop(k, None)
-        elif k in {"allow_network", "continuous_mode", "gpu"}:
-            updates[k] = True if str(v).lower() in {"1", "true", "yes", "on"} else False
-        else:
-            # strings/paths
-            updates[k] = str(v)
 
-    if updates and yaml is not None:
-        current.update(updates)
+    validated_updates = {}
+    for k, v in updates.items():
+        if k not in _ALLOWED_UPDATE_KEYS:
+            continue
+
+        coerced_value = _coerce_value_for_field(k, v)
+        if coerced_value is not None:
+            validated_updates[k] = coerced_value
+
+    if validated_updates and yaml is not None:
+        current.update(validated_updates)
         try:
             with open(cfg_path, "w", encoding="utf-8") as f:
                 yaml.safe_dump(current, f, sort_keys=False)

@@ -103,10 +103,13 @@ class EmbeddingsManager:
         if self.collection is None:
             logging.error("[EmbeddingsManager] No collection available for upsert.")
             return
+        # Use the standard ChromaDB upsert format for efficiency and correctness.
         safe_call(
-            lambda: self.collection.upsert([
-                {"id": note_path, "embedding": vec, "metadata": {"note_path": note_path}}
-            ]),
+            lambda: self.collection.upsert(
+                ids=[note_path],
+                embeddings=[vec],
+                metadatas=[{"note_path": note_path, "source": os.path.basename(note_path)}]
+            ),
             error_msg="[EmbeddingsManager] Error upserting embedding"
         )
 
@@ -125,17 +128,19 @@ class EmbeddingsManager:
             return hits
         return safe_call(do_search, error_msg="[EmbeddingsManager] Error during search", default=[])
 
-    def get_embedding_text(self, note_path: str) -> str:
+    def get_embedding_by_id(self, note_id: str) -> List[float]:
+        """Retrieve an embedding vector by its ID (note_path)."""
         if self.collection is None:
-            logging.error("[EmbeddingsManager] No collection available for get_embedding_text.")
-            return ""
+            logging.error("[EmbeddingsManager] No collection available for get_embedding_by_id.")
+            return []
         def do_get():
-            results = self.collection.query(ids=[note_path])
-            embeddings = results["embeddings"][0]
-            if embeddings:
-                return embeddings[0]
-            return ""
-        return safe_call(do_get, error_msg="[EmbeddingsManager] Error getting embedding text", default="")
+            results = self.collection.get(ids=[note_id], include=["embeddings"])
+            # The 'get' method returns a list of embeddings, one for each ID.
+            # If the ID is found, the list will contain one item.
+            if results and results["embeddings"]:
+                return results["embeddings"][0]
+            return []
+        return safe_call(do_get, error_msg=f"[EmbeddingsManager] Error getting embedding for id {note_id}", default=[])
 
     def reset_db(self):
         if self.chroma_client is None:
@@ -212,14 +217,11 @@ class EmbeddingsManager:
         return hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
     def chunk_text(self, text: str) -> List[str]:
+        if not text:
+            return []
         words = text.split()
-        chunks = []
-        start = 0
-        while start < len(words):
-            end = min(start + self.chunk_size, len(words))
-            chunks.append(" ".join(words[start:end]))
-            start += self.chunk_size - self.overlap
-        return chunks
+        step = self.chunk_size - self.overlap
+        return [" ".join(words[i:i + self.chunk_size]) for i in range(0, len(words), step)]
 
     # ----------------------
     # Indexing helpers

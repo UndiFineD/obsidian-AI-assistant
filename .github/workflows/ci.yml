@@ -18,7 +18,6 @@ jobs:
   plugin-integration-tests:
     runs-on: ubuntu-latest
     name: Plugin Integration Tests (Python)
-    needs: [backend-tests]
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -151,22 +150,9 @@ jobs:
         echo "MODELS_DIR=./models" >> .env
         echo "CACHE_DIR=./cache" >> .env
     
-    - name: Run Unit Tests
+    - name: Run Backend Test Suite
       run: |
-        pytest tests/backend/ -v --cov=backend --cov-report=xml --cov-report=term-missing --tb=short
-      env:
-        PYTHONPATH: .
-    
-    - name: Run Performance Tests
-      run: |
-        pytest tests/test_performance.py -v --tb=short
-      env:
-        PYTHONPATH: .
-    
-    - name: Run Integration Tests
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-      run: |
-        pytest tests/integration/ -v --tb=short
+        pytest tests/ -v --cov=backend --cov-report=xml --cov-report=term-missing --tb=short
       env:
         PYTHONPATH: .
     
@@ -235,9 +221,15 @@ jobs:
         BACKEND_PID=$!
         echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
         
-        # Wait for server to start
-        sleep 10
-        curl -f http://127.0.0.1:8000/health || exit 1
+        # Wait for server to be ready
+        echo "Waiting for backend server to start..."
+        for i in {1..10}; do
+          if curl -sf http://127.0.0.1:8000/health > /dev/null; then
+            echo "Server is up!"
+            break
+          fi
+          sleep 2
+        done
     
     - name: Run E2E API Tests
       run: |
@@ -381,7 +373,6 @@ jobs:
     name: Build and Package
   needs: [code-quality, backend-tests]
   if: github.ref == 'refs/heads/main'
-    
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -492,7 +483,6 @@ jobs:
     name: Notify Results
   needs: [code-quality, backend-tests, e2e-tests, performance-benchmarks]
   if: always()
-    
     steps:
     - name: Workflow Summary
       run: |
@@ -502,9 +492,9 @@ jobs:
         echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
         echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY  
-    echo "| Plugin Integration Tests | ${{ needs.plugin-integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-    echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-    echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Plugin Integration Tests | ${{ needs.plugin-integration-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         
         if [ "${{ needs.backend-tests.result }}" == "success" ] && [ "${{ needs.e2e-tests.result }}" == "success" ]; then
