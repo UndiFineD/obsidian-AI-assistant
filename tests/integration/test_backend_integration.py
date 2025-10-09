@@ -114,7 +114,7 @@ class TestMockedWorkflowIntegration:
     def mock_services(self):
         """Create comprehensive service mocks."""
         with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.embeddings_manager') as mock_em, \
+            patch('backend.backend.emb_manager') as mock_em, \
             patch('backend.backend.vault_indexer') as mock_vi, \
             patch('backend.backend.cache_manager') as mock_cm:
             
@@ -140,7 +140,7 @@ class TestMockedWorkflowIntegration:
             
             yield {
                 "model_manager": mock_mm,
-                "embeddings_manager": mock_em,
+                "emb_manager": mock_em,
                 "vault_indexer": mock_vi,
                 "cache_manager": mock_cm
             }

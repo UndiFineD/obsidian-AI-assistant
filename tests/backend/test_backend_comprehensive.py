@@ -331,18 +331,19 @@ class TestServiceIntegration:
     
     @patch('backend.backend.model_manager')
     @patch('backend.backend.cache_manager')
-    def test_ask_flow_with_cache_miss(self, mock_cache, mock_model, client):
+    @patch('backend.backend.get_cache_manager')
+    def test_ask_flow_with_cache_miss(self, mock_performance_cache, mock_cache, mock_model, client):
         """Test ask flow when answer is not cached."""
-        mock_cache.get_cached_answer.return_value = None
+        # Setup performance cache to return None (cache miss)
+        mock_performance_cache.return_value.get.return_value = None
         mock_model.generate.return_value = "Generated response"
-        mock_cache.cache_answer.return_value = None
         
         request_data = {"question": "Test question"}
         response = client.post("/ask", json=request_data)
         
         if response.status_code == 200:
-            # Verify cache was checked and model was called
-            mock_cache.get_cached_answer.assert_called()
+            # Verify performance cache was checked and model was called
+            mock_performance_cache.return_value.get.assert_called()
             mock_model.generate.assert_called()
     
     @patch('backend.backend.vault_indexer')

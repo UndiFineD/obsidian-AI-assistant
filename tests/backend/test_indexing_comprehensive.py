@@ -493,8 +493,8 @@ class TestVaultIndexing:
             emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
         )
 
-        # Mock PDF processing
-        with patch.object(indexer, "index_pdf", return_value=2):
+        # Mock PDF processing - mock the _read_pdf method to return content for our fake PDFs
+        with patch.object(indexer, "_read_pdf", return_value="Mocked PDF content"):
             results = indexer.index_vault(str(temp_vault_dir))
 
         # Should find all .md and .pdf files (including nested ones)
@@ -637,10 +637,8 @@ class TestPDFIndexing:
     def test_extract_pdf_text_success(self, mock_pdf_reader, temp_cache_dir):
         """Test successful PDF text extraction."""
         from backend.indexing import VaultIndexer
-
         with patch("backend.indexing.EmbeddingsManager"):
             indexer = VaultIndexer(cache_dir=temp_cache_dir)
-
         mock_reader = Mock()
         mock_page1 = Mock()
         mock_page1.extract_text.return_value = "Page 1 content"
@@ -648,26 +646,24 @@ class TestPDFIndexing:
         mock_page2.extract_text.return_value = "Page 2 content"
         mock_reader.pages = [mock_page1, mock_page2]
         mock_pdf_reader.return_value = mock_reader
-
         pdf_path = str(Path(temp_cache_dir) / "test.pdf")
-        text = indexer.extract_pdf_text(pdf_path)
-
-        assert text == "Page 1 contentPage 2 content"
+        # Create a dummy file so the path exists
+        Path(pdf_path).write_bytes(b"dummy pdf content")
+        text = indexer._read_pdf(pdf_path)
+        assert text == "Page 1 content\nPage 2 content"
 
     @patch("backend.indexing.PdfReader")
     def test_extract_pdf_text_error(self, mock_pdf_reader, temp_cache_dir):
         """Test PDF text extraction with error."""
         from backend.indexing import VaultIndexer
-
         with patch("backend.indexing.EmbeddingsManager"):
             indexer = VaultIndexer(cache_dir=temp_cache_dir)
-
         mock_pdf_reader.side_effect = Exception("PDF parsing failed")
-
         pdf_path = str(Path(temp_cache_dir) / "corrupt.pdf")
-        text = indexer.extract_pdf_text(pdf_path)
-
-        assert text == ""
+        # Create a dummy file so the path exists
+        Path(pdf_path).write_bytes(b"corrupt pdf content")
+        text = indexer._read_pdf(pdf_path)
+        assert text is None
 
     def test_index_pdf_success(self, temp_cache_dir, mock_embeddings_manager):
         """Test successful PDF indexing."""
@@ -679,7 +675,7 @@ class TestPDFIndexing:
 
         pdf_path = str(Path(temp_cache_dir) / "document.pdf")
 
-        with patch.object(indexer, "extract_pdf_text", return_value="PDF content"):
+        with patch.object(indexer, "_read_pdf", return_value="PDF content"):
             result = indexer.index_pdf(pdf_path)
 
         assert result == 3  # Mock index_file returns 3
@@ -695,7 +691,7 @@ class TestPDFIndexing:
 
         pdf_path = str(Path(temp_cache_dir) / "empty.pdf")
 
-        with patch.object(indexer, "extract_pdf_text", return_value=""):
+        with patch.object(indexer, "_read_pdf", return_value=""):
             result = indexer.index_pdf(pdf_path)
 
         assert result == 0
@@ -712,7 +708,7 @@ class TestPDFIndexing:
         pdf_path = str(Path(temp_cache_dir) / "corrupt.pdf")
 
         with patch.object(
-            indexer, "extract_pdf_text", side_effect=Exception("Extraction failed")
+            indexer, "_read_pdf", side_effect=Exception("Extraction failed")
         ):
             result = indexer.index_pdf(pdf_path)
 

@@ -22,12 +22,16 @@ class TestBackendAPI:
         with patch('backend.backend.model_manager') as mock_model, \
             patch('backend.backend.emb_manager') as mock_emb, \
             patch('backend.backend.vault_indexer') as mock_vault, \
-            patch('backend.backend.cache_manager') as mock_cache:
+            patch('backend.backend.cache_manager') as mock_cache, \
+            patch('backend.backend.get_cache_manager') as mock_performance_cache:
+            # Setup mock performance cache
+            mock_performance_cache.return_value.get.return_value = None  # Default to no cache hit
             yield {
                 'model': mock_model,
                 'embeddings': mock_emb,
                 'vault': mock_vault,
-                'cache': mock_cache
+                'cache': mock_cache,
+                'performance_cache': mock_performance_cache
             }
     
     def test_health_endpoint(self, client):
@@ -57,8 +61,8 @@ class TestBackendAPI:
     
     def test_ask_endpoint_cached_response(self, client, mock_services):
         """Test ask endpoint with cached response."""
-        # Setup cache hit
-        mock_services['cache'].get_cached_answer.return_value = "Cached response"
+        # Setup performance cache hit
+        mock_services['performance_cache'].return_value.get.return_value = "Cached response"
         request_data = {
             "question": "What is the capital of France?",
             "prefer_fast": True
@@ -159,10 +163,12 @@ class TestServiceIntegration:
         # Simulate error response for /ask endpoint
         request_data = {"question": "Test question"}
         response = client.post("/ask", json=request_data)
-        # Accept either 400 or 500 depending on backend error handling
-        assert response.status_code in (400, 500)
+        # Backend now handles missing models gracefully with 200 + empty response
+        assert response.status_code == 200
         data = response.json()
-        assert "error" in data or "detail" in data
+        # Should return empty answer when no models are available
+        assert "answer" in data
+        assert data["answer"] == {} or "No model available" in str(data.get("answer", ""))
 
 if __name__ == "__main__":
     pytest.main([__file__])

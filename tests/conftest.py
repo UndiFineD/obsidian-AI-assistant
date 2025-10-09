@@ -509,17 +509,17 @@ def mock_all_services():
     
     with patch('backend.backend.model_manager', mock_model_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
          patch('backend.backend.cache_manager', mock_cache_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
-         patch('backend.backend.embeddings_manager', mock_embeddings_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
+         patch('backend.backend.emb_manager', mock_embeddings_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
          patch('backend.backend.vault_indexer', mock_vault_indexer) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
          patch('os.path.exists', mock_os_path.exists), \
          patch('os.path.isfile', mock_os_path.isfile), \
          patch('os.path.isdir', mock_os_path.isdir):
         
         yield {
-            'model': mock_model_manager,
-            'cache': mock_cache_manager,
-            'embeddings': mock_embeddings_manager,
-            'vault': mock_vault_indexer,
+            'model_manager': mock_model_manager,
+            'cache_manager': mock_cache_manager,
+            'emb_manager': mock_embeddings_manager,
+            'vault_indexer': mock_vault_indexer,
             'os_path': mock_os_path
         }
 

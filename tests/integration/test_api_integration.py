@@ -8,7 +8,6 @@ import asyncio
 import sys
 from pathlib import Path
 from unittest.mock import Mock, patch
-
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
@@ -19,28 +18,25 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 # Import FastAPI app
 from backend.backend import app
 
+@pytest_asyncio.fixture
+async def client():
+    """Create async HTTP client for testing."""
+    # Use HTTPX AsyncClient with transport for FastAPI
+    transport = httpx.ASGITransport(app=app)
+    async with AsyncClient(
+        transport=transport, base_url="http://testserver"
+    ) as client:
+        yield client
+
 
 class TestAPIIntegration:
     """Test API endpoints with full HTTP request/response cycle."""
-
-    @pytest_asyncio.fixture
-    async def client(self):
-        """Create async HTTP client for testing."""
-        import httpx
-        from httpx import AsyncClient
-
-        # Use HTTPX AsyncClient with transport for FastAPI
-        transport = httpx.ASGITransport(app=app)
-        async with AsyncClient(
-            transport=transport, base_url="http://testserver"
-        ) as client:
-            yield client
 
     @pytest.fixture
     def mock_all_services(self):
         """Mock all backend services for API testing using standardized patterns."""
         with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.embeddings_manager"
+            "backend.backend.emb_manager"
         ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
             "backend.backend.cache_manager"
         ) as mock_cm:
@@ -92,10 +88,10 @@ class TestAPIIntegration:
     @pytest.mark.asyncio
     async def test_ask_endpoint_integration(self, client, mock_all_services):
         """Test complete ask endpoint workflow."""
+        # Configure mock to return expected response
+        mock_all_services["model_manager"].generate.return_value = "AI generated response for your question."
         request_data = {
             "question": "What are the main concepts in machine learning?",
-            "vault_path": "./research_vault",
-            "use_context": True,
             "max_tokens": 200,
             "prefer_fast": False,
         }
@@ -109,8 +105,7 @@ class TestAPIIntegration:
         assert "answer" in data
         assert data["answer"] == "AI generated response for your question."
 
-        # Verify services were called
-        mock_all_services["emb_manager"].search.assert_called_once()
+        # Verify model manager was called (search is not used in this endpoint)
         mock_all_services["model_manager"].generate.assert_called_once()
 
         print("✓ Ask endpoint integration test passed")
@@ -161,6 +156,11 @@ class TestAPIIntegration:
     @pytest.mark.asyncio
     async def test_scan_vault_endpoint_integration(self, client, mock_all_services):
         """Test vault scanning endpoint integration."""
+        # Configure mock to return expected file list
+        mock_all_services["vault_indexer"].index_vault.return_value = [
+            "note1.md", "note2.md", "note3.md"
+        ]
+
         params = {"vault_path": "./my_vault"}
 
         response = await client.post("/api/scan_vault", params=params)
@@ -240,12 +240,6 @@ class TestAPIIntegration:
 class TestAPIErrorHandling:
     """Test API error handling and edge cases."""
 
-    @pytest.fixture
-    async def client(self):
-        """Create async HTTP client for testing."""
-        async with AsyncClient(app=app, base_url="http://testserver") as client:
-            yield client
-
     @pytest.mark.asyncio
     async def test_invalid_request_handling(self, client):
         """Test handling of invalid requests."""
@@ -309,77 +303,57 @@ class TestAPIErrorHandling:
 class TestAPIPerformance:
     """Test API performance characteristics."""
 
-    @pytest.fixture
-    async def client(self):
-        """Create async HTTP client for testing."""
-        async with AsyncClient(app=app, base_url="http://testserver") as client:
-            yield client
-
     @pytest.mark.asyncio
-    async def test_concurrent_api_requests(self, client):
+    async def test_concurrent_api_requests(self, client, mock_all_services):
         """Test handling of concurrent API requests."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em:
+        # Configure fast responses
+        mock_all_services["model_manager"].generate.return_value = "Quick response"
+        mock_all_services["emb_manager"].search.return_value = []
 
-            # Configure fast responses
-            mock_mm.generate.return_value = "Quick response"
-            mock_em.search.return_value = []
+        # Create multiple concurrent requests
+        tasks = []
+        for i in range(5):
+            request_data = {"question": f"Question {i}", "vault_path": "./vault"}
+            task = client.post("/api/ask", json=request_data)
+            tasks.append(task)
 
-            # Create multiple concurrent requests
-            tasks = []
-            for i in range(5):
-                request_data = {"question": f"Question {i}", "vault_path": "./vault"}
-                task = client.post("/api/ask", json=request_data)
-                tasks.append(task)
+        # Execute all requests concurrently
+        responses = await asyncio.gather(*tasks)
 
-            # Execute all requests concurrently
-            responses = await asyncio.gather(*tasks)
-
-            # All should succeed
-            assert len(responses) == 5
-            for response in responses:
-                assert response.status_code == 200
-                data = response.json()
-                assert data["answer"] == "Quick response"
-
-            print("✓ Concurrent API requests test passed")
-
-    @pytest.mark.asyncio
-    async def test_large_request_handling(self, client):
-        """Test handling of large requests."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em:
-
-            mock_mm.generate.return_value = "Response to large question"
-            mock_em.search.return_value = []
-
-            # Create large request
-            large_question = "What is machine learning? " * 100  # ~2800 chars
-            request_data = {
-                "question": large_question,
-                "vault_path": "./vault",
-                "max_tokens": 500,
-            }
-
-            response = await client.post("/api/ask", json=request_data)
-
+        # All should succeed
+        assert len(responses) == 5
+        for response in responses:
             assert response.status_code == 200
             data = response.json()
-            assert data["answer"] == "Response to large question"
+            assert data["answer"] == "Quick response"
 
-            print("✓ Large request handling test passed")
+        print("✓ Concurrent API requests test passed")
+
+    @pytest.mark.asyncio
+    async def test_large_request_handling(self, client, mock_all_services):
+        """Test handling of large requests."""
+        mock_all_services["model_manager"].generate.return_value = "Response to large question"
+        mock_all_services["emb_manager"].search.return_value = []
+
+        # Create large request
+        large_question = "What is machine learning? " * 100  # ~2800 chars
+        request_data = {
+            "question": large_question,
+            "vault_path": "./vault",
+            "max_tokens": 500,
+        }
+
+        response = await client.post("/api/ask", json=request_data)
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["answer"] == "Response to large question"
+
+        print("✓ Large request handling test passed")
 
 
 class TestCORSIntegration:
     """Test CORS (Cross-Origin Resource Sharing) configuration."""
-
-    @pytest.fixture
-    async def client(self):
-        """Create async HTTP client for testing."""
-        async with AsyncClient(app=app, base_url="http://testserver") as client:
-            yield client
 
     @pytest.mark.asyncio
     async def test_cors_preflight_request(self, client):
@@ -400,25 +374,25 @@ class TestCORSIntegration:
         print("✓ CORS preflight request test passed")
 
     @pytest.mark.asyncio
-    async def test_cors_actual_request(self, client):
+    async def test_cors_actual_request(self, client, mock_all_services):
         """Test CORS headers on actual requests."""
-        with patch("backend.backend.model_manager") as mock_mm:
-            mock_mm.generate.return_value = "CORS test response"
+        mock_all_services["model_manager"].generate.return_value = "CORS test response"
+        mock_all_services["emb_manager"].search.return_value = []
 
-            request_data = {"question": "Test CORS", "vault_path": "./vault"}
+        request_data = {"question": "Test CORS", "vault_path": "./vault"}
 
-            response = await client.post(
-                "/api/ask",
-                json=request_data,
-                headers={"Origin": "http://localhost:3000"},
-            )
+        response = await client.post(
+            "/api/ask",
+            json=request_data,
+            headers={"Origin": "http://localhost:3000"},
+        )
 
-            assert response.status_code == 200
+        assert response.status_code == 200
 
-            # Check for basic CORS functionality (response successful with Origin header
-            # Note: Exact CORS header verification depends on FastAPI CORS implementation
+        # Check for basic CORS functionality (response successful with Origin header
+        # Note: Exact CORS header verification depends on FastAPI CORS implementation
 
-            print("✓ CORS actual request test passed")
+        print("✓ CORS actual request test passed")
 
 
 if __name__ == "__main__":

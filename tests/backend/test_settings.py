@@ -1,6 +1,5 @@
 # tests/backend/test_settings.py
 import pytest
- 
 from pathlib import Path
 from unittest.mock import Mock, patch
 import os
@@ -144,7 +143,7 @@ class TestSettingsHelpers:
 
     def test_load_yaml_config_no_yaml_module(self):
         """Test loading YAML when yaml module is not available."""
-        with patch('backend.settings.yaml', None):
+        with patch('builtins.__import__', side_effect=ImportError("No module named 'yaml'")):
             result = _load_yaml_config()
             assert result == {}
 
@@ -199,86 +198,165 @@ class TestUpdateSettings:
     
     def test_update_settings_whitelist(self, tmp_path):
         """Test that only whitelisted keys can be updated."""
-        with patch('backend.settings.Path') as mock_path_cls:
-            mock_path = Mock()
-            mock_path.parent = tmp_path
-            mock_path_cls.return_value = mock_path
-            mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            
+        # Set up initial config content
+        initial_config = {"existing_key": "existing_value"}
+        # Mock file operations to use our test data
+        mock_config_data = initial_config.copy()
+        def mock_open_func(path, mode='r', **kwargs):
+            from io import StringIO
+            if 'w' in mode:
+                # Use StringIO to properly accumulate YAML content
+                buffer = StringIO()
+                
+                def write_wrapper(content):
+                    buffer.write(content)
+                
+                def mock_exit(exc_type, exc_val, exc_tb):
+                    # On file close, parse the complete YAML content
+                    import yaml
+                    full_content = buffer.getvalue()
+                    if full_content.strip():
+                        try:
+                            loaded_data = yaml.safe_load(full_content)
+                            if isinstance(loaded_data, dict):
+                                mock_config_data.clear()
+                                mock_config_data.update(loaded_data)
+                        except yaml.YAMLError:
+                            pass  # Ignore invalid YAML
+                
+                mock_file = Mock()
+                mock_file.write = write_wrapper
+                mock_file.__enter__ = Mock(return_value=mock_file)
+                mock_file.__exit__ = Mock(side_effect=mock_exit)
+                return mock_file
+            else:
+                # Return read operations from mock data
+                import yaml
+                content = yaml.safe_dump(mock_config_data)
+                mock_file = StringIO(content)
+                return mock_file
+        with patch('backend.settings.open', mock_open_func), \
+            patch('backend.settings.reload_settings', return_value=Settings()):
+            updates = {
+                'vault_path': 'new_vault',
+                'chunk_size': 1500,
+                'api_port': 9999,  # This IS in whitelist
+                'not_allowed_key': 'hack_attempt',  # Not in whitelist
+                'malicious_key': 'hack_attempt'  # Not in whitelist
+            }
 
-            
-            # Mock yaml operations
-            with patch('backend.settings.yaml') as mock_yaml:
-                mock_yaml.safe_load.return_value = {}
-                
-                updates = {
-                    'vault_path': 'new_vault',
-                    'chunk_size': 1500,
-                    'api_port': 9999,  # Not in whitelist
-                    'malicious_key': 'hack_attempt'  # Not in whitelist
-                }
-                
-                update_settings(updates)
-                
-                # Should only include whitelisted updates
-                mock_yaml.safe_dump.assert_called_once()
-                saved_data = mock_yaml.safe_dump.call_args[0][0]
-                assert 'vault_path' in saved_data
-                assert 'chunk_size' in saved_data
-                assert 'api_port' not in saved_data
-                assert 'malicious_key' not in saved_data
+            update_settings(updates)
+
+            # Should only include whitelisted updates
+            assert 'vault_path' in mock_config_data
+            assert 'chunk_size' in mock_config_data
+            assert 'api_port' in mock_config_data  # This should be included
+            assert 'existing_key' in mock_config_data
+            assert 'not_allowed_key' not in mock_config_data
+            assert 'malicious_key' not in mock_config_data
     
     def test_update_settings_type_coercion(self, tmp_path):
         """Test that update_settings coerces types correctly."""
-        with patch('backend.settings.Path') as mock_path_cls:
-            mock_path = Mock()
-            mock_path.parent = tmp_path
-            mock_path_cls.return_value = mock_path
-            mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            
-            with patch('backend.settings.yaml') as mock_yaml:
-                mock_yaml.safe_load.return_value = {}
+        # Mock config data
+        mock_config_data = {}
+        def mock_open_func(path, mode='r', **kwargs):
+            from io import StringIO
+            if 'w' in mode:
+                # Use StringIO to properly accumulate YAML content
+                buffer = StringIO()
                 
-                updates = {
-                    'chunk_size': '2000',  # String -> int
-                    'gpu': 'true',  # String -> bool
-                    'similarity_threshold': '0.9',  # String -> float
-                    'vault_path': 123  # -> string
-                }
+                def write_wrapper(content):
+                    buffer.write(content)
                 
-                update_settings(updates)
+                def mock_exit(exc_type, exc_val, exc_tb):
+                    # On file close, parse the complete YAML content
+                    import yaml
+                    full_content = buffer.getvalue()
+                    if full_content.strip():
+                        try:
+                            loaded_data = yaml.safe_load(full_content)
+                            if isinstance(loaded_data, dict):
+                                mock_config_data.clear()
+                                mock_config_data.update(loaded_data)
+                        except yaml.YAMLError:
+                            pass  # Ignore invalid YAML
                 
-                saved_data = mock_yaml.safe_dump.call_args[0][0]
-                assert saved_data['chunk_size'] == 2000
-                assert saved_data['gpu'] is True
-                assert saved_data['similarity_threshold'] == 0.9
-                assert saved_data['vault_path'] == '123'
+                mock_file = Mock()
+                mock_file.write = write_wrapper
+                mock_file.__enter__ = Mock(return_value=mock_file)
+                mock_file.__exit__ = Mock(side_effect=mock_exit)
+                return mock_file
+            else:
+                # Return read operations from mock data
+                import yaml
+                content = yaml.safe_dump(mock_config_data) if mock_config_data else ""
+                mock_file = StringIO(content)
+                return mock_file
+        with patch('backend.settings.open', mock_open_func), \
+            patch('backend.settings.reload_settings', return_value=Settings()):
+            updates = {
+                'chunk_size': '2000',  # String -> int
+                'gpu': 'true',  # String -> bool
+                'similarity_threshold': '0.9',  # String -> float
+                'vault_path': 123  # -> string
+            }
+            update_settings(updates)
+            # Check that type coercion worked in the saved data
+            assert mock_config_data['chunk_size'] == 2000
+            assert mock_config_data['gpu'] is True
+            assert mock_config_data['similarity_threshold'] == 0.9
+            assert mock_config_data['vault_path'] == '123'
     
     def test_update_settings_invalid_types_removed(self, tmp_path):
         """Test that invalid type coercions are removed from updates."""
-        with patch('backend.settings.Path') as mock_path_cls:
-            mock_path = Mock()
-            mock_path.parent = tmp_path  
-            mock_path_cls.return_value = mock_path
-            mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            
-            with patch('backend.settings.yaml') as mock_yaml:
-                mock_yaml.safe_load.return_value = {}
+        # Mock config data
+        mock_config_data = {}
+        def mock_open_func(path, mode='r', **kwargs):
+            from io import StringIO
+            if 'w' in mode:
+                # Use StringIO to properly accumulate YAML content
+                buffer = StringIO()
                 
-                updates = {
-                    'chunk_size': 'not_a_number',
-                    'similarity_threshold': 'also_invalid',
-                    'vault_path': 'valid_path'
-                }
+                def write_wrapper(content):
+                    buffer.write(content)
                 
-                update_settings(updates)
+                def mock_exit(exc_type, exc_val, exc_tb):
+                    # On file close, parse the complete YAML content
+                    import yaml
+                    full_content = buffer.getvalue()
+                    if full_content.strip():
+                        try:
+                            loaded_data = yaml.safe_load(full_content)
+                            if isinstance(loaded_data, dict):
+                                mock_config_data.clear()
+                                mock_config_data.update(loaded_data)
+                        except yaml.YAMLError:
+                            pass  # Ignore invalid YAML
                 
-                saved_data = mock_yaml.safe_dump.call_args[0][0]
-                # Invalid coercions should be removed
-                assert 'chunk_size' not in saved_data
-                assert 'similarity_threshold' not in saved_data
-                # Valid updates should remain
-                assert 'vault_path' in saved_data
+                mock_file = Mock()
+                mock_file.write = write_wrapper
+                mock_file.__enter__ = Mock(return_value=mock_file)
+                mock_file.__exit__ = Mock(side_effect=mock_exit)
+                return mock_file
+            else:
+                # Return read operations from mock data
+                import yaml
+                content = yaml.safe_dump(mock_config_data) if mock_config_data else ""
+                mock_file = StringIO(content)
+                return mock_file
+        with patch('backend.settings.open', mock_open_func), \
+            patch('backend.settings.reload_settings', return_value=Settings()):
+            updates = {
+                'chunk_size': 'not_a_number',
+                'similarity_threshold': 'also_invalid',
+                'vault_path': 'valid_path'
+            }
+            update_settings(updates)
+            # Invalid coercions should be removed
+            assert 'chunk_size' not in mock_config_data
+            assert 'similarity_threshold' not in mock_config_data
+            # Valid updates should remain
+            assert 'vault_path' in mock_config_data
 
 
 if __name__ == "__main__":

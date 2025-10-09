@@ -10,9 +10,15 @@ from backend.llm_router import HybridLLMRouter
 def mock_llama():
     """Mock LLaMA model."""
     with patch('backend.llm_router.Llama') as mock_llama_class:
-        # Use MagicMock and explicitly set __call__ as a MagicMock
+        # Create a proper mock that returns the expected structure
         mock_llama_instance = MagicMock()
-        mock_llama_instance.__call__ = MagicMock(return_value={"choices": [{"text": "LLaMA response"}]})
+        # Mock the call to return the proper structure with strip() method
+        response_text = MagicMock()
+        response_text.strip.return_value = "LLaMA response"
+        mock_response = {"choices": [{"text": response_text}]}
+        # Set up both __call__ and direct call behavior for compatibility
+        mock_llama_instance.__call__ = MagicMock(return_value=mock_response)
+        mock_llama_instance.return_value = mock_response
         mock_llama_class.return_value = mock_llama_instance
         yield mock_llama_instance
 
@@ -32,6 +38,9 @@ def router_with_mocks(mock_llama, mock_gpt4all):
         gpt4all_model_path="fake/gpt4all.bin",
         prefer_fast=True
     )
+    # Directly assign the mocked instances to the router
+    router.llama = mock_llama
+    router.gpt4all = mock_gpt4all
     return router
 
 def test_router_initialization_defaults():
@@ -128,7 +137,8 @@ def test_generate_with_session_memory(router_with_mocks, mock_llama):
     # Both should use LLaMA
     assert response1 == "LLaMA response"
     assert response2 == "LLaMA response"
-    assert mock_llama.__call__.call_count == 2
+    # Check that the llama mock was called twice (either via __call__ or direct)
+    assert mock_llama.call_count == 2
 
 def test_generate_memory_limit(router_with_mocks, mock_llama):
     # Set memory limit for testing
@@ -159,10 +169,10 @@ def test_generate_with_max_tokens(router_with_mocks, mock_llama):
     response = router_with_mocks.generate(prompt, max_tokens=max_tokens)
     
     # Should pass max_tokens to the model
-    call_args = mock_llama.__call__.call_args
+    call_args = mock_llama.call_args
     assert call_args is not None
     # Check if max_tokens was passed in the call
-    # (exact structure depends on LLaMA implementation
+    # (exact structure depends on LLaMA implementation)
     assert response == "LLaMA response"  # Ensure this is the expected response
 
 def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, mock_gpt4all):
@@ -175,7 +185,7 @@ def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, m
     router_with_mocks.generate(long_prompt, prefer_fast=False)
     
     # Verify appropriate models were called
-    assert mock_llama.__call__.called
+    assert mock_llama.called
     assert mock_gpt4all.generate.called
 
     """Test error handling when LLaMA raises exception."""

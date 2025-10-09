@@ -15,6 +15,26 @@ from pathlib import Path
 
 from pydantic import BaseModel
 
+# Fields that can be safely updated via the API
+_ALLOWED_UPDATE_KEYS = {
+    "api_port",
+    "allow_network",
+    "continuous_mode",
+    "vault_path",
+    "models_dir",
+    "cache_dir",
+    "model_backend",
+    "model_path",
+    "embed_model",
+    "vector_db",
+    "gpu",
+    "top_k",
+    "chunk_size",
+    "chunk_overlap",
+    "similarity_threshold",
+    "vosk_model_path"
+}
+
 
 class Settings(BaseModel):
     model_config = {"protected_namespaces": ()}  # Allow model_ prefixed fields
@@ -147,3 +167,48 @@ def get_settings() -> Settings:
         port = data.get("api_port", Settings().api_port)
         data["backend_url"] = f"http://127.0.0.1:{port}"
     return Settings(**data)
+
+
+def reload_settings() -> Settings:
+    """Clear the cache and reload settings."""
+    get_settings.cache_clear()
+    return get_settings()
+
+
+def update_settings(updates: dict) -> Settings:
+    """Update settings with new values and reload."""
+    import yaml
+    from pathlib import Path
+    # Filter updates to only include whitelisted keys
+    filtered_updates = {}
+    for key, value in updates.items():
+        if key in _ALLOWED_UPDATE_KEYS:
+            # Type coercion for known fields
+            try:
+                if key == "chunk_size" and isinstance(value, str):
+                    filtered_updates[key] = int(value)
+                elif key == "gpu" and isinstance(value, str):
+                    filtered_updates[key] = value.lower() in ('true', '1', 'yes')
+                elif key == "similarity_threshold" and isinstance(value, str):
+                    filtered_updates[key] = float(value)
+                elif key == "vault_path":
+                    filtered_updates[key] = str(value)
+                else:
+                    filtered_updates[key] = value
+            except (ValueError, TypeError):
+                # Skip invalid type coercions
+                continue
+    # Load existing config
+    cfg_path = Path(__file__).parent / "config.yaml"
+    if cfg_path.exists():
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            config = yaml.safe_load(f) or {}
+    else:
+        config = {}
+    # Update with filtered values
+    config.update(filtered_updates)
+    # Save back to config.yaml
+    with open(cfg_path, "w", encoding="utf-8") as f:
+        yaml.safe_dump(config, f, default_flow_style=False)
+    # Reload settings
+    return reload_settings()

@@ -15,6 +15,9 @@ if not ENCRYPTION_KEY:
     logger.warning("ENCRYPTION_KEY environment variable not set. Using default key for development.")
     ENCRYPTION_KEY = _DEFAULT_KEY
 
+# Expose KEY for backward compatibility with tests
+KEY = ENCRYPTION_KEY
+
 try:
     fernet = Fernet(ENCRYPTION_KEY)
 except (ValueError, TypeError) as e:
@@ -46,6 +49,6 @@ def decrypt_data(data: bytes) -> Optional[str]:
         return None
     try:
         return fernet.decrypt(data).decode()
-    except InvalidToken:
+    except (InvalidToken, TypeError, AttributeError):
         logger.warning("Decryption failed: Invalid or tampered token provided.")
         return None
