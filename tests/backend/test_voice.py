@@ -115,7 +115,7 @@ class TestVoiceTranscription:
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b"frame2", b""]
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         # Mock Kaldi recognizer
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.side_effect = [True, False]
@@ -139,7 +139,7 @@ class TestVoiceTranscription:
         mock_wf.getnchannels.return_value = 2  # Stereo (invalid)
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 16000
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         from voice import voice_transcribe
         result = await voice_transcribe(mock_file)
         assert "error" in result
@@ -156,7 +156,7 @@ class TestVoiceTranscription:
         mock_wf.getnchannels.return_value = 1
         mock_wf.getsampwidth.return_value = 3  # Invalid sample width
         mock_wf.getframerate.return_value = 16000
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         from voice import voice_transcribe
         result = await voice_transcribe(mock_file)
         assert "error" in result
@@ -173,7 +173,7 @@ class TestVoiceTranscription:
         mock_wf.getnchannels.return_value = 1
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 44100  # Invalid sample rate
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         
         from voice import voice_transcribe
         result = await voice_transcribe(mock_file)
@@ -194,7 +194,7 @@ class TestVoiceTranscription:
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b""]  # No audio frames
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         # Mock Kaldi recognizer with empty results
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.return_value = False
@@ -220,7 +220,7 @@ class TestVoiceTranscription:
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b"frame2", b"frame3", b""]
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         # Mock Kaldi recognizer with multiple results
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.side_effect = [True, True, False]
@@ -260,7 +260,7 @@ class TestVoiceTranscription:
         mock_wf.getsampwidth.return_value = 2
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b""]
-        mock_wave_open.return_value = mock_wf
+        mock_wave_open.return_value.__enter__.return_value = mock_wf
         # Mock Kaldi recognizer with invalid JSON
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.return_value = True

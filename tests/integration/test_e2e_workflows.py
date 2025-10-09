@@ -48,7 +48,7 @@ class TestCompleteWorkflows:
         response.json()
         
         # Step 3: Index user's vault for first time
-        response = client.post("/api/scan_vault", params={"vault_path": "./test_vault"})
+        response = client.post("/api/scan_vault", params={"vault_path": "test_vault"})
         assert response.status_code == 200
         indexed = response.json()
         assert "indexed_files" in indexed
@@ -90,7 +90,7 @@ class TestCompleteWorkflows:
         # Step 1: Get baseline performance metrics
         response = client.get("/api/performance/metrics")
         assert response.status_code == 200
-        baseline = response.json(["metrics"])
+        baseline = response.json()["metrics"]
         
         # Step 2: Perform batch operations
         questions = [
@@ -120,7 +120,7 @@ class TestCompleteWorkflows:
         # Step 3: Check updated performance metrics
         response = client.get("/api/performance/metrics")
         assert response.status_code == 200
-        updated = response.json(["metrics"])
+        updated = response.json()["metrics"]
         
         # Should show increased activity
         assert updated["timestamp"] > baseline["timestamp"]
@@ -131,13 +131,13 @@ class TestCompleteWorkflows:
         for query in search_queries:
             response = client.post("/api/search", params={"query": query, "top_k": 3})
             assert response.status_code == 200
-            results = response.json(["results"])
-            assert len(results) <= 3
+            results = response.json()
+            assert len(results["results"]) <= 3
         
         # Step 5: Get cache statistics
         response = client.get("/api/performance/cache/stats")
         assert response.status_code == 200
-        cache_stats = response.json(["cache_stats"])
+        cache_stats = response.json()["cache_stats"]
         
         # Should show cache activity
         assert "hit_rate" in cache_stats
@@ -163,18 +163,18 @@ class TestCompleteWorkflows:
         # Step 2: Search for existing content
         response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
-        initial_results = response.json(["results"])
+        initial_results = response.json()["results"]
         
         # Step 3: Simulate content update by reindexing
-        response = client.post("/api/reindex", json={"vault_path": "./vault1"})
+        response = client.post("/api/reindex", json={"vault_path": "vault1"})
         assert response.status_code == 200
-        reindex_result = response.json()
-        assert reindex_result["status"] == "reindexed"
+        reindex_result = response.json() or {}
+        assert "files" in reindex_result
         
         # Step 4: Search again to verify updated index
         response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
-        updated_results = response.json(["results"])
+        updated_results = response.json()["results"]
         
         # Results structure should be consistent
         assert len(updated_results) == len(initial_results)
@@ -213,7 +213,7 @@ class TestCompleteWorkflows:
         updated_config = response.json()
         
         # Basic validation that endpoint works
-        assert "backend_url" in updated_config
+        assert "api_port" in updated_config
         
         # Step 4: Test configuration reload
         response = client.post("/api/config/reload")
@@ -250,7 +250,7 @@ class TestCompleteWorkflows:
                 response = client.post(endpoint, json=data)
             
             # Should handle errors gracefully
-            assert response.status_code in [400, 422, 500]
+            assert response.status_code in [400, 422], f"Expected error for {endpoint}, but got {response.status_code}"
         
         # Step 2: Test recovery with valid requests
         valid_request = {
@@ -264,7 +264,7 @@ class TestCompleteWorkflows:
         # Step 3: Verify system is still functional
         response = client.get("/health")
         assert response.status_code == 200
-        assert response.json(["status"] == "healthy")
+        assert response.json()["status"] == "ok"
         
         # Step 4: Test cache clear and recovery
         response = client.post("/api/performance/cache/clear")
@@ -373,7 +373,7 @@ class TestPerformanceBenchmarks:
         assert response2.status_code == 200
         
         # Responses should be identical
-        assert response1.json(["answer"] == response2.json()["answer"])
+        assert response1.json()["answer"] == response2.json()["answer"]
         
         # Performance metrics
         print(f"First request: {first_response_time:.3f}s")

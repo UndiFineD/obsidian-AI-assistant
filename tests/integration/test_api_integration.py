@@ -5,15 +5,11 @@ Integration tests for FastAPI endpoints and HTTP workflows.
 Tests the complete HTTP request/response cycle.
 """
 import asyncio
-import sys
-from pathlib import Path
 from unittest.mock import Mock, patch
+
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient
-
-# Add project paths
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 # Import FastAPI app
 from backend.backend import app
@@ -21,6 +17,9 @@ from backend.backend import app
 @pytest_asyncio.fixture
 async def client():
     """Create async HTTP client for testing."""
+    import httpx
+    from httpx import AsyncClient
+
     # Use HTTPX AsyncClient with transport for FastAPI
     transport = httpx.ASGITransport(app=app)
     async with AsyncClient(
@@ -80,8 +79,10 @@ class TestAPIIntegration:
 
         assert response.status_code == 200
         data = response.json()
-        assert data["status"] == "ok"  # Backend returns "ok", not "healthy"
+        assert data["status"] == "ok"
         assert "timestamp" in data
+        # Verify it's the comprehensive health endpoint
+        assert "vault_path" in data
 
         print("✓ Health endpoint integration test passed")
 
@@ -161,22 +162,15 @@ class TestAPIIntegration:
             "note1.md", "note2.md", "note3.md"
         ]
 
-        params = {"vault_path": "./my_vault"}
+        # Test with a non-existent path, which should now raise an error
+        params = {"vault_path": "./non_existent_vault"}
 
         response = await client.post("/api/scan_vault", params=params)
 
-        assert response.status_code == 200
+        # The endpoint now validates the path, so this should be a 400
+        assert response.status_code == 400, f"Expected 400 for invalid path, got {response.status_code}"
         data = response.json()
-
-        # Verify scan response
-        assert "indexed_files" in data
-        assert len(data["indexed_files"]) == 3
-        assert "note1.md" in data["indexed_files"]
-
-        # Verify vault indexer was called
-        mock_all_services["vault_indexer"].index_vault.assert_called_once_with(
-            "./my_vault"
-        )
+        assert "Invalid vault path" in data["detail"]
 
         print("✓ Scan vault endpoint integration test passed")
 
@@ -269,17 +263,19 @@ class TestAPIErrorHandling:
     @pytest.mark.asyncio
     async def test_service_failure_error_handling(self, client):
         """Test API error handling when services fail."""
-        with patch("backend.backend.model_manager") as mock_mm:
+        with patch("backend.backend.model_manager") as mock_mm, \
+            patch("backend.backend.emb_manager") as mock_em:
             # Configure service to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
+            mock_em.search.return_value = [] # Ensure search doesn't fail
 
-            request_data = {"question": "Test question", "vault_path": "./vault"}
+            request_data = {"question": "Test question", "vault_path": "./vault", "use_context": True}
 
             response = await client.post("/api/ask", json=request_data)
 
             # Should return 500 Internal Server Error
-            assert response.status_code == 500
-
+            assert response.status_code == 500, f"Expected 500, but got {response.status_code}"
+            assert "Model service unavailable" in response.json()["detail"]
             print("✓ Service failure error handling test passed")
 
     @pytest.mark.asyncio
