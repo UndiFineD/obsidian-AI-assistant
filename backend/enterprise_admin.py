@@ -133,7 +133,6 @@ class EnterpriseAdminDashboard:
         
         # Calculate average users per tenant dynamically
         avg_users_per_tenant = total_users / total_tenants if total_tenants > 0 else 0
-        
         return {
             "total_tenants": total_tenants,
             "active_tenants": active_tenants,

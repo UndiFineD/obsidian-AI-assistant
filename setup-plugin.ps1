@@ -255,7 +255,7 @@ function Install-PluginFiles {
         $readmeContent = @"
 # Obsidian AI Assistant Plugin - Installation Complete
 
-## 🎯 Plugin Successfully Installed
+## 🎯 Plugin Successfully Installed!
 Installation Date: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
 Files Copied: $copiedCount
 Total Size: $([math]::Round($totalSize / 1024, 1)) KB
@@ -266,14 +266,14 @@ Total Size: $([math]::Round($totalSize / 1024, 1)) KB
 1. Open Obsidian
 2. Go to Settings (⚙️) → Community plugins
 3. Turn OFF "Safe mode" if it's enabled
-4. Click "Refresh" to detect new plugins
-5. Find "AI Assistant" in the installed plugins list
+4. Click "Refresh" (re-scan plugins)
+5. Find "$PLUGIN_NAME" in the installed plugins list
 6. Toggle the switch to enable it
 
 ### 2. Backend Server Information
-- Server URL: http://$BackendHost`:$BackendPort
-- Status: Use the setup script to start the server
-- Health Check: http://$BackendHost`:$BackendPort/health
+- Server URL: http://$BACKEND_HOST`:$BACKEND_PORT
+- Status: Use this script to start the server
+- Health Check: http://$BACKEND_HOST`:$BACKEND_PORT/health
 
 ### 3. Plugin Features
 - 🧠 AI Question Answering
@@ -426,8 +426,8 @@ function Show-CompletionSummary {
     Write-Host ""
     
     Write-ColorOutput "Backend Server:" "Cyan"
-    Write-Host "  URL: http://$BackendHost`:$BackendPort"
-    Write-Host "  Health: http://$BackendHost`:$BackendPort/health"
+    Write-Host "  URL: http://$BACKEND_HOST`:$BACKEND_PORT"
+    Write-Host "  Health: http://$BACKEND_HOST`:$BACKEND_PORT/health"
     Write-Host "  Start with: .\setup-plugin.ps1 -BackendOnly"
     Write-Host ""
     
