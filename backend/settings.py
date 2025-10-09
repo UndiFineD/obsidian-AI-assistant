@@ -6,14 +6,24 @@ Precedence: environment variables > backend/config.yaml > code defaults.
 
 Expose get_settings() to retrieve a cached singleton instance.
 """
+
 from typing import Any, Optional
-from __future__ import annotations
 
 import os
 from functools import lru_cache
 from pathlib import Path
 
 from pydantic import BaseModel
+
+
+class Settings(BaseModel):
+    model_config = {"protected_namespaces": ()}  # Allow model_ prefixed fields
+
+    # Core server
+    backend_url: str = "http://127.0.0.1:8000"
+    api_port: int = 8000
+    allow_network: bool = False
+    continuous_mode: bool = False
 
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
@@ -43,25 +53,26 @@ from pydantic import BaseModel
     @property
     def abs_vault_path(self) -> Path:
         p = Path(self.vault_path)
-
-    return p if p.is_absolute() else self.base_dir / p
-
+        return p if p.is_absolute() else self.base_dir / p
 
     @property
     def abs_models_dir(self) -> Path:
         p = Path(self.models_dir)
-
-    return p if p.is_absolute() else self.base_dir / p
-
-pass
+        return p if p.is_absolute() else self.base_dir / p
 
     @property
     def abs_cache_dir(self) -> Path:
         p = Path(self.cache_dir)
-    return p if p.is_absolute() else self.base_dir / p
+        return p if p.is_absolute() else self.base_dir / p
+
+
 
 def _load_yaml_config() -> dict:
     cfg_path = Path(__file__).parent / "config.yaml"
+    try:
+        import yaml
+    except ImportError:
+        yaml = None
     if not cfg_path.exists() or yaml is None:
         return {}
     try:
@@ -74,7 +85,7 @@ def _load_yaml_config() -> dict:
         return {}
 
 
-from typing import Any, Optional
+
 def _coerce_value_for_field(field_name: str, value: Any) -> Optional[Any]:
     """Coerce a string value to the correct type for a given Settings field."""
     field_info = Settings.model_fields.get(field_name)
@@ -95,7 +106,6 @@ def _coerce_value_for_field(field_name: str, value: Any) -> Optional[Any]:
         # If coercion fails, return None to indicate the value should be skipped.
         return None
 
-
 def _merge_env(overrides: dict) -> dict:
     """Map selected environment variables into settings fields."""
     env_map = {
@@ -115,7 +125,7 @@ def _merge_env(overrides: dict) -> dict:
         "CHUNK_SIZE": "chunk_size",
         "CHUNK_OVERLAP": "chunk_overlap",
         "SIMILARITY_THRESHOLD": "similarity_threshold",
-        "VOSK_MODEL_PATH": "vosk_model_path",
+        "VOSK_MODEL_PATH": "vosk_model_path"
     }
 
     for env_key, field in env_map.items():
@@ -136,61 +146,4 @@ def get_settings() -> Settings:
     if not data.get("backend_url"):
         port = data.get("api_port", Settings().api_port)
         data["backend_url"] = f"http://127.0.0.1:{port}"
-
-    class Settings(BaseModel):
-        model_config = {"protected_namespaces": ()}  # Allow model_ prefixed fields
-
-        # Core server
-        backend_url: str = "http://127.0.0.1:8000"
-        api_port: int = 8000
-        allow_network: bool = False
-        continuous_mode: bool = False
-
-        # Paths
-        project_root: str = str(Path(__file__).resolve().parents[1])
-        vault_path: str = "vault"
-        models_dir: str = "models"
-        cache_dir: str = "cache"
-
-        # LLM / embeddings / vector DB
-        model_backend: str = "llama_cpp"
-        model_path: str = "models/llama-7b.gguf"
-        embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
-        vector_db: str = "chroma"
-        gpu: bool = True
-        top_k: int = 10
-        chunk_size: int = 800
-        chunk_overlap: int = 200
-        similarity_threshold: float = 0.75
-
-        # Voice
-        vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
-
-        # Derived
-        @property
-        def base_dir(self) -> Path:
-            return Path(self.project_root)
-
-        @property
-        def abs_vault_path(self) -> Path:
-            p = Path(self.vault_path)
-            return p if p.is_absolute() else self.base_dir / p
-
-        @property
-        def abs_models_dir(self) -> Path:
-            p = Path(self.models_dir)
-            return p if p.is_absolute() else self.base_dir / p
-
-        @property
-        def abs_cache_dir(self) -> Path:
-            p = Path(self.cache_dir)
-            return p if p.is_absolute() else self.base_dir / p
-    if validated_updates and yaml is not None:
-        current.update(validated_updates)
-        try:
-            with open(cfg_path, "w", encoding="utf-8") as f:
-                yaml.safe_dump(current, f, sort_keys=False)
-        except Exception:
-            # If write fails, still return current in-memory merged settings
-            pass
-    return reload_settings()
+    return Settings(**data)

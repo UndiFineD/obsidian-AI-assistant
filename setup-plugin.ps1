@@ -122,7 +122,7 @@ function Test-Prerequisites {
     }
     
     # Check if we're in the correct directory
-    $currentDir = Get-Location
+    # Removed unused variable $currentDir
     $expectedFiles = @("backend", "plugin", "package.json", "README.md")
     $missingFiles = @()
     
@@ -371,9 +371,9 @@ function Start-BackendServer {
     try {
         # Start server in background job for testing, or directly for production
         $serverJob = Start-Job -ScriptBlock {
-            param($Host, $Port, $Reload)
+            param($BackendHost, $Port, $Reload)
             Set-Location $using:PWD
-            python -m uvicorn backend.backend:app --host $Host --port $Port $(if($Reload){'--reload'})
+            python -m uvicorn backend.backend:app --host $BackendHost --port $Port $(if($Reload){'--reload'})
         } -ArgumentList $BACKEND_HOST, $BACKEND_PORT, $BACKEND_RELOAD
         
         # Wait a moment for server to start
