@@ -3,6 +3,7 @@
 
 **Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
 
+ 
 ---
 
 ## **Features**
@@ -17,6 +18,7 @@
 - **Security**: Optional encryption for cached data with Fernet encryption
 - **FastAPI Backend**: RESTful API with automatic documentation and error handling
 
+ 
 ---
 
 ## **Project Structure**
@@ -40,6 +42,7 @@ obsidian-llm-assistant/
 
 ## **Setup Instructions**
 
+ 
 ### **Enterprise Setup (Optional)**
 
 For organizations requiring enterprise features, additional backend modules are available:
@@ -58,6 +61,7 @@ backend/enterprise/
 └── integrations.py  # Enterprise integrations
 ```
 
+ 
 #### **Enterprise Plugin Components**
 
 ```bash
@@ -68,6 +72,7 @@ plugin/
 └── styles.css          # Enterprise UI styling
 ```
 
+ 
 #### **Enterprise Configuration**
 
 ```yaml
@@ -87,6 +92,7 @@ enterprise:
   compliance:
     gdpr: true
     soc2: true
+ 
     audit_logging: true
   security:
     session_timeout: 3600
@@ -103,6 +109,7 @@ Once enterprise backend is running:
 3. **Configuration**: Settings → Enterprise → Enterprise Configuration
 4. **User Management**: Admin Dashboard → Users tab
 5. **Tenant Management**: Admin Dashboard → Tenants tab
+ 
 6. **Security Monitoring**: Admin Dashboard → Security tab
 7. **Compliance Reports**: Admin Dashboard → Compliance tab
 
@@ -128,6 +135,7 @@ This will:
 4. Download default models (LLaMA 7B Q4, GPT4All Lora)
 5. Build the Obsidian plugin automatically
 
+ 
 ### **Configuration System**
 
 The backend uses a centralized settings system with the following precedence:
@@ -149,6 +157,7 @@ continuous_mode: false
 vault_path: "vault"
 models_dir: "models"
 cache_dir: "cache"
+ 
 
 # LLM Settings
 model_backend: "llama_cpp"
@@ -183,6 +192,7 @@ POST http://localhost:8000/api/config/reload
 ```
 
 #### **Plugin Configuration**
+ 
 
 The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`):
 
@@ -221,6 +231,7 @@ Plugin config:
 ```pwsh
 # Copy plugin config template and edit backend URL if needed
 Copy-Item .\plugin\config.template.json .\plugin\config.json -Force
+ 
 notepad .\plugin\config.json
 ```
 
@@ -260,6 +271,7 @@ This lightweight server:
 - Serves static plugin files from `./plugin`
 - Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`
 Requires only Python, no Node.js or npm.
+
 #### **Backend Endpoints**
 
 The FastAPI backend provides these key endpoints:
@@ -285,6 +297,7 @@ The FastAPI backend provides these key endpoints:
     - **Backend URL**: `http://localhost:8000`
     - **Vault Path**: path to your notes
     - **Prefer Fast LLM**: toggle for LLaMA vs GPT4All
+
 ---
 
 ### **4. Using the Plugin**
@@ -296,6 +309,7 @@ The FastAPI backend provides these key endpoints:
 - **Analytics Dashboard:** Ribbon icon 📊 → semantic coverage, QA history
 - **Inline Note Formatting:** Task queue automatically formats notes via backend
 - **Link Notes:** Task queue generates semantic links automatically
+
 ---
 
 ### **5. Recommended Workflow**
@@ -305,6 +319,7 @@ The FastAPI backend provides these key endpoints:
 3. **Process Queue:** Format notes, link notes, cache answers
 4. **Review Analytics:** Track coverage and recent questions
 5. **Iterate:** Update notes, reindex vault, repeat
+
 ---
 
 ### **6. Optional Features**
@@ -312,6 +327,7 @@ The FastAPI backend provides these key endpoints:
 - **Web/PDF fetching:** Backend `/fetch_url` → index external resources
 - **Reindex Vault:** Backend `/reindex` → refresh all embeddings
 - **Encryption:** Enable in `backend/security.py` → encrypt cached answers
+
 ---
 
 ### **7. Screenshots / Placeholders**
@@ -527,6 +543,7 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 - **Repository**: [https://github.com/UndiFineD/obsidian-AI-assistant](https://github.com/UndiFineD/obsidian-AI-assistant)
 - **Test Coverage**: 90.02% with ongoing improvements
 - **Status**: Active development with comprehensive test suite
+
 ---
 
 This `README.md` provides **everything a user needs** to install, configure, and start using your offline-first Obsidian LLM assistant.

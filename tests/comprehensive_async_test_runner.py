@@ -273,7 +273,7 @@ class AsyncTestRunner:
                 
                 # Track indentation to know when we exit a class
                 while indent_stack and indent <= indent_stack[-1][1]:
-                    popped = indent_stack.pop()
+                    indent_stack.pop()
                     if indent_stack:
                         current_class = indent_stack[-1][0] if isinstance(indent_stack[-1][0], str) and indent_stack[-1][0].startswith('Test') else None
                     else:

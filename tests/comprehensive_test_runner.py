@@ -10,7 +10,7 @@ import time
 import subprocess
 import pytest
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
 import json
@@ -210,7 +210,7 @@ class ComprehensiveTestRunner:
             # If we can't parse functions, run the whole file
             test_functions = [f"{test_file.stem}::ALL_TESTS"]
             
-        for i, test_func in enumerate(test_functions):
+        for test_func in test_functions:
             self.test_count += 1
             
             # Show running status
@@ -372,7 +372,7 @@ class ComprehensiveTestRunner:
             print(f"\n⏱️ Slowest Tests:")
             for i, result in enumerate(slowest_tests, 1):
                 print(f"  {i}. {result.name} - {result.duration:.3f}s")
-                
+
         print("=" * 80)
         
         # Final status

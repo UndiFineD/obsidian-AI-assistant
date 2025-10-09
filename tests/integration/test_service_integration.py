@@ -7,7 +7,7 @@ import pytest
 import tempfile
 import sys
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch
 import pytest_asyncio
 
 # Import the app and client for true API testing
@@ -174,8 +174,8 @@ class TestConfigurationIntegration:
     async def test_configuration_reload_integration(self, client):
         """Test configuration reload affects all services."""
         with patch('backend.settings.reload_settings') as mock_reload, \
-             patch('backend.backend.model_manager') as mock_mm, \
-             patch('backend.backend.emb_manager') as mock_em:
+             patch('backend.backend.model_manager'), \
+             patch('backend.backend.emb_manager'):
             
             # Configure reload mock
             new_settings = Mock()

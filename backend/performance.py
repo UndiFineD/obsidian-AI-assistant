@@ -9,13 +9,11 @@ Performance optimization module implementing Phase 1 optimizations:
 import asyncio
 import time
 import threading
-from concurrent.futures import ThreadPoolExecutor
 from typing import Dict, Optional, Any, Callable, Awaitable
 from dataclasses import dataclass
 from pathlib import Path
 import json
 import logging
-import weakref
 from functools import wraps
 
 logger = logging.getLogger(__name__)
@@ -291,7 +289,7 @@ class ConnectionPool:
         if hasattr(conn, 'close'):
             try:
                 conn.close()
-            except:
+            except Exception:
                 pass
     
     def cleanup_idle_connections(self):

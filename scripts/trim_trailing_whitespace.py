@@ -13,7 +13,6 @@ Rules:
 Skips: .git/, node_modules/, models/, vector_db/, cache/, __pycache__/, .venv/, venv/
 """
 from __future__ import annotations
-import os
 import sys
 from pathlib import Path
 from typing import Iterable, Tuple

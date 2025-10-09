@@ -5,7 +5,6 @@ Runs all integration tests in proper order and provides comprehensive reporting.
 """
 import pytest
 import sys
-import os
 import time
 from pathlib import Path
 from typing import Dict, List, Tuple
