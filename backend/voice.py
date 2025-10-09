@@ -78,7 +78,8 @@ async def voice_transcribe(file: UploadFile):
                         result.append(part["text"])
 
             final = json.loads(rec.FinalResult())
-            if "text" in final: result.append(final["text"])
+            if "text" in final:
+                result.append(final["text"])
             text = " ".join([r for r in result if r])
     finally:
         # Ensure the temporary file is always cleaned up

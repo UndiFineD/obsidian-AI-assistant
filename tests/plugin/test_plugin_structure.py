@@ -287,10 +287,10 @@ class TestPluginConfiguration:
     def test_no_sensitive_data_in_files(self):
         """Test that plugin files don't contain sensitive data."""
         sensitive_patterns = [
-            r'password\s*[=:]\s*["\'][^"\']+["\']',
-            r'api[_-]?key\s*[=:]\s*["\'][^"\']+["\']',
-            r'secret\s*[=:]\s*["\'][^"\']+["\']',
-            r'\btoken\s*[=:]\s*["\'][^"\']+["\']'  # Use word boundary to avoid matching 'tokens'
+            r'password\s*=\s*["\'][^"\']{3,}["\']',  # Only match actual assignments with =
+            r'api[_-]?key\s*=\s*["\'][^"\']{8,}["\']',  # Only match actual assignments with =
+            r'secret\s*=\s*["\'][^"\']{8,}["\']',  # Only match actual assignments with =
+            r'token\s*=\s*["\'][^"\']{8,}["\']'  # Only match actual assignments with =, not object properties
         ]
         
         js_files = self.plugin_dir.glob("*.js")

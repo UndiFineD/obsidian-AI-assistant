@@ -1,0 +1,3 @@
+# List of available models for ModelManager
+# Format: <subdir>/<filename>
+gpt4all/gpt4all-model.bin

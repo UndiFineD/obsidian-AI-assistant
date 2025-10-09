@@ -7,7 +7,7 @@ continuous_mode: false
 embed_model: sentence-transformers/all-MiniLM-L6-v2
 gpu: true
 malicious_key: hack_attempt
-model_backend: updated-model
+model_backend: new-model
 model_path: models/llama-7b.gguf
 similarity_threshold: 0.8
 top_k: 10

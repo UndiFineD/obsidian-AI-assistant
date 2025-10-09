@@ -46,19 +46,16 @@ class MultiLevelCache:
     """
     
     def __init__(self, 
-                 l1_size: int = 1000,
-                 l2_size: int = 10000,
-                 cache_dir: str = "./cache/performance"):
+            l1_size: int = 1000,
+            l2_size: int = 10000,
+            cache_dir: str = "./cache/performance"):
         self.l1_cache: Dict[str, CacheEntry] = {}  # In-memory
         self.l1_max_size = l1_size
-        
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        
         self.l2_file = self.cache_dir / "l2_cache.json"
         self.l2_cache: Dict[str, CacheEntry] = {}
         self.l2_max_size = l2_size
-        
         self._l2_lock = threading.Lock()  # Lock for thread-safe L2 cache operations
         self._load_l2_cache()
         self._stats = {
@@ -78,7 +75,6 @@ class MultiLevelCache:
                 return entry.value
             else:
                 del self.l1_cache[key]
-        
         # Check L2 (medium speed)
         with self._l2_lock:
             if key in self.l2_cache:
@@ -91,18 +87,19 @@ class MultiLevelCache:
                     return entry.value
                 else:
                     del self.l2_cache[key]
-        
         self._stats['misses'] += 1
         return default
     
     def set(self, key: str, value: Any, ttl: int = 3600):
         """Set value in cache with automatic level management"""
+        now = time.time()
         entry = CacheEntry(
             value=value,
-            timestamp=time.time(),
-            ttl=ttl
+            timestamp=now,
+            ttl=ttl,
+            access_count=0,
+            last_access=now
         )
-        
         # Always start in L1 for hot data
         self._set_l1(key, entry)
         self._stats['writes'] += 1
@@ -119,16 +116,37 @@ class MultiLevelCache:
             self._evict_l1_lru()
         self.l1_cache[key] = entry
     
+    def _load_l2_cache(self):
+        """Load L2 cache from disk if available."""
+        with self._l2_lock:
+            if self.l2_file.exists():
+                try:
+                    with open(self.l2_file, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                        for key, entry_data in data.items():
+                            entry = CacheEntry(
+                                value=entry_data['value'],
+                                timestamp=entry_data['timestamp'],
+                                ttl=entry_data.get('ttl', 3600),
+                                access_count=entry_data.get('access_count', 0),
+                                last_access=entry_data.get('last_access', entry_data['timestamp'])
+                            )
+                            if not entry.is_expired():
+                                self.l2_cache[key] = entry
+                except (json.JSONDecodeError, KeyError, OSError) as e:
+                    # If loading fails, start with empty cache
+                    self.l2_cache = {}
+                    logging.warning(f"Failed to load L2 cache: {e}")
+            else:
+                self.l2_cache = {}
+    
     def _evict_l1_lru(self):
         """Evict least recently used item from L1 to L2"""
         if not self.l1_cache:
             return
-            
         # Find LRU item
-        lru_key = min(self.l1_cache.keys(), 
-                     key=lambda k: self.l1_cache[k].last_access)
+        lru_key = min(self.l1_cache.keys(), key=lambda k: self.l1_cache[k].last_access)
         lru_entry = self.l1_cache.pop(lru_key)
-        
         # Move to L2 if not expired
         with self._l2_lock:
             if not lru_entry.is_expired():
@@ -136,33 +154,8 @@ class MultiLevelCache:
                     self._evict_l2_lru()
                 self.l2_cache[lru_key] = lru_entry
                 self._persist_l2_cache()
-        
         self._stats['evictions'] += 1
-    
-    def _evict_l2_lru(self):
-        """Evict least recently used item from L2"""
-        if not self.l2_cache:
-            return
-            
-        lru_key = min(self.l2_cache.keys(),
-                     key=lambda k: self.l2_cache[k].last_access)
-        del self.l2_cache[lru_key]
-    
-    def _load_l2_cache(self):
-        """Load L2 cache from disk"""
-        if not self.l2_file.exists():
-            return
-            
-        try:
-            with self._l2_lock:
-                with open(self.l2_file, 'r') as f:
-                    data = json.load(f)
-                    for key, entry_data in data.items():
-                        entry = CacheEntry(**entry_data)
-                        if not entry.is_expired():
-                            self.l2_cache[key] = entry
-        except Exception as e:
-            logger.warning(f"Failed to load L2 cache: {e}")
+    pass  # placeholder to ensure valid block after eviction logic
     
     def _persist_l2_cache(self):
         """Persist L2 cache to disk (async in background)"""
@@ -193,7 +186,6 @@ class MultiLevelCache:
         """Get cache performance statistics"""
         total_requests = self._stats['l1_hits'] + self._stats['l2_hits'] + self._stats['misses']
         hit_rate = (self._stats['l1_hits'] + self._stats['l2_hits']) / max(total_requests, 1)
-        
         return {
             **self._stats,
             'hit_rate': hit_rate,
@@ -209,10 +201,10 @@ class ConnectionPool:
     """
     
     def __init__(self, 
-                 factory: Callable,
-                 min_size: int = 2,
-                 max_size: int = 10,
-                 max_idle: float = 300):  # 5 minutes
+            factory: Callable,
+            min_size: int = 2,
+            max_size: int = 10,
+            max_idle: float = 300):  # 5 minutes
         self.factory = factory
         self.min_size = min_size
         self.max_size = max_size
