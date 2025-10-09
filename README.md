@@ -136,7 +136,6 @@ The backend uses a centralized settings system with the following precedence:
 2. **`backend/config.yaml`** (medium priority)
 3. **Code Defaults** (lowest priority)
 
-
 #### **Key Configuration Options**
 
 ```yaml
@@ -227,7 +226,6 @@ notepad .\plugin\config.json
 
 Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
 No Node.js build step is required—the plugin JS and CSS are ready-to-use.
-    
 
 ---
 
@@ -243,7 +241,7 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Windows PowerShell
 & venv\Scripts\Activate.ps1
-cd backend  
+cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -262,8 +260,6 @@ This lightweight server:
 - Serves static plugin files from `./plugin`
 - Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`
 Requires only Python, no Node.js or npm.
-- Useful for plugin UI testing
-
 #### **Backend Endpoints**
 
 The FastAPI backend provides these key endpoints:
@@ -284,63 +280,38 @@ The FastAPI backend provides these key endpoints:
 ### **3. Install Plugin in Obsidian**
 
 1. Copy the `plugin/` folder to your vault’s `.obsidian/plugins/obsidian-llm-plugin/`
-    
 2. Open Obsidian → Settings → Community Plugins → Enable `Obsidian LLM Assistant`
-    
 3. Configure:
-    
     - **Backend URL**: `http://localhost:8000`
-        
     - **Vault Path**: path to your notes
-        
     - **Prefer Fast LLM**: toggle for LLaMA vs GPT4All
-        
-
 ---
 
 ### **4. Using the Plugin**
 
 - **Ask Question:** Ribbon icon 🎲 → input question → task added to queue
-    
 - **Start Queue:** Ribbon icon ▶ → processes tasks in order/batches
-    
 - **Pause Queue:** Ribbon icon ⏹ → pause processing
-    
 - **Voice Input:** optional microphone icon → speak your query
-    
 - **Analytics Dashboard:** Ribbon icon 📊 → semantic coverage, QA history
-    
 - **Inline Note Formatting:** Task queue automatically formats notes via backend
-    
 - **Link Notes:** Task queue generates semantic links automatically
-    
-
 ---
 
 ### **5. Recommended Workflow**
 
 1. **Scan Vault:** `Scan Vault` endpoint or first run → index all `.md` and PDFs
-    
 2. **Ask Questions:** Add queries to queue, or speak via voice input
-    
 3. **Process Queue:** Format notes, link notes, cache answers
-    
 4. **Review Analytics:** Track coverage and recent questions
-    
 5. **Iterate:** Update notes, reindex vault, repeat
-    
-
 ---
 
 ### **6. Optional Features**
 
 - **Web/PDF fetching:** Backend `/fetch_url` → index external resources
-    
 - **Reindex Vault:** Backend `/reindex` → refresh all embeddings
-    
 - **Encryption:** Enable in `backend/security.py` → encrypt cached answers
-    
-
 ---
 
 ### **7. Screenshots / Placeholders**
@@ -442,7 +413,6 @@ pytest -k "test_caching or test_settings" -v
 
 **Setup Script Tests:**
 
-
 _PowerShell (Windows):_
 
 ```powershell
@@ -452,7 +422,6 @@ Install-Module -Name Pester -Force -SkipPublisherCheck
 # Run PowerShell tests
 Invoke-Pester tests/setup/test_setup_ps1.ps1 -Verbose
 ```
-
 
 _Bash (Linux/macOS):_
 
@@ -507,6 +476,7 @@ GET /api/config              # Get current settings
 POST /api/config             # Update settings
 POST /api/config/reload      # Reload from file
 
+
 # AI operations
 POST /ask                    # Ask question to LLM
 POST /reindex                # Reindex vault documents  
@@ -548,8 +518,7 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 
 **Optional:**
 
-
----
+--
 
 ### **11. License & Contributing**
 
@@ -558,8 +527,6 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 - **Repository**: [https://github.com/UndiFineD/obsidian-AI-assistant](https://github.com/UndiFineD/obsidian-AI-assistant)
 - **Test Coverage**: 90.02% with ongoing improvements
 - **Status**: Active development with comprehensive test suite
-    
-
 ---
 
 This `README.md` provides **everything a user needs** to install, configure, and start using your offline-first Obsidian LLM assistant.

@@ -2,11 +2,10 @@
 
 ## **✅ Specification Complete: Obsidian AI Assistant**
 
-
 I've created a comprehensive **Technical Specification** document (`docs/SPECIFICATION.md`) that covers:
 
+---
 
--
 ### **🎯 Core Documentation**
 
 - **System Architecture**: Component diagrams and module structure

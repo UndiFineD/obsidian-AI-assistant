@@ -43,11 +43,11 @@ param(
     [switch]$Force
 )
 
-# Script configuration
-$ErrorActionPreference = "Stop"
-$PluginName = "obsidian-ai-assistant"
-$BackendPort = 8000
-$BackendHost = "127.0.0.1"
+# Source the configuration file
+$ConfigPath = Join-Path $PSScriptRoot "setup-config.ps1"
+if (Test-Path $ConfigPath) {
+    . $ConfigPath
+}
 
 # Color functions for better output
 function Write-ColorOutput {
@@ -208,7 +208,7 @@ function Install-PluginFiles {
     
     Write-Step "Installing Plugin Files" 2
     
-    $pluginDir = Join-Path $VaultPath ".obsidian\plugins\$PluginName"
+    $pluginDir = Join-Path $VaultPath ".obsidian\plugins\$PLUGIN_NAME"
     $sourceDir = "plugin"
     
     # Check if plugin already exists
@@ -232,22 +232,11 @@ function Install-PluginFiles {
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
         
         # Define essential plugin files
-        $pluginFiles = @(
-            "manifest.json",
-            "main.js",
-            "styles.css",
-            "taskQueue.js",
-            "taskQueueView.js",
-            "voice.js",
-            "voiceInput.js",
-            "analyticsPane.js"
-        )
-        
         # Copy plugin files
         $copiedCount = 0
         $totalSize = 0
         
-        foreach ($file in $pluginFiles) {
+        foreach ($file in $REQUIRED_PLUGIN_FILES) {
             $sourcePath = Join-Path $sourceDir $file
             $destPath = Join-Path $pluginDir $file
             
@@ -365,7 +354,7 @@ function Start-BackendServer {
     
     # Check if server is already running
     try {
-        $response = Invoke-RestMethod -Uri "http://$BackendHost`:$BackendPort/health" -TimeoutSec 2 -ErrorAction SilentlyContinue
+        $response = Invoke-RestMethod -Uri "http://$BACKEND_HOST`:$BACKEND_PORT/health" -TimeoutSec $HEALTH_CHECK_TIMEOUT -ErrorAction SilentlyContinue
         if ($response) {
             Write-Success "Backend server already running at http://$BackendHost`:$BackendPort"
             return $true
@@ -375,24 +364,24 @@ function Start-BackendServer {
     }
     
     Write-Info "Starting FastAPI backend server..."
-    Write-Info "URL: http://$BackendHost`:$BackendPort"
+    Write-Info "URL: http://$BACKEND_HOST`:$BACKEND_PORT"
     Write-Info "Press Ctrl+C to stop the server"
     Write-Warning "Keep this terminal open while using the plugin"
     
     try {
         # Start server in background job for testing, or directly for production
         $serverJob = Start-Job -ScriptBlock {
-            param($Host, $Port)
+            param($Host, $Port, $Reload)
             Set-Location $using:PWD
-            python -m uvicorn backend.backend:app --host $Host --port $Port --reload
-        } -ArgumentList $BackendHost, $BackendPort
+            python -m uvicorn backend.backend:app --host $Host --port $Port $(if($Reload){'--reload'})
+        } -ArgumentList $BACKEND_HOST, $BACKEND_PORT, $BACKEND_RELOAD
         
         # Wait a moment for server to start
-        Start-Sleep -Seconds 3
+        Start-Sleep -Seconds $SERVER_START_TIMEOUT
         
         # Test server health
         try {
-            $response = Invoke-RestMethod -Uri "http://$BackendHost`:$BackendPort/health" -TimeoutSec 5
+            $response = Invoke-RestMethod -Uri "http://$BACKEND_HOST`:$BACKEND_PORT/health" -TimeoutSec $HEALTH_CHECK_TIMEOUT
             Write-Success "Backend server started successfully"
             Write-Success "Health check: $($response.status)"
             
@@ -402,7 +391,7 @@ function Start-BackendServer {
             
             # Now start interactively
             Write-Info "Starting server in interactive mode..."
-            python -m uvicorn backend.backend:app --host $BackendHost --port $BackendPort --reload
+            python -m uvicorn backend.backend:app --host $BACKEND_HOST --port $BACKEND_PORT $(if($BACKEND_RELOAD){'--reload'})
             
         } catch {
             Write-Error "Server health check failed"

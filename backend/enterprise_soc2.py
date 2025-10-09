@@ -1,16 +1,13 @@
 # Enterprise SOC2 Compliance Module
 # Implements security controls and audit framework for SOC2 Type II compliance
 
-from typing import Dict, List, Optional, Any, Set
+from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
 from enum import Enum
 from datetime import datetime, timedelta
-import json
-import hashlib
 import logging
 import uuid
-import asyncio
-from contextlib import asynccontextmanager
+from fastapi import Request
 
 logger = logging.getLogger(__name__)
 
