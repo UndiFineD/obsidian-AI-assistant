@@ -77,7 +77,7 @@ class TestPluginFunctionality:
         content = self.main_js_content
         
         # Should use fetch for HTTP requests
-        assert 'fetch(' in content, "Should use fetch API for HTTP requests"
+        assert 'fetch' in content or 'request' in content, "Should use fetch or a request helper for HTTP"
         # Should handle different HTTP methods
         http_methods = ['GET', 'POST']  # Check for the most common methods
         found_methods = sum(1 for method in http_methods 

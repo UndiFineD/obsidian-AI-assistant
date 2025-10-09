@@ -290,7 +290,7 @@ class TestPluginConfiguration:
             r'password\s*[=:]\s*["\'][^"\']+["\']',
             r'api[_-]?key\s*[=:]\s*["\'][^"\']+["\']',
             r'secret\s*[=:]\s*["\'][^"\']+["\']',
-            r'token\s*[=:]\s*["\'][^"\']+["\']'
+            r'\btoken\s*[=:]\s*["\'][^"\']+["\']'  # Use word boundary to avoid matching 'tokens'
         ]
         
         js_files = self.plugin_dir.glob("*.js")

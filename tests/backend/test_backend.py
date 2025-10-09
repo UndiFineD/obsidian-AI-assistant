@@ -1,12 +1,13 @@
 # tests/backend/test_backend.py
-import sys
-import os
 import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from backend.backend import app, AskRequest, ReindexRequest, WebRequest
-project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-sys.path.insert(0, project_root)
+
+# Import app and models after mocking services
+from backend.backend import AskRequest, ReindexRequest, WebRequest
+
+# This import is deferred to fixtures to allow for proper mocking
+# from backend.backend import app
 
 class TestBackendAPI:
     """Test suite for the main backend FastAPI application."""
@@ -14,6 +15,7 @@ class TestBackendAPI:
     @pytest.fixture
     def client(self):
         """Create a test client for the FastAPI app."""
+        from backend.backend import app
         return TestClient(app)
     
     @pytest.fixture

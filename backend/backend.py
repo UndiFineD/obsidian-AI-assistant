@@ -128,17 +128,14 @@ def _init_performance_systems():
             # This is a placeholder - would create actual model instances
             # in a real implementation with heavy models
             return {"status": "connected", "created": time.time()}
-        
-        get_connection_pool("models", create_model_connection, 
-                          min_size=1, max_size=3, max_idle=600)
+        get_connection_pool("models", create_model_connection, min_size=1, max_size=3, max_idle=600)
         
         # Database connection pool - for vector database connections  
         def create_db_connection():
             """Factory function for database connections"""
             return {"status": "connected", "created": time.time()}
         
-        get_connection_pool("vector_db", create_db_connection,
-                          min_size=2, max_size=5, max_idle=300)
+        get_connection_pool("vector_db", create_db_connection, min_size=2, max_size=5, max_idle=300)
         
         # Initialize async task queue for background processing
         # Note: Background queue will be started when first async endpoint is called
@@ -218,7 +215,6 @@ async def health():
     })
     return payload
 
-
 @app.get("/api/config")
 async def get_config():
     from backend.settings import _ALLOWED_UPDATE_KEYS
@@ -235,7 +231,6 @@ async def post_reload_config():
         return {"ok": True, "settings": s.dict()}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}") from e
-
 
 @app.post("/api/config")
 async def post_update_config(partial: dict):
@@ -264,45 +259,48 @@ def _ask_impl(request: AskRequest):
     
     # Generate new answer
     try:
-        # Tests mock model_manager.generate directly
-        to_generate = request.prompt if request.prompt else request.question
+        # Get context from embeddings if use_context is True
+        context_text = ""
+        # The attribute is on the Pydantic model, but might not be in the JSON
+        # so we check if the attribute exists and is True.
+        use_context = getattr(request, 'use_context', False)
+        # Correctly check for use_context and ensure emb_manager is available.
+        # Also check for 'question' attribute as it's needed for search.
+        if use_context and emb_manager and hasattr(request, 'question'):
+            search_results = emb_manager.search(request.question, top_k=get_settings().top_k)
+            if search_results:
+                context_text = "\n".join([hit['text'] for hit in search_results])
+
+        # Prepare the prompt for the model
+        if context_text:
+            to_generate = f"Context: {context_text}\n\nQuestion: {request.question}"
+        else:
+            to_generate = request.prompt if request.prompt else request.question
         
         start_time = time.time()
         answer = model_manager.generate(
             to_generate,
+            context=context_text,
             prefer_fast=request.prefer_fast,
             max_tokens=request.max_tokens,
         )
         generation_time = time.time() - start_time
         
-        if isinstance(answer, str) and "No model available" in answer:
-            raise RuntimeError("Model unavailable")
-        if answer is None or (isinstance(answer, str) and answer.strip() == ""):
-            raise RuntimeError("No answer generated")
-            
+        if not answer or (isinstance(answer, str) and "No model available" in answer):
+            raise RuntimeError("Model unavailable or failed to generate an answer.")
     except Exception as e:
         print(f"[_ask_impl] Error generating answer: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
     
-    # Store in both cache systems
-    try: # Store in performance cache with a TTL based on generation time
-        cache_ttl = 3600 if generation_time < 5.0 else 1800  # Longer TTL for fast responses
-        performance_cache.set(cache_key, answer, ttl=cache_ttl)
-    except Exception as e:
-        print(f"[_ask_impl] Error storing answer: {e}")
+    performance_cache.set(cache_key, answer)
     
-    return {
-        "answer": answer, 
-        "cached": False, 
-        "model": request.model_name,
-        "generation_time": generation_time
-    }
+    return {"answer": answer, "cached": False, "model": request.model_name, "generation_time": generation_time}
 
 @app.post("/api/ask")
 async def api_ask(request: AskRequest):
     return _ask_impl(request)
 
-@app.post("/ask")
+@app.post("/ask") # type: ignore
 async def ask(request: AskRequest):
     return _ask_impl(request)
 
@@ -313,8 +311,9 @@ async def scan_vault(vault_path: str = "vault"):
     global vault_indexer
     if vault_indexer is None:
         init_services()
-    updated_files = vault_indexer.index_vault(vault_path)
-    return {"indexed_files": updated_files}
+    if not os.path.isdir(vault_path):
+        raise HTTPException(status_code=400, detail=f"Invalid vault path: {vault_path}")
+    return {"indexed_files": vault_indexer.index_vault(vault_path)}
 
 @app.post("/api/web")
 async def api_web(request: WebRequest):
@@ -392,8 +391,11 @@ async def search(query: str, top_k: int = 5):
     global emb_manager
     if emb_manager is None:
         init_services()
-    hits = emb_manager.search(query, top_k=top_k)
-    return {"results": hits}
+    try:
+        hits = emb_manager.search(query, top_k=top_k)
+        return {"results": hits}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 @app.post("/api/index_pdf")
 async def index_pdf(pdf_path: str):

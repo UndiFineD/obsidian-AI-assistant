@@ -63,29 +63,30 @@ async def voice_transcribe(file: UploadFile):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
             temp_path = temp_file.name
             temp_file.write(audio_data)
-        # Allow wave.Error to propagate for tests
-        wf = wave.open(temp_path, "rb")
-        if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [16000, 8000]:
-            return {"error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."}
-        rec = vosk.KaldiRecognizer(model, wf.getframerate())
-        result = []
-        # Process the audio file in chunks
-        while data := wf.readframes(4000):
-            if rec.AcceptWaveform(data):
-                part = json.loads(rec.Result())  # Let JSONDecodeError propagate
-                if "text" in part:
-                    result.append(part["text"])
 
-        final = json.loads(rec.FinalResult())
-        if "text" in final:
-            result.append(final["text"])
-        
-        text = " ".join([r for r in result if r])
-        return {"transcription": text}
+        # Use a 'with' statement to ensure the wave file is closed before deletion
+        with wave.open(temp_path, "rb") as wf:
+            if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [16000, 8000]:
+                return {"error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."}
+            rec = vosk.KaldiRecognizer(model, wf.getframerate())
+            result = []
+            # Process the audio file in chunks
+            while data := wf.readframes(4000):
+                if rec.AcceptWaveform(data):
+                    part = json.loads(rec.Result())  # Let JSONDecodeError propagate
+                    if "text" in part:
+                        result.append(part["text"])
+
+            final = json.loads(rec.FinalResult())
+            if "text" in final: result.append(final["text"])
+            text = " ".join([r for r in result if r])
     finally:
         # Ensure the temporary file is always cleaned up
         if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
+
+    # This return should be outside the try...finally block if it depends on the 'with' block
+    return {"transcription": text}
 
 # Make the model object accessible as a global name for tests that reference `model` directly
 try:
