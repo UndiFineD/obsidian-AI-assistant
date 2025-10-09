@@ -182,9 +182,9 @@ class TestFileHashCache:
             test_file = Path(temp_dir) / "test.txt"
             test_file.write_text("test content")
             # Should be considered changed (new file)
-            assert cache.is_changed(test_file is True)
+            assert cache.is_changed(test_file) is True
             # Should not be considered changed (already cached)
-            assert cache.is_changed(test_file is False)
+            assert cache.is_changed(test_file) is False
     
     def test_file_hash_cache_detects_changes(self):
         """Test that file changes are detected."""

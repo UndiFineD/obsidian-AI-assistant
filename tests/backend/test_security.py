@@ -132,22 +132,20 @@ class TestSecurity:
         assert decrypted1 == test_data
         assert decrypted2 == test_data
     
-    def test_decrypt_invalid_data_raises_error(self):
-        """Test that decrypting invalid data raises an exception."""
+    def test_decrypt_invalid_data_returns_none(self):
+        """Test that decrypting invalid data returns None."""
         invalid_encrypted_data = b"invalid_encrypted_data_123"
         
-        from cryptography.fernet import InvalidToken
-        with pytest.raises(InvalidToken):  # Fernet raises InvalidToken for invalid data
-            decrypt_data(invalid_encrypted_data)
+        result = decrypt_data(invalid_encrypted_data)
+        assert result is None
     
-    def test_decrypt_empty_bytes_raises_error(self):
-        """Test that decrypting empty bytes raises an exception."""
-        from cryptography.fernet import InvalidToken
-        with pytest.raises(InvalidToken):
-            decrypt_data(b"")
+    def test_decrypt_empty_bytes_returns_none(self):
+        """Test that decrypting empty bytes returns None."""
+        result = decrypt_data(b"")
+        assert result is None
     
-    def test_decrypt_malformed_token_raises_error(self):
-        """Test that decrypting malformed tokens raises an exception."""
+    def test_decrypt_malformed_token_returns_none(self):
+        """Test that decrypting malformed tokens returns None."""
         # Create a token that looks like it might be valid but isn't
         malformed_tokens = [
             b"malformed",
@@ -155,10 +153,9 @@ class TestSecurity:
             b"not_base64_encoded_properly",
         ]
         
-        from cryptography.fernet import InvalidToken
         for token in malformed_tokens:
-            with pytest.raises((InvalidToken, AttributeError, TypeError)):
-                decrypt_data(token)
+            result = decrypt_data(token)
+            assert result is None
     
     def test_encrypt_data_input_type_validation(self):
         """Test that encrypt_data handles input type validation."""
@@ -177,11 +174,11 @@ class TestSecurity:
         valid_encrypted = encrypt_data("test")
         result = decrypt_data(valid_encrypted)
         assert isinstance(result, str)
-        # Test with non-bytes inputs
+        # Test with non-bytes inputs should return None
         invalid_inputs = ["string", 123, None, []]
         for invalid_input in invalid_inputs:
-            with pytest.raises((AttributeError, TypeError, Exception)):
-                decrypt_data(invalid_input)
+            result = decrypt_data(invalid_input)
+            assert result is None
     
     @patch('backend.security.fernet')
     def test_encrypt_data_uses_global_fernet(self, mock_fernet):

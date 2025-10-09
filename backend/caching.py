@@ -28,7 +28,7 @@ class CacheManager:
         return hashlib.sha256(question.encode("utf-8")).hexdigest()
 
     def get_cached_answer(self, question: str, timeout: float = 2.0) -> Optional[str]:
-        if not question:
+        if question is None:
             return None
         key = self._hash_question(question)
         entry = self.cache.get(key)

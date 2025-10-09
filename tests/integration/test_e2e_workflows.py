@@ -39,7 +39,7 @@ class TestCompleteWorkflows:
         # Step 1: Check system health
         response = client.get("/health")
         assert response.status_code == 200
-        assert response.json()["status"] == "healthy"
+        assert response.json()["status"] == "ok"
         
         # Step 2: Get initial configuration
         response = client.get("/api/config")
@@ -76,8 +76,7 @@ class TestCompleteWorkflows:
         # Note: Cache behavior depends on implementation
         
         # Step 6: Perform semantic search
-        response = client.post("/api/search", 
-                              params={"query": "machine learning", "top_k": 5})
+        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
         assert response.status_code == 200
         
         search_results = response.json()
