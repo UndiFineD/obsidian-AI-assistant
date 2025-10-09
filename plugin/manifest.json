@@ -7,4 +7,5 @@
     "author": "Keimpe de Jong",
     "authorUrl": "",
     "isDesktopOnly": false
+    "main": "main.js"
 }

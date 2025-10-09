@@ -22,7 +22,7 @@ huggingface-hub>=0.17.0
 requests>=2.31.0
 beautifulsoup4>=4.12.2
 readability-lxml>=0.8.1
-PyPDF2>=3.0.1
+pypdf>=4.0.0
 
 # Voice processing
 vosk>=0.3.45

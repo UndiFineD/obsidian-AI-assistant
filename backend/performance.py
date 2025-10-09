@@ -139,7 +139,7 @@ class MultiLevelCache:
                     logging.warning(f"Failed to load L2 cache: {e}")
             else:
                 self.l2_cache = {}
-    
+
     def _evict_l1_lru(self):
         """Evict least recently used item from L1 to L2"""
         if not self.l1_cache:

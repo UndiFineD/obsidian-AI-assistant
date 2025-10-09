@@ -1,0 +1,14 @@
+{
+  "name": "obsidian-ai-assistant-plugin",
+  "version": "0.1.0",
+  "description": "Obsidian AI Assistant plugin",
+  "main": "plugin/main.js",
+  "scripts": {
+    "test": "echo 'No automated tests yet.'",
+    "lint": "echo 'No linter configured.'"
+  },
+  "author": "UndiFineD",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
