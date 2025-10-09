@@ -63,15 +63,12 @@ async def voice_transcribe(file: UploadFile):
         with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
             temp_path = temp_file.name
             temp_file.write(audio_data)
-        
         # Allow wave.Error to propagate for tests
         wf = wave.open(temp_path, "rb")
         if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [16000, 8000]:
             return {"error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."}
-        
         rec = vosk.KaldiRecognizer(model, wf.getframerate())
         result = []
-        
         # Process the audio file in chunks
         while data := wf.readframes(4000):
             if rec.AcceptWaveform(data):

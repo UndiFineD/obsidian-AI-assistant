@@ -265,7 +265,6 @@ class RBACManager:
             return True
         except ValueError:
             return False
-    
     def _calculate_effective_permissions(self, user_perms: UserPermissions):
         """Calculate effective permissions from all assigned roles"""
         effective_perms = set()

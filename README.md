@@ -3,7 +3,6 @@
 
 **Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
 
- 
 ---
 
 ## **Features**
@@ -18,7 +17,6 @@
 - **Security**: Optional encryption for cached data with Fernet encryption
 - **FastAPI Backend**: RESTful API with automatic documentation and error handling
 
- 
 ---
 
 ## **Project Structure**
@@ -42,7 +40,6 @@ obsidian-llm-assistant/
 
 ## **Setup Instructions**
 
- 
 ### **Enterprise Setup (Optional)**
 
 For organizations requiring enterprise features, additional backend modules are available:
@@ -61,7 +58,6 @@ backend/enterprise/
 └── integrations.py  # Enterprise integrations
 ```
 
- 
 #### **Enterprise Plugin Components**
 
 ```bash
@@ -72,7 +68,6 @@ plugin/
 └── styles.css          # Enterprise UI styling
 ```
 
- 
 #### **Enterprise Configuration**
 
 ```yaml
@@ -109,7 +104,6 @@ Once enterprise backend is running:
 3. **Configuration**: Settings → Enterprise → Enterprise Configuration
 4. **User Management**: Admin Dashboard → Users tab
 5. **Tenant Management**: Admin Dashboard → Tenants tab
- 
 6. **Security Monitoring**: Admin Dashboard → Security tab
 7. **Compliance Reports**: Admin Dashboard → Compliance tab
 
@@ -135,7 +129,6 @@ This will:
 4. Download default models (LLaMA 7B Q4, GPT4All Lora)
 5. Build the Obsidian plugin automatically
 
- 
 ### **Configuration System**
 
 The backend uses a centralized settings system with the following precedence:
@@ -192,8 +185,6 @@ POST http://localhost:8000/api/config/reload
 ```
 
 #### **Plugin Configuration**
- 
-
 The plugin can optionally read `plugin/config.json` (copy from `plugin/config.template.json`):
 
 ```json
@@ -264,8 +255,6 @@ For quick testing without full backend dependencies:
 # From project root
 python test_server.py
 ```
-
-
 This lightweight server:
 
 - Serves static plugin files from `./plugin`

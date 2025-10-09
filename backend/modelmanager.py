@@ -180,7 +180,6 @@ class ModelManager:
         # Initialize router on first use
         if not hasattr(self, 'llm_router') or self.llm_router is None:
             self.llm_router = HybridLLMRouter()
-        
         kwargs = {'prefer_fast': prefer_fast, 'max_tokens': max_tokens}
         if context is not None:
             kwargs['context'] = context
