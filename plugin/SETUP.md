@@ -58,5 +58,16 @@ Ensure the following files are present in your plugin folder:
 - Disable the plugin in Obsidian settings.
 - Delete the plugin folder from your vault's plugins directory.
 
+
+## 8. Automated Testing (Optional)
+
+- To add automated tests, create a `tests/` directory and add test files (e.g., using Jest or Mocha).
+- Update `package.json` with test scripts and install devDependencies as needed.
+
+## 9. Build System (Optional)
+
+- If you want to use TypeScript, add a `tsconfig.json` and configure build scripts in `package.json`.
+- For pure JS, no build step is required.
+
 ---
 For advanced configuration, backend integration, or feature requests, see the project README or contact the maintainer.

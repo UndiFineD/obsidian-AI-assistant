@@ -24,7 +24,7 @@ if [ -f "$REQ_FILE" ]; then
     pip install -r "$REQ_FILE"
 else
     echo "Installing baseline Python deps..."
-    pip install fastapi uvicorn python-dotenv requests beautifulsoup4 readability-lxml PyPDF2 \
+    pip install fastapi uvicorn python-dotenv requests beautifulsoup4 readability-lxml pypdf \
         cryptography vosk sentence-transformers chromadb huggingface_hub accelerate transformers
 fi
 

@@ -21,7 +21,7 @@ mock_modules = {
     'openai': MagicMock(),
     'anthropic': MagicMock(),
     'dotenv': MagicMock(),
-    'PyPDF2': MagicMock(),
+    'pypdf': MagicMock(),
     'requests': MagicMock()
 }
 

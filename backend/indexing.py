@@ -6,7 +6,7 @@ from typing import Dict, Optional, Any
 from bs4 import BeautifulSoup
 import requests
 from readability import Document
-from PyPDF2 import PdfReader
+from pypdf import PdfReader
 from .utils import safe_call
 from .settings import get_settings
 

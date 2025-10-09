@@ -58,7 +58,7 @@ if (Test-Path $Requirements) {
 } else {
     Write-Host "Installing baseline Python deps (no requirements.txt found)..."
     $deps = @(
-        "fastapi","uvicorn","python-dotenv","requests","beautifulsoup4","readability-lxml","PyPDF2",
+    "fastapi","uvicorn","python-dotenv","requests","beautifulsoup4","readability-lxml","pypdf",
         "cryptography","vosk","sentence-transformers","chromadb","huggingface_hub","accelerate","transformers",
         "pydantic","pytest-asyncio"
     )

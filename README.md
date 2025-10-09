@@ -506,7 +506,7 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 - ChromaDB (vector database)
 - LLaMA-CPP-Python & GPT4All (LLM backends)
 - Vosk (speech recognition)
-- PyPDF2 & BeautifulSoup4 (document processing)
+- pypdf & BeautifulSoup4 (document processing)
 - Obsidian 1.5+ (plugin host)
 
 **Development Dependencies:**
