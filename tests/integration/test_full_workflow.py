@@ -5,18 +5,19 @@ Tests end-to-end scenarios from request to response, covering core user journeys
 like asking questions, indexing the vault, and performing semantic searches.
 """
 
+import asyncio
+import tempfile
 import time
+from pathlib import Path
+from unittest.mock import Mock, patch
+
 import pytest
 import pytest_asyncio
-from pathlib import Path
-from unittest.mock import Mock
-import asyncio
-from unittest.mock import patch
-import tempfile
+from httpx import ASGITransport, AsyncClient
 
 # Import backend components at the top for clarity
 from backend.backend import app
-from httpx import AsyncClient, ASGITransport
+
 
 class TestFullWorkflowIntegration:
     """Integration tests for complete AI Assistant workflow."""
@@ -30,10 +31,16 @@ class TestFullWorkflowIntegration:
             vault_dir = temp_path / "vault"
             vault_dir.mkdir()
             # Create sample markdown files
-            (vault_dir / "note1.md").write_text("# Test Note 1\nThis is a test note about AI.")
-            (vault_dir / "note2.md").write_text("# Research\nImportant research findings.")
+            (vault_dir / "note1.md").write_text(
+                "# Test Note 1\nThis is a test note about AI."
+            )
+            (vault_dir / "note2.md").write_text(
+                "# Research\nImportant research findings."
+            )
             (vault_dir / "folder").mkdir()
-            (vault_dir / "folder" / "nested.md").write_text("# Nested Note\nNested content.")
+            (vault_dir / "folder" / "nested.md").write_text(
+                "# Nested Note\nNested content."
+            )
             # Create models directory
             models_dir = temp_path / "models"
             models_dir.mkdir()
@@ -44,31 +51,49 @@ class TestFullWorkflowIntegration:
                 "temp_path": temp_path,
                 "vault_dir": vault_dir,
                 "models_dir": models_dir,
-                "cache_dir": cache_dir
+                "cache_dir": cache_dir,
             }
 
     @pytest.fixture(scope="class")
     def mock_services(self, temp_workspace):
         """Set up mocked services for integration testing."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.vault_indexer') as mock_vi, \
-            patch('backend.backend.cache_manager') as mock_cm:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
+            "backend.backend.cache_manager"
+        ) as mock_cm:
             # Configure ModelManager mock
             mock_mm.generate.return_value = "AI generated response based on your query."
             mock_mm.get_model_info.return_value = {
                 "available_models": ["gpt-3.5-turbo", "claude-3"],
-                "default_model": "gpt-3.5-turbo"
+                "default_model": "gpt-3.5-turbo",
             }
             # Configure EmbeddingsManager mock
             mock_em.search.return_value = [
-                {"text": "This is a test note about AI.", "score": 0.95, "source": "note1.md"},
-                {"text": "Important research findings.", "score": 0.87, "source": "note2.md"}
+                {
+                    "text": "This is a test note about AI.",
+                    "score": 0.95,
+                    "source": "note1.md",
+                },
+                {
+                    "text": "Important research findings.",
+                    "score": 0.87,
+                    "source": "note2.md",
+                },
             ]
             mock_em.add_documents.return_value = True
             # Configure VaultIndexer mock
-            mock_vi.index_vault.return_value = ["note1.md", "note2.md", "folder/nested.md"]
-            mock_vi.reindex.return_value = {"files": 3, "chunks": 9, "indexed": 3, "updated": 1}
+            mock_vi.index_vault.return_value = [
+                "note1.md",
+                "note2.md",
+                "folder/nested.md",
+            ]
+            mock_vi.reindex.return_value = {
+                "files": 3,
+                "chunks": 9,
+                "indexed": 3,
+                "updated": 1,
+            }
             # Configure CacheManager mock
             mock_cm.get.return_value = None  # No cached responses
             mock_cm.set.return_value = True
@@ -76,17 +101,21 @@ class TestFullWorkflowIntegration:
                 "model_manager": mock_mm,
                 "emb_manager": mock_em,
                 "vault_indexer": mock_vi,
-                "cache_manager": mock_cm
+                "cache_manager": mock_cm,
             }
 
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.mark.asyncio
-    async def test_complete_ask_workflow(self, client, mock_services, temp_workspace: dict):
+    async def test_complete_ask_workflow(
+        self, client, mock_services, temp_workspace: dict
+    ):
         """Test complete ask workflow: Question → Search → Context → AI → Response."""
         # Prepare request
         request_data = {
@@ -108,11 +137,15 @@ class TestFullWorkflowIntegration:
         print("✓ Complete ask workflow integration test passed")
 
     @pytest.mark.asyncio
-    async def test_vault_indexing_workflow(self, client, mock_services, temp_workspace: dict):
+    async def test_vault_indexing_workflow(
+        self, client, mock_services, temp_workspace: dict
+    ):
         """Test vault indexing workflow: Files → Parse → Embed → Store."""
         vault_path = str(temp_workspace["vault_dir"])
         # Execute vault scanning/indexing
-        response = await client.post("/api/scan_vault", params={"vault_path": vault_path})
+        response = await client.post(
+            "/api/scan_vault", params={"vault_path": vault_path}
+        )
         result = response.json()
         # Verify indexing workflow
         # 1. Vault indexer was called
@@ -124,7 +157,7 @@ class TestFullWorkflowIntegration:
         assert "note1.md" in result["indexed_files"]
         print("✓ Vault indexing workflow integration test passed")
 
-    @pytest.mark.asyncio 
+    @pytest.mark.asyncio
     async def test_reindex_workflow(self, client, mock_services, temp_workspace: dict):
         """Test vault reindexing workflow."""
         request_data = {"vault_path": str(temp_workspace["vault_dir"])}
@@ -148,31 +181,33 @@ class TestFullWorkflowIntegration:
         response = await client.post("/api/search", params={"query": query, "top_k": 3})
         result = response.json()
         # Verify search workflow
-        mock_services["emb_manager"].search.assert_called_once_with(
-            query, top_k=3
-        )
+        mock_services["emb_manager"].search.assert_called_once_with(query, top_k=3)
         assert isinstance(result, dict)
         assert "results" in result
         assert len(result["results"]) == 2
         assert result["results"][0]["score"] == 0.95
         print("✓ Semantic search workflow integration test passed")
 
+
 class TestErrorScenarios:
     """Test error handling and edge cases in integration scenarios."""
 
     import pytest_asyncio
+
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture(scope="class")
     def failing_services(self):
         """Set up services that simulate failures."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.vault_indexer') as mock_vi:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi:
             # Configure services to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
             mock_em.search.side_effect = Exception("Embeddings service down")
@@ -180,7 +215,7 @@ class TestErrorScenarios:
             yield {
                 "model_manager": mock_mm,
                 "emb_manager": mock_em,
-                "vault_indexer": mock_vi
+                "vault_indexer": mock_vi,
             }
 
     @pytest.mark.asyncio
@@ -196,7 +231,9 @@ class TestErrorScenarios:
     async def test_embeddings_failure_handling(self, client, failing_services):
         """Test handling when embeddings service fails."""
         # Should handle embeddings failure gracefully
-        response = await client.post("/api/search", params={"query": "test query", "top_k": 5})
+        response = await client.post(
+            "/api/search", params={"query": "test query", "top_k": 5}
+        )
         # Accept either graceful 200 or a 5xx error
         assert response.status_code in [200, 500]
 
@@ -207,25 +244,31 @@ class TestErrorScenarios:
         response = await client.post("/api/scan_vault", params={"vault_path": "vault"})
         # Accept either graceful 200 or a 5xx error
         assert response.status_code in [200, 500]
+
     # ...existing code...
+
 
 class TestRealWorldScenarios:
     """Test realistic user scenarios and workflows."""
 
     import pytest_asyncio
+
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture(scope="class")
     def realistic_services(self):
         """Set up services with realistic responses."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.vault_indexer') as mock_vi, \
-            patch('backend.backend.cache_manager') as mock_cm:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
+            "backend.backend.cache_manager"
+        ) as mock_cm:
             # Realistic AI responses
             mock_mm.generate.return_value = """Based on your notes about machine learning, here are the key concepts:
 
@@ -241,26 +284,29 @@ Your research notes mention these applications effectively."""
                     "text": "Machine learning is a subset of AI that enables computers to learn without explicit programming.",
                     "score": 0.92,
                     "source": "ml_basics.md",
-                    "metadata": {"created": "2024-01-15", "tags": ["ml", "ai"]}
+                    "metadata": {"created": "2024-01-15", "tags": ["ml", "ai"]},
                 },
                 {
                     "text": "Neural networks consist of interconnected nodes that process information.",
-                    "score": 0.88, 
+                    "score": 0.88,
                     "source": "neural_networks.md",
-                    "metadata": {"created": "2024-01-20", "tags": ["neural", "deep-learning"]}
-                }
+                    "metadata": {
+                        "created": "2024-01-20",
+                        "tags": ["neural", "deep-learning"],
+                    },
+                },
             ]
             # Cache hit simulation
             mock_cm.get.return_value = {
                 "answer": "Cached response about machine learning concepts.",
                 "timestamp": time.time() - 300,  # 5 minutes ago,
-                "sources": ["ml_basics.md"]
+                "sources": ["ml_basics.md"],
             }
             yield {
                 "model_manager": mock_mm,
-                "emb_manager": mock_em,  
+                "emb_manager": mock_em,
                 "vault_indexer": mock_vi,
-                "cache_manager": mock_cm
+                "cache_manager": mock_cm,
             }
 
     @pytest.mark.asyncio
@@ -288,9 +334,15 @@ Your research notes mention these applications effectively."""
     @pytest.mark.asyncio
     async def test_cached_response_scenario(self, client, realistic_services):
         """Test scenario where cached response is available."""
-        request_data = {"question": "What is machine learning?", "model_name": "llama-7b", "max_tokens": 256}
+        request_data = {
+            "question": "What is machine learning?",
+            "model_name": "llama-7b",
+            "max_tokens": 256,
+        }
         realistic_services["model_manager"].generate.reset_mock()
-        realistic_services["model_manager"].generate.return_value = "AI response from model"
+        realistic_services["model_manager"].generate.return_value = (
+            "AI response from model"
+        )
         response1 = await client.post("/api/ask", json=request_data)
         assert response1.status_code == 200
         assert "answer" in response1.json()
@@ -298,29 +350,33 @@ Your research notes mention these applications effectively."""
         assert response2.status_code == 200
         assert "answer" in response2.json()
 
+
 class TestPerformanceAndLimits:
     """Test performance characteristics and system limits."""
 
     import pytest_asyncio
+
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.mark.asyncio
     async def test_concurrent_requests_handling(self, client):
         """Test handling of multiple concurrent requests."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.init_services') as mock_init:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.init_services") as mock_init:
             # Configure mocks to avoid backend initialization issues
             mock_mm.generate.return_value = "Quick response"
             mock_mm.is_None = False
             mock_em.search.return_value = []
             mock_em.is_None = False
             mock_init.return_value = None
-            
+
             tasks = [
                 client.post("/api/ask", json={"question": f"Question {i}"})
                 for i in range(5)
@@ -335,26 +391,27 @@ class TestPerformanceAndLimits:
     @pytest.mark.asyncio
     async def test_large_context_handling(self, client):
         """Test handling of large context from many search results."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.init_services') as mock_init, \
-            patch('backend.backend.get_settings') as mock_settings:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.init_services") as mock_init, patch(
+            "backend.backend.get_settings"
+        ) as mock_settings:
             # Configure mocks to avoid backend initialization issues
             mock_mm.generate.return_value = "Response based on extensive context"
             # Ensure model_manager is truthy for the None check
             mock_mm.__bool__ = lambda self: True
-            
+
             # Mock settings
             mock_settings_obj = Mock()
             mock_settings_obj.top_k = 5
             mock_settings.return_value = mock_settings_obj
-            
+
             # Simulate many search results (large context)
             large_results = [
                 {
                     "text": f"This is a long document chunk number {i} " * 20,
                     "score": 0.8 - (i * 0.05),
-                    "source": f"doc_{i}.md"
+                    "source": f"doc_{i}.md",
                 }
                 for i in range(10)
             ]
@@ -363,16 +420,16 @@ class TestPerformanceAndLimits:
             mock_em.__bool__ = lambda self: True
             # Mock the init_services to avoid real service initialization
             mock_init.return_value = None
-            
+
             # The use_context field needs to be added to the AskRequest model
             # For now, we'll patch the _ask_impl directly to force the context usage
-            with patch('backend.backend._ask_impl') as mock_ask_impl:
+            with patch("backend.backend._ask_impl") as mock_ask_impl:
                 mock_ask_impl.return_value = {
-                    "answer": "Response based on extensive context", 
-                    "cached": False, 
-                    "model": "test_model"
+                    "answer": "Response based on extensive context",
+                    "cached": False,
+                    "model": "test_model",
                 }
-                
+
                 request_data = {
                     "question": "Summarize all my documents",
                     "use_context": True,
@@ -386,10 +443,11 @@ class TestPerformanceAndLimits:
                 mock_ask_impl.assert_called_once()
                 print("✓ Large context handling test passed")
 
+
 if __name__ == "__main__":
     # Run integration tests
     print("🧪 Running Integration Tests")
     print("============================")
-    
+
     # Run with pytest
     pytest.main([__file__, "-v", "--tb=short"])

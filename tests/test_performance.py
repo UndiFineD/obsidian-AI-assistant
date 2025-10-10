@@ -7,18 +7,25 @@ Tests for performance optimization features including:
 - Performance monitoring
 """
 
-import pytest
-import time
 import asyncio
+import time
 from unittest.mock import Mock
+
+import pytest
+
 from backend.performance import (
-    MultiLevelCache, ConnectionPool, AsyncTaskQueue, 
-    PerformanceMonitor, cached, get_cache_manager
+    AsyncTaskQueue,
+    ConnectionPool,
+    MultiLevelCache,
+    PerformanceMonitor,
+    cached,
+    get_cache_manager,
 )
+
 
 class TestMultiLevelCache:
     """Test multi-level cache implementation"""
-    
+
     def test_cache_creation(self):
         """Test cache initialization"""
         cache = MultiLevelCache(l1_size=10, l2_size=50)
@@ -36,41 +43,41 @@ class TestMultiLevelCache:
         assert cache.get("key1") == "value1"
         # Verify it's in L1 cache
         assert "key1" in cache.l1_cache
-        assert cache._stats['l1_hits'] == 1
+        assert cache._stats["l1_hits"] == 1
 
-##########    def test_l1_eviction_to_l2(self):
-#        """Test eviction from L1 to L2 cache"""
-#        import tempfile
-#        import shutil
-#        # Use a temporary directory to avoid interference from previous test runs
-#        temp_dir = tempfile.mkdtemp()
-#        try:
-#            cache = MultiLevelCache(l1_size=2, l2_size=10, cache_dir=temp_dir)
-#            # Clear any existing cache state
-#            cache.l1_cache.clear()
-#            cache.l2_cache.clear()
-#            cache._stats = {'l1_hits': 0, 'l2_hits': 0, 'misses': 0, 'evictions': 0, 'writes': 0}
-#            
-#            # Fill L1 cache
-#            cache.set("key1", "value1")
-#            cache.set("key2", "value2")
-#            assert len(cache.l1_cache) == 2
-#            
-#            # Add third item, should evict oldest from L1
-#            cache.set("key3", "value3")
-#            assert len(cache.l1_cache) == 2
-#            
-#            # First key should now be in L2
-#            assert "key1" not in cache.l1_cache
-#            assert "key1" in cache.l2_cache
-#            
-#            result = cache.get("key1")  # Should promote from L2 to L1
-#            assert result == "value1"
-#            assert cache._stats['l2_hits'] >= 1
-#        finally:
-#            # Clean up temporary directory
-#            shutil.rmtree(temp_dir, ignore_errors=True)
-##########
+    ##########    def test_l1_eviction_to_l2(self):
+    #        """Test eviction from L1 to L2 cache"""
+    #        import tempfile
+    #        import shutil
+    #        # Use a temporary directory to avoid interference from previous test runs
+    #        temp_dir = tempfile.mkdtemp()
+    #        try:
+    #            cache = MultiLevelCache(l1_size=2, l2_size=10, cache_dir=temp_dir)
+    #            # Clear any existing cache state
+    #            cache.l1_cache.clear()
+    #            cache.l2_cache.clear()
+    #            cache._stats = {'l1_hits': 0, 'l2_hits': 0, 'misses': 0, 'evictions': 0, 'writes': 0}
+    #
+    #            # Fill L1 cache
+    #            cache.set("key1", "value1")
+    #            cache.set("key2", "value2")
+    #            assert len(cache.l1_cache) == 2
+    #
+    #            # Add third item, should evict oldest from L1
+    #            cache.set("key3", "value3")
+    #            assert len(cache.l1_cache) == 2
+    #
+    #            # First key should now be in L2
+    #            assert "key1" not in cache.l1_cache
+    #            assert "key1" in cache.l2_cache
+    #
+    #            result = cache.get("key1")  # Should promote from L2 to L1
+    #            assert result == "value1"
+    #            assert cache._stats['l2_hits'] >= 1
+    #        finally:
+    #            # Clean up temporary directory
+    #            shutil.rmtree(temp_dir, ignore_errors=True)
+    ##########
 
     def test_ttl_expiration(self):
         """Test TTL-based expiration"""
@@ -81,7 +88,7 @@ class TestMultiLevelCache:
         # Wait for expiration
         time.sleep(0.2)
         assert cache.get("short_ttl") is None
-    
+
     def test_cache_statistics(self):
         """Test cache performance statistics"""
         cache = MultiLevelCache(l1_size=3, l2_size=5)
@@ -96,22 +103,27 @@ class TestMultiLevelCache:
         assert stats["l1_hits"] >= 1
         assert stats["misses"] >= 1
 
+
 class TestConnectionPool:
     """Test connection pool implementation"""
-    
+
     def test_pool_creation(self):
         """Test connection pool initialization"""
+
         def factory():
             return Mock(status="connected")
+
         pool = ConnectionPool(factory, min_size=2, max_size=5)
         assert pool.min_size == 2
         assert pool.max_size == 5
         assert len(pool._pool) >= 2  # Pre-created connections
-    
+
     def test_get_and_return_connection(self):
         """Test getting and returning connections"""
+
         def factory():
             return Mock(status="connected")
+
         pool = ConnectionPool(factory, min_size=1, max_size=3)
         # Get connection
         conn1 = pool.get_connection()
@@ -120,15 +132,17 @@ class TestConnectionPool:
         # Return connection
         pool.return_connection(conn1)
         assert len(pool._active) == 0
-    
+
     def test_pool_exhaustion(self):
         """Test behavior when pool is exhausted"""
+
         def factory():
             return Mock(status="connected")
+
         pool = ConnectionPool(factory, min_size=0, max_size=2)
         # Get all connections to exhaust the pool
         conn1 = pool.get_connection()
-        conn2 = pool.get_connection()
+        _ = pool.get_connection()
         # Should raise error when exhausted
         with pytest.raises(RuntimeError, match="Connection pool exhausted"):
             pool.get_connection()
@@ -136,27 +150,30 @@ class TestConnectionPool:
         pool.return_connection(conn1)
         conn3 = pool.get_connection()  # Should work now
         assert conn3 is not None
-    
+
     def test_connection_validation(self):
         """Test connection validation"""
         call_count = 0
+
         def factory():
             nonlocal call_count
             call_count += 1
             mock = Mock(status="connected")
             mock.is_valid = call_count > 1  # First connection invalid
             return mock
+
         pool = ConnectionPool(factory, min_size=0, max_size=2)
         # Override validation method
         # (removed unused variable)
-        pool._is_connection_valid = lambda conn: getattr(conn, 'is_valid', True)
+        pool._is_connection_valid = lambda conn: getattr(conn, "is_valid", True)
         conn = pool.get_connection()
         assert conn is not None
+
 
 @pytest.mark.asyncio
 class TestAsyncTaskQueue:
     """Test async task queue implementation"""
-    
+
     async def test_queue_creation_and_startup(self):
         """Test queue initialization and startup"""
         queue = AsyncTaskQueue(max_workers=2, max_queue_size=10)
@@ -169,15 +186,17 @@ class TestAsyncTaskQueue:
         await queue.stop()
         assert not queue._running
         assert len(queue.workers) == 0
-    
+
     async def test_task_submission_and_execution(self):
         """Test task submission and execution"""
         queue = AsyncTaskQueue(max_workers=2)
         await queue.start()
         # Create test task
         executed = []
+
         async def test_task(value):
             executed.append(value)
+
         # Submit task
         success = await queue.submit_task(test_task("test_value"))
         assert success
@@ -188,9 +207,11 @@ class TestAsyncTaskQueue:
         """Test queue performance statistics"""
         queue = AsyncTaskQueue(max_workers=1)
         await queue.start()
+
         # Submit a task
         async def dummy_task():
             await asyncio.sleep(0.01)
+
         await queue.submit_task(dummy_task())
         await asyncio.sleep(0.1)  # Let it execute
         stats = queue.get_stats()
@@ -199,9 +220,10 @@ class TestAsyncTaskQueue:
         assert "workers_active" in stats
         await queue.stop()
 
+
 class TestCachedDecorator:
     """Test the @cached decorator"""
-    
+
     def test_sync_function_caching(self):
         """Test caching on synchronous functions"""
         call_count = 0
@@ -211,6 +233,7 @@ class TestCachedDecorator:
             nonlocal call_count
             call_count += 1
             return x + y
+
         # First call
         result1 = expensive_function(1, 2)
         assert result1 == 3
@@ -223,7 +246,7 @@ class TestCachedDecorator:
         result3 = expensive_function(2, 3)
         assert result3 == 5
         assert call_count == 2
-    
+
     @pytest.mark.asyncio
     async def test_async_function_caching(self):
         """Test caching on async functions"""
@@ -245,15 +268,17 @@ class TestCachedDecorator:
         result2 = await async_expensive_function(5)
         assert result2 == 10
         assert call_count == 1  # Not incremented
-    
+
     def test_custom_key_function(self):
         """Test custom key generation function"""
         call_count = 0
+
         @cached(ttl=60, key_func=lambda obj, attr: f"obj_{attr}")
         def get_attribute(obj, attr):
             nonlocal call_count
             call_count += 1
             return getattr(obj, attr, None)
+
         # Create test objects
         obj1 = Mock(name="test1")
         obj2 = Mock(name="test2")
@@ -268,9 +293,10 @@ class TestCachedDecorator:
         assert result2 == "test1"  # Should be cached
         assert call_count == 1
 
+
 class TestPerformanceMonitor:
     """Test performance monitoring functionality"""
-    
+
     def test_system_metrics_collection(self):
         """Test system metrics collection"""
         metrics = PerformanceMonitor.get_system_metrics()
@@ -283,7 +309,7 @@ class TestPerformanceMonitor:
         assert "hit_rate" in cache_metrics
         assert "l1_size" in cache_metrics
         assert "l2_size" in cache_metrics
-    
+
     def test_metrics_consistency(self):
         """Test that metrics are consistent over time"""
         metrics1 = PerformanceMonitor.get_system_metrics()
@@ -294,9 +320,10 @@ class TestPerformanceMonitor:
         # Cache structure should be consistent
         assert metrics1["cache"].keys() == metrics2["cache"].keys()
 
+
 class TestIntegration:
     """Integration tests for performance components"""
-    
+
     def test_global_cache_manager(self):
         """Test global cache manager singleton"""
         cache1 = get_cache_manager()
@@ -317,6 +344,7 @@ class TestIntegration:
         # Test performance metrics
         metrics = PerformanceMonitor.get_system_metrics()
         assert metrics["cache"]["l1_size"] >= 1  # Should have our test key
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

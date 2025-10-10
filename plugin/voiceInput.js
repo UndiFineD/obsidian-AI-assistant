@@ -5,7 +5,7 @@ class VoiceInput {
         this.taskQueue = taskQueue;
         this.recognition = null;
 
-        if('webkitSpeechRecognition' in window) {
+        if ('webkitSpeechRecognition' in window) {
             this.recognition = new window.webkitSpeechRecognition();
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
@@ -25,7 +25,7 @@ class VoiceInput {
     }
 
     startListening() {
-        if(this.recognition) {
+        if (this.recognition) {
             try {
                 this.recognition.start();
             } catch (error) {
@@ -35,7 +35,7 @@ class VoiceInput {
     }
 
     stopListening() {
-        if(this.recognition) {
+        if (this.recognition) {
             try {
                 this.recognition.stop();
             } catch (error) {

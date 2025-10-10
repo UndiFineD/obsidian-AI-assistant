@@ -10,7 +10,7 @@ This document outlines the established testing patterns and best practices for t
 
 ### **Directory Structure**
 
-```
+```text
 tests/
 ├── backend/                           # Backend Python tests
 │   ├── conftest.py                   # Global test configuration & mocking
@@ -23,17 +23,17 @@ tests/
 
 ### **Comprehensive Test Coverage (442 Total Tests)**
 
-| **System Component** | **Tests** | **Status** | **Coverage** |
-|---------------------|----------|------------|--------------|
-| **🚀 Core Backend** | 180+ | ✅ 100% Pass | FastAPI endpoints, service integration, error handling |
-| **🤖 AI & Models** | 69+ | ✅ 100% Pass | LLM router, model management, GPT4All/LLaMA integration |  
-| **🔍 Search & Embeddings** | 89+ | ✅ 100% Pass | Vector search, ChromaDB, embedding generation, indexing |
-| **💾 Caching & Storage** | 35+ | ✅ 100% Pass | Multi-level cache, TTL management, persistence |
-| **🔐 Security & Config** | 42+ | ✅ 100% Pass | Encryption, authentication, settings management |
-| **🎙️ Voice Processing** | 20+ | ✅ 100% Pass | Speech-to-text, audio format validation, Vosk integration |
-| **🔌 Plugin System** | 39+ | ✅ 100% Pass | Obsidian integration, UI components, enterprise features |
-| **📊 Performance** | 17+ | ✅ 100% Pass | Connection pooling, async operations, cache optimization |
-| **🔗 Integration Tests** | 25+ | ✅ 100% Pass | End-to-end workflows, cross-service communication |
+| **System Component**       | **Tests** | **Status**   | **Coverage**                                              |
+| -------------------------- | --------- | ------------ | --------------------------------------------------------- |
+| **🚀 Core Backend**        | 180+      | ✅ 100% Pass | FastAPI endpoints, service integration, error handling    |
+| **🤖 AI & Models**         | 69+       | ✅ 100% Pass | LLM router, model management, GPT4All/LLaMA integration   |
+| **🔍 Search & Embeddings** | 89+       | ✅ 100% Pass | Vector search, ChromaDB, embedding generation, indexing   |
+| **💾 Caching & Storage**   | 35+       | ✅ 100% Pass | Multi-level cache, TTL management, persistence            |
+| **🔐 Security & Config**   | 42+       | ✅ 100% Pass | Encryption, authentication, settings management           |
+| **🎙️ Voice Processing**    | 20+       | ✅ 100% Pass | Speech-to-text, audio format validation, Vosk integration |
+| **🔌 Plugin System**       | 39+       | ✅ 100% Pass | Obsidian integration, UI components, enterprise features  |
+| **📊 Performance**         | 17+       | ✅ 100% Pass | Connection pooling, async operations, cache optimization  |
+| **🔗 Integration Tests**   | 25+       | ✅ 100% Pass | End-to-end workflows, cross-service communication         |
 
 ### **Total Test Results: 441 passed, 1 skipped, 0 failed (99.8% success rate)**
 
@@ -67,6 +67,7 @@ for module_name, mock_module in mock_modules.items():
 ```
 
 **✅ Benefits:**
+
 - Prevents `ModuleNotFoundError` during testing
 - Avoids heavy ML library loading
 - Enables testing without GPU dependencies
@@ -84,30 +85,31 @@ def backend_app():
     """Get FastAPI app with services properly mocked."""
     # Import backend after ML mocking is in place
     import backend.backend as backend
-    
+
     # Create mock service instances
     mock_model = Mock()
     mock_emb = Mock()
     mock_vault = Mock()
     mock_cache = Mock()
-    
+
     # Configure expected behaviors
     mock_model.generate.return_value = "Test response"
     mock_cache.get_cached_answer.return_value = None
     mock_vault.reindex.return_value = {"files": 5, "chunks": 25}
-    
+
     # Replace global service instances
     backend.model_manager = mock_model
     backend.emb_manager = mock_emb
     backend.vault_indexer = mock_vault
     backend.cache_manager = mock_cache
-    
+
     yield backend.app
-    
+
     # Restore original instances (cleanup)
 ```
 
 **✅ Benefits:**
+
 - Tests run without real LLM models
 - Predictable service responses
 - Fast test execution
@@ -118,11 +120,12 @@ def backend_app():
 **Problem Solved:** Tests must work with actual API endpoints, not assumptions.
 
 **Established API Reality:**
+
 ```python
 # ✅ CORRECT - These endpoints actually exist:
 GET  /health, /api/health, /status
 GET  /api/config
-POST /api/config, /api/config/reload  
+POST /api/config, /api/config/reload
 POST /ask, /api/ask
 POST /reindex, /api/reindex, /api/scan_vault
 POST /web, /api/web
@@ -130,21 +133,23 @@ POST /transcribe, /api/search, /api/index_pdf
 ```
 
 **Testing Pattern:**
+
 ```python
 def test_endpoint_basic(self, client):
     """Test endpoint accepts requests and responds appropriately."""
     request_data = {"question": "test"}
     response = client.post("/ask", json=request_data)
-    
+
     # Be flexible with status codes - backend may handle gracefully
     assert response.status_code in [200, 400, 422, 500]
-    
+
     if response.status_code == 200:
         data = response.json()
         assert "answer" in data  # Check expected response structure
 ```
 
 **✅ Benefits:**
+
 - Tests align with actual backend implementation
 - Flexible assertions handle graceful error handling
 - Verifies endpoint existence and basic functionality
@@ -160,10 +165,10 @@ def test_invalid_input(self, client):
     # Test various invalid inputs
     invalid_data = {"invalid_field": "value"}
     response = client.post("/endpoint", json=invalid_data)
-    
+
     # Accept multiple valid error responses
     assert response.status_code in [400, 422, 500]  # Flexible
-    
+
     # Don't assume exact error format - backend may vary
     if response.status_code == 422:
         # Validation error expected
@@ -171,8 +176,9 @@ def test_invalid_input(self, client):
 ```
 
 **✅ Benefits:**
+
 - Tests error paths without being brittle
-- Accommodates different error handling strategies  
+- Accommodates different error handling strategies
 - Focuses on "does it fail appropriately" vs exact error format
 
 ---
@@ -187,11 +193,11 @@ def client(backend_app):
     """FastAPI test client with mocked services."""
     return TestClient(backend_app)
 
-@pytest.fixture  
+@pytest.fixture
 def backend_app():
     """Backend app with comprehensive service mocking."""
     # See full implementation above
-    
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_environment():
     """Global test setup - ML mocking handled in conftest.py"""
@@ -217,6 +223,7 @@ sys.modules['chromadb'].PersistentClient = MagicMock(return_value=persistent_cli
 ### **1. Writing New Tests**
 
 **DO:**
+
 - ✅ Mock ML libraries in `conftest.py` before importing backend
 - ✅ Use flexible status code assertions: `assert status_code in [200, 400, 422]`
 - ✅ Test endpoint existence first, then specific behavior
@@ -225,6 +232,7 @@ sys.modules['chromadb'].PersistentClient = MagicMock(return_value=persistent_cli
 - ✅ Test both success and error paths
 
 **DON'T:**
+
 - ❌ Import backend modules before ML mocking is applied
 - ❌ Assume exact error messages or response formats
 - ❌ Test against non-existent API endpoints
@@ -234,18 +242,20 @@ sys.modules['chromadb'].PersistentClient = MagicMock(return_value=persistent_cli
 ### **2. Test Organization**
 
 **Class-Based Organization:**
+
 ```python
 class TestHealthEndpoints:
     """Group related endpoint tests."""
-    
-class TestConfigurationEndpoints:  
+
+class TestConfigurationEndpoints:
     """Group configuration API tests."""
-    
+
 class TestErrorHandling:
     """Group error scenario tests."""
 ```
 
 **✅ Benefits:**
+
 - Clear test organization
 - Easy to run specific test groups
 - Logical grouping of related functionality
@@ -255,31 +265,34 @@ class TestErrorHandling:
 **Common Issues & Solutions:**
 
 1. **Import Errors:**
-   ```python
-   # ❌ Problem: ML library not mocked
-   ModuleNotFoundError: No module named 'torch'
-   
-   # ✅ Solution: Add to conftest.py mock_modules
-   'torch': MagicMock(),
-   ```
+
+    ```python
+    # ❌ Problem: ML library not mocked
+    ModuleNotFoundError: No module named 'torch'
+
+    # ✅ Solution: Add to conftest.py mock_modules
+    'torch': MagicMock(),
+    ```
 
 2. **Service Initialization Errors:**
-   ```python
-   # ❌ Problem: Real service called
-   AttributeError: 'NoneType' object has no attribute 'generate'
-   
-   # ✅ Solution: Mock service instances in fixture
-   backend.model_manager = mock_model
-   ```
+
+    ```python
+    # ❌ Problem: Real service called
+    AttributeError: 'NoneType' object has no attribute 'generate'
+
+    # ✅ Solution: Mock service instances in fixture
+    backend.model_manager = mock_model
+    ```
 
 3. **API Assertion Failures:**
-   ```python
-   # ❌ Problem: Too strict assertions
-   assert response.status_code == 400
-   
-   # ✅ Solution: Flexible assertions  
-   assert response.status_code in [200, 400, 422]
-   ```
+
+    ```python
+    # ❌ Problem: Too strict assertions
+    assert response.status_code == 400
+
+    # ✅ Solution: Flexible assertions
+    assert response.status_code in [200, 400, 422]
+    ```
 
 ---
 
@@ -305,7 +318,8 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 ```
 
 ### **Expected Output**
-```
+
+```text
 ================================== 28 passed in 1.79s ==================================
 ```
 
@@ -331,7 +345,7 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 ### **Quality Indicators**
 
 - ✅ Zero import errors
-- ✅ Zero service initialization failures  
+- ✅ Zero service initialization failures
 - ✅ Comprehensive API coverage
 - ✅ Flexible, maintainable assertions
 - ✅ Proper test isolation
@@ -343,19 +357,21 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 ### **Planned Test Additions**
 
 1. **Plugin Tests (TypeScript):**
-   - Obsidian plugin functionality
-   - UI component behavior
-   - Settings integration
+    - Obsidian plugin functionality
+    - UI component behavior
+    - Settings integration
 
 2. **Integration Tests:**
-   - End-to-end workflows
-   - Plugin ↔ Backend communication
-   - Real file processing scenarios
+    - End-to-end workflows
+    - Plugin ↔ Backend communication
+    - Real file processing scenarios
 
 3. **Performance Tests:**
-   - Load testing for endpoints
-   - Memory usage validation
-   - Response time benchmarks
+    - Load testing for endpoints
+    - Memory usage validation
+    - Response time benchmarks
+
+jobs:
 
 ### **CI/CD Integration**
 
@@ -364,13 +380,13 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 name: Test Suite
 on: [push, pull_request]
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
-      - run: pip install -r requirements.txt
-      - run: pytest tests/backend/test_backend_comprehensive.py -v --cov=backend
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-python@v2
+            - run: pip install -r requirements.txt
+            - run: pytest tests/backend/test_backend_comprehensive.py -v --cov=backend
 ```
 
 ---
@@ -381,7 +397,7 @@ The key factors that made this testing strategy successful:
 
 1. **Early ML Library Mocking** - Solved import conflicts at the root
 2. **Service Instance Mocking** - Avoided complex initialization
-3. **Flexible Assertions** - Accommodated backend's graceful error handling  
+3. **Flexible Assertions** - Accommodated backend's graceful error handling
 4. **API Reality Alignment** - Tested actual endpoints, not assumptions
 5. **Comprehensive Coverage** - All endpoint categories and error paths
 6. **Proper Test Organization** - Clear structure and reusable patterns
@@ -390,6 +406,6 @@ This testing approach provides a solid foundation for maintaining code quality w
 
 ---
 
-*Testing Best Practices Guide v2.0*  
-*Last Updated: October 10, 2025*  
-*Achievement: 99.8% Test Pass Rate (441/442 tests)*
+_Testing Best Practices Guide v2.0_
+_Last Updated: October 10, 2025_
+_Achievement: 99.8% Test Pass Rate (441/442 tests)_
