@@ -14,7 +14,7 @@ This project implements a **modular, service-oriented architecture** with clearl
 ```text
 **Test Results Summary** (Latest: 441 Passed, 1 Skipped, 0 Failed)
 
-┌─────────────────┐    ┌──────────────────┐    ┌────────────
+┌─────────────────┐──────────────────┐────────────┐
 | **Test Category** | **Pass Rate** | **Status** |
 |-------------------|---------------|------------|
 | **🚀 Production Ready Systems** | **100%** | ✅ **All Core Functionality Complete** |
@@ -114,8 +114,9 @@ For organizations requiring enterprise features, additional backend modules are 
 
 #### **Enterprise Backend Modules**
 
-\n# Enterprise modules (automatically loaded if available)
-\n```bash
+# Enterprise modules (automatically loaded if available)
+
+```bash
 backend/enterprise/
 ├── auth.py           # SSO authentication providers
 ├── tenant.py         # Multi-tenant management  
@@ -124,17 +125,18 @@ backend/enterprise/
 ├── soc2.py          # SOC2 compliance monitoring
 ├── admin.py         # Admin dashboard API
 └── integrations.py  # Enterprise integrations
-\n```
+
+```
 
 ### **Enterprise Plugin Components**
 
-\n```bash
+```bash
 plugin/
 ├── adminDashboard.js    # Admin interface
 ├── enterpriseAuth.js    # SSO authentication
 ├── enterpriseConfig.js  # Enterprise settings
 └── styles.css          # Enterprise UI styling
-\n```powershell
+```
 
 ## **Enterprise Configuration**
 
@@ -161,7 +163,7 @@ enterprise:
     session_timeout: 3600
     mfa_required: false
     password_policy: "strong"
-\n```powershell
+```
 
 ### **Enterprise Features Access**
 
@@ -253,16 +255,16 @@ vosk_model_path: "models/vosk-model-small-en-us-0.15"
 
 Settings can be updated at runtime via the `/api/config` endpoints:
 
-\n# From project root
+# From project root
 
 ```bash
 python test_server.py
 ```
 
-\n## Get current configuration
+## Get current configuration
 [GET current configuration](http://localhost:8000/api/config)
 
-\n## Update settings
+## Update settings
 [POST update settings](http://localhost:8000/api/config)
 Content-Type: application/json
 {
@@ -270,7 +272,7 @@ Content-Type: application/json
   "gpu": false
 }
 
-\n## Reload settings from file
+## Reload settings from file
 [POST reload settings](http://localhost:8000/api/config/reload)
 
 ```json
@@ -287,16 +289,16 @@ $env:API_PORT=8000
 $env:VAULT_PATH="$(Resolve-Path .\vault)"
 $env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 
-\n## 2) Edit backend/config.yaml as needed
+## 2) Edit backend/config.yaml as needed
 notepad .\backend\config.yaml
 
-\n## 3) Start backend
-\n### Option A: FastAPI with Uvicorn (full backend)
+## 3) Start backend
+### Option A: FastAPI with Uvicorn (full backend)
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
 
-\n## Option B: Simple Python test server (no Node.js required)
-\n### This serves the plugin files and provides mock endpoints for quick UI testing
+## Option B: Simple Python test server (no Node.js required)
+### This serves the plugin files and provides mock endpoints for quick UI testing
 cd ..
 python .\test_server.py
 
