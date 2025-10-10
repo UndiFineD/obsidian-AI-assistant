@@ -252,31 +252,33 @@ def _ask_impl(request: AskRequest):
     # Use the centralized, high-performance cache
     performance_cache = get_cache_manager()
     cache_key = f"ask:{hash((request.question, request.model_name, request.max_tokens, request.prefer_fast))}"
-    
+
     cached_result = performance_cache.get(cache_key)
     if cached_result is not None:
         return {"answer": cached_result, "cached": True, "cache_level": "performance", "model": request.model_name}
-    
+
     # Generate new answer
     try:
         # Get context from embeddings if use_context is True
         context_text = ""
-        # The attribute is on the Pydantic model, but might not be in the JSON
-        # so we check if the attribute exists and is True.
         use_context = getattr(request, 'use_context', False)
-        # Correctly check for use_context and ensure emb_manager is available.
-        # Also check for 'question' attribute as it's needed for search.
         if use_context and emb_manager and hasattr(request, 'question'):
             search_results = emb_manager.search(request.question, top_k=get_settings().top_k)
             if search_results:
                 context_text = "\n".join([hit['text'] for hit in search_results])
+
+        # Limit context size to 16,000 characters to avoid model failures
+        MAX_CONTEXT_CHARS = 16000
+        if context_text and len(context_text) > MAX_CONTEXT_CHARS:
+            print(f"[ask_impl] Warning: Context truncated from {len(context_text)} to {MAX_CONTEXT_CHARS} characters.")
+            context_text = context_text[:MAX_CONTEXT_CHARS]
 
         # Prepare the prompt for the model
         if context_text:
             to_generate = f"Context: {context_text}\n\nQuestion: {request.question}"
         else:
             to_generate = request.prompt if request.prompt else request.question
-        
+
         start_time = time.time()
         answer = model_manager.generate(
             to_generate,
@@ -285,15 +287,15 @@ def _ask_impl(request: AskRequest):
             max_tokens=request.max_tokens,
         )
         generation_time = time.time() - start_time
-        
+
         if not answer or (isinstance(answer, str) and "No model available" in answer):
             raise RuntimeError("Model unavailable or failed to generate an answer.")
     except Exception as e:
         print(f"[_ask_impl] Error generating answer: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
-    
+
     performance_cache.set(cache_key, answer)
-    
+
     return {"answer": answer, "cached": False, "model": request.model_name, "generation_time": generation_time}
 
 @app.post("/api/ask")
@@ -586,13 +588,12 @@ else:
 # Run server
 # ----------------------
 if __name__ == "__main__":
-    # Minimal Python webserver for demo (no nodejs, no node modules)
+    # Start FastAPI app using Uvicorn
+    import uvicorn
     init_services()
     PORT = 8000
-    Handler = http.server.SimpleHTTPRequestHandler
-    with socketserver.TCPServer(("127.0.0.1", PORT), Handler) as httpd:
-        print(f"Serving at http://127.0.0.1:{PORT}")
-        httpd.serve_forever()
+    print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
+    uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
 
 # Ensure this module can be accessed as 'backend.backend' regardless of import mode
 try:

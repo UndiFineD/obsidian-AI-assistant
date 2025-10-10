@@ -1,40 +1,86 @@
-# 🚀 Obsidian AI Assistant - Automated Setup
+# 🚀 Obsidian AI Assistant - Complete Setup Guide
 
-This directory contains automated setup scripts that handle the complete installation and configuration of the Obsidian AI Assistant plugin.
+This guide provides comprehensive setup instructions for the Obsidian AI Assistant, including automated scripts, manual installation, and advanced configuration options.
 
-## 📋 Setup Files
+## 🎯 Quick Start Options
 
-### `setup-plugin.ps1` - Main Setup Script
-**Comprehensive PowerShell script for complete automation**
+### Option A: Automated Setup (Recommended)
 
-**Features:**
-- ✅ Automatic vault detection and selection
-- ✅ Plugin file installation with verification
-- ✅ Backend server startup and health checking
-- ✅ Dependency validation
-- ✅ Error handling and rollback
-- ✅ Interactive and command-line modes
-- ✅ Colorized output and progress tracking
-
-**Usage:**
+**Windows:**
 ```powershell
-# Interactive setup (recommended for first-time users)
-.\setup-plugin.ps1
+# Run the main setup script
+./setup.ps1
+```
 
-# Direct setup with vault path
-.\setup-plugin.ps1 -VaultPath "C:\Users\YourName\Documents\Obsidian Vault"
+**Linux/macOS:**
+```bash
+# Run the cross-platform setup script
+bash setup.sh
+```
 
-# Install plugin files only
-.\setup-plugin.ps1 -PluginOnly
+### Option B: Manual Step-by-Step Setup
 
-# Start backend server only
-.\setup-plugin.ps1 -BackendOnly
+For users who prefer full control over the installation process.
 
-# Force overwrite existing installation
-.\setup-plugin.ps1 -Force
+## 📋 Setup Components
 
-# Get detailed help
-Get-Help .\setup-plugin.ps1 -Detailed
+### **Core Setup Scripts**
+
+#### `setup.ps1` / `setup.sh` - Primary Installation
+**Comprehensive setup script for complete automation**
+
+**What it does:**
+- ✅ Creates Python virtual environment with all dependencies
+- ✅ Installs AI models (GPT4All, LLaMA, embedding models)
+- ✅ Sets up ChromaDB vector database
+- ✅ Configures FastAPI backend server
+- ✅ Installs and validates Obsidian plugin files
+- ✅ Performs comprehensive system testing (442 tests)
+- ✅ Provides post-installation validation
+
+### **Modern Installation Methods**
+
+#### Method 1: Full Automated Setup
+
+```powershell
+# Windows - Complete environment setup
+./setup.ps1
+
+# This creates everything you need:
+# - Python virtual environment
+# - AI model downloads (GPT4All, embeddings)  
+# - FastAPI backend server
+# - Obsidian plugin installation
+# - Comprehensive testing validation
+```
+
+#### Method 2: Advanced Model Support (Optional)
+
+```bash
+# Install llama.cpp for advanced model management
+# Windows
+winget install llama.cpp
+
+# macOS  
+brew install llama.cpp
+
+# Or manual download from: https://github.com/ggml-org/llama.cpp/releases
+```
+
+#### Method 3: Manual Component Installation
+
+```bash
+# 1. Python environment setup
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or: venv\Scripts\Activate.ps1  # Windows
+
+# 2. Install dependencies
+pip install -r requirements.txt
+
+# 3. Backend server
+cd backend
+python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 ### `setup-plugin.bat` - Simple Launcher
