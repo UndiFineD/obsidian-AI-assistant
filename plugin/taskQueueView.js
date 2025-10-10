@@ -1,25 +1,20 @@
 const { ItemView, WorkspaceLeaf, App, ButtonComponent, Setting, Notice } = require("obsidian");
 const { TaskQueue, VIEW_TYPE_TASK_QUEUE } = require("./taskQueue");
 
-class TaskQueueView extends ItemView {
-  constructor(leaf, taskQueue, analytics) {
-    super(leaf);
+class TaskQueueView extends ItemView { constructor(leaf, taskQueue, analytics) { super(leaf);
     this.taskQueue = taskQueue;
     this.analytics = analytics;
     this.searchInput = null;
     this.taskContainer = null;
-  }
+    }
 
-  getViewType() {
-    return VIEW_TYPE_TASK_QUEUE;
-  }
+    getViewType() { return VIEW_TYPE_TASK_QUEUE;
+    }
 
-  getDisplayText() {
-    return "Task Queue";
-  }
+    getDisplayText() { return "Task Queue";
+    }
 
-  async onOpen() {
-    const container = this.containerEl;
+    async onOpen() { const container = this.containerEl;
     container.empty();
 
     // --- Header ---
@@ -34,15 +29,13 @@ class TaskQueueView extends ItemView {
     // --- Control Buttons ---
     const controlDiv = container.createEl("div", { cls: "task-queue-controls" });
     const startBtn = controlDiv.createEl("button", { text: "Start Queue" });
-    startBtn.addEventListener("click", async () => {
-      await this.taskQueue.startQueue();
-      this.renderTasks();
+    startBtn.addEventListener("click", async() => { await this.taskQueue.startQueue();
+        this.renderTasks();
     });
 
     const pauseBtn = controlDiv.createEl("button", { text: "Pause Queue" });
-    pauseBtn.addEventListener("click", () => {
-      this.taskQueue.pauseQueue();
-      this.renderTasks();
+    pauseBtn.addEventListener("click", () => { this.taskQueue.pauseQueue();
+        this.renderTasks();
     });
 
     // --- Task List Container ---
@@ -50,51 +43,44 @@ class TaskQueueView extends ItemView {
 
     // Initial render
     this.renderTasks();
-  }
+    }
 
-  async onClose() {
-    // Nothing special for now
-  }
+    async onClose() {
+    // Nothing special for now }
 
-  renderTasks() {
-    if (!this.taskContainer) return;
+    renderTasks() { if(!this.taskContainer) return;
     this.taskContainer.empty();
 
     const keyword = this.searchInput?.value || "";
-    if (keyword) this.taskQueue.filterQueue(keyword);
+    if(keyword) this.taskQueue.filterQueue(keyword);
 
     const tasks = this.taskQueue.getTasks();
 
-    if (tasks.length === 0) {
-      this.taskContainer.createEl("div", { text: "No tasks in queue." });
-      return;
+    if(tasks.length === 0) { this.taskContainer.createEl("div", { text: "No tasks in queue." });
+        return;
     }
 
-    tasks.forEach(task => {
-      const taskEl = this.taskContainer.createEl("div", { cls: "task-queue-item" });
+    tasks.forEach(task => { const taskEl = this.taskContainer.createEl("div", { cls: "task-queue-item" });
 
-      taskEl.createEl("strong", { text: `[${task.type.toUpperCase()}] ` });
-      taskEl.createEl("span", { text: task.content });
+        taskEl.createEl("strong", { text: `[${ task.type.toUpperCase()}] ` });
+        taskEl.createEl("span", { text: task.content });
 
-      if (task.notePath) {
-        taskEl.createEl("span", { text: ` (Note: ${task.notePath})`, cls: "task-note-path" });
-      }
+        if(task.notePath) { taskEl.createEl("span", { text: ` (Note: ${ task.notePath })`, cls: "task-note-path" });
+        }
 
-      // Optional remove button
-      const removeBtn = taskEl.createEl("button", { text: "❌" });
-      removeBtn.addEventListener("click", () => {
-        this.removeTask(task.id);
-      });
+        // Optional remove button
+        const removeBtn = taskEl.createEl("button", { text: "❌" });
+        removeBtn.addEventListener("click", () => { this.removeTask(task.id);
+        });
     });
-  }
-
-  removeTask(taskId) {
-    // Call the central task queue to remove the task by its ID
-    if (this.taskQueue.removeTask(taskId)) {
-      new Notice("Task removed");
-      this.renderTasks();
     }
-  }
+
+    removeTask(taskId) {
+    // Call the central task queue to remove the task by its ID
+    if(this.taskQueue.removeTask(taskId)) { new Notice("Task removed");
+        this.renderTasks();
+    }
+    }
 }
 
 module.exports = { TaskQueueView };
