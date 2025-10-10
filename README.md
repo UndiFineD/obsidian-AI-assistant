@@ -31,13 +31,13 @@ This project implements a **modular, service-oriented architecture** with clearl
 | ├─ JavaScript Code Quality | 100% | ✅ PEP8-style JS validation |
 | ├─ Performance Tests | 100% | ✅ Cache, pooling, async tasks |
 | └─ Plugin Backend Integration | 100% | ✅ API client functionality |
-│   FastAPI        │    │   AI Models     │    │                 │
-│   Plugin        │◄──►│   Backend        │◄──►│   Manager       │
-│                 │    │                  │    │                 │
-│ • UI Components │    │ • REST API       │    │ • LLaMA/GPT4All │
-│ • Settings      │    │ • Request Router │    │ • Embeddings    │
-│ • Enterprise    │    │ • Auth/Security  │    │ • Voice Models  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+│   FastAPI       │   AI Models      │                 │
+│   Plugin        │   Backend        │   Manager       │
+│                 │                  │                 │
+│ • UI Components │ • REST API       │ • LLaMA/GPT4All │
+│ • Settings      │ • Request Router │ • Embeddings    │
+│ • Enterprise    │ • Auth/Security  │ • Voice Models  │
+└─────────────────┘──────────────────┘─────────────────┘
                                 │
                     ┌───────────┼───────────┐
                     ▼           ▼           ▼
