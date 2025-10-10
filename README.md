@@ -12,7 +12,8 @@ This project implements a **modular, service-oriented architecture** with clearl
 ### **Core Components**
 
 ```text
-#### **Test Results Summary** (Latest: 441 Passed, 1 Skipped, 0 Failed)
+**Test Results Summary** (Latest: 441 Passed, 1 Skipped, 0 Failed)
+
 ┌─────────────────┐    ┌──────────────────┐    ┌────────────
 | **Test Category** | **Pass Rate** | **Status** |
 |-------------------|---------------|------------|
@@ -25,10 +26,12 @@ This project implements a **modular, service-oriented architecture** with clearl
 | ├─ Plugin System (Obsidian UI) | 100% | ✅ Complete plugin integration |
 | ├─ LLM Router & Fallbacks | 100% | ✅ Intelligent model selection |
 | └─ Voice Processing | 100% | ✅ Speech-to-text functionality |
+|-------------------|---------------|------------|
 | **🔧 Development & Quality** | **99.8%** | ✅ **High Quality Standards** |
 | ├─ JavaScript Code Quality | 100% | ✅ PEP8-style JS validation |
 | ├─ Performance Tests | 100% | ✅ Cache, pooling, async tasks |
-| └─ Plugin Backend Integration | 100% | ✅ API client functionality |idian      │    │   FastAPI        │    │   AI Models     │
+| └─ Plugin Backend Integration | 100% | ✅ API client functionality |
+│   FastAPI        │    │   AI Models     │    │                 │
 │   Plugin        │◄──►│   Backend        │◄──►│   Manager       │
 │                 │    │                  │    │                 │
 │ • UI Components │    │ • REST API       │    │ • LLaMA/GPT4All │
