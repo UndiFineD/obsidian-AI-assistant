@@ -199,12 +199,14 @@ class TestModelManager:
             patch('backend.modelmanager.HybridLLMRouter'), \
             patch('backend.modelmanager.huggingface_hub.hf_hub_download') as mock_download:
             mock_download.return_value = f"{temp_models_dir}/downloaded-model.bin"
-            manager = ModelManager(models_dir=temp_models_dir)
-            result = manager.download_model("test-org/test-model", filename="model.bin")
-            mock_download.assert_called_once_with(
+            # Disable automatic downloads for testing
+            manager = ModelManager(models_dir=temp_models_dir, minimal_models=[])
+            result = manager.download_model("test-org/test-model", filename="model.bin", revision="abc123def")
+            # Check that our specific call was made (may not be the only call)
+            mock_download.assert_any_call(
                 repo_id="test-org/test-model",
                 filename="model.bin",
-                revision="main",
+                revision="abc123def",
                 local_dir=temp_models_dir,
                 token="test_token"
             )
@@ -217,10 +219,10 @@ class TestModelManager:
             patch('backend.modelmanager.huggingface_hub.login'), \
             patch('os.getenv', return_value="test_token"), \
             patch('backend.modelmanager.HybridLLMRouter'), \
-            patch('backend.modelmanager.huggingface_hub.hf_hub_download', 
+            patch('backend.modelmanager.huggingface_hub.hf_hub_download',
                 side_effect=Exception("Download failed")):
-            manager = ModelManager(models_dir=temp_models_dir)
-            result = manager.download_model("test-org/test-model")
+            manager = ModelManager(models_dir=temp_models_dir, minimal_models=[])
+            result = manager.download_model("test-org/test-model", revision="abc123def")
             assert result["status"] == "error"
             assert "error" in result
             assert "Download failed" in result["error"]

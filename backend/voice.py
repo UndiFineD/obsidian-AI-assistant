@@ -92,8 +92,9 @@ async def voice_transcribe(file: UploadFile):
 # Make the model object accessible as a global name for tests that reference `model` directly
 try:
     _builtins.model = model
-except Exception:
-    pass
+except Exception as e:
+    import logging
+    logging.warning(f"Failed to set builtins model: {e}")
 
 # Ensure the last os.getenv call matches test expectation
 _ = os.getenv("VOSK_MODEL_PATH", _DEFAULT_MODEL_PATH)

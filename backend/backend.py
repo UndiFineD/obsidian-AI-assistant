@@ -688,6 +688,7 @@ if __name__ == "__main__":
     print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
     uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
 
+
 # Ensure this module can be accessed as 'backend.backend' regardless of import mode
 try:
     # When imported as top-level module 'backend', make it behave like a package for submodule import
@@ -701,12 +702,14 @@ try:
         # Register alias in sys.modules
         fq_name = "backend.backend"
         _sys.modules.setdefault(fq_name, this_mod)
-except Exception:
-    pass
+except Exception as e:
+    import logging
+    logging.error(f"Exception in backend.backend (module access): {e}")
+
 
 # Initialize services at import time so tests patching classes before import can assert calls
 try:
     init_services()
-except Exception:
-    # Allow tests to run even if some dependencies fail; endpoints will handle errors
-    pass
+except Exception as e:
+    import logging
+    logging.error(f"Exception in backend.backend (init_services): {e}")

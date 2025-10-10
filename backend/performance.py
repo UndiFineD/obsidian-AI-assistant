@@ -281,8 +281,9 @@ class ConnectionPool:
         if hasattr(conn, 'close'):
             try:
                 conn.close()
-            except Exception:
-                pass
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to close connection: {e}")
     
     def cleanup_idle_connections(self):
         """Remove idle connections exceeding max_idle time"""
