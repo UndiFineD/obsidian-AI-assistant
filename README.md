@@ -14,23 +14,23 @@ This project implements a **modular, service-oriented architecture** with clearl
 ```text
 **Test Results Summary** (Latest: 441 Passed, 1 Skipped, 0 Failed)
 
-┌─────────────────┐──────────────────┐────────────┐
-| **Test Category** | **Pass Rate** | **Status** |
-|-------------------|---------------|------------|
-| **🚀 Production Ready Systems** | **100%** | ✅ **All Core Functionality Complete** |
-| ├─ Core Backend (FastAPI, Endpoints) | 100% | ✅ Full REST API operational |
-| ├─ Security & Configuration | 100% | ✅ Encryption, settings management |
-| ├─ Model Management (LLM Integration) | 100% | ✅ GPT4All, LLaMA support |
-| ├─ Embeddings & Vector Search | 100% | ✅ ChromaDB semantic search |
-| ├─ Multi-Level Caching System | 100% | ✅ Performance optimization |
-| ├─ Plugin System (Obsidian UI) | 100% | ✅ Complete plugin integration |
-| ├─ LLM Router & Fallbacks | 100% | ✅ Intelligent model selection |
-| └─ Voice Processing | 100% | ✅ Speech-to-text functionality |
-|-------------------|---------------|------------|
-| **🔧 Development & Quality** | **99.8%** | ✅ **High Quality Standards** |
-| ├─ JavaScript Code Quality | 100% | ✅ PEP8-style JS validation |
-| ├─ Performance Tests | 100% | ✅ Cache, pooling, async tasks |
-| └─ Plugin Backend Integration | 100% | ✅ API client functionality |
+┌───────────────────────────────────────┐───────────────┐─────────────────────────────────────────┐
+| **Test Category**                     | **Pass Rate** | **Status** |
+|---------------------------------------|---------------|-----------------------------------------|
+| **🚀 Production Ready Systems**       | **100%**      | ✅ **All Core Functionality Complete** |
+| ├─ Core Backend (FastAPI, Endpoints)  | 100%          | ✅ Full REST API operational |
+| ├─ Security & Configuration           | 100%          | ✅ Encryption, settings management |
+| ├─ Model Management (LLM Integration) | 100%          | ✅ GPT4All, LLaMA support |
+| ├─ Embeddings & Vector Search         | 100%          | ✅ ChromaDB semantic search |
+| ├─ Multi-Level Caching System         | 100%          | ✅ Performance optimization |
+| ├─ Plugin System (Obsidian UI)        | 100%          | ✅ Complete plugin integration |
+| ├─ LLM Router & Fallbacks             | 100%          | ✅ Intelligent model selection |
+| └─ Voice Processing                   | 100%          | ✅ Speech-to-text functionality |
+|---------------------------------------|---------------|-----------------------------------------|
+| **🔧 Development & Quality**          | **99.8%**     | ✅ **High Quality Standards** |
+| ├─ JavaScript Code Quality            | 100%          | ✅ PEP8-style JS validation |
+| ├─ Performance Tests                  | 100%          | ✅ Cache, pooling, async tasks |
+| └─ Plugin Backend Integration         | 100%          | ✅ API client functionality |
 │   FastAPI       │   AI Models      │                 │
 │   Plugin        │   Backend        │   Manager       │
 │                 │                  │                 │
@@ -255,7 +255,7 @@ vosk_model_path: "models/vosk-model-small-en-us-0.15"
 
 Settings can be updated at runtime via the `/api/config` endpoints:
 
-# From project root
+## From project root
 
 ```bash
 python test_server.py
@@ -294,18 +294,21 @@ notepad .\backend\config.yaml
 
 ## 3) Start backend
 ### Option A: FastAPI with Uvicorn (full backend)
+
+```bash
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
+```
 
 ## Option B: Simple Python test server (no Node.js required)
 ### This serves the plugin files and provides mock endpoints for quick UI testing
-cd ..
-python .\test_server.py
 
 ```bash
 cd ..
 python .\test_server.py
 ```
+
+
 
 Plugin config:
 
