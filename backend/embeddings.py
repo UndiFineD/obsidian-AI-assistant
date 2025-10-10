@@ -191,8 +191,9 @@ class EmbeddingsManager:
             self.collection = None
             self.chroma_client = None
             self.model = None
-        except Exception:
-            pass
+        except Exception as e:
+            import logging
+            logging.warning(f"Failed to set model to None: {e}")
 
     # ----------------------
     # Utilities

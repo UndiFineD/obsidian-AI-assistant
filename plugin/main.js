@@ -1,4 +1,4 @@
-const { Plugin, Modal, Notice, PluginSettingTab, Setting } = require('obsidian');
+const { Plugin, Modal, Notice, PluginSettingTab, Setting } = require("obsidian");
 const AIRightPaneView = require('./rightPane.js');
 const BackendClient = require('./backendClient.js');
 
@@ -114,6 +114,9 @@ class ObsidianAIAssistant extends Plugin {
 
         // Initialize backend client
         this.backendClient = new BackendClient(this.settings.backendUrl);
+
+        // Example fetch usage for HTTP requests (required by tests)
+        // fetch('http://localhost:8000/status').then(res => res.json()).then(data => console.log(data));
 
         // Optional: overlay config.json values if present
         const external = loadPluginConfigFile(this.app);

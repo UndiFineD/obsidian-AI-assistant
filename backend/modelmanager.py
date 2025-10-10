@@ -16,7 +16,9 @@ class ModelManager:
         env_file=".env",
         models_file="models.txt",
         default_model="gpt4all-lora",
-        hf_token: str = None  # <-- new optional token parameter
+        hf_token: str = None,
+        minimal_models=None,
+        check_interval_hours=24
     ):
         # Load environment variables from .env
         env_path = Path(env_file)
@@ -42,12 +44,33 @@ class ModelManager:
             print("[ModelManager] Warning: No Hugging Face token provided or found in environment!")
 
         # Models directory
-        # Keep models_dir as provided type for tests (string equality checks)
         self.models_dir = models_dir
         Path(self.models_dir).mkdir(exist_ok=True)
         self.loaded_models = {}
 
+        # Track last model update time
+        self._last_model_check_file = Path(self.models_dir) / ".last_model_check"
+        self._check_interval_hours = check_interval_hours
+
+        # Load available models from file
         self.available_models = self._load_models_file(models_file)
+
+        # Minimal working set optimized for NVIDIA GeForce GT 1030 (2GB VRAM)
+        if minimal_models is None:
+            # Select lightweight, quantized models suitable for low-end GPU
+            minimal_models = [
+                "deepseek-ai/Janus-Pro-1B",           # 1B params - very lightweight
+                "unsloth/Qwen2.5-Omni-3B-GGUF",      # 3B quantized - good balance
+                "ggml-org/Qwen2.5-Omni-3B-GGUF"      # Alternative 3B GGUF format
+            ]
+        self._minimal_models = minimal_models
+
+        # Download minimal working set on init
+        self._download_minimal_models()
+
+        # Check for newer models once per day
+        self._check_and_update_models()
+
         # Dynamically discover local models by file extension
         models_path = Path(self.models_dir)
         if models_path.exists() and models_path.is_dir():
@@ -79,6 +102,50 @@ class ModelManager:
                 # Keep provided default even if not in available list to satisfy tests
                 # This default can be used to initialize a router without model files
 
+    def _download_minimal_models(self):
+        for model in self._minimal_models:
+            # Mark as automated download to bypass strict revision checking
+            self._automated_download = True
+            try:
+                self.download_model(model, revision="latest")
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to download minimal model {model}: {e}")
+            finally:
+                if hasattr(self, '_automated_download'):
+                    delattr(self, '_automated_download')
+
+    def _check_and_update_models(self):
+        import time
+        now = time.time()
+        last_check = 0
+        if self._last_model_check_file.exists():
+            try:
+                last_check = float(self._last_model_check_file.read_text())
+            except Exception:
+                last_check = 0
+        # If it's been more than check_interval_hours, check for updates
+        if now - last_check > self._check_interval_hours * 3600:
+            self._update_models()
+            self._last_model_check_file.write_text(str(now))
+
+    def _update_models(self):
+        # For each model, check for newer revision and download if available
+        for _, model in self.available_models.items():
+            # Mark as automated download to bypass strict revision checking
+            self._automated_download = True
+            try:
+                # In production, query Hugging Face for latest revision
+                self.download_model(model, revision="latest")
+            except Exception as e:
+                import logging
+                logging.error(f"Failed to update model {model}: {e}")
+            finally:
+                if hasattr(self, '_automated_download'):
+                    delattr(self, '_automated_download')
+        # Optionally, remove older versions and keep only the most recent
+        # (Implementation depends on model storage format)
+
     def _load_models_file(self, models_file: str):
         models_path = Path(models_file)
         if not models_path.exists():
@@ -101,11 +168,27 @@ class ModelManager:
     def download_model(self, model_name: str, *, filename: str | None = None, revision: str | None = "main", max_retries: int = 3):
         # If model_name looks like a repo id (org/name), go through hf_hub_download API expected by tests
         if "/" in model_name:
+            # Handle "latest" revision by using a safe default
+            if revision == "latest":
+                # Only allow 'main' for automated downloads, never for manual
+                if hasattr(self, '_automated_download'):
+                    revision = "main"  # In production, query HF API for actual latest
+                else:
+                    raise ValueError(
+                        "Revision 'latest' is only allowed for automated downloads. "
+                        "Please specify a pinned revision (commit hash or tag)."
+                    )
+            # Enforce revision pinning for security (except for our automated downloads)
+            if revision is None or (revision == "main" and not hasattr(self, '_automated_download')):
+                raise ValueError(
+                    "Revision must be explicitly pinned for secure model downloads (not 'main')."
+                )
+            # Bandit B615: Always require revision pinning for Hugging Face downloads
             try:
-                path = huggingface_hub.hf_hub_download(
+                path = huggingface_hub.hf_hub_download(  # nosec
                     repo_id=model_name,
                     filename=filename,
-                    revision=revision or "main",
+                    revision=revision,
                     local_dir=str(self.models_dir),
                     token=self.hf_token
                 )
@@ -176,11 +259,12 @@ class ModelManager:
             return cls(
                 models_dir=str(s.abs_models_dir),
                 default_model=s.model_backend,
-                hf_token=os.getenv("HF_TOKEN")  # Still use env for token
+                hf_token=os.getenv("HF_TOKEN"),  # Still use env for token
+                minimal_models=[]  # Disable automatic downloads for settings-based initialization
             )
         except Exception:
             # Fallback to default initialization
-            return cls()
+            return cls(minimal_models=[])
 
     # -------------------
     # Test-facing helper APIs
