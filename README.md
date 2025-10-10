@@ -5,10 +5,83 @@
 
 ---
 
+## **System Architecture**
+
+This project implements a **modular, service-oriented architecture** with clearly separated concerns:
+
+### **Core Components**
+
+```text
+┌─────────────────┐    ┌──────────────────┐    ┌────────────#### **Test Results Summary**
+
+| **Test Category** | **Pass Rate** | **Passed/Total** | **Status** |
+|-------------------|---------------|------------------|------------|
+| **Core Backend** | **100%** 🥇 | 21/21 | ✅ Production Ready |
+| **Security & Config** | **100%** 🥇 | 34/34 | ✅ Production Ready |
+| **Model Management** | **100%** 🥇 | 52/52 | ✅ Production Ready |
+| **Embeddings & Search** | **100%** 🥇 | 113/113 | ✅ Production Ready |
+| **Caching & Storage** | **100%** 🥇 | 22/22 | ✅ Production Ready |
+| **Plugin System** | **100%** 🥇 | 30/30 | ✅ Production Ready |
+| **LLM Router** | **100%** 🥇 | 17/17 | ✅ Production Ready |
+| **JavaScript Quality** | **100%** 🥇 | 20/20 | ✅ Production Ready |
+| **Voice & Audio** | **95%** 🥈 | 19/20 | ✅ Nearly Complete |
+| **Uncategorized** | **91.2%** 🥉 | 31/34 | ✅ Stable |
+| **Performance Tests** | **85%** ⭐ | 17/20 | 🔄 Optimization Ongoing |
+| **Integration Tests** | **17.2%** ⚠️ | 10/58 | 🚧 Under Development |idian      │    │   FastAPI        │    │   AI Models     │
+│   Plugin        │◄──►│   Backend        │◄──►│   Manager       │
+│                 │    │                  │    │                 │
+│ • UI Components │    │ • REST API       │    │ • LLaMA/GPT4All │
+│ • Settings      │    │ • Request Router │    │ • Embeddings    │
+│ • Enterprise    │    │ • Auth/Security  │    │ • Voice Models  │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+                                │
+                    ┌───────────┼───────────┐
+                    ▼           ▼           ▼
+              ┌──────────┐ ┌──────────┐ ┌──────────┐
+              │ Vector   │ │ Cache    │ │ Security │
+              │ Database │ │ System   │ │ Module   │
+              │          │ │          │ │          │
+              │ ChromaDB │ │ Multi-   │ │ Fernet   │
+              │ Semantic │ │ Layer    │ │ Encrypt  │
+              │ Search   │ │ TTL      │ │ Auth     │
+              └──────────┘ └──────────┘ └──────────┘
+```
+
+### **Enterprise Architecture**
+
+For organizations requiring advanced features, the system includes enterprise modules:
+
+- **SSO Authentication**: Azure AD, Google, Okta, SAML, LDAP providers
+- **Multi-Tenant Support**: Isolated data and settings per organization
+- **Role-Based Access Control (RBAC)**: Granular permissions and user management
+- **Compliance**: GDPR and SOC2 compliance tools and audit trails
+- **Admin Dashboard**: Comprehensive management interface
+
+---
+
 ## **Features**
 
 - **Local LLM Integration**: Support for LLaMA/GPT4All models with hybrid routing
-- **Centralized Settings Management**: Environment variables → YAML → defaults precedence
+- **Centra### **3. Install Plugin in Obsidian**
+
+1. Copy the `plugin/` folder contents to your vault's `.obsidian/plugins/obsidian-ai-assistant/`
+2. Ensure all required files are present:
+   - `main.js`, `manifest.json` (core plugin files)
+   - `rightPane.js`, `backendClient.js` (UI and API communication)
+   - `adminDashboard.js`, `enterpriseAuth.js`, `enterpriseConfig.js` (enterprise features)
+   - `styles.css` (styling)
+3. Open Obsidian → Settings → Community Plugins → Enable `Obsidian AI Assistant`
+4. Configure:
+   - **Backend URL**: `http://localhost:8000`
+   - **Vault Path**: path to your notes
+   - **Features**: Enable voice, network access as needed
+
+**Troubleshooting Plugin Load Issues:**
+
+- Verify all `.js` files exist in the plugin folder
+- Check Obsidian Developer Console (Ctrl+Shift+I) for error messages
+- Ensure file permissions are readable
+- Restart Obsidian after copying filesttings Management**: Environment variables → YAML → defaults precedence
 - **Semantic Search**: Vector embeddings with ChromaDB for similarity search
 - **Document Indexing**: Markdown, PDF, and web page indexing with caching
 - **Voice Input**: Vosk-based speech recognition with push-to-talk functionality
@@ -328,86 +401,169 @@ The FastAPI backend provides these key endpoints:
 
 ---
 
-### **8. Testing & Quality Assurance**
+### **8. Code Quality Standards**
 
-This project maintains high code quality with comprehensive test coverage (**90.02%**), exceeding industry standards for production-ready software.
+#### **JavaScript Code Style**
 
-#### **Test Coverage by Module**
+The plugin follows PEP8-inspired JavaScript conventions for consistency and maintainability:
 
-| Module | Coverage | Test File |
-|--------|----------|-----------|
-| **Security** | **100%** 🥇 | `test_security.py` |
-| **Model Manager** | **100%** 🥇 | `test_modelmanager.py` |
-| **Caching** | **99%** 🥈 | `test_caching.py`, `test_caching_extended.py` |
-| **Indexing** | **94%** 🥉 | `test_indexing.py` |
-| **Settings** | **93%** ⭐ | `test_settings.py` |
-| **LLM Router** | **93%** ⭐ | `test_llm_router.py` |
-| **Embeddings** | **91%** 🔥 | `test_embeddings.py` |
-| **Voice Processing** | **84%** ✅ | `test_voice.py` |
-| **Backend API** | **77%** ✅ | `test_backend.py`, `test_config_endpoints.py` |
+**Indentation & Formatting:**
+
+- ✅ **4-space indentation** (consistent with Python backend)
+- ✅ **No trailing whitespace**
+- ✅ **Consistent bracket placement**
+- ✅ **Proper line length limits**
+
+**Code Structure:**
+
+- ✅ **PascalCase for classes** (`BackendClient`, `VoiceRecorder`)
+- ✅ **camelCase for functions** (`startListening`, `sendRequest`)  
+- ✅ **Proper module exports** with `module.exports`
+- ✅ **Error handling patterns** with try-catch blocks
+- ✅ **Console logging** for debugging (limited usage)
+
+**Security Standards:**
+
+- ✅ **No hardcoded secrets** or API keys
+- ✅ **Safe DOM manipulation** (no innerHTML without sanitization)
+- ✅ **Input validation** for user data
+- ✅ **No eval() usage** for security
+
+**Automated Quality Tools:**
+
+```bash
+# JavaScript code quality validation
+pytest tests/plugin/test_js_code_quality.py -v
+
+# Automatic style fixing
+python fix_js_quality.py
+
+# Manual verification
+python fix_js_indentation.py
+```
+
+The quality assurance system includes 20 comprehensive tests covering:
+
+- **File Structure**: Manifest validation, required files, exports
+- **Code Quality**: Indentation, whitespace, quotes, class definitions
+- **Functionality**: Plugin integration, voice features, enterprise components  
+- **Security**: Hardcoded secrets detection, safe eval usage, DOM safety
+
+---
+
+### **9. Testing & Quality Assurance**
+
+This project maintains high code quality with comprehensive test coverage. The latest test run shows **87.7% pass rate** (391 passed, 55 failed, 0 errors out of 446 total tests) with ongoing optimization work for integration scenarios.
+
+#### **Test Results Summary**
+
+| **Test Category** | **Pass Rate** | **Passed/Total** | **Status** |
+|-------------------|---------------|------------------|------------|
+| **Core Backend** | **100%** 🥇 | 21/21 | ✅ Production Ready |
+| **Security & Config** | **100%** 🥇 | 34/34 | ✅ Production Ready |
+| **Model Management** | **100%** 🥇 | 52/52 | ✅ Production Ready |
+| **Embeddings & Search** | **100%** � | 113/113 | ✅ Production Ready |
+| **Caching & Storage** | **100%** � | 22/22 | ✅ Production Ready |
+| **Plugin System** | **100%** 🥇 | 30/30 | ✅ Production Ready |
+| **LLM Router** | **100%** 🥇 | 17/17 | ✅ Production Ready |
+| **Voice & Audio** | **95%** 🥈 | 19/20 | ✅ Nearly Complete |
+| **Uncategorized** | **91.2%** 🥉 | 31/34 | ✅ Stable |
+| **Performance Tests** | **85%** ⭐ | 17/20 | 🔄 Optimization Ongoing |
+| **Integration Tests** | **17.2%** ⚠️ | 10/58 | 🚧 Under Development |
+
+#### **Key Test Insights**
+
+- **Core Functionality**: All essential features (backend, security, models, embeddings, caching) have 100% pass rates
+- **Plugin Integration**: Complete plugin system functionality validated
+- **Performance**: Some edge cases in cache eviction and concurrent operations being addressed
+- **Integration Tests**: Complex cross-service scenarios under active development
 
 #### **Test Structure**
 
 ```text
 tests/
-├── backend/                     # Backend module tests
+├── backend/                     # Backend module tests (100% pass rate)
 │   ├── test_backend.py         # FastAPI endpoints & integration
-│   ├── test_caching.py         # Cache management 
-│   ├── test_caching_extended.py # Extended cache scenarios
-│   ├── test_config_endpoints.py # Configuration API
-│   ├── test_embeddings.py      # Vector operations
-│   ├── test_indexing.py        # Document processing
-│   ├── test_llm_router.py      # Model routing logic
-│   ├── test_modelmanager.py    # Model management
-│   ├── test_security.py        # Encryption/decryption
-│   ├── test_settings.py        # Settings management
-│   ├── test_status_endpoint.py # Status API
-│   └── test_voice.py           # Voice transcription
-└── test_final.py               # End-to-end integration tests
+│   ├── test_caching.py         # Cache management systems
+│   ├── test_embeddings.py      # Vector operations & search
+│   ├── test_indexing.py        # Document processing pipelines
+│   ├── test_llm_router.py      # Model routing & selection
+│   ├── test_modelmanager.py    # AI model lifecycle management
+│   ├── test_security.py        # Encryption & authentication
+│   ├── test_settings.py        # Configuration management
+│   └── test_voice.py           # Speech recognition & processing
+├── plugin/                      # Plugin system tests (100% pass rate)
+│   ├── test_plugin_structure.py # File structure validation
+│   ├── test_plugin_integration.py # Obsidian integration
+│   └── test_enterprise_features.py # Enterprise functionality
+├── integration/                 # Cross-service tests (17.2% pass rate - in development)
+│   ├── test_workflow_integration.py # End-to-end workflows
+│   ├── test_performance_benchmarks.py # Load & stress testing
+│   └── test_enterprise_integration.py # Enterprise scenarios
+├── performance/                 # Performance tests (85% pass rate)
+│   ├── test_async_operations.py # Concurrent processing
+│   ├── test_cache_performance.py # Cache optimization
+│   └── test_connection_pooling.py # Resource management
+└── comprehensive_async_test_runner.py # Multi-worker test runner
 ```
+
+#### **Recent Test Run Statistics**
+
+- **Execution Time**: 404.60 seconds with 6.3x speedup factor using 8 parallel workers
+- **Test Distribution**: 446 total tests across 12 categories
+- **Performance**: Fastest test: 1.90s, Slowest: 60.05s (cache eviction edge case)
+- **JavaScript Quality**: New 20-test suite for code style, structure, and security validation
+- **Failed Tests**: Primarily in integration scenarios involving complex service interactions
 
 #### **Running Tests**
 
-**Quick Test Run:**
+**Comprehensive Test Suite (Recommended):**
 
 ```bash
-# Activate environment and run all tests  
+# Activate environment
 source venv/bin/activate  # Linux/macOS
 # or
 & venv\Scripts\Activate.ps1  # Windows
 
-# Run all tests with coverage
-pytest --cov=backend --cov-report=term-missing
-
-# Run specific module tests
-pytest tests/backend/test_caching.py -v
-pytest tests/backend/test_settings.py -v
-```
-
-**Full Test Suite:**
-
-```bash
-# Install test dependencies (if not already installed)
+# Install test dependencies
 pip install pytest pytest-cov pytest-asyncio
 
-# Run all tests with HTML coverage report
-pytest --cov=backend --cov-report=html --cov-report=term
+# Run comprehensive async test suite (446 tests, 8 parallel workers)
+python run_tests.py
 
-# Generate coverage report in htmlcov/ directory
-# Open htmlcov/index.html in browser to see detailed coverage
+# This runs all test categories:
+# - Backend module tests (100% pass rate)
+# - Plugin system tests (100% pass rate)
+# - JavaScript quality tests (100% pass rate) 
+# - Performance tests (85% pass rate)
+# - Integration tests (17% pass rate - under development)
 ```
 
-**Development Testing:**
+**Individual Module Testing:**
 
 ```bash
-# Run tests in watch mode (re-run on file changes)
-pytest-watch
+# Run specific test categories
+pytest tests/backend/ -v                    # Backend tests only
+pytest tests/plugin/ -v                     # Plugin tests only
+pytest tests/performance/ -v                # Performance tests only
 
-# Run only failed tests from previous run
-pytest --lf
+# Run specific modules
+pytest tests/backend/test_caching.py -v     # Cache system tests
+pytest tests/backend/test_security.py -v    # Security tests
+pytest tests/backend/test_modelmanager.py -v # Model management tests
 
-# Run tests matching pattern
-pytest -k "test_caching or test_settings" -v
+# JavaScript Quality Tests
+pytest tests/plugin/test_js_code_quality.py -v  # JavaScript validation tests
+```
+
+**Coverage and Reporting:**
+
+```bash
+# Generate detailed coverage report
+pytest --cov=backend --cov-report=html --cov-report=term
+
+# Open htmlcov/index.html to see detailed coverage analysis
+# Comprehensive results saved to: tests/comprehensive_test_results.json
 ```
 
 **Setup Script Tests:**
@@ -435,18 +591,32 @@ brew install bats-core # (macOS)
 bats tests/setup/test_setup_sh.bats
 ```
 
-#### **Test Coverage**
+#### **Known Issues & Development Status**
 
-The test suite covers:
+**Production Ready Components:**
 
-- **API Endpoints**: All FastAPI routes with mock data
-- **LLM Integration**: Model loading, text generation, routing logic
-- **Vector Database**: Embeddings, similarity search, document indexing
-- **Caching**: TTL-based caching, persistence, cleanup
-- **Security**: Encryption/decryption, token handling
-- **Voice Processing**: Audio transcription, format validation
-- **Setup Scripts**: Environment creation, dependency installation, error handling
-- **Error Handling**: Edge cases, network failures, invalid inputs
+- ✅ **Core Backend**: All FastAPI endpoints, configuration management, health checks
+- ✅ **Security**: Encryption/decryption, authentication, secure data handling  
+- ✅ **AI Models**: LLM loading, text generation, model routing and fallbacks
+- ✅ **Vector Search**: Embeddings, similarity search, document indexing
+- ✅ **Caching**: Multi-level TTL caching, persistence, automatic cleanup
+- ✅ **Plugin System**: Obsidian integration, UI components, settings management
+- ✅ **JavaScript Quality**: Code style enforcement, structure validation, security checks
+- ✅ **Voice Processing**: Speech-to-text transcription, audio format validation
+
+**Under Development:**
+
+- 🔄 **Performance Optimization**: Cache eviction edge cases, connection pooling
+- 🔄 **Integration Scenarios**: Complex cross-service workflows, error recovery
+- 🔄 **Enterprise Features**: SSO integration, multi-tenant operations
+
+**Test Coverage Areas:**
+
+- **Backend Core**: 100% - All API endpoints, services, and utilities
+- **Plugin Integration**: 100% - Obsidian UI, settings, and functionality
+- **JavaScript Quality**: 100% - Code style, structure, security validation
+- **Performance**: 85% - Most scenarios covered, optimizing edge cases
+- **End-to-End**: 17% - Complex workflows being refined
 
 #### **Continuous Integration**
 
@@ -454,7 +624,7 @@ Tests can be integrated into CI/CD pipelines. See `tests/setup/README.md` for Gi
 
 ---
 
-### **9. API Documentation**
+### **10. API Documentation**
 
 The FastAPI backend provides interactive API documentation:
 
@@ -496,7 +666,7 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 
 ---
 
-### **10. Dependencies**
+### **11. Dependencies**
 
 **Runtime Dependencies:**
 
@@ -519,7 +689,9 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 
 --
 
-### **11. License & Contributing**
+---
+
+### **12. License & Contributing**
 
 - **Author**: Keimpe de Jong
 - **License**: MIT

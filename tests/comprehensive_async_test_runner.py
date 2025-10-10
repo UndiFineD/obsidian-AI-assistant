@@ -189,12 +189,13 @@ class AsyncTestRunner:
             "Security & Config": {"priority": 5, "patterns": ["backend/test_security.py", "backend/test_config*.py"]},
             "Voice & Audio": {"priority": 6, "patterns": ["backend/test_voice.py"]},
             "LLM Router": {"priority": 7, "patterns": ["backend/test_llm_router.py"]},
-            "Plugin System": {"priority": 8, "patterns": ["plugin/test_*.py", "test_plugin_python.py"]},
-            "Integration Tests": {"priority": 9, "patterns": ["integration/test_*.py"]},
-            "Enterprise Tests": {"priority": 10, "patterns": ["integration/test_enterprise*.py"]},
-            "Performance Tests": {"priority": 11, "patterns": ["test_performance.py"]},
-            "Utility & Server": {"priority": 12, "patterns": ["test_server.py", "run_tests.py"]},
-            "Final & Misc": {"priority": 13, "patterns": ["test_final.py"]}
+            "JavaScript Quality": {"priority": 8, "patterns": ["plugin/test_js_code_quality.py"]},
+            "Plugin System": {"priority": 9, "patterns": ["plugin/test_*.py", "test_plugin_python.py"]},
+            "Integration Tests": {"priority": 10, "patterns": ["integration/test_*.py"]},
+            "Enterprise Tests": {"priority": 11, "patterns": ["integration/test_enterprise*.py"]},
+            "Performance Tests": {"priority": 12, "patterns": ["test_performance.py"]},
+            "Utility & Server": {"priority": 13, "patterns": ["test_server.py", "run_tests.py"]},
+            "Final & Misc": {"priority": 14, "patterns": ["test_final.py"]}
         }
         
         # Discover all test files

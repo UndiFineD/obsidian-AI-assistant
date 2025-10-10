@@ -1,8 +1,8 @@
 allow_network: true
-api_port: 9999
+api_port: 8001
 cache_dir: cache
 chunk_overlap: 200
-chunk_size: 1000
+chunk_size: 2000
 continuous_mode: false
 embed_model: sentence-transformers/all-MiniLM-L6-v2
 gpu: true
@@ -11,5 +11,5 @@ model_backend: new-model
 model_path: models/llama-7b.gguf
 similarity_threshold: 0.8
 top_k: 10
-vault_path: ./new_vault
+vault_path: test_vault
 vector_db: chroma

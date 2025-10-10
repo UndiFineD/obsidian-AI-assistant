@@ -6,6 +6,6 @@
     "description": "Simple AI assistant for Obsidian that connects to a local backend server.",
     "author": "Keimpe de Jong",
     "authorUrl": "",
-    "isDesktopOnly": false
+    "isDesktopOnly": false,
     "main": "main.js"
 }
