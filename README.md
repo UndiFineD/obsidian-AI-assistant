@@ -1,4 +1,3 @@
-
 # Obsidian AI Assistant
 
 **Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
@@ -65,27 +64,32 @@ For organizations requiring advanced features, the system includes enterprise mo
 
 ## **Features**
 
-- **Local LLM Integration**: Support for LLaMA/GPT4All models with hybrid routing
-- **Centra### **3. Install Plugin in Obsidian**
+- **Local LLM Integration**:
+
+Support for LLaMA/GPT4All models with hybrid routing
+
+- **Central**
+
+## Install Plugin in Obsidian
 
 1. Copy the `plugin/` folder contents to your vault's `.obsidian/plugins/obsidian-ai-assistant/`
 2. Ensure all required files are present:
-   - `main.js`, `manifest.json` (core plugin files)
-   - `rightPane.js`, `backendClient.js` (UI and API communication)
-   - `adminDashboard.js`, `enterpriseAuth.js`, `enterpriseConfig.js` (enterprise features)
-   - `styles.css` (styling)
+    - `main.js`, `manifest.json` (core plugin files)
+    - `rightPane.js`, `backendClient.js` (UI and API communication)
+    - `adminDashboard.js`, `enterpriseAuth.js`, `enterpriseConfig.js` (enterprise features)
+    - `styles.css` (styling)
 3. Open Obsidian → Settings → Community Plugins → Enable `Obsidian AI Assistant`
 4. Configure:
-   - **Backend URL**: `http://localhost:8000`
-   - **Vault Path**: path to your notes
-   - **Features**: Enable voice, network access as needed
+    - **Backend URL**: `http://localhost:8000`
+    - **Vault Path**: path to your notes
+    - **Features**: Enable voice, network access as needed
 
 **Troubleshooting Plugin Load Issues:**
 
 - Verify all `.js` files exist in the plugin folder
 - Check Obsidian Developer Console (Ctrl+Shift+I) for error messages
 - Ensure file permissions are readable
-- Restart Obsidian after copying filesttings Management**: Environment variables → YAML → defaults precedence
+- Restart Obsidian after copying filesttings Management\*\*: Environment variables → YAML → defaults precedence
 - **Semantic Search**: Vector embeddings with ChromaDB for similarity search
 - **Document Indexing**: Markdown, PDF, and web page indexing with caching
 - **Voice Input**: Vosk-based speech recognition with push-to-talk functionality
@@ -98,7 +102,7 @@ For organizations requiring advanced features, the system includes enterprise mo
 
 ## **Project Structure**
 
-```text
+````text
 obsidian-llm-assistant/
 ├─ backend/                # FastAPI backend modules
 ├─ plugin/                 # Obsidian plugin
@@ -119,14 +123,14 @@ For organizations requiring enterprise features, additional backend modules are 
 ```bash
 backend/enterprise/
 ├── auth.py           # SSO authentication providers
-├── tenant.py         # Multi-tenant management  
+├── tenant.py         # Multi-tenant management
 ├── rbac.py          # Role-based access control
 ├── gdpr.py          # GDPR compliance tools
 ├── soc2.py          # SOC2 compliance monitoring
 ├── admin.py         # Admin dashboard API
 └── integrations.py  # Enterprise integrations
 
-```
+````
 
 ### **Enterprise Plugin Components**
 
@@ -143,26 +147,26 @@ plugin/
 ```yaml
 # backend/config.yaml - Enterprise settings
 enterprise:
-  enabled: true
-  sso:
-    providers:
-      - azure_ad
-      - google
-      - okta
-      - saml
-      - ldap
-  tenant:
-    multi_tenant: true
-    default_tenant: "default"
-  compliance:
-    gdpr: true
-    soc2: true
- 
-    audit_logging: true
-  security:
-    session_timeout: 3600
-    mfa_required: false
-    password_policy: "strong"
+    enabled: true
+    sso:
+        providers:
+            - azure_ad
+            - google
+            - okta
+            - saml
+            - ldap
+    tenant:
+        multi_tenant: true
+        default_tenant: 'default'
+    compliance:
+        gdpr: true
+        soc2: true
+
+        audit_logging: true
+    security:
+        session_timeout: 3600
+        mfa_required: false
+        password_policy: 'strong'
 ```
 
 ### **Enterprise Features Access**
@@ -170,7 +174,7 @@ enterprise:
 Once enterprise backend is running:
 
 1. **Admin Dashboard**: Settings → Enterprise → Admin Dashboard
-2. **SSO Login**: Settings → Enterprise → Enterprise Login  
+2. **SSO Login**: Settings → Enterprise → Enterprise Login
 3. **Configuration**: Settings → Enterprise → Enterprise Configuration
 4. **User Management**: Admin Dashboard → Users tab
 5. **Tenant Management**: Admin Dashboard → Tenants tab
@@ -185,7 +189,7 @@ Once enterprise backend is running:
 # Linux/macOS
 bash setup.sh
 
-# Windows PowerShell  
+# Windows PowerShell
 ./setup.ps1
 ```
 
@@ -212,7 +216,7 @@ python scripts/download_models.py
 **What the setup includes:**
 
 1. ✅ **Python Environment**: Virtual environment with all dependencies
-2. ✅ **AI Models**: GPT4All, LLaMA quantized models, embedding models  
+2. ✅ **AI Models**: GPT4All, LLaMA quantized models, embedding models
 3. ✅ **Backend Services**: FastAPI server, ChromaDB vector database
 4. ✅ **Plugin Files**: Ready-to-install Obsidian plugin (no build step needed)
 5. ✅ **Optional Tools**: llama.cpp for advanced model management
@@ -229,26 +233,25 @@ The backend uses a centralized settings system with the following precedence:
 
 ```yaml
 # backend/config.yaml
-backend_url: "http://127.0.0.1:8000"
+backend_url: 'http://127.0.0.1:8000'
 api_port: 8000
 allow_network: false
 continuous_mode: false
 
 # Paths
-vault_path: "vault"
-models_dir: "models"
-cache_dir: "cache"
- 
+vault_path: 'vault'
+models_dir: 'models'
+cache_dir: 'cache'
 
 # LLM Settings
-model_backend: "llama_cpp"
-model_path: "models/llama-7b.gguf"
-embed_model: "sentence-transformers/all-MiniLM-L6-v2"
-vector_db: "chroma"
+model_backend: 'llama_cpp'
+model_path: 'models/llama-7b.gguf'
+embed_model: 'sentence-transformers/all-MiniLM-L6-v2'
+vector_db: 'chroma'
 gpu: true
 
 # Voice Settings
-vosk_model_path: "models/vosk-model-small-en-us-0.15"
+vosk_model_path: 'models/vosk-model-small-en-us-0.15'
 ```
 
 #### **Runtime Configuration**
@@ -262,24 +265,27 @@ python test_server.py
 ```
 
 ## Get current configuration
+
 [GET current configuration](http://localhost:8000/api/config)
 
 ## Update settings
+
 [POST update settings](http://localhost:8000/api/config)
 Content-Type: application/json
 {
-  "vault_path": "new_vault",
-  "gpu": false
+"vault_path": "new_vault",
+"gpu": false
 }
 
 ## Reload settings from file
+
 [POST reload settings](http://localhost:8000/api/config/reload)
 
 ```json
 {
-  "backendUrl": "http://localhost:8000",
-  "vaultPath": "vault",
-  "preferFastLLM": true
+    "backendUrl": "http://localhost:8000",
+    "vaultPath": "vault",
+    "preferFastLLM": true
 }
 ```
 
@@ -290,9 +296,11 @@ $env:VAULT_PATH="$(Resolve-Path .\vault)"
 $env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 
 ## 2) Edit backend/config.yaml as needed
+
 notepad .\backend\config.yaml
 
 ## 3) Start backend
+
 ### Option A: FastAPI with Uvicorn (full backend)
 
 ```bash
@@ -301,6 +309,7 @@ python -m uvicorn backend:app --host 127.0.0.1 --port $env:API_PORT --reload
 ```
 
 ## Option B: Simple Python test server (no Node.js required)
+
 ### This serves the plugin files and provides mock endpoints for quick UI testing
 
 ```bash
@@ -308,14 +317,12 @@ cd ..
 python .\test_server.py
 ```
 
-
-
 Plugin config:
 
 ```pwsh
 # Copy plugin config template and edit backend URL if needed
 Copy-Item .\plugin\config.template.json .\plugin\config.json -Force
- 
+
 notepad .\plugin\config.json
 ```
 
@@ -353,7 +360,7 @@ This lightweight server:
 
 - Serves static plugin files from `./plugin`
 - Provides mock endpoints: `/`, `/status`, `/ask`, `/reindex`, `/web`
-Requires only Python, no Node.js or npm.
+  Requires only Python, no Node.js or npm.
 
 #### **Backend Endpoints**
 
@@ -418,13 +425,9 @@ The FastAPI backend provides these key endpoints:
 > _(Add screenshots here if desired)_
 >
 > - Task Queue Pane
->
 > - Ribbon Buttons
->
 > - Analytics Dashboard
->
 > - Inline Note Formatting
->
 
 ---
 
@@ -444,7 +447,7 @@ The plugin follows PEP8-inspired JavaScript conventions for consistency and main
 **Code Structure:**
 
 - ✅ **PascalCase for classes** (`BackendClient`, `VoiceRecorder`)
-- ✅ **camelCase for functions** (`startListening`, `sendRequest`)  
+- ✅ **camelCase for functions** (`startListening`, `sendRequest`)
 - ✅ **Proper module exports** with `module.exports`
 - ✅ **Error handling patterns** with try-catch blocks
 - ✅ **Console logging** for debugging (limited usage)
@@ -473,7 +476,7 @@ The quality assurance system includes 20 comprehensive tests covering:
 
 - **File Structure**: Manifest validation, required files, exports
 - **Code Quality**: Indentation, whitespace, quotes, class definitions
-- **Functionality**: Plugin integration, voice features, enterprise components  
+- **Functionality**: Plugin integration, voice features, enterprise components
 - **Security**: Hardcoded secrets detection, safe eval usage, DOM safety
 
 ---
@@ -484,19 +487,19 @@ This project maintains exceptionally high code quality with comprehensive test c
 
 #### **Test Results Summary**
 
-| **Test Category** | **Pass Rate** | **Passed/Total** | **Status** |
-|-------------------|---------------|------------------|------------|
-| **Core Backend** | **100%** 🥇 | 21/21 | ✅ Production Ready |
-| **Security & Config** | **100%** 🥇 | 34/34 | ✅ Production Ready |
-| **Model Management** | **100%** 🥇 | 52/52 | ✅ Production Ready |
-| **Embeddings & Search** | **100%** � | 113/113 | ✅ Production Ready |
-| **Caching & Storage** | **100%** � | 22/22 | ✅ Production Ready |
-| **Plugin System** | **100%** 🥇 | 30/30 | ✅ Production Ready |
-| **LLM Router** | **100%** 🥇 | 17/17 | ✅ Production Ready |
-| **Voice & Audio** | **95%** 🥈 | 19/20 | ✅ Nearly Complete |
-| **Uncategorized** | **91.2%** 🥉 | 31/34 | ✅ Stable |
-| **Performance Tests** | **85%** ⭐ | 17/20 | 🔄 Optimization Ongoing |
-| **Integration Tests** | **17.2%** ⚠️ | 10/58 | 🚧 Under Development |
+| **Test Category**       | **Pass Rate** | **Passed/Total** | **Status**              |
+| ----------------------- | ------------- | ---------------- | ----------------------- |
+| **Core Backend**        | **100%** 🥇   | 21/21            | ✅ Production Ready     |
+| **Security & Config**   | **100%** 🥇   | 34/34            | ✅ Production Ready     |
+| **Model Management**    | **100%** 🥇   | 52/52            | ✅ Production Ready     |
+| **Embeddings & Search** | **100%** �    | 113/113          | ✅ Production Ready     |
+| **Caching & Storage**   | **100%** �    | 22/22            | ✅ Production Ready     |
+| **Plugin System**       | **100%** 🥇   | 30/30            | ✅ Production Ready     |
+| **LLM Router**          | **100%** 🥇   | 17/17            | ✅ Production Ready     |
+| **Voice & Audio**       | **95%** 🥈    | 19/20            | ✅ Nearly Complete      |
+| **Uncategorized**       | **91.2%** 🥉  | 31/34            | ✅ Stable               |
+| **Performance Tests**   | **85%** ⭐    | 17/20            | 🔄 Optimization Ongoing |
+| **Integration Tests**   | **17.2%** ⚠️  | 10/58            | 🚧 Under Development    |
 
 #### **Key Test Insights**
 
@@ -561,7 +564,7 @@ python -m pytest tests/ -v
 
 # This validates all system components:
 # - Backend module tests (100% pass rate)
-# - Plugin system tests (100% pass rate)  
+# - Plugin system tests (100% pass rate)
 # - JavaScript quality tests (100% pass rate)
 # - Performance tests (100% pass rate)
 # - Integration workflow tests (100% pass rate)
@@ -624,7 +627,7 @@ bats tests/setup/test_setup_sh.bats
 **Production Ready Components:**
 
 - ✅ **Core Backend**: All FastAPI endpoints, configuration management, health checks
-- ✅ **Security**: Encryption/decryption, authentication, secure data handling  
+- ✅ **Security**: Encryption/decryption, authentication, secure data handling
 - ✅ **AI Models**: LLM loading, text generation, model routing and fallbacks
 - ✅ **Vector Search**: Embeddings, similarity search, document indexing
 - ✅ **Caching**: Multi-level TTL caching, persistence, automatic cleanup
@@ -635,7 +638,7 @@ bats tests/setup/test_setup_sh.bats
 **Enhancement Opportunities:**
 
 - � **Enterprise Features**: SSO providers, multi-tenant architecture, compliance tools
-- � **Advanced Analytics**: Usage metrics, performance monitoring, user insights  
+- � **Advanced Analytics**: Usage metrics, performance monitoring, user insights
 - � **Search Enhancements**: Advanced embedding models, hybrid search strategies
 
 **Complete Test Coverage:**
@@ -643,7 +646,7 @@ bats tests/setup/test_setup_sh.bats
 - **Backend Systems**: 100% - All FastAPI endpoints, AI models, vector database
 - **Plugin Integration**: 100% - Obsidian UI, settings, enterprise components
 - **Code Quality**: 100% - JavaScript validation, security checks, style enforcement
-- **Performance**: 100% - Caching systems, connection pooling, async operations  
+- **Performance**: 100% - Caching systems, connection pooling, async operations
 - **End-to-End Workflows**: 100% - Complete user journeys validated
 
 #### **Continuous Integration**
@@ -665,7 +668,7 @@ Key endpoints and their usage:
 # Health check
 GET /health
 
-# Service status with component details  
+# Service status with component details
 GET /status
 
 # Configuration management
@@ -676,7 +679,7 @@ POST /api/config/reload      # Reload from file
 
 # AI operations
 POST /ask                    # Ask question to LLM
-POST /reindex                # Reindex vault documents  
+POST /reindex                # Reindex vault documents
 POST /web                    # Index web content
 POST /transcribe             # Voice to text
 
@@ -714,8 +717,6 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 - BATS (Bash testing)
 
 **Optional:**
-
---
 
 ---
 

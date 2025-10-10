@@ -1,24 +1,25 @@
 # backend/backend.py
 import os
-import time
 import sys as _sys
-import http.server
-import socketserver
+import time
 from typing import List, Optional
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from .settings import get_settings, reload_settings, update_settings
-from .embeddings import EmbeddingsManager
-from .indexing import VaultIndexer, IndexingService
-from .modelmanager import ModelManager
 from .caching import CacheManager
+from .embeddings import EmbeddingsManager
+from .indexing import IndexingService, VaultIndexer
+from .modelmanager import ModelManager
 from .performance import (
-    get_cache_manager, get_connection_pool, get_task_queue, 
-    cached, PerformanceMonitor
+    PerformanceMonitor,
+    cached,
+    get_cache_manager,
+    get_connection_pool,
+    get_task_queue,
 )
+from .settings import get_settings, reload_settings, update_settings
 
 # Global flag to track background queue initialization
 _background_queue_started = False
@@ -26,13 +27,20 @@ _background_queue_started = False
 # Enterprise imports
 try:
     from .enterprise_integration import EnterpriseIntegration
+
     ENTERPRISE_AVAILABLE = True
 except ImportError as e:
     print(f"Enterprise features not available: {e}")
     ENTERPRISE_AVAILABLE = False
 
 # --- FastAPI app ---
-app = FastAPI(title="Obsidian AI Assistant - Enterprise Edition" if ENTERPRISE_AVAILABLE else "Obsidian AI Assistant")
+app = FastAPI(
+    title=(
+        "Obsidian AI Assistant - Enterprise Edition"
+        if ENTERPRISE_AVAILABLE
+        else "Obsidian AI Assistant"
+    )
+)
 
 # Initialize enterprise features if available
 if ENTERPRISE_AVAILABLE:
@@ -56,9 +64,10 @@ if not ENTERPRISE_AVAILABLE:
 
 # --- Services (lazy-init) ---
 model_manager = None  # will be set to ModelManager instance
-emb_manager = None    # will be set to EmbeddingsManager instance
+emb_manager = None  # will be set to EmbeddingsManager instance
 vault_indexer = None  # will be set to VaultIndexer instance
 cache_manager = None  # will be set to CacheManager instance
+
 
 def init_services():
     """Initialize global service singletons with performance optimizations.
@@ -67,12 +76,15 @@ def init_services():
     Includes connection pooling and performance monitoring setup.
     """
     global model_manager, emb_manager, vault_indexer, cache_manager
-    if all(v is not None for v in (model_manager, emb_manager, vault_indexer, cache_manager)):
+    if all(
+        v is not None
+        for v in (model_manager, emb_manager, vault_indexer, cache_manager)
+    ):
         return
-    
+
     # Initialize performance systems
     _init_performance_systems()
-    
+
     # Load env here (not at module import) so tests can patch
     def safe_init(cls, *args, **kwargs):
         try:
@@ -83,6 +95,7 @@ def init_services():
 
     try:
         from dotenv import load_dotenv
+
         load_dotenv()
     except Exception as e:
         print(f"[init_services] Error loading .env: {e}")
@@ -117,32 +130,41 @@ def init_services():
 
     cache_manager = safe_init(CacheManager, "./cache")
 
+
 def _init_performance_systems():
     """Initialize performance optimization systems"""
     try:
         # Initialize connection pools for different services
-        
+
         # Model connection pool - for managing AI model instances
         def create_model_connection():
             """Factory function for model connections"""
             # This is a placeholder - would create actual model instances
             # in a real implementation with heavy models
             return {"status": "connected", "created": time.time()}
-        get_connection_pool("models", create_model_connection, min_size=1, max_size=3, max_idle=600)
-        
-        # Database connection pool - for vector database connections  
+
+        get_connection_pool(
+            "models", create_model_connection, min_size=1, max_size=3, max_idle=600
+        )
+
+        # Database connection pool - for vector database connections
         def create_db_connection():
             """Factory function for database connections"""
             return {"status": "connected", "created": time.time()}
-        
-        get_connection_pool("vector_db", create_db_connection, min_size=2, max_size=5, max_idle=300)
-        
+
+        get_connection_pool(
+            "vector_db", create_db_connection, min_size=2, max_size=5, max_idle=300
+        )
+
         # Initialize async task queue for background processing
         # Note: Background queue will be started when first async endpoint is called
-        print("[Performance] Initialized connection pools (task queue will start on first async call)")
-        
+        print(
+            "[Performance] Initialized connection pools (task queue will start on first async call)"
+        )
+
     except Exception as e:
         print(f"[Performance] Warning: Failed to initialize performance systems: {e}")
+
 
 async def _ensure_background_queue():
     """Ensure the background task queue is started (called from async endpoints)"""
@@ -155,12 +177,13 @@ async def _ensure_background_queue():
         except Exception as e:
             print(f"[Performance] Warning: Failed to start task queue: {e}")
 
+
 # ----------------------
 # Request models (exported via package)
 # ----------------------
 class AskRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
-    
+
     question: str
     prefer_fast: bool = True
     max_tokens: int = 256
@@ -169,17 +192,21 @@ class AskRequest(BaseModel):
     prompt: Optional[str] = None
     model_name: Optional[str] = "llama-7b"
 
+
 class ReindexRequest(BaseModel):
     vault_path: str = "./vault"
+
 
 class WebRequest(BaseModel):
     url: str
     question: Optional[str] = None
 
+
 class TranscribeRequest(BaseModel):
     audio_data: str  # Base64 encoded audio
     format: str = "webm"  # Audio format
     language: str = "en"  # Language code
+
 
 # ----------------------
 # API Endpoints
@@ -187,37 +214,44 @@ class TranscribeRequest(BaseModel):
 def _health_payload():
     return {"status": "ok", "timestamp": int(time.time())}
 
+
 @app.get("/api/health")
 async def api_health():
     return _health_payload()
+
 
 @app.get("/status")
 async def status():
     """Lightweight status endpoint for quick liveness checks."""
     return {"status": "ok"}
 
+
 @app.get("/health")
 async def health():
     """Return a comprehensive health payload including a settings snapshot."""
     payload = _health_payload()
     s = get_settings()
-    payload.update({
-        "backend_url": s.backend_url,
-        "api_port": s.api_port,
-        "vault_path": str(s.vault_path),
-        "models_dir": str(s.models_dir),
-        "cache_dir": str(s.cache_dir),
-        "model_backend": s.model_backend,
-        "embed_model": s.embed_model,
-        "vector_db": s.vector_db,
-        "allow_network": s.allow_network,
-        "gpu": s.gpu,
-    })
+    payload.update(
+        {
+            "backend_url": s.backend_url,
+            "api_port": s.api_port,
+            "vault_path": str(s.vault_path),
+            "models_dir": str(s.models_dir),
+            "cache_dir": str(s.cache_dir),
+            "model_backend": s.model_backend,
+            "embed_model": s.embed_model,
+            "vector_db": s.vector_db,
+            "allow_network": s.allow_network,
+            "gpu": s.gpu,
+        }
+    )
     return payload
+
 
 @app.get("/api/config")
 async def get_config():
     from backend.settings import _ALLOWED_UPDATE_KEYS
+
     s = get_settings()
     # Only return whitelisted fields to avoid exposing sensitive data
     data = s.dict()
@@ -230,7 +264,10 @@ async def post_reload_config():
         s = reload_settings()
         return {"ok": True, "settings": s.dict()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to reload settings: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to reload settings: {str(e)}"
+        ) from e
+
 
 @app.post("/api/config")
 async def post_update_config(partial: dict):
@@ -238,7 +275,10 @@ async def post_update_config(partial: dict):
         s = update_settings(dict(partial or {}))
         return {"ok": True, "settings": s.dict()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to update settings: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update settings: {str(e)}"
+        ) from e
+
 
 def _ask_impl(request: AskRequest):
     # Ensure services
@@ -248,29 +288,38 @@ def _ask_impl(request: AskRequest):
     # If model manager failed to initialize, return an error status
     if model_manager is None:
         raise HTTPException(status_code=500, detail="Model manager unavailable")
-    
+
     # Use the centralized, high-performance cache
     performance_cache = get_cache_manager()
     cache_key = f"ask:{hash((request.question, request.model_name, request.max_tokens, request.prefer_fast))}"
 
     cached_result = performance_cache.get(cache_key)
     if cached_result is not None:
-        return {"answer": cached_result, "cached": True, "cache_level": "performance", "model": request.model_name}
+        return {
+            "answer": cached_result,
+            "cached": True,
+            "cache_level": "performance",
+            "model": request.model_name,
+        }
 
     # Generate new answer
     try:
         # Get context from embeddings if use_context is True
         context_text = ""
-        use_context = getattr(request, 'use_context', False)
-        if use_context and emb_manager and hasattr(request, 'question'):
-            search_results = emb_manager.search(request.question, top_k=get_settings().top_k)
+        use_context = getattr(request, "use_context", False)
+        if use_context and emb_manager and hasattr(request, "question"):
+            search_results = emb_manager.search(
+                request.question, top_k=get_settings().top_k
+            )
             if search_results:
-                context_text = "\n".join([hit['text'] for hit in search_results])
+                context_text = "\n".join([hit["text"] for hit in search_results])
 
         # Limit context size to 16,000 characters to avoid model failures
         MAX_CONTEXT_CHARS = 16000
         if context_text and len(context_text) > MAX_CONTEXT_CHARS:
-            print(f"[ask_impl] Warning: Context truncated from {len(context_text)} to {MAX_CONTEXT_CHARS} characters.")
+            print(
+                f"[ask_impl] Warning: Context truncated from {len(context_text)} to {MAX_CONTEXT_CHARS} characters."
+            )
             context_text = context_text[:MAX_CONTEXT_CHARS]
 
         # Prepare the prompt for the model
@@ -296,17 +345,26 @@ def _ask_impl(request: AskRequest):
 
     performance_cache.set(cache_key, answer)
 
-    return {"answer": answer, "cached": False, "model": request.model_name, "generation_time": generation_time}
+    return {
+        "answer": answer,
+        "cached": False,
+        "model": request.model_name,
+        "generation_time": generation_time,
+    }
+
 
 @app.post("/api/ask")
 async def api_ask(request: AskRequest):
     return _ask_impl(request)
 
-@app.post("/ask") # type: ignore
+
+@app.post("/ask")  # type: ignore
 async def ask(request: AskRequest):
     return _ask_impl(request)
 
+
 # Note editing endpoints removed for test alignment
+
 
 @app.post("/api/scan_vault")
 async def scan_vault(vault_path: str = "vault"):
@@ -317,28 +375,38 @@ async def scan_vault(vault_path: str = "vault"):
         raise HTTPException(status_code=400, detail=f"Invalid vault path: {vault_path}")
     return {"indexed_files": vault_indexer.index_vault(vault_path)}
 
+
 @app.post("/api/web")
 async def api_web(request: WebRequest):
     """Process web content and answer a question about it."""
     global model_manager, vault_indexer
     if model_manager is None or vault_indexer is None:
         init_services()
-    
+
     if not vault_indexer:
-        raise HTTPException(status_code=503, detail="Indexing service is not available.")
+        raise HTTPException(
+            status_code=503, detail="Indexing service is not available."
+        )
 
     content = vault_indexer.fetch_web_page(request.url)
     if not content:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch or process content from URL: {request.url}")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to fetch or process content from URL: {request.url}",
+        )
 
-    question = request.question or f"Summarize the following content:\n\n{content[:2000]}"
+    question = (
+        request.question or f"Summarize the following content:\n\n{content[:2000]}"
+    )
     answer = model_manager.generate(question, context=content)
     return {"answer": answer, "url": request.url}
+
 
 @app.post("/web")
 async def web(request: WebRequest):
     """Alias for /api/web for backward compatibility."""
     return await api_web(request)
+
 
 @app.post("/api/reindex")
 async def api_reindex(request: ReindexRequest):
@@ -348,12 +416,14 @@ async def api_reindex(request: ReindexRequest):
         init_services()
     return vault_indexer.reindex(request.vault_path)
 
+
 @app.post("/reindex")
 async def reindex(request: ReindexRequest):
     global vault_indexer
     if vault_indexer is None:
         init_services()
     return vault_indexer.reindex(request.vault_path)
+
 
 @app.post("/transcribe")
 async def transcribe_audio(request: TranscribeRequest):
@@ -382,11 +452,14 @@ async def transcribe_audio(request: TranscribeRequest):
         return {
             "transcription": transcription,
             "confidence": 0.0,
-            "status": "placeholder"
+            "status": "placeholder",
         }
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Transcription failed: {str(e)}"
+        ) from e
+
 
 @app.post("/api/search")
 async def search(query: str, top_k: int = 5):
@@ -399,6 +472,7 @@ async def search(query: str, top_k: int = 5):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)) from e
 
+
 @app.post("/api/index_pdf")
 async def index_pdf(pdf_path: str):
     global vault_indexer
@@ -407,22 +481,23 @@ async def index_pdf(pdf_path: str):
     count = vault_indexer.index_pdf(pdf_path)
     return {"chunks_indexed": count}
 
+
 # ----------------------
 # Performance & Monitoring Endpoints
 # ----------------------
+
 
 @app.get("/api/performance/metrics")
 async def get_performance_metrics():
     """Get comprehensive performance metrics"""
     try:
         metrics = PerformanceMonitor.get_system_metrics()
-        return {
-            "status": "success",
-            "metrics": metrics,
-            "timestamp": time.time()
-        }
+        return {"status": "success", "metrics": metrics, "timestamp": time.time()}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get metrics: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get metrics: {str(e)}"
+        ) from e
+
 
 @app.get("/api/performance/cache/stats")
 async def get_cache_stats():
@@ -430,12 +505,12 @@ async def get_cache_stats():
     try:
         cache_manager = get_cache_manager()
         stats = cache_manager.get_stats()
-        return {
-            "status": "success",
-            "cache_stats": stats
-        }
+        return {"status": "success", "cache_stats": stats}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get cache stats: {str(e)}"
+        ) from e
+
 
 @app.post("/api/performance/cache/clear")
 async def clear_performance_cache():
@@ -444,79 +519,83 @@ async def clear_performance_cache():
         cache_manager = get_cache_manager()
         # Clear L1 cache
         cache_manager.l1_cache.clear()
-        # Clear L2 cache 
+        # Clear L2 cache
         cache_manager.l2_cache.clear()
         cache_manager._persist_l2_cache()
-        
-        return {
-            "status": "success",
-            "message": "Performance cache cleared"
-        }
+
+        return {"status": "success", "message": "Performance cache cleared"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to clear cache: {str(e)}"
+        ) from e
+
 
 @app.post("/api/performance/optimize")
 async def trigger_optimization(background_tasks: BackgroundTasks):
     """Trigger background performance optimization tasks"""
     try:
         task_queue = await get_task_queue()
-        
+
         # Schedule optimization tasks
         optimization_tasks = [
             _cleanup_expired_cache(),
             _optimize_connection_pools(),
-            _collect_performance_metrics()
+            _collect_performance_metrics(),
         ]
-        
+
         scheduled_count = 0
         for task in optimization_tasks:
             success = await task_queue.submit_task(task, priority=1)
             if success:
                 scheduled_count += 1
-        
+
         return {
             "status": "success",
             "message": f"Scheduled {scheduled_count} optimization tasks",
-            "queue_stats": task_queue.get_stats()
+            "queue_stats": task_queue.get_stats(),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to trigger optimization: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to trigger optimization: {str(e)}"
+        ) from e
+
 
 # Background optimization tasks
 async def _cleanup_expired_cache():
     """Clean up expired cache entries"""
     try:
         cache_manager = get_cache_manager()
-        
+
         # Clean L1 cache
         expired_keys = [
-            key for key, entry in cache_manager.l1_cache.items()
-            if entry.is_expired()
+            key for key, entry in cache_manager.l1_cache.items() if entry.is_expired()
         ]
         for key in expired_keys:
             del cache_manager.l1_cache[key]
-        
+
         # Clean L2 cache
         expired_keys = [
-            key for key, entry in cache_manager.l2_cache.items()
-            if entry.is_expired()
+            key for key, entry in cache_manager.l2_cache.items() if entry.is_expired()
         ]
         for key in expired_keys:
             del cache_manager.l2_cache[key]
-        
+
         cache_manager._persist_l2_cache()
-        
+
     except Exception as e:
         print(f"Cache cleanup failed: {e}")
+
 
 async def _optimize_connection_pools():
     """Optimize connection pools by cleaning idle connections"""
     try:
         from .performance import _connection_pools
+
         for _, pool in _connection_pools.items():
             pool.cleanup_idle_connections()
     except Exception as e:
         print(f"Connection pool optimization failed: {e}")
+
 
 async def _collect_performance_metrics():
     """Collect and log performance metrics"""
@@ -527,18 +606,24 @@ async def _collect_performance_metrics():
     except Exception as e:
         print(f"Metrics collection failed: {e}")
 
+
 # Enhanced ask endpoint with performance caching
-@cached(ttl=1800, key_func=lambda req: f"ask:{hash((req.question, req.model_name, req.max_tokens))}")
+@cached(
+    ttl=1800,
+    key_func=lambda req: f"ask:{hash((req.question, req.model_name, req.max_tokens))}",
+)
 def _cached_ask_processing(question: str, model_name: str, max_tokens: int) -> str:
     """Cached version of AI processing for identical requests"""
     # This would be called by the main ask endpoint for cacheable requests
     return f"Cached response for: {question[:50]}..."
+
 
 # ----------------------
 # Enterprise Feature Endpoints (if available)
 # ----------------------
 
 if ENTERPRISE_AVAILABLE:
+
     @app.get("/api/enterprise/status")
     async def enterprise_status():
         """Get enterprise features status"""
@@ -550,11 +635,11 @@ if ENTERPRISE_AVAILABLE:
                 "rbac": True,
                 "gdpr_compliance": True,
                 "soc2_compliance": True,
-                "admin_dashboard": True
+                "admin_dashboard": True,
             },
-            "version": "1.0.0"
+            "version": "1.0.0",
         }
-    
+
     @app.get("/api/enterprise/demo")
     async def enterprise_demo():
         """Demo endpoint showing enterprise capabilities"""
@@ -568,21 +653,28 @@ if ENTERPRISE_AVAILABLE:
                 "SOC2 Type II compliance framework",
                 "Comprehensive admin dashboard and monitoring",
                 "Enterprise-grade security and audit logging",
-                "Scalable tenant management and billing"
+                "Scalable tenant management and billing",
             ],
             "authentication": "JWT-based with enterprise SSO integration",
             "compliance": "GDPR and SOC2 ready with audit trails",
-            "security": "Enterprise-grade with role-based permissions"
+            "security": "Enterprise-grade with role-based permissions",
         }
+
 else:
+
     @app.get("/api/enterprise/status")
     async def enterprise_status_unavailable():
         """Enterprise features not available"""
         return {
             "enterprise_enabled": False,
             "message": "Enterprise features not available in this deployment",
-            "available_features": ["Basic AI Assistant", "Document Indexing", "Web Search"]
+            "available_features": [
+                "Basic AI Assistant",
+                "Document Indexing",
+                "Web Search",
+            ],
         }
+
 
 # ----------------------
 # Run server
@@ -590,6 +682,7 @@ else:
 if __name__ == "__main__":
     # Start FastAPI app using Uvicorn
     import uvicorn
+
     init_services()
     PORT = 8000
     print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
@@ -601,12 +694,12 @@ try:
     this_mod = _sys.modules.get(__name__)
     if this_mod is not None:
         # Expose attribute for patch targets: backend.backend -> this module
-        this_mod.__dict__.setdefault('backend', this_mod)
+        this_mod.__dict__.setdefault("backend", this_mod)
         # Mark as package-like: provide __path__ so import system allows 'backend.backend'
-        if not hasattr(this_mod, '__path__'):
+        if not hasattr(this_mod, "__path__"):
             this_mod.__path__ = []  # type: ignore[attr-defined]
         # Register alias in sys.modules
-        fq_name = 'backend.backend'
+        fq_name = "backend.backend"
         _sys.modules.setdefault(fq_name, this_mod)
 except Exception:
     pass

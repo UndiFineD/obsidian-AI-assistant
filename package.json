@@ -1,14 +1,18 @@
 {
-  "name": "obsidian-ai-assistant-plugin",
-  "version": "0.1.0",
-  "description": "Obsidian AI Assistant plugin",
-  "main": "plugin/main.js",
-  "scripts": {
-    "test": "echo 'No automated tests yet.'",
-    "lint": "echo 'No linter configured.'"
-  },
-  "author": "UndiFineD",
-  "license": "MIT",
-  "devDependencies": {},
-  "dependencies": {}
+    "name": "obsidian-ai-assistant-plugin",
+    "version": "0.1.0",
+    "description": "Obsidian AI Assistant plugin",
+    "main": "main.js",
+    "scripts": {
+        "lint": "eslint . --ext .js",
+        "format": "prettier --write \"**/*.{js,json,md}\""
+    },
+    "author": "UndiFineD",
+    "license": "MIT",
+    "devDependencies": {
+        "eslint": "^8.57.0",
+        "eslint-config-prettier": "^9.1.0",
+        "prettier": "^3.2.5"
+    },
+    "dependencies": {}
 }

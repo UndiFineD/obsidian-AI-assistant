@@ -1,10 +1,10 @@
 // Test the current JavaScript syntax patterns
 class TestClass {
     methodOne() {
-        console.log("Method one");
+        console.log('Method one');
     }
 
     methodTwo() {
-        console.log("Method two"); 
+        console.log('Method two');
     }
 }
