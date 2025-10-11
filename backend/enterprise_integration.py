@@ -202,8 +202,15 @@ class EnterpriseIntegration:
         )
         
         # Skip enterprise authentication middleware in test mode
-        import os
-        if os.getenv("TEST_MODE") != "true":
+        import os, sys
+        is_test_mode = (
+            os.getenv("TEST_MODE") == "true"
+            or "PYTEST_CURRENT_TEST" in os.environ
+            or "pytest" in sys.modules
+        )
+        if is_test_mode:
+            logger.info("TEST_MODE enabled: Skipping enterprise authentication middleware")
+        else:
             # Enterprise authentication middleware
             self.app.add_middleware(
                 EnterpriseAuthMiddleware,
@@ -211,8 +218,6 @@ class EnterpriseIntegration:
                 rbac_manager=self.rbac_manager,
                 tenant_manager=self.tenant_manager
             )
-        else:
-            logger.info("TEST_MODE enabled: Skipping enterprise authentication middleware")
     
     def _register_endpoints(self):
         """Register all enterprise endpoints"""

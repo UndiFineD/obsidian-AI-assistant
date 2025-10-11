@@ -749,7 +749,7 @@ TranscribeRequest:
 
 #### **Test Suite Performance**
 
-- **Total Tests**: 458 comprehensive tests
+- **Total Tests**: 498 comprehensive tests
 - **Pass Rate**: 98.5% (451 passed, 7 failed, 2 warnings)
 - **Code Quality**: 94% reduction in deprecation warnings
 - **API Modernization**: FastAPI lifespan, Pydantic V2, proper test assertions

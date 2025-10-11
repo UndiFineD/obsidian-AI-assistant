@@ -33,6 +33,7 @@ plugin/
 ## Core Plugin Modules (Priority for Testing)
 
 ### 1. main.js - Main Plugin Entry Point
+
 **Classes/Functions to Test:**
 
 - `ObsidianAIAssistant` class (main plugin class)
@@ -46,6 +47,7 @@ plugin/
 - Error handling
 
 ### 2. backendClient.js - Backend API Client
+
 **Classes/Functions to Test:**
 
 - `BackendClient` class
@@ -59,6 +61,7 @@ plugin/
 - Header management
 
 ### 3. rightPane.js - Right Pane UI Component
+
 **Classes/Functions to Test:**
 
 - `AIRightPaneView` class
@@ -73,6 +76,7 @@ plugin/
 - Error handling
 
 ### 4. taskQueue.js - Task Queue Management
+
 **Classes/Functions to Test:**
 
 - `TaskQueue` class
@@ -85,6 +89,7 @@ plugin/
 - Queue operations (start, pause, clear)
 
 ### 5. taskQueueView.js - Task Queue UI Component
+
 **Classes/Functions to Test:**
 
 - `TaskQueueView` class
@@ -96,6 +101,7 @@ plugin/
 - Error display
 
 ### 6. voice.js - Voice Recording Functionality
+
 **Classes/Functions to Test:**
 
 - `VoiceRecorder` class
@@ -108,6 +114,7 @@ plugin/
 - Permission handling
 
 ### 7. voiceInput.js - Voice Input Processing
+
 **Classes/Functions to Test:**
 
 - `VoiceInput` class
@@ -118,6 +125,7 @@ plugin/
 - Error handling
 
 ### 8. analyticsPane.js - Analytics Display Component
+
 **Classes/Functions to Test:**
 
 - Analytics data processing
@@ -130,6 +138,7 @@ plugin/
 ## Enterprise Modules (Secondary Priority)
 
 ### 9. enterpriseAuth.js - Enterprise Authentication
+
 **Classes/Functions to Test:**
 
 - SSO integration
@@ -140,6 +149,7 @@ plugin/
 - Permission checks
 
 ### 10. enterpriseConfig.js - Enterprise Configuration
+
 **Classes/Functions to Test:**
 
 - Enterprise settings management
@@ -149,6 +159,7 @@ plugin/
 - Compliance settings
 
 ### 11. adminDashboard.js - Enterprise Admin Dashboard
+
 **Classes/Functions to Test:**
 
 - Admin interface
@@ -160,6 +171,7 @@ plugin/
 ## Configuration and Assets
 
 ### 12. manifest.json - Plugin Manifest
+
 **Properties to Test:**
 
 - Plugin metadata validation
@@ -168,6 +180,7 @@ plugin/
 - Entry point specification
 
 ### 13. config.template.json - Configuration Template
+
 **Properties to Test:**
 
 - Default configuration values
@@ -177,6 +190,7 @@ plugin/
 ## UI and Styling
 
 ### 14. styles.css - Plugin Styles
+
 **Elements to Test:**
 
 - CSS class definitions
@@ -187,34 +201,41 @@ plugin/
 ## Legacy Files (Lower Priority)
 
 ### 15. main_old.js - Legacy Plugin Implementation
+
 **Note**: Legacy code for backward compatibility
 
 ### 16. main_new.js - New Plugin Implementation
+
 **Note**: Updated plugin implementation
 
 ### 17. styles_old.css / styles_new.css - Style Variants
+
 **Note**: Different style implementations
 
 ## Testing Priority
 
 1. **High Priority** (Core functionality):
+
    - main.js
    - backendClient.js
    - rightPane.js
    - taskQueue.js
 
 2. **Medium Priority** (Features):
+
    - taskQueueView.js
    - voice.js
    - voiceInput.js
    - analyticsPane.js
 
 3. **Low Priority** (Enterprise):
+
    - enterpriseAuth.js
    - enterpriseConfig.js
    - adminDashboard.js
 
 4. **Support** (Configuration):
+
    - manifest.json
    - config.template.json
 
@@ -227,7 +248,8 @@ plugin/
 
 ## Key Functions and Classes Summary
 
-### Main Classes:
+### Main Classes
+
 - `ObsidianAIAssistant` (main.js) - Main plugin class
 - `BackendClient` (backendClient.js) - API communication
 - `AIRightPaneView` (rightPane.js) - UI component
@@ -236,7 +258,8 @@ plugin/
 - `VoiceRecorder` (voice.js) - Voice functionality
 - `VoiceInput` (voiceInput.js) - Voice processing
 
-### Critical Functions:
+### Critical Functions
+
 - Plugin lifecycle (onload/onunload)
 - API communication methods
 - UI rendering and event handling

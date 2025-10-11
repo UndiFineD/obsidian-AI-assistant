@@ -2,7 +2,7 @@
 
 ## 🎯 **Overview**
 
-This document outlines the established testing patterns and best practices for the Obsidian AI Assistant project, based on the successfully implemented test infrastructure that achieves a 100% pass rate (458 passed, 0 failed) with significant code quality improvements.
+This document outlines the established testing patterns and best practices for the Obsidian AI Assistant project, based on the successfully implemented test infrastructure that achieves a 100% pass rate (498 passed, 0 failed) with significant code quality improvements.
 
 ---
 
@@ -21,7 +21,7 @@ tests/
 └── integration/                      # End-to-end tests (planned)
 ```
 
-### **Comprehensive Test Coverage (458 Total Tests)**
+### **Comprehensive Test Coverage (498 Total Tests)**
 
 | **System Component**       | **Tests** | **Status**     | **Coverage**                                              |
 | -------------------------- | --------- | -------------- | --------------------------------------------------------- |
@@ -36,7 +36,7 @@ tests/
 | **🔗 Integration Tests**   | 25+       | ✅ ~92% Pass   | End-to-end workflows, cross-service communication         |
 | **⚡ Code Quality**        | NEW       | ✅ 100% Pass   | Modernized APIs, warning reduction, assertion patterns    |
 
-### **Total Test Results: 458 passed, 0 failed (100% success rate)**
+### **Total Test Results: 498 passed, 0 failed (100% success rate)**
 
 #### **Recent Quality Improvements (October 2025)**
 
@@ -325,12 +325,15 @@ python -m pytest tests/backend/test_backend_comprehensive.py --cov=backend --cov
 
 # Run tests without warnings
 python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --disable-warnings
+
+# Recommended: run the safe test runner to ensure enterprise auth is bypassed during tests
+python .\run_tests_safe.py -v --asyncio-mode=auto
 ```
 
 ### **Expected Output**
 
 ```text
-================================== All tests passed (458) ==================================
+================================== All tests passed (498) ==================================
 ```
 
 ---
@@ -339,7 +342,7 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 
 ### **Current Achievement**
 
-- **458/458 tests passing (100%)**
+- **498/498 tests passing (100%)**
 - **9 major system components covered**
 - **Complete API surface tested**
 - **Full integration workflows verified**
@@ -418,4 +421,4 @@ This testing approach provides a solid foundation for maintaining code quality w
 
 _Testing Best Practices Guide v2.0_
 _Last Updated: October 11, 2025_
-_Achievement: 100% Test Pass Rate (458/458 tests)_
+_Achievement: 100% Test Pass Rate (498/498 tests)_

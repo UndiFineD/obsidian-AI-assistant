@@ -39,7 +39,7 @@ For users who prefer full control over the installation process.
 - ✅ Sets up ChromaDB vector database
 - ✅ Configures FastAPI backend server
 - ✅ Installs and validates Obsidian plugin files
-- ✅ Performs comprehensive system testing (442 tests)
+- ✅ Performs comprehensive system testing (498 tests)
 - ✅ Provides post-installation validation
 
 ### **Modern Installation Methods**

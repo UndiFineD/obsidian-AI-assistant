@@ -7,7 +7,7 @@
 
 ## Backend Directory Structure
 
-```
+```text
 backend/
 ├── __init__.py                 # Package initialization
 ├── backend.py                  # Main FastAPI application
@@ -40,7 +40,9 @@ backend/
 ## Core Backend Modules (Priority for Testing)
 
 ### 1. backend.py - Main FastAPI Application
+
 **Classes/Functions to Test:**
+
 - FastAPI app initialization
 - All API endpoints (16 endpoints):
   - GET /health, /status, /api/health
@@ -52,7 +54,9 @@ backend/
 - CORS configuration
 
 ### 2. settings.py - Configuration Management
+
 **Classes/Functions to Test:**
+
 - Settings class initialization
 - Configuration loading from environment/files
 - Settings validation
@@ -60,7 +64,9 @@ backend/
 - Configuration hierarchy (env vars > config.yaml > defaults)
 
 ### 3. modelmanager.py - AI Model Management
+
 **Classes/Functions to Test:**
+
 - ModelManager class
 - Model loading/unloading
 - Model inference
@@ -69,7 +75,9 @@ backend/
 - Error handling for missing models
 
 ### 4. embeddings.py - Vector Embeddings
+
 **Classes/Functions to Test:**
+
 - EmbeddingsManager class
 - Text embedding generation
 - Vector similarity search
@@ -78,7 +86,9 @@ backend/
 - Cache management
 
 ### 5. indexing.py - Document Indexing
+
 **Classes/Functions to Test:**
+
 - Document parsing (markdown, PDF, text)
 - Text chunking algorithms
 - Metadata extraction
@@ -87,7 +97,9 @@ backend/
 - File system operations
 
 ### 6. llm_router.py - LLM Routing
+
 **Classes/Functions to Test:**
+
 - LLM routing logic
 - Model selection algorithms
 - Fallback mechanisms
@@ -95,7 +107,9 @@ backend/
 - Request batching
 
 ### 7. caching.py - Caching Layer
+
 **Classes/Functions to Test:**
+
 - Cache implementation
 - TTL management
 - Cache invalidation
@@ -103,7 +117,9 @@ backend/
 - Persistence
 
 ### 8. security.py - Security Utilities
+
 **Classes/Functions to Test:**
+
 - Input validation
 - Sanitization functions
 - Encryption/decryption
@@ -111,14 +127,18 @@ backend/
 - Authorization checks
 
 ### 9. voice.py - Voice Processing
+
 **Classes/Functions to Test:**
+
 - Audio processing
 - Speech-to-text conversion
 - Voice activity detection
 - Audio format handling
 
 ### 10. performance.py - Performance Monitoring
+
 **Classes/Functions to Test:**
+
 - Metrics collection
 - Performance monitoring
 - Resource usage tracking
@@ -127,38 +147,50 @@ backend/
 ## Enterprise Modules (Secondary Priority)
 
 ### 11. enterprise_auth.py - Enterprise Authentication
+
 **Classes/Functions to Test:**
+
 - SSO integration
 - JWT token management
 - User authentication
 - Session management
 
 ### 12. enterprise_admin.py - Enterprise Admin
+
 **Classes/Functions to Test:**
+
 - Admin dashboard functionality
 - User management
 - System administration
 
 ### 13. enterprise_tenant.py - Multi-tenant Management
+
 **Classes/Functions to Test:**
+
 - Tenant isolation
 - Resource allocation
 - Tenant-specific configurations
 
 ### 14. enterprise_rbac.py - Role-Based Access Control
+
 **Classes/Functions to Test:**
+
 - Role definitions
 - Permission management
 - Access control enforcement
 
 ### 15. enterprise_gdpr.py - GDPR Compliance
+
 **Classes/Functions to Test:**
+
 - Data processing compliance
 - User rights management
 - Consent handling
 
 ### 16. enterprise_soc2.py - SOC2 Compliance
+
 **Classes/Functions to Test:**
+
 - Security controls
 - Audit logging
 - Compliance reporting
@@ -166,14 +198,18 @@ backend/
 ## Utility Modules
 
 ### 17. utils.py - Utility Functions
+
 **Classes/Functions to Test:**
+
 - Helper functions
 - Common utilities
 - Error handling utilities
 - File operations
 
 ### 18. deps.py - Dependency Management
+
 **Classes/Functions to Test:**
+
 - Dependency injection
 - Service locators
 - Configuration dependencies

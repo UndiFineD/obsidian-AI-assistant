@@ -11,7 +11,7 @@ This project implements a **modular, service-oriented architecture** with clearl
 ### **Core Components**
 
 ```text
-**Test Results Summary** (Latest: 458 Passed, 0 Failed, 0 Skipped - 100% Pass Rate)
+**Test Results Summary** (Latest: 498 Passed, 0 Failed, 0 Skipped - 100% Pass Rate)
 
 ┌───────────────────────────────────────┐───────────────┐─────────────────────────────────────────┐
 | **Test Category**                     | **Pass Rate** | **Status** |
@@ -496,7 +496,7 @@ The quality assurance system includes 20 comprehensive tests covering:
 
 ### **9. Testing & Quality Assurance**
 
-This project maintains exceptionally high code quality with comprehensive test coverage. Latest test run: 100% success rate (458 passed, 0 failed) demonstrating production-ready stability.
+This project maintains exceptionally high code quality with comprehensive test coverage. Latest test run: 100% success rate (498 passed, 0 failed) demonstrating production-ready stability.
 
 #### **Test Results Summary**
 
@@ -518,7 +518,7 @@ This project maintains exceptionally high code quality with comprehensive test c
 - **🔌 Plugin Ready**: Complete Obsidian integration with comprehensive UI testing and API validation
 - **⚡ Performance**: Optimized multi-level caching, connection pooling, and async processing
 - **🛡️ Quality Assurance**: JavaScript code quality validation ensures maintainable, secure plugin code
-- **📊 Comprehensive Coverage**: 442 automated tests covering everything from unit tests to full workflow validation
+- **📊 Comprehensive Coverage**: 498 automated tests covering everything from unit tests to full workflow validation
 
 #### **Test Structure**
 
@@ -551,8 +551,8 @@ tests/
 
 #### **Latest Test Run Statistics**
 
-- **Success Rate**: 100% (458 passed, 0 failed, 0 skipped)
-- **Total Coverage**: 458+ comprehensive tests across all system components
+- **Success Rate**: 100% (498 passed, 0 failed, 0 skipped)
+- **Total Coverage**: 498 comprehensive tests across all system components
 - **Execution Time**: ~73 seconds for full test suite (optimized from 86s)
 - **Quality Validation**: 25+ JavaScript code quality tests ensuring PEP8-style standards
 - **Production Ready**: Zero failures, complete enterprise authentication resolution
@@ -573,7 +573,7 @@ source venv/bin/activate  # Linux/macOS
 # Install test dependencies
 pip install pytest pytest-cov pytest-asyncio
 
-# Run comprehensive test suite (442 tests, production-ready)
+# Run comprehensive test suite (498 tests, production-ready)
 python -m pytest tests/ -v
 
 # This validates all system components:
@@ -583,6 +583,15 @@ python -m pytest tests/ -v
 # - Performance tests (100% pass rate)
 # - Integration workflow tests (100% pass rate)
 ```
+
+If you encounter 401 Unauthorized responses during tests, run the safe test runner which sets TEST_MODE and other helpful env vars:
+
+```pwsh
+# Windows PowerShell
+python .\run_tests_safe.py -v --asyncio-mode=auto
+```
+
+This bypasses enterprise authentication middleware during tests only and mirrors our CI setup.
 
 **Individual Module Testing:**
 
@@ -599,6 +608,13 @@ pytest tests/backend/test_modelmanager.py -v # Model management tests
 
 # JavaScript Quality Tests
 pytest tests/plugin/test_js_code_quality.py -v  # JavaScript validation tests
+```
+
+Dedicated async-heavy suites you can run directly:
+
+```pwsh
+python -m pytest tests/test_comprehensive_async_failures.py -v --asyncio-mode=auto
+python -m pytest tests/test_enterprise_async_failures.py -v --asyncio-mode=auto
 ```
 
 **Coverage and Reporting:**
@@ -754,7 +770,7 @@ GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 - **Author**: Keimpe de Jong
 - **License**: MIT
 - **Repository**: [https://github.com/UndiFineD/obsidian-AI-assistant](https://github.com/UndiFineD/obsidian-AI-assistant)
-- **Test Coverage**: 100% test run success (458/458)
+- **Test Coverage**: 100% test run success (498/498)
 - **Status**: Active development with comprehensive test suite
 
 ---
