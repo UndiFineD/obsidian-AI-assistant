@@ -46,7 +46,8 @@ class TaskQueueView extends ItemView { constructor(leaf, taskQueue, analytics) {
     }
 
     async onClose() {
-    // Nothing special for now }
+        // Nothing special for now
+    }
 
     renderTasks() { if(!this.taskContainer) return;
     this.taskContainer.empty();
@@ -69,17 +70,17 @@ class TaskQueueView extends ItemView { constructor(leaf, taskQueue, analytics) {
         }
 
         // Optional remove button
-        const removeBtn = taskEl.createEl("button", { text: "❌" });
-        removeBtn.addEventListener("click", () => { this.removeTask(task.id);
-        });
+    const removeBtn = taskEl.createEl("button", { text: "❌" });
+    removeBtn.addEventListener("click", () => { this.removeTask(task.id);
+    });
     });
     }
 
     removeTask(taskId) {
-    // Call the central task queue to remove the task by its ID
-    if(this.taskQueue.removeTask(taskId)) { new Notice("Task removed");
-        this.renderTasks();
-    }
+        if(this.taskQueue.removeTask(taskId)) {
+            new Notice("Task removed");
+            this.renderTasks();
+        }
     }
 }
 

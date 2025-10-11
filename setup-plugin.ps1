@@ -209,7 +209,7 @@ function Install-PluginFiles {
     Write-Step "Installing Plugin Files" 2
     
     $pluginDir = Join-Path $VaultPath ".obsidian\plugins\$PLUGIN_NAME"
-    $sourceDir = "plugin"
+    $sourceDir = Join-Path $PSScriptRoot "plugin"
     
     # Check if plugin already exists
     if ((Test-Path $pluginDir) -and -not $Force) {
@@ -231,24 +231,15 @@ function Install-PluginFiles {
         Write-Info "Creating plugin directory: $pluginDir"
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
         
-        # Define essential plugin files
-        # Copy plugin files
-        $copiedCount = 0
-        $totalSize = 0
-        
-        foreach ($file in $REQUIRED_PLUGIN_FILES) {
-            $sourcePath = Join-Path $sourceDir $file
-            $destPath = Join-Path $pluginDir $file
-            
-            if (Test-Path $sourcePath) {
-                Copy-Item $sourcePath $destPath -Force
-                $fileInfo = Get-Item $destPath
-                $totalSize += $fileInfo.Length
-                $copiedCount++
-                Write-Info "Copied: $file ($([math]::Round($fileInfo.Length / 1024, 1)) KB)"
-            } else {
-                Write-Warning "Source file not found: $sourcePath"
-            }
+        # Recursively copy all files and subfolders from plugin/ to the vault plugin directory
+        Write-Info "Recursively copying all plugin files and folders..."
+        Copy-Item -Path $sourceDir\* -Destination $pluginDir -Recurse -Force
+        # Count files and total size for summary
+        $allFiles = Get-ChildItem -Path $sourceDir -Recurse -File
+        $copiedCount = $allFiles.Count
+        $totalSize = ($allFiles | Measure-Object -Property Length -Sum).Sum
+        foreach ($fileObj in $allFiles) {
+            Write-Info "Copied: $($fileObj.FullName.Substring($sourceDir.Length+1)) ($([math]::Round($fileObj.Length / 1024, 1)) KB)"
         }
         
         # Create setup instructions
@@ -369,32 +360,63 @@ function Start-BackendServer {
     Write-Warning "Keep this terminal open while using the plugin"
     
     try {
-        # Start server in background job for testing, or directly for production
+        # Ensure working directory is the repo root where backend/ exists
+        $repoRoot = $PSScriptRoot
+        if (-not $repoRoot) { $repoRoot = (Get-Location).Path }
+        Write-Info "Setting working directory: $repoRoot"
+        # Start server in background job for quick health probe
         $serverJob = Start-Job -ScriptBlock {
-            param($BackendHost, $Port, $Reload)
-            Set-Location $using:PWD
-            python -m uvicorn backend.backend:app --host $BackendHost --port $Port $(if($Reload){'--reload'})
-        } -ArgumentList $BACKEND_HOST, $BACKEND_PORT, $BACKEND_RELOAD
+            param($RepoRoot, $BackendHost, $Port, $Reload)
+            try {
+                Set-Location $RepoRoot
+                $env:FAST_STARTUP = '1'
+                $env:SKIP_MODEL_DOWNLOADS = '1'
+                python -m uvicorn backend.backend:app --host $BackendHost --port $Port $(if($Reload){'--reload'})
+            } catch {
+                Write-Output "UVICORN_START_ERROR: $($_.Exception.Message)"
+            }
+        } -ArgumentList $repoRoot, $BACKEND_HOST, $BACKEND_PORT, $BACKEND_RELOAD
         
-        # Wait a moment for server to start
-        Start-Sleep -Seconds $SERVER_START_TIMEOUT
+        # Poll health for up to ~10 seconds
+        $deadline = (Get-Date).AddSeconds([Math]::Max(5, [int]$SERVER_START_TIMEOUT))
+        $healthy = $false
+        while ((Get-Date) -lt $deadline) {
+            try {
+                $response = Invoke-RestMethod -Uri "http://$BACKEND_HOST`:$BACKEND_PORT/health" -TimeoutSec $HEALTH_CHECK_TIMEOUT -ErrorAction Stop
+                if ($response) { $healthy = $true; break }
+            } catch {
+                Start-Sleep -Milliseconds 500
+            }
+        }
         
         # Test server health
         try {
-            $response = Invoke-RestMethod -Uri "http://$BACKEND_HOST`:$BACKEND_PORT/health" -TimeoutSec $HEALTH_CHECK_TIMEOUT
+            if (-not $healthy) { throw "Health endpoint not responding" }
             Write-Success "Backend server started successfully"
-            Write-Success "Health check: $($response.status)"
+            Write-Success "Health check responded"
             
             # Stop the job since we just wanted to test startup
             Stop-Job $serverJob -ErrorAction SilentlyContinue
             Remove-Job $serverJob -ErrorAction SilentlyContinue
             
-            # Now start interactively
+            # Now start interactively with correct working directory
             Write-Info "Starting server in interactive mode..."
-            python -m uvicorn backend.backend:app --host $BACKEND_HOST --port $BACKEND_PORT $(if($BACKEND_RELOAD){'--reload'})
+            Push-Location $repoRoot
+            try {
+                $env:FAST_STARTUP = '1'
+                $env:SKIP_MODEL_DOWNLOADS = '1'
+                python -m uvicorn backend.backend:app --host $BACKEND_HOST --port $BACKEND_PORT $(if($BACKEND_RELOAD){'--reload'})
+            } finally {
+                Pop-Location
+            }
             
         } catch {
             Write-Error "Server health check failed"
+            # Surface any startup errors from the background job
+            try {
+                $jobOut = Receive-Job -Job $serverJob -Keep -ErrorAction SilentlyContinue
+                if ($jobOut) { Write-Info ($jobOut | Out-String) }
+            } catch {}
             Stop-Job $serverJob -ErrorAction SilentlyContinue
             Remove-Job $serverJob -ErrorAction SilentlyContinue
             return $false
@@ -494,3 +516,12 @@ function Main {
 
 # Execute main function
 Main
+# Backend server configuration
+$global:SERVER_START_TIMEOUT = 3           # Seconds to wait for backend server to start
+$global:HEALTH_CHECK_TIMEOUT = 5           # Seconds to wait for health check response
+$global:BACKEND_HOST = "127.0.0.1"         # Host for backend server
+$global:BACKEND_PORT = 8000                # Port for backend server
+$global:BACKEND_RELOAD = $false            # Enable auto-reload for development
+
+# Plugin configuration
+$global:PLUGIN_NAME = "AI Assistant"       # Name of the plugin directory

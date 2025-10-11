@@ -77,8 +77,20 @@ class TaskQueue { constructor(backendUrl, app, getAuthToken = null) { this.app =
     }
     }
 
+    // Remove a task by id
+    removeTask(id) {
+        const idx = this.queue.findIndex(t => t.id === id);
+        if (idx !== -1) {
+            this.queue.splice(idx, 1);
+            this.filteredQueue = [...this.queue];
+            return true;
+        }
+        return false;
+    }
+
     // Expose queue for UI
-    getTasks() { return [...this.queue];
+    getTasks() {
+        return this.filteredQueue && this.filteredQueue.length ? [...this.filteredQueue] : [...this.queue];
     }
 }
 

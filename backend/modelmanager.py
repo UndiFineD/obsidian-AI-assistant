@@ -1,4 +1,5 @@
 # backend/modelmanager.py
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -65,8 +66,9 @@ class ModelManager:
             ]
         self._minimal_models = minimal_models
 
-        # Download minimal working set on init
-        self._download_minimal_models()
+        # Download minimal working set on init (unless disabled)
+        if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {"1", "true", "yes", "on"}:
+            self._download_minimal_models()
 
         # Check for newer models once per day
         self._check_and_update_models()
@@ -126,7 +128,8 @@ class ModelManager:
                 last_check = 0
         # If it's been more than check_interval_hours, check for updates
         if now - last_check > self._check_interval_hours * 3600:
-            self._update_models()
+            if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {"1", "true", "yes", "on"}:
+                self._update_models()
             self._last_model_check_file.write_text(str(now))
 
     def _update_models(self):
