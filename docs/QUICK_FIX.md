@@ -1,6 +1,6 @@
 # � **TEST IMPROVEMENT IMPLEMENTATION SUMMARY**
 
-*Generated: October 6, 2025*
+## Generated: October 6, 2025
 
 ## 📊 **FIXES IMPLEMENTED**
 
@@ -137,7 +137,7 @@ class TestBasicEndpoints:
     
     def test_reindex_endpoint_basic(self, client):
         """Test reindex endpoint accepts requests."""
-        request_data = {"vault_path": "./test"}
+    request_data = {"vault_path": "./tests"}
         response = client.post("/reindex", json=request_data)
         
         # Should respond appropriately
@@ -296,4 +296,4 @@ After implementing these fixes:
 
 ---
 
-**Ready for validation! 🎯**
+## Ready for validation! 🎯

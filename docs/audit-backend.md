@@ -216,10 +216,10 @@ backend/
 
 ## Testing Priority
 
-1. **High Priority** (Core functionality): backend.py, settings.py, modelmanager.py, embeddings.py, indexing.py
-2. **Medium Priority** (Features): llm_router.py, caching.py, security.py, voice.py, performance.py
-3. **Low Priority** (Enterprise): All enterprise_*.py modules
-4. **Support**: utils.py, deps.py
+1. High Priority (Core functionality): backend.py, settings.py, modelmanager.py, embeddings.py, indexing.py
+2. Medium Priority (Features): llm_router.py, caching.py, security.py, voice.py, performance.py
+3. Low Priority (Enterprise): All enterprise_*.py modules
+4. Support: utils.py, deps.py
 
 ## Sensitive Modules Requiring Security Testing
 

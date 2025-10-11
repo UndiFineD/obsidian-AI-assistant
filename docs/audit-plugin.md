@@ -36,11 +36,11 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `ObsidianAIAssistant` class (main plugin class)
-- `onload()` - Plugin initialization
-- `onunload()` - Plugin cleanup
-- `loadSettings()` - Settings loading
-- `saveSettings()` - Settings persistence
+- ObsidianAIAssistant class (main plugin class)
+- onload() - Plugin initialization
+- onunload() - Plugin cleanup
+- loadSettings() - Settings loading
+- saveSettings() - Settings persistence
 - Command registration
 - UI component initialization
 - Event handlers
@@ -50,7 +50,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `BackendClient` class
+- BackendClient class
 - HTTP request methods (GET, POST, PUT, DELETE)
 - Authentication handling
 - Request/response processing
@@ -64,7 +64,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `AIRightPaneView` class
+- AIRightPaneView class
 - UI rendering methods
 - Event handlers
 - Backend status display
@@ -79,7 +79,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `TaskQueue` class
+- TaskQueue class
 - Task creation and management
 - Queue processing
 - Priority handling
@@ -92,7 +92,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `TaskQueueView` class
+- TaskQueueView class
 - Task list rendering
 - Task status updates
 - User interactions
@@ -104,7 +104,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `VoiceRecorder` class
+- VoiceRecorder class
 - Audio recording
 - Recording start/stop
 - Audio format handling
@@ -117,7 +117,7 @@ plugin/
 
 **Classes/Functions to Test:**
 
-- `VoiceInput` class
+- VoiceInput class
 - Voice command processing
 - Speech recognition
 - Input validation
@@ -202,61 +202,61 @@ plugin/
 
 ### 15. main_old.js - Legacy Plugin Implementation
 
-**Note**: Legacy code for backward compatibility
+Note: Legacy code for backward compatibility
 
 ### 16. main_new.js - New Plugin Implementation
 
-**Note**: Updated plugin implementation
+Note: Updated plugin implementation
 
 ### 17. styles_old.css / styles_new.css - Style Variants
 
-**Note**: Different style implementations
+Note: Different style implementations
 
 ## Testing Priority
 
-1. **High Priority** (Core functionality):
+1. High Priority (Core functionality):
 
    - main.js
    - backendClient.js
    - rightPane.js
    - taskQueue.js
 
-2. **Medium Priority** (Features):
+2. Medium Priority (Features):
 
    - taskQueueView.js
    - voice.js
    - voiceInput.js
    - analyticsPane.js
 
-3. **Low Priority** (Enterprise):
+3. Low Priority (Enterprise):
 
    - enterpriseAuth.js
    - enterpriseConfig.js
    - adminDashboard.js
 
-4. **Support** (Configuration):
+4. Support (Configuration):
 
    - manifest.json
    - config.template.json
 
 ## Sensitive Modules Requiring Security Testing
 
-- **enterpriseAuth.js** (authentication, tokens)
-- **backendClient.js** (API security, headers)
-- **main.js** (plugin security, settings)
-- **rightPane.js** (user input validation)
+- enterpriseAuth.js (authentication, tokens)
+- backendClient.js (API security, headers)
+- main.js (plugin security, settings)
+- rightPane.js (user input validation)
 
 ## Key Functions and Classes Summary
 
 ### Main Classes
 
-- `ObsidianAIAssistant` (main.js) - Main plugin class
-- `BackendClient` (backendClient.js) - API communication
-- `AIRightPaneView` (rightPane.js) - UI component
-- `TaskQueue` (taskQueue.js) - Task management
-- `TaskQueueView` (taskQueueView.js) - Queue UI
-- `VoiceRecorder` (voice.js) - Voice functionality
-- `VoiceInput` (voiceInput.js) - Voice processing
+- ObsidianAIAssistant (main.js) - Main plugin class
+- BackendClient (backendClient.js) - API communication
+- AIRightPaneView (rightPane.js) - UI component
+- TaskQueue (taskQueue.js) - Task management
+- TaskQueueView (taskQueueView.js) - Queue UI
+- VoiceRecorder (voice.js) - Voice functionality
+- VoiceInput (voiceInput.js) - Voice processing
 
 ### Critical Functions
 

@@ -1,9 +1,9 @@
 # Tasks: Add Unit Tests (002-add-unit-tests)
 
-**Input**: Design documents from `specs/002-add-unit-tests/`
+**Input**: Design documents from `docs/`
 **Date:** 2025-10-05
 **Branch:** 002-add-unit-tests
-**Spec:** specs/002-add-unit-tests/spec.md
+**Spec:** docs/spec.md
 
 ---
 
@@ -22,10 +22,10 @@
 
 ### Phase 1: Setup & Audit
 
-- [ ] T001 Audit backend modules in `backend/` and list all major files/classes/functions in `specs/002-add-unit-tests/audit-backend.md`
-- [ ] T002 Audit plugin modules in `plugin/` and list all major files/classes/functions in `specs/002-add-unit-tests/audit-plugin.md`
-- [ ] T003 Audit existing tests and coverage reports (if any) in `tests/` and document in `specs/002-add-unit-tests/audit-coverage.md`
-- [ ] T004 Document sensitive modules requiring security-focused tests in `specs/002-add-unit-tests/sensitive-modules.md`
+- [ ] T001 Audit backend modules in `backend/` and list all major files/classes/functions in `docs/audit-backend.md`
+- [ ] T002 Audit plugin modules in `plugin/` and list all major files/classes/functions in `docs/audit-plugin.md`
+- [ ] T003 Audit existing tests and coverage reports (if any) in `tests/` and document in `docs/audit-coverage.md`
+- [ ] T004 Document sensitive modules requiring security-focused tests in `docs/security-modules.md`
 
 ### Phase 2: Test Scaffolding [P]
 
@@ -44,12 +44,12 @@
 - [ ] T011 [P] Implement passing tests for backend modules, targeting >=90% coverage in `tests/test_<module>.py`
 - [ ] T012 [P] Implement passing tests for plugin modules, targeting >=90% coverage in `tests/<module>.test.ts`
 - [ ] T013 [P] Implement security-focused tests for sensitive modules in their respective test files
-- [ ] T014 [P] For legacy modules, incrementally add tests and document coverage improvement in `specs/002-add-unit-tests/legacy-coverage.md`
+- [ ] T014 [P] For legacy modules, incrementally add tests and document coverage improvement in `docs/legacy-coverage.md`
 
 ### Phase 5: Reporting & Validation
 
-- [ ] T015 Run `pytest --cov backend/` and output Markdown report to `specs/002-add-unit-tests/backend-test-report.md`
-- [ ] T016 Run `jest --coverage plugin/` and output Markdown report to `specs/002-add-unit-tests/plugin-test-report.md`
+- [ ] T015 Run `pytest --cov backend/` and output Markdown report to `docs/backend-test-report.md`
+- [ ] T016 Run `jest --coverage plugin/` and output Markdown report to `docs/plugin-test-report.md`
 - [ ] T017 Review Markdown reports for coverage and failures
 - [ ] T018 Refactor code or add tests to meet coverage threshold
 - [ ] T019 Document test results and coverage in project documentation
