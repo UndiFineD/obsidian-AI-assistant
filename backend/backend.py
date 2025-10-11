@@ -842,20 +842,94 @@ else:
 # ----------------------
 # Run server
 # ----------------------
-# TEMPORARILY DISABLED TO AVOID CONFLICTS WITH UVICORN CLI
-# if __name__ == "__main__":
-#     # Start FastAPI app using Uvicorn
-#     import uvicorn
-# 
-#     # Non-blocking fast startup for CLI run as well
-#     if os.getenv("FAST_STARTUP", "0") in ("1", "true", "True"):
-#         import threading
-#         threading.Thread(target=init_services, daemon=True).start()
-#     else:
-#         init_services()
-#     PORT = 8000
-#     print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
-#     uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
+
+# --- CLI Entrypoint for start/stop/status/restart ---
+import subprocess
+import signal
+import pathlib
+
+PID_FILE = pathlib.Path("backend_server.pid")
+DEFAULT_PORT = 8000
+
+def _get_pid():
+    if PID_FILE.exists():
+        try:
+            return int(PID_FILE.read_text().strip())
+        except Exception:
+            return None
+    return None
+
+def _is_running(pid):
+    try:
+        import psutil
+        return psutil.pid_exists(pid)
+    except ImportError:
+        # Fallback: try os.kill
+        import os
+        try:
+            os.kill(pid, 0)
+            return True
+        except Exception:
+            return False
+
+def _start_server(port=DEFAULT_PORT, reload=False):
+    if _get_pid():
+        print(f"[backend] Server already running (PID {_get_pid()})")
+        return
+    args = [
+        _sys.executable,
+        "-m", "uvicorn",
+        "backend.backend:app",
+        "--host", "127.0.0.1",
+        "--port", str(port),
+    ]
+    if reload:
+        args.append("--reload")
+    proc = subprocess.Popen(args)
+    PID_FILE.write_text(str(proc.pid))
+    print(f"[backend] Server started (PID {proc.pid}) on port {port}")
+
+def _stop_server():
+    pid = _get_pid()
+    if not pid:
+        print("[backend] Server not running.")
+        return
+    try:
+        import os
+        os.kill(pid, signal.SIGTERM)
+        print(f"[backend] Sent SIGTERM to PID {pid}")
+    except Exception as e:
+        print(f"[backend] Error stopping server: {e}")
+    PID_FILE.unlink(missing_ok=True)
+
+def _status_server():
+    pid = _get_pid()
+    if pid and _is_running(pid):
+        print(f"[backend] Server is running (PID {pid})")
+    else:
+        print("[backend] Server is not running.")
+
+def _restart_server(port=DEFAULT_PORT, reload=False):
+    _stop_server()
+    time.sleep(1)
+    _start_server(port, reload)
+
+if __name__ == "__main__":
+    import argparse
+    parser = argparse.ArgumentParser(description="Obsidian AI Assistant Backend CLI")
+    parser.add_argument("command", choices=["start", "stop", "status", "restart"], help="Server command")
+    parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Port to run server on")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload")
+    args = parser.parse_args()
+
+    if args.command == "start":
+        _start_server(args.port, args.reload)
+    elif args.command == "stop":
+        _stop_server()
+    elif args.command == "status":
+        _status_server()
+    elif args.command == "restart":
+        _restart_server(args.port, args.reload)
 
 
 # Ensure this module can be accessed as 'backend.backend' regardless of import mode

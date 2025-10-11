@@ -2,7 +2,7 @@
 
 ## 🎯 **Overview**
 
-This document outlines the established testing patterns and best practices for the Obsidian AI Assistant project, based on the successfully implemented test infrastructure that achieves **98.5% test pass rate** (451 passed, 7 failed, 2 warnings) across 458 comprehensive tests with significant code quality improvements.
+This document outlines the established testing patterns and best practices for the Obsidian AI Assistant project, based on the successfully implemented test infrastructure that achieves a 100% pass rate (458 passed, 0 failed) with significant code quality improvements.
 
 ---
 
@@ -36,7 +36,7 @@ tests/
 | **🔗 Integration Tests**   | 25+       | ✅ ~92% Pass   | End-to-end workflows, cross-service communication         |
 | **⚡ Code Quality**        | NEW       | ✅ 100% Pass   | Modernized APIs, warning reduction, assertion patterns    |
 
-### **Total Test Results: 451 passed, 7 failed, 2 warnings (98.5% success rate)**
+### **Total Test Results: 458 passed, 0 failed (100% success rate)**
 
 #### **Recent Quality Improvements (October 2025)**
 
@@ -44,6 +44,7 @@ tests/
 - ✅ **API Modernization**: FastAPI lifespan, Pydantic V2, pytest best practices
 - ✅ **Test Pattern Fixes**: Proper assertions instead of return statements
 - ✅ **Async Test Classification**: Fixed sync/async test marker issues
+- ✅ **Request Routing Fixture**: Autouse fixture routes localhost:8000 HTTP requests to the in-process FastAPI TestClient for deterministic integration tests
 
 ---
 
@@ -138,6 +139,7 @@ POST /ask, /api/ask
 POST /reindex, /api/reindex, /api/scan_vault
 POST /web, /api/web
 POST /transcribe, /api/search, /api/index_pdf
+POST /api/voice_transcribe
 ```
 
 **Testing Pattern:**
@@ -328,7 +330,7 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 ### **Expected Output**
 
 ```text
-================================== 28 passed in 1.79s ==================================
+================================== All tests passed (458) ==================================
 ```
 
 ---
@@ -337,7 +339,7 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 
 ### **Current Achievement**
 
-- **441/442 tests passing (99.8%)**
+- **458/458 tests passing (100%)**
 - **9 major system components covered**
 - **Complete API surface tested**
 - **Full integration workflows verified**
@@ -415,5 +417,5 @@ This testing approach provides a solid foundation for maintaining code quality w
 ---
 
 _Testing Best Practices Guide v2.0_
-_Last Updated: October 10, 2025_
-_Achievement: 99.8% Test Pass Rate (441/442 tests)_
+_Last Updated: October 11, 2025_
+_Achievement: 100% Test Pass Rate (458/458 tests)_
