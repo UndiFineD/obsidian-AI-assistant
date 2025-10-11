@@ -151,12 +151,21 @@ class EnterpriseIntegration:
     
     def __init__(self):
         # Initialize enterprise managers
-        self.sso_manager = SSOManager()
+        from .enterprise_auth import SSOConfig, SSOProvider
+        default_sso_config = SSOConfig(
+            provider=SSOProvider.AZURE_AD,  # Change to your provider
+            client_id="your-client-id",
+            client_secret="your-client-secret",
+            tenant_id=None,
+            redirect_uri="http://localhost:8000/auth/callback",
+            scopes=["openid", "email", "profile"]
+        )
+        self.sso_manager = SSOManager(default_sso_config)
         self.tenant_manager = TenantManager()
         self.rbac_manager = RBACManager()
         self.gdpr_manager = GDPRComplianceManager()
         self.soc2_manager = SOC2ComplianceManager()
-        
+
         # Initialize admin dashboard
         self.admin_dashboard = EnterpriseAdminDashboard(
             self.sso_manager, self.tenant_manager, self.rbac_manager,
@@ -204,7 +213,7 @@ class EnterpriseIntegration:
         """Register all enterprise endpoints"""
         
         # SSO Authentication endpoints
-        SSOEndpoints(self.app, self.sso_manager)
+        SSOEndpoints(self.app, self.sso_manager, secret_key="changeme")
         
         # Tenant management endpoints
         TenantEndpoints(self.app, self.tenant_manager)

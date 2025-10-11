@@ -6,9 +6,17 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 import logging
-from sentence_transformers import SentenceTransformer
-from chromadb import PersistentClient
-from chromadb.utils import embedding_functions
+try:
+    from sentence_transformers import SentenceTransformer  # type: ignore
+except Exception:
+    SentenceTransformer = None  # type: ignore
+
+try:
+    from chromadb import PersistentClient  # type: ignore
+    from chromadb.utils import embedding_functions  # type: ignore
+except Exception:
+    PersistentClient = None  # type: ignore
+    embedding_functions = None  # type: ignore
 from .utils import safe_call
 from .settings import get_settings
 
@@ -32,13 +40,17 @@ class EmbeddingsManager:
         self.collection_name = collection_name
         self.model_name = model_name
 
-        # Load embedding model; tests expect failures to be swallowed
-        self.model = safe_call(
-            SentenceTransformer,
-            model_name,
-            error_msg="[EmbeddingsManager] Error loading embedding model",
-            default=None,
-        )
+        # Load embedding model if available; swallow errors
+        if SentenceTransformer is None:
+            logging.warning("[EmbeddingsManager] sentence_transformers not available; embeddings disabled")
+            self.model = None
+        else:
+            self.model = safe_call(
+                SentenceTransformer,
+                model_name,
+                error_msg="[EmbeddingsManager] Error loading embedding model",
+                default=None,
+            )
 
         # If model failed to load, skip DB initialization to avoid file locks
         if self.model is None:
@@ -47,15 +59,18 @@ class EmbeddingsManager:
             return
 
         # Initialize persistent Chroma client; swallow errors
-        self.chroma_client = safe_call(
-            PersistentClient,
-            path=self.db_path,
-            error_msg="[EmbeddingsManager] Error initializing Chroma client",
-            default=None,
-        )
+        if PersistentClient is None:
+            self.chroma_client = None
+        else:
+            self.chroma_client = safe_call(
+                PersistentClient,
+                path=self.db_path,
+                error_msg="[EmbeddingsManager] Error initializing Chroma client",
+                default=None,
+            )
 
         # Create or get collection using the **model name**, not the model object
-        if self.chroma_client:
+        if self.chroma_client and embedding_functions is not None:
             try:
                 self.collection = self.chroma_client.get_or_create_collection(
                     name=self.collection_name,

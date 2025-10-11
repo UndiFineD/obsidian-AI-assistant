@@ -1,3 +1,7 @@
+# Minimal stub for TenantEndpoints to fix import errors
+class TenantEndpoints:
+    def __init__(self):
+        pass
 # Enterprise Multi-Tenant Architecture
 # Provides tenant isolation, resource management, and billing capabilities
 
@@ -98,7 +102,7 @@ class TenantManager:
         }
     
     def create_tenant(self, name: str, tier: TenantTier, admin_email: str, 
-                     custom_limits: Optional[TenantLimits] = None) -> TenantConfig:
+        custom_limits: Optional[TenantLimits] = None) -> TenantConfig:
         """Create a new tenant"""
         if not name or not isinstance(name, str):
             raise ValueError("Tenant name must be a non-empty string.")
@@ -146,7 +150,7 @@ class TenantManager:
         return self.usage_metrics.get(tenant_id)
     
     def check_resource_limit(self, tenant_id: str, resource_type: str, 
-                           requested_amount: int = 1) -> bool:
+        requested_amount: int = 1) -> bool:
         """Check if tenant can use additional resources"""
         tenant = self.get_tenant(tenant_id)
         usage = self.get_tenant_usage(tenant_id)
@@ -265,7 +269,7 @@ class BillingManager:
         self.usage_history: Dict[str, List[Dict]] = {}
     
     def record_usage_event(self, tenant_id: str, event_type: str, 
-                          quantity: int, metadata: Optional[Dict] = None):
+        quantity: int, metadata: Optional[Dict] = None):
         """Record a billable usage event"""
         event = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -359,3 +363,4 @@ class MultiTenantMiddleware:
         
         # Fallback to header
         return request.headers.get("X-Tenant-ID")
+    
