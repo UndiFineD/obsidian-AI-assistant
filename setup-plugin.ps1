@@ -524,4 +524,4 @@ $global:BACKEND_PORT = 8000                # Port for backend server
 $global:BACKEND_RELOAD = $false            # Enable auto-reload for development
 
 # Plugin configuration
-$global:PLUGIN_NAME = "AI Assistant"       # Name of the plugin directory
+$global:PLUGIN_NAME = "obsidian-ai-assistant"       # Name of the plugin directory (must match manifest.json id)

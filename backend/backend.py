@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from .caching import CacheManager
+from .deps import ensure_minimal_dependencies, optional_ml_hint
 from .embeddings import EmbeddingsManager
 from .indexing import IndexingService, VaultIndexer
 from .modelmanager import ModelManager
@@ -97,6 +98,13 @@ except ImportError as e:
     ENTERPRISE_AVAILABLE = False
 
 # --- FastAPI app ---
+# Ensure minimal deps, but don't crash if unavailable
+try:
+    if not ensure_minimal_dependencies():
+        print("[deps] Warning: minimal dependencies could not be fully ensured. Proceeding…")
+except Exception as e:
+    print(f"[deps] Warning: dependency bootstrap failed: {e}")
+
 app = FastAPI(
     title=(
         "Obsidian AI Assistant - Enterprise Edition"
@@ -114,6 +122,13 @@ if ENTERPRISE_AVAILABLE:
     except Exception as e:
         print(f"[Enterprise] Warning: Failed to initialize enterprise features: {e}")
         ENTERPRISE_AVAILABLE = False
+
+# Inform about optional ML deps once
+try:
+    import sentence_transformers  # noqa: F401
+    import chromadb  # noqa: F401
+except Exception:
+    print("[deps] " + optional_ml_hint())
 
 # Add basic CORS middleware (enterprise middleware will override if available)
 if not ENTERPRISE_AVAILABLE:
