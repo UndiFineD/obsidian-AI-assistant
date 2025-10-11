@@ -370,8 +370,12 @@ class TestPerformanceBenchmarks:
     
     def test_memory_usage_monitoring(self, benchmark_client):
         """Monitor memory usage during operations"""
-        import psutil
-        import os
+        try:
+            import psutil
+            import os
+        except ImportError:
+            pytest.skip("psutil package not available for memory monitoring")
+        
         client = benchmark_client
         process = psutil.Process(os.getpid())
         # Get baseline memory

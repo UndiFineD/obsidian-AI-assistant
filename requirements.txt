@@ -36,5 +36,8 @@ pandas>=2.0.0
 # Cryptography for security
 cryptography>=41.0.0
 
+# System monitoring and performance
+psutil>=5.9.0
+
 # Environment and configuration
 python-multipart>=0.0.6  # For file uploads in FastAPI
