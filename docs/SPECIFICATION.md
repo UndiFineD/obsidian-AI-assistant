@@ -16,7 +16,53 @@ Offline-first AI assistant for Obsidian with comprehensive backend services, sem
 
 ---
 
+
+[// --- BEGIN MERGED SPECIFICATIONS ---]
+
+# 📋 COMPREHENSIVE TECHNICAL SPECIFICATION
+
 ## **🏗️ System Architecture**
+
+### Core Components
+
+```text
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Obsidian      │    │   FastAPI       │    │   Local LLM     │
+│   Plugin        │◄──►│   Backend       │◄──►│   Models        │
+│                 │    │                 │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                    ┌─────────────────┐
+                    │   ChromaDB      │
+                    │   Vector Store  │
+                    │                 │
+                    └─────────────────┘
+```
+
+# 📋 SPECIFICATION SUMMARY
+
+[Content from SPECIFICATION_SUMMARY.md]
+
+# 📋 FEATURE SPECIFICATION: ADD UNIT TESTS
+
+[Content from spec.md]
+
+# 📋 FEATURE SPECIFICATION: ADD UNIT TESTS (FIXED)
+
+[Content from spec-fixed.md]
+
+[// --- END MERGED SPECIFICATIONS ---]
+
+## 🔧 Backend API Documentation
+
+### FastAPI Architecture Overview
+
+The Obsidian AI Assistant backend is built on FastAPI, providing a modern, high-performance Python web framework with automatic API documentation, request validation, and type safety. The API follows RESTful principles with comprehensive error handling and standardized response formats.
+
+#### Core Architecture Features
+
+...
 
 ### Core Components
 
