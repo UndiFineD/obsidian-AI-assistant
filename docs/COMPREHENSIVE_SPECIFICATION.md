@@ -11,6 +11,7 @@
 The Obsidian AI Assistant is a sophisticated, production-ready AI-powered plugin for Obsidian that provides semantic search, conversational AI, voice interaction, and intelligent document processing capabilities. This specification documents the complete technical architecture, API endpoints, data models, performance requirements, and integration standards.
 
 ### **Key Features**
+
 - ✅ **16+ FastAPI Endpoints**: Complete REST API for AI operations
 - ✅ **Multi-Model Support**: LLM routing across multiple AI providers
 - ✅ **Vector Database**: ChromaDB for semantic search and embeddings
@@ -25,7 +26,7 @@ The Obsidian AI Assistant is a sophisticated, production-ready AI-powered plugin
 
 ### **📦 Core Module Structure**
 
-```
+```text
 obsidian-AI-assistant/
 ├── backend/                     # FastAPI Backend Services
 │   ├── backend.py              # 🚀 Main FastAPI application (16 endpoints)
@@ -118,9 +119,11 @@ Documentation:
 ### **🏥 Health & Status Endpoints (3)**
 
 #### **GET /health**
+
 **Purpose**: Comprehensive system health check with configuration snapshot
 
 **Response Model**: `HealthResponse`
+
 ```json
 {
   "status": "ok",
@@ -138,15 +141,18 @@ Documentation:
 }
 ```
 
-**Status Codes**: 
+**Status Codes**:
+
 - `200 OK`: System healthy and operational
 
 ---
 
 #### **GET /status**  
+
 **Purpose**: Lightweight liveness check for monitoring
 
 **Response Model**: `StatusResponse`
+
 ```json
 {
   "status": "ok"
@@ -154,11 +160,13 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Service is alive
 
 ---
 
-#### **GET /api/health** 
+#### **GET /api/health**
+
 **Purpose**: Alternative health endpoint (same as /health)
 
 **Response**: Identical to `GET /health`
@@ -168,9 +176,11 @@ Documentation:
 ### **⚙️ Configuration Management (3)**
 
 #### **GET /api/config**
+
 **Purpose**: Retrieve current configuration (whitelist-filtered)
 
 **Response Model**: `ConfigResponse`
+
 ```json
 {
   "vault_path": "vault",
@@ -186,14 +196,17 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Configuration retrieved successfully
 
 ---
 
 #### **POST /api/config**
+
 **Purpose**: Update configuration with partial settings
 
 **Request Model**: `ConfigUpdateRequest`
+
 ```json
 {
   "vault_path": "./new_vault",
@@ -204,6 +217,7 @@ Documentation:
 ```
 
 **Response Model**: `ConfigUpdateResponse`
+
 ```json
 {
   "ok": true,
@@ -218,6 +232,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Configuration updated successfully
 - `422 Unprocessable Entity`: Invalid configuration values
 - `500 Internal Server Error`: Configuration update failed
@@ -225,11 +240,13 @@ Documentation:
 ---
 
 #### **POST /api/config/reload**
+
 **Purpose**: Reload configuration from settings file
 
 **Request**: No body required
 
 **Response Model**: `ConfigReloadResponse`
+
 ```json
 {
   "ok": true,
@@ -240,6 +257,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Configuration reloaded successfully
 - `500 Internal Server Error`: Configuration reload failed
 
@@ -248,9 +266,11 @@ Documentation:
 ### **🤖 AI Operations (3)**
 
 #### **POST /ask**
+
 **Purpose**: Primary AI question processing endpoint
 
 **Request Model**: `AskRequest`
+
 ```json
 {
   "question": "What are the main themes in my notes about machine learning?",
@@ -263,6 +283,7 @@ Documentation:
 ```
 
 **Response Model**: `AskResponse`
+
 ```json
 {
   "answer": "Based on your notes, the main ML themes include supervised learning algorithms, neural network architectures, and data preprocessing techniques...",
@@ -275,6 +296,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Question processed successfully
 - `422 Unprocessable Entity`: Invalid request format
 - `500 Internal Server Error`: Model unavailable or generation failed
@@ -282,6 +304,7 @@ Documentation:
 ---
 
 #### **POST /api/ask**
+
 **Purpose**: API-versioned ask endpoint (identical to /ask)
 
 **Request/Response**: Same as `POST /ask`
@@ -289,9 +312,11 @@ Documentation:
 ---
 
 #### **POST /transcribe**
+
 **Purpose**: Convert audio to text using speech recognition
 
 **Request Model**: `TranscribeRequest`
+
 ```json
 {
   "audio_data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
@@ -301,6 +326,7 @@ Documentation:
 ```
 
 **Response Model**: `TranscribeResponse`
+
 ```json
 {
   "transcription": "Hello, how can I help you with your research today?",
@@ -312,6 +338,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Transcription completed successfully
 - `422 Unprocessable Entity`: Invalid audio data or format
 - `500 Internal Server Error`: Transcription service failed
@@ -321,9 +348,11 @@ Documentation:
 ### **📄 Document Management (4)**
 
 #### **POST /reindex**
+
 **Purpose**: Reindex vault documents for search
 
 **Request Model**: `ReindexRequest`
+
 ```json
 {
   "vault_path": "./vault"
@@ -331,6 +360,7 @@ Documentation:
 ```
 
 **Response Model**: `ReindexResponse`
+
 ```json
 {
   "indexed_files": ["Note1.md", "Research.pdf", "Ideas.txt"],
@@ -342,13 +372,15 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Reindexing completed successfully
 - `422 Unprocessable Entity`: Invalid vault path
 - `500 Internal Server Error`: Indexing failed
 
 ---
 
-#### **POST /api/reindex** 
+#### **POST /api/reindex**
+
 **Purpose**: API-versioned reindex endpoint (identical to /reindex)
 
 **Request/Response**: Same as `POST /reindex`
@@ -356,9 +388,11 @@ Documentation:
 ---
 
 #### **POST /web**
+
 **Purpose**: Process web content and answer questions
 
 **Request Model**: `WebRequest`
+
 ```json
 {
   "url": "https://example.com/article",
@@ -367,6 +401,7 @@ Documentation:
 ```
 
 **Response Model**: `WebResponse`
+
 ```json
 {
   "answer": "The key points include: 1) AI advancement trends, 2) Ethical considerations, 3) Future implications...",
@@ -377,6 +412,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Web content processed successfully
 - `422 Unprocessable Entity`: Invalid URL format
 - `500 Internal Server Error`: Web processing failed
@@ -384,6 +420,7 @@ Documentation:
 ---
 
 #### **POST /api/web**
+
 **Purpose**: API-versioned web processing (identical to /web)
 
 **Request/Response**: Same as `POST /web`
@@ -393,13 +430,16 @@ Documentation:
 ### **🔍 Search & Utility (3)**
 
 #### **POST /api/search**
+
 **Purpose**: Semantic search across indexed documents
 
 **Request Parameters**:
+
 - `query` (string): Search query
 - `top_k` (int, default=5): Number of results to return
 
 **Response Model**: `SearchResponse`
+
 ```json
 {
   "results": [
@@ -420,6 +460,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Search completed successfully
 - `422 Unprocessable Entity`: Invalid search query
 - `500 Internal Server Error`: Search service unavailable
@@ -427,12 +468,15 @@ Documentation:
 ---
 
 #### **POST /api/scan_vault**
+
 **Purpose**: Scan and index vault directory
 
 **Request Parameters**:
+
 - `vault_path` (string, default="vault"): Directory path to scan
 
 **Response Model**: `ScanVaultResponse`
+
 ```json
 {
   "indexed_files": ["Note1.md", "Note2.md", "Document.pdf"],
@@ -444,6 +488,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: Vault scan completed successfully
 - `422 Unprocessable Entity`: Invalid vault path
 - `500 Internal Server Error`: Scan operation failed
@@ -451,12 +496,15 @@ Documentation:
 ---
 
 #### **POST /api/index_pdf**
+
 **Purpose**: Index PDF file for semantic search
 
 **Request Parameters**:
+
 - `pdf_path` (string): Path to PDF file
 
 **Response Model**: `IndexPdfResponse`
+
 ```json
 {
   "chunks_indexed": 24,
@@ -468,6 +516,7 @@ Documentation:
 ```
 
 **Status Codes**:
+
 - `200 OK`: PDF indexing completed successfully
 - `422 Unprocessable Entity`: Invalid PDF path or corrupt file
 - `500 Internal Server Error`: PDF processing failed
@@ -479,6 +528,7 @@ Documentation:
 ### **🎯 Request Models (Pydantic BaseModel)**
 
 #### **AskRequest**
+
 ```python
 class AskRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
@@ -492,12 +542,14 @@ class AskRequest(BaseModel):
 ```
 
 #### **ReindexRequest**
+
 ```python
 class ReindexRequest(BaseModel):
     vault_path: str = "./vault"                 # Path to vault directory
 ```
 
 #### **WebRequest**
+
 ```python
 class WebRequest(BaseModel):
     url: str                                    # Required: URL to process
@@ -505,6 +557,7 @@ class WebRequest(BaseModel):
 ```
 
 #### **TranscribeRequest**
+
 ```python
 class TranscribeRequest(BaseModel):
     audio_data: str                             # Required: Base64 encoded audio
@@ -515,6 +568,7 @@ class TranscribeRequest(BaseModel):
 ### **📤 Response Models**
 
 #### **Standard Response Structure**
+
 ```python
 # All responses follow this pattern:
 {
@@ -528,6 +582,7 @@ class TranscribeRequest(BaseModel):
 ```
 
 #### **Health Response Schema**
+
 ```python
 {
     "status": str,                          # "ok" or error status
@@ -564,18 +619,21 @@ class TranscribeRequest(BaseModel):
 ### **💾 Resource Usage Standards**
 
 #### **Memory Management**
+
 - **Baseline Usage**: < 256MB (idle state)
 - **Active Processing**: < 1GB (during AI operations)  
 - **Peak Usage**: < 2GB (heavy document processing)
 - **Memory Leaks**: Zero tolerance - automatic cleanup
 
 #### **CPU Utilization**
+
 - **Idle State**: < 5% CPU usage
 - **Normal Operations**: < 50% CPU usage
 - **Peak Processing**: < 80% CPU usage (temporary spikes allowed)
 - **Background Tasks**: < 20% CPU usage
 
 #### **Storage Requirements**
+
 - **Cache Storage**: Configurable, default 1GB limit
 - **Vector Database**: Scales with document count (~10MB per 1000 documents)
 - **Model Storage**: 2-8GB per AI model (user configurable)
@@ -584,12 +642,14 @@ class TranscribeRequest(BaseModel):
 ### **📊 Scalability Targets**
 
 #### **Concurrent Operations**
+
 - **Simultaneous Users**: 10+ concurrent API requests
 - **Parallel Processing**: Multi-threaded document indexing
 - **Queue Management**: Task queue for resource-intensive operations
 - **Rate Limiting**: Configurable per-endpoint rate limits
 
 #### **Data Volume Handling**
+
 - **Document Capacity**: 100,000+ documents in vault
 - **Search Performance**: Sub-second search across large datasets
 - **Batch Operations**: Process 1000+ files in single operation
@@ -602,6 +662,7 @@ class TranscribeRequest(BaseModel):
 ### **🛡️ Authentication & Authorization**
 
 #### **API Security**
+
 ```python
 # Security Headers (Implemented)
 {
@@ -619,6 +680,7 @@ class TranscribeRequest(BaseModel):
 ```
 
 #### **Data Protection Standards**
+
 - **Encryption at Rest**: AES-256 for sensitive configuration
 - **Encryption in Transit**: TLS 1.3 for all HTTPS communications
 - **API Key Security**: Secure storage for external service keys
@@ -628,6 +690,7 @@ class TranscribeRequest(BaseModel):
 ### **🔐 Security Implementation Requirements**
 
 #### **Input Security**
+
 ```python
 # Validation Rules (Enforced by Pydantic)
 AskRequest:
@@ -646,6 +709,7 @@ TranscribeRequest:
 ```
 
 #### **File System Security**
+
 - **Path Traversal Prevention**: Validate all file paths, restrict to configured directories
 - **File Type Validation**: Whitelist allowed file extensions (.md, .pdf, .txt)
 - **Size Limits**: Maximum file size limits (configurable, default 100MB)
@@ -654,6 +718,7 @@ TranscribeRequest:
 ### **📋 Security Audit Requirements**
 
 #### **Logging & Monitoring**
+
 ```python
 # Security Event Logging
 {
@@ -670,6 +735,7 @@ TranscribeRequest:
 ```
 
 #### **Vulnerability Management**
+
 - **Dependency Scanning**: Regular security audits of all dependencies
 - **OWASP Compliance**: Follow OWASP Top 10 security guidelines
 - **Penetration Testing**: Quarterly security assessments
@@ -707,13 +773,13 @@ TranscribeRequest:
 - **Performance Test Coverage**: All endpoints under load
 
 #### **Test Architecture**
-```
+
+```text
 tests/
 ├── comprehensive_async_test_runner.py    # Multi-worker test executor (6.2x speedup)
 ├── conftest.py                          # Global fixtures & service mocking
 ├── backend/                             # Backend module tests
-│   ├── test_backend_comprehensive.py    # Complete API endpoint testing
-│   ├── test_backend.py                 # Core functionality tests
+│   ├── test_backend_comprehensive.py    # Complete API endpoint Performance Issues
 │   ├── test_config_endpoints.py        # Configuration management tests
 │   ├── test_caching.py                 # Cache management tests
 │   ├── test_embeddings.py             # Vector operations tests
@@ -733,6 +799,7 @@ tests/
 ### **🎯 Test Categories & Standards**
 
 #### **Unit Tests (486 total tests)**
+
 ```python
 # Test Pattern Example
 class TestAskEndpoint:
@@ -761,6 +828,7 @@ class TestAskEndpoint:
 ```
 
 #### **Integration Tests**
+
 ```python
 # Integration Test Pattern
 class TestFullAPIWorkflow:
@@ -784,6 +852,7 @@ class TestFullAPIWorkflow:
 ```
 
 #### **Performance Tests**
+
 ```python
 # Performance Test Pattern
 class TestPerformanceRequirements:
@@ -813,6 +882,7 @@ class TestPerformanceRequirements:
 ### **🚀 Test Execution Standards**
 
 #### **Async Test Runner Performance**
+
 ```python
 # Comprehensive Async Test Runner Results
 Total Tests: 486
@@ -824,6 +894,7 @@ Memory Usage: <2GB during test execution
 ```
 
 #### **Continuous Integration Requirements**
+
 - **Pre-commit Hooks**: Run linting, type checking, security scans
 - **Pull Request Validation**: Full test suite must pass
 - **Performance Regression Detection**: Automated performance comparison
@@ -837,6 +908,7 @@ Memory Usage: <2GB during test execution
 ### **📱 Obsidian Plugin Architecture**
 
 #### **Plugin Manifest**
+
 ```json
 {
   "id": "ai-assistant",
@@ -886,6 +958,7 @@ interface AIAssistantSettings {
 ### **🔄 Communication Protocol**
 
 #### **Backend Communication**
+
 ```typescript
 // Backend API Client
 class BackendAPIClient {
@@ -921,6 +994,7 @@ class BackendAPIClient {
 ```
 
 #### **Error Handling & Retry Logic**
+
 ```typescript
 class ErrorHandler {
     static async withRetry<T>(
@@ -947,6 +1021,7 @@ class ErrorHandler {
 ### **🎨 User Interface Components**
 
 #### **Task Queue View**
+
 ```typescript
 // Task Queue Management
 interface TaskQueueItem {
@@ -980,6 +1055,7 @@ class TaskQueueView extends ItemView {
 ```
 
 #### **Voice Input Interface**
+
 ```typescript
 // Voice Input Processing
 class VoiceInputManager {
@@ -1026,6 +1102,7 @@ class VoiceInputManager {
 ### **📦 Environment Setup**
 
 #### **Development Environment**
+
 ```bash
 # Required Software
 - Python 3.9+
@@ -1050,6 +1127,7 @@ npm install
 ```
 
 #### **Production Deployment**
+
 ```yaml
 # Docker Configuration
 version: '3.8'
@@ -1078,6 +1156,7 @@ services:
 ### **⚙️ Configuration Management**
 
 #### **Settings Schema**
+
 ```python
 # backend/settings.py
 class Settings(BaseModel):
@@ -1110,6 +1189,7 @@ class Settings(BaseModel):
 ```
 
 #### **Environment Variables**
+
 ```bash
 # Required Environment Variables
 OBSIDIAN_AI_VAULT_PATH="/path/to/vault"
@@ -1132,6 +1212,7 @@ OBSIDIAN_AI_ENABLE_CORS=true
 ### **🔍 Monitoring & Observability**
 
 #### **Health Monitoring**
+
 ```python
 # Health Check Endpoints
 GET /health       # Full system health with configuration
@@ -1149,6 +1230,7 @@ GET /metrics      # Prometheus-compatible metrics (future)
 ```
 
 #### **Logging Configuration**
+
 ```python
 # Structured Logging Format
 {
@@ -1177,6 +1259,7 @@ GET /metrics      # Prometheus-compatible metrics (future)
 ### **🎯 Code Quality Requirements**
 
 #### **Code Standards Enforcement**
+
 ```python
 # Pre-commit Hooks Configuration
 repos:
@@ -1202,6 +1285,7 @@ repos:
 ```
 
 #### **Type Coverage Requirements**
+
 - **Python Backend**: 100% type annotation coverage
 - **TypeScript Plugin**: Strict TypeScript configuration
 - **API Schemas**: Complete Pydantic model validation
@@ -1210,6 +1294,7 @@ repos:
 ### **📊 Performance Benchmarks**
 
 #### **Load Testing Standards**
+
 ```python
 # Performance Test Requirements
 class PerformanceTests:
@@ -1237,6 +1322,7 @@ class PerformanceTests:
 ```
 
 #### **Memory & Resource Testing**
+
 ```python
 # Resource Usage Monitoring
 class ResourceTests:
@@ -1261,9 +1347,9 @@ class ResourceTests:
 ### **📅 Update & Release Cycle**
 
 #### **Semantic Versioning**
-```
-Version Format: MAJOR.MINOR.PATCH
 
+```text
+Version Format: MAJOR.MINOR.PATCH
 MAJOR: Breaking API changes, major architecture updates
 MINOR: New features, backward-compatible API additions  
 PATCH: Bug fixes, security updates, performance improvements
@@ -1276,6 +1362,7 @@ Examples:
 ```
 
 #### **Release Schedule**
+
 - **Major Releases**: Quarterly (with 2-week beta period)
 - **Minor Releases**: Monthly (new features, enhancements)
 - **Patch Releases**: As needed (critical bugs, security issues)
@@ -1284,6 +1371,7 @@ Examples:
 ### **📚 Documentation Requirements**
 
 #### **API Documentation**
+
 - **Interactive Documentation**: Swagger UI at `/docs`
 - **Alternative Documentation**: ReDoc at `/redoc`
 - **OpenAPI Specification**: Auto-generated from code annotations
@@ -1291,6 +1379,7 @@ Examples:
 - **Error Documentation**: Complete error code reference
 
 #### **User Documentation**
+
 - **Installation Guide**: Step-by-step setup instructions
 - **Configuration Guide**: All settings explained with examples
 - **Troubleshooting Guide**: Common issues and solutions
@@ -1301,7 +1390,8 @@ Examples:
 
 #### **Common Issues & Solutions**
 
-**Backend Connection Issues**
+## Backend Connection Issues
+
 ```bash
 # Check backend status
 curl http://127.0.0.1:8000/health
@@ -1313,7 +1403,8 @@ curl http://127.0.0.1:8000/health
 4. Validate configuration file
 ```
 
-**Model Loading Problems**
+## Model Loading Problems
+
 ```python
 # Debug model initialization
 python -c "
@@ -1329,7 +1420,8 @@ print('Models available:', mm.list_models())
 4. Validate GPU drivers if GPU enabled
 ```
 
-**Performance Issues**
+## Performance Issues
+
 ```bash
 # Monitor resource usage
 htop  # CPU and memory
@@ -1350,6 +1442,7 @@ netstat -an | grep 8000  # Network connections
 ### **✅ Implementation Status**
 
 #### **Core Features (Complete)**
+
 - [x] **FastAPI Backend**: 16 endpoints implemented and tested
 - [x] **AI Integration**: Multiple model support with routing
 - [x] **Vector Database**: ChromaDB with semantic search
@@ -1361,6 +1454,7 @@ netstat -an | grep 8000  # Network connections
 - [x] **Obsidian Plugin**: Native integration with Obsidian workspace
 
 #### **Testing & Quality (In Progress)**
+
 - [x] **Test Infrastructure**: Async test runner with 6.2x speedup
 - [x] **Comprehensive Tests**: 486 tests across all modules
 - [x] **Service Mocking**: Standardized mocking patterns
@@ -1369,6 +1463,7 @@ netstat -an | grep 8000  # Network connections
 - [x] **CI/CD Integration**: Automated test execution
 
 #### **Documentation & Compliance (Complete)**
+
 - [x] **API Specification**: Complete endpoint documentation
 - [x] **Architecture Documentation**: System design and data flow
 - [x] **Security Standards**: Authentication, validation, monitoring
@@ -1388,20 +1483,26 @@ This comprehensive specification establishes the **Obsidian AI Assistant** as a 
 7. **✅ Deployment Procedures**: Environment setup and configuration management
 8. **✅ Quality Assurance**: Code standards, benchmarks, and monitoring
 
-**The system is specified for enterprise deployment with professional-grade reliability, security, and performance standards.**
+## The system is specified for enterprise deployment with professional-grade reliability, security, and performance standards
 
 ---
 
 ## 📜 **SPECIFICATION AUTHORITY**
 
-**Document Version**: 2.0  
-**Effective Date**: October 6, 2025  
-**Review Cycle**: Quarterly  
-**Next Review**: January 6, 2026  
-**Status**: Authoritative & Complete
+## Document Version: 2.0
 
-**This specification serves as the definitive technical reference for the Obsidian AI Assistant project. All development, deployment, and maintenance activities must comply with the standards established herein.**
+## Effective Date: October 6, 2025
+
+## Review Cycle: Quarterly
+
+## Next Review: January 6, 2026
+
+## Status: Authoritative & Complete
+
+## This specification serves as the definitive technical reference for the Obsidian AI Assistant project
+
+All development, deployment, and maintenance activities must comply with the standards established herein.
 
 ---
 
-*"Excellence in specification leads to excellence in implementation. This document establishes the foundation for world-class AI integration."*
+> Excellence in specification leads to excellence in implementation. This document establishes the foundation for world-class AI integration.
