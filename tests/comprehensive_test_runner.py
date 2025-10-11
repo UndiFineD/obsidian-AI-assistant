@@ -148,7 +148,7 @@ class ComprehensiveTestRunner:
         print("=" * 80 + "\n")
         
     def print_test_status(self, test_num: int, total_tests: int, test_name: str, 
-                         status: TestStatus, duration: float = 0.0):
+        status: TestStatus, duration: float = 0.0):
         """Print individual test status with colors and timing."""
         
         # Color mapping for status

@@ -432,7 +432,6 @@ def get_cache_manager() -> MultiLevelCache:
 
 def get_connection_pool(name: str, factory: Callable, **kwargs) -> ConnectionPool:
     """Get named connection pool"""
-    global _connection_pools
     if name not in _connection_pools:
         _connection_pools[name] = ConnectionPool(factory, **kwargs)
     return _connection_pools[name]

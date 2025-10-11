@@ -16,9 +16,7 @@ exclude = [
 ]
 
 [tool.ruff.per-file-ignores]
-# Allow assert statements in test files (ignore B101 from bandit integration)
-"tests/**/*.py" = ["B101"]
-"**/test_*.py" = ["B101"]
+# No per-file ignores needed; Bandit configuration below handles assert usage in tests.
 
 [tool.bandit]
 # Bandit security linter configuration

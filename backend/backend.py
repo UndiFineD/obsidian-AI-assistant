@@ -445,7 +445,6 @@ async def post_update_config(partial: dict):
 
 def _ask_impl(request: AskRequest):
     # Ensure services
-    global model_manager, cache_manager
     if model_manager is None or cache_manager is None:
         init_services()
     # If model manager failed to initialize, return an error status
@@ -531,7 +530,6 @@ async def ask(request: AskRequest):
 
 @app.post("/api/scan_vault")
 async def scan_vault(vault_path: str = "vault"):
-    global vault_indexer
     if vault_indexer is None:
         init_services()
     if not os.path.isdir(vault_path):
@@ -542,7 +540,6 @@ async def scan_vault(vault_path: str = "vault"):
 @app.post("/api/web")
 async def api_web(request: WebRequest):
     """Process web content and answer a question about it."""
-    global model_manager, vault_indexer
     if model_manager is None or vault_indexer is None:
         init_services()
 
@@ -574,7 +571,6 @@ async def web(request: WebRequest):
 @app.post("/api/reindex")
 async def api_reindex(request: ReindexRequest):
     # Return what the indexer reports; tests stub this
-    global vault_indexer
     if vault_indexer is None:
         init_services()
     return vault_indexer.reindex(request.vault_path)
@@ -582,7 +578,6 @@ async def api_reindex(request: ReindexRequest):
 
 @app.post("/reindex")
 async def reindex(request: ReindexRequest):
-    global vault_indexer
     if vault_indexer is None:
         init_services()
     return vault_indexer.reindex(request.vault_path)
@@ -626,7 +621,6 @@ async def transcribe_audio(request: TranscribeRequest):
 
 @app.post("/api/search")
 async def search(query: str, top_k: int = 5):
-    global emb_manager
     if emb_manager is None:
         init_services()
     try:
@@ -638,7 +632,6 @@ async def search(query: str, top_k: int = 5):
 
 @app.post("/api/index_pdf")
 async def index_pdf(pdf_path: str):
-    global vault_indexer
     if vault_indexer is None:
         init_services()
     count = vault_indexer.index_pdf(pdf_path)
@@ -752,9 +745,8 @@ async def _cleanup_expired_cache():
 async def _optimize_connection_pools():
     """Optimize connection pools by cleaning idle connections"""
     try:
-        from .performance import _connection_pools
-
-        for _, pool in _connection_pools.items():
+        from . import performance as _perf
+        for _, pool in _perf._connection_pools.items():
             pool.cleanup_idle_connections()
     except Exception as e:
         print(f"Connection pool optimization failed: {e}")

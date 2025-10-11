@@ -42,7 +42,7 @@ class TestBackendHealthAndBasics:
         
         assert app is not None
         # Accept both standard and enterprise edition titles
-    assert "Obsidian AI Assistant" in app.title  # Accepts both standard and enterprise edition
+        assert "Obsidian AI Assistant" in app.title  # Accepts both standard and enterprise edition
         print("✓ FastAPI app created successfully")
 
     @patch.dict(os.environ, {'HUGGINGFACE_TOKEN': 'test_token'})
