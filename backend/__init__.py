@@ -1,4 +1,5 @@
 # Backend package initialization
+
 """
 Obsidian AI Assistant Backend Package
 

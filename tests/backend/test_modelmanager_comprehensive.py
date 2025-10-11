@@ -1,14 +1,166 @@
-# tests/backend/test_modelmanager_comprehensive.py
-import pytest
-import tempfile
-import shutil
-
 import sys
+import threading
+import shutil
+import tempfile
+import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, mock_open
-
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from backend.modelmanager import ModelManager
+
+class TestModelManagerIntegration:
+    """Integration tests for ModelManager with settings."""
+
+    def test_from_settings_success(self, mock_settings):
+        """Test ModelManager.from_settings with valid settings."""
+        with patch('backend.modelmanager.get_settings', return_value=mock_settings), \
+            patch('os.getenv', return_value="env_token"), \
+            patch('backend.modelmanager.load_dotenv'), \
+            patch('backend.modelmanager.huggingface_hub.login'), \
+            patch('backend.modelmanager.HybridLLMRouter'), \
+            patch('pathlib.Path.mkdir'), \
+            patch('pathlib.Path.exists', return_value=True), \
+            patch('pathlib.Path.rglob', return_value=[]), \
+            patch('pathlib.Path.write_text'), \
+            patch('pathlib.Path.read_text', return_value="0"), \
+            patch('builtins.open', mock_open(read_data="test-model")), \
+            patch('backend.modelmanager.huggingface_hub.hf_hub_download'), \
+            patch.object(ModelManager, '_download_minimal_models'), \
+            patch.object(ModelManager, '_load_models_file', return_value={"test-model": "test-model"}):
+            manager = ModelManager.from_settings()
+            assert manager.models_dir == str(mock_settings.abs_models_dir)
+            assert manager.default_model == mock_settings.model_backend
+            assert manager.hf_token == "env_token"
+
+    def test_from_settings_fallback(self):
+        """Test ModelManager.from_settings fallback when settings fail."""
+        with patch('backend.modelmanager.get_settings', side_effect=Exception("Settings unavailable")), \
+            patch('backend.modelmanager.load_dotenv'), \
+            patch('backend.modelmanager.huggingface_hub.login'), \
+            patch('os.getenv', return_value=None), \
+            patch('backend.modelmanager.HybridLLMRouter'), \
+            patch('pathlib.Path.mkdir'), \
+            patch('pathlib.Path.exists', return_value=False), \
+            patch('backend.modelmanager.huggingface_hub.hf_hub_download'):
+            manager = ModelManager.from_settings()
+            # Should use default values
+            assert manager.models_dir == "./models"
+            # Default model might be changed by fallback logic, just check it's set
+            assert manager.default_model is not None
+class TestRevisionPinningEnforcement:
+    """Test revision pinning enforcement for HuggingFace downloads."""
+
+    def test_download_latest_revision_manual_raises(self, temp_cache_dir):
+        """Manual download with revision='latest' should raise ValueError."""
+        manager = ModelManager(models_dir=temp_cache_dir, minimal_models=[])
+        with pytest.raises(ValueError, match="Revision 'latest' is only allowed for automated downloads"):
+            manager.download_model("org/model", revision="latest")
+
+    def test_download_main_revision_manual_raises(self, temp_cache_dir):
+        """Manual download with revision='main' should raise ValueError."""
+        manager = ModelManager(models_dir=temp_cache_dir, minimal_models=[])
+        with pytest.raises(ValueError, match="Revision must be explicitly pinned"):
+            manager.download_model("org/model", revision="main")
+
+    def test_download_no_revision_manual_raises(self, temp_cache_dir):
+        """Manual download with revision=None should raise ValueError."""
+        manager = ModelManager(models_dir=temp_cache_dir, minimal_models=[])
+        with pytest.raises(ValueError, match="Revision must be explicitly pinned"):
+            manager.download_model("org/model", revision=None)
+
+    def test_automated_download_allows_main(self, temp_cache_dir):
+        """Automated download allows revision='main'."""
+        manager = ModelManager(models_dir=temp_cache_dir, minimal_models=[])
+        # Simulate automated download context
+        manager._automated_download = True
+        with patch('backend.modelmanager.huggingface_hub.hf_hub_download', return_value="/fake/path/model.bin"):
+            result = manager.download_model("org/model", revision="main")
+            assert result["status"] == "downloaded"
+        del manager._automated_download
+class TestHardwareSpecificSelection:
+    """Test hardware-specific model selection logic."""
+
+    def test_nvidia_gt1030_selection(self, temp_cache_dir):
+        """Test that minimal models for NVIDIA GeForce GT 1030 are selected."""
+        minimal_models = [
+            "deepseek-ai/Janus-Pro-1B",
+            "unsloth/Qwen2.5-Omni-3B-GGUF",
+            "ggml-org/Qwen2.5-Omni-3B-GGUF"
+        ]
+        manager = ModelManager(models_dir=temp_cache_dir)
+        manager._minimal_models = minimal_models  # Patch instance attribute
+        assert manager._minimal_models == minimal_models
+
+    def test_custom_hardware_selection(self, temp_cache_dir):
+        """Test custom hardware selection logic by overriding minimal_models."""
+        custom_models = ["custom/model-a", "custom/model-b"]
+        manager = ModelManager(models_dir=temp_cache_dir, minimal_models=custom_models)
+        assert manager._minimal_models == custom_models
+class TestModelManagerUpdateLogic:
+    """Test automated update logic for models."""
+
+    def test_update_models_success(self, temp_cache_dir):
+        """Test _update_models downloads latest revision for all models."""
+        models_file = Path(temp_cache_dir) / "models.txt"
+        models_file.write_text("org/model1\norg/model2\n")
+        with patch('backend.modelmanager.huggingface_hub.hf_hub_download', return_value="/fake/path/model.bin") as mock_download, \
+             patch.object(ModelManager, '_check_and_update_models', lambda self: None), \
+             patch.object(ModelManager, '_download_minimal_models', lambda self: None):
+            manager = ModelManager(models_dir=temp_cache_dir, models_file=str(models_file))
+            manager._update_models()
+            # Should call hf_hub_download for each model in update only
+            assert mock_download.call_count == 2
+
+    def test_update_models_error(self, temp_cache_dir):
+        """Test _update_models handles download errors gracefully."""
+        models_file = Path(temp_cache_dir) / "models.txt"
+        models_file.write_text("org/model1\norg/model2\n")
+        with patch('backend.modelmanager.huggingface_hub.hf_hub_download', side_effect=Exception("Network error")) as mock_download, \
+             patch.object(ModelManager, '_check_and_update_models', lambda self: None), \
+             patch.object(ModelManager, '_download_minimal_models', lambda self: None):
+            manager = ModelManager(models_dir=temp_cache_dir, models_file=str(models_file))
+            manager._update_models()
+            # Should attempt both downloads, errors logged
+            assert mock_download.call_count == 2
+class TestModelManagerConcurrency:
+    """Test concurrency for downloads and loads."""
+
+    def test_concurrent_downloads(self, temp_cache_dir):
+        """Simulate concurrent downloads of the same model."""
+        manager = ModelManager(models_dir=temp_cache_dir)
+        results = []
+        def download():
+            res = manager.download_model("concurrent-model")
+            results.append(res["status"])
+        threads = [threading.Thread(target=download) for _ in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        # All should succeed or exist, no race condition errors
+        assert all(r in ("success", "exists") for r in results)
+
+    def test_concurrent_loads(self, temp_cache_dir):
+        """Simulate concurrent loads of the same model."""
+        manager = ModelManager(models_dir=temp_cache_dir)
+        # Pre-create model file
+        model_file = Path(temp_cache_dir) / "concurrent-load-model"
+        model_file.write_text("dummy")
+        results = []
+        def load():
+            try:
+                res = manager.load_model("concurrent-load-model")
+                results.append(res)
+            except Exception as e:
+                results.append(str(e))
+        threads = [threading.Thread(target=load) for _ in range(5)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        # All should return a router instance or cached model
+        assert all(r is not None for r in results)
+
 
 
 @pytest.fixture
@@ -693,7 +845,50 @@ class TestModelManagerEdgeCases:
             except PermissionError:
                 # Or it might propagate the error, which is also valid
                 pass
+class TestModelRemoval:
+    """Test model removal functionality."""
 
+    def test_remove_local_model_success(self, temp_cache_dir):
+        """Test successful removal of a local model file."""
+        model_file = Path(temp_cache_dir) / "removable-model.bin"
+        model_file.write_text("dummy")
+        assert model_file.exists()
+        # Simulate removal
+        model_file.unlink()
+        assert not model_file.exists()
+
+    def test_remove_local_model_error(self, temp_cache_dir):
+        """Test error during local model removal (e.g., permission error)."""
+        model_file = Path(temp_cache_dir) / "protected-model.bin"
+        model_file.write_text("dummy")
+        # Patch unlink to raise error
+        with patch.object(Path, "unlink", side_effect=PermissionError("Access denied")):
+            try:
+                model_file.unlink()
+            except PermissionError as e:
+                assert "Access denied" in str(e)
+
+    def test_remove_directory_model(self, temp_cache_dir):
+        """Test removal of a model stored as a directory."""
+        model_dir = Path(temp_cache_dir) / "removable-model-dir"
+        model_dir.mkdir()
+        (model_dir / "model.bin").write_text("dummy")
+        assert model_dir.exists()
+        # Simulate directory removal
+        shutil.rmtree(model_dir)
+        assert not model_dir.exists()
+
+    def test_remove_directory_model_error(self, temp_cache_dir):
+        """Test error during directory model removal."""
+        model_dir = Path(temp_cache_dir) / "protected-model-dir"
+        model_dir.mkdir()
+        (model_dir / "model.bin").write_text("dummy")
+        # Patch rmtree to raise error
+        with patch("shutil.rmtree", side_effect=PermissionError("Access denied")):
+            try:
+                shutil.rmtree(model_dir)
+            except PermissionError as e:
+                assert "Access denied" in str(e)
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

@@ -1,4 +1,5 @@
 # backend/backend.py
+
 import os
 import sys as _sys
 import time
@@ -20,6 +21,68 @@ from .performance import (
     get_task_queue,
 )
 from .settings import get_settings, reload_settings, update_settings
+
+# --- External env loader (no secrets committed) ---
+def _load_external_env():
+    """Optionally load secrets (e.g., HF token) from an external file not in the repo.
+
+    Priority:
+    1) EXTERNAL_ENV_FILE environment variable points to a file
+    2) Default path under the user's DEV folder: %USERPROFILE%/DEV/obsidian-llm-assistant/venv.txt
+
+    Supported formats inside the file:
+    - KEY=VALUE lines (e.g., HF_TOKEN=xxxxx)
+    - Single token string (will be used as both HF_TOKEN and HUGGINGFACE_TOKEN)
+    """
+    try:
+        import os
+        from pathlib import Path
+
+        # explicit override via env var
+        path = os.environ.get("EXTERNAL_ENV_FILE")
+        if not path:
+            user_root = os.path.expanduser("~")
+            default_path = Path(user_root) / "DEV" / "obsidian-llm-assistant" / "venv.txt"
+            path = str(default_path)
+
+        p = Path(path)
+        if not p.exists():
+            return
+
+        # Read lines and apply
+        content = p.read_text(encoding="utf-8").strip()
+        if not content:
+            return
+
+        if "\n" not in content and "=" not in content:
+            # Single token – set both names if not already set
+            if not os.environ.get("HF_TOKEN"):
+                os.environ["HF_TOKEN"] = content
+            if not os.environ.get("HUGGINGFACE_TOKEN"):
+                os.environ["HUGGINGFACE_TOKEN"] = content
+            print("[env] External token loaded from venv.txt (single-token)")
+            return
+
+        # Parse KEY=VALUE lines
+        for line in content.splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                # Only set if not already present in process env
+                if k and v and not os.environ.get(k):
+                    os.environ[k] = v
+        # Ensure aliasing
+        tok = os.environ.get("HF_TOKEN") or os.environ.get("HUGGINGFACE_TOKEN")
+        if tok:
+            os.environ.setdefault("HF_TOKEN", tok)
+            os.environ.setdefault("HUGGINGFACE_TOKEN", tok)
+        print("[env] External env loaded from venv.txt")
+    except Exception as e:
+        print(f"[env] Warning: failed loading external env: {e}")
 
 # Global flag to track background queue initialization
 _background_queue_started = False
@@ -86,6 +149,10 @@ def init_services():
     _init_performance_systems()
 
     # Load env here (not at module import) so tests can patch
+    # 1) External env (venv.txt outside repo)
+    _load_external_env()
+
+    # 2) .env in current working directory (optional)
     def safe_init(cls, *args, **kwargs):
         try:
             return cls(*args, **kwargs)
@@ -129,6 +196,26 @@ def init_services():
         vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
 
     cache_manager = safe_init(CacheManager, "./cache")
+
+
+@app.on_event("startup")
+async def _app_startup():
+    """Initialize services on app startup.
+
+    If FAST_STARTUP is set, perform initialization in a background thread to
+    allow the server to respond to health checks quickly.
+    """
+    fast = os.getenv("FAST_STARTUP", "0").lower() in ("1", "true", "yes", "on")
+    if fast:
+        try:
+            import threading
+
+            threading.Thread(target=init_services, daemon=True).start()
+            print("[startup] FAST_STARTUP enabled – initializing services in background")
+        except Exception as e:
+            print(f"[startup] Warning: failed to start background init: {e}")
+    else:
+        init_services()
 
 
 def _init_performance_systems():
@@ -683,7 +770,12 @@ if __name__ == "__main__":
     # Start FastAPI app using Uvicorn
     import uvicorn
 
-    init_services()
+    # Non-blocking fast startup for CLI run as well
+    if os.getenv("FAST_STARTUP", "0") in ("1", "true", "True"):
+        import threading
+        threading.Thread(target=init_services, daemon=True).start()
+    else:
+        init_services()
     PORT = 8000
     print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
     uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
@@ -707,9 +799,4 @@ except Exception as e:
     logging.error(f"Exception in backend.backend (module access): {e}")
 
 
-# Initialize services at import time so tests patching classes before import can assert calls
-try:
-    init_services()
-except Exception as e:
-    import logging
-    logging.error(f"Exception in backend.backend (init_services): {e}")
+# Do not initialize services at import time to keep startup fast for the server

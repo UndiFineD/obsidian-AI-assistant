@@ -16,7 +16,7 @@ try {
 }
 
 const DEFAULT_SETTINGS = {
-    backendUrl: 'http://localhost: 8000',
+    backendUrl: 'http://localhost:8000',
     features: {
         enableVoice: true,
         allowNetwork: false,
@@ -46,7 +46,6 @@ function loadPluginConfigFile(app) {
     } catch (_) {}
     return null;
 }
-
 class AIModal extends Modal {
     constructor(app, plugin) {
         super(app);
@@ -89,25 +88,24 @@ class AIModal extends Modal {
         }
         statusDiv.createEl('span', { text: statusText });
         if (offline) {
-            const reloadBtn = statusDiv.createEl('button', { text: 'Reload' });
+            const reloadBtn = statusDiv.createEl('button', { text: 'Reload config' });
             reloadBtn.onclick = async () => {
                 reloadBtn.disabled = true;
-                reloadBtn.textContent = 'Restarting...';
-                // Attempt to restart backend using /restart endpoint
+                reloadBtn.textContent = 'Reloading...';
+                // Call backend config reload to validate connectivity
                 try {
-                    await backendClient.post('/restart', {});
-                    new Notice('Restart command sent to backend.');
+                    await backendClient.post('/api/config/reload', {});
+                    new Notice('Backend config reloaded.');
                 } catch (err) {
-                    new Notice('Failed to restart backend. Please restart manually.');
+                    new Notice('Backend is offline. Please start the server.');
                 }
                 reloadBtn.disabled = false;
-                reloadBtn.textContent = 'Reload';
+                reloadBtn.textContent = 'Reload config';
                 await this.checkBackendStatus(statusDiv);
             };
         }
     }
 }
-
 class ObsidianAIAssistant extends Plugin {
     async onload() {
         await this.loadSettings();
@@ -144,6 +142,15 @@ class ObsidianAIAssistant extends Plugin {
         }
 
         this.addSettingTab(new AIAssistantSettingTab(this.app, this));
+    }
+
+    // Safe no-op stubs to avoid runtime errors when features are not wired yet
+    refreshUIForAuth() {
+        // Update any UI dependent on authentication status if needed
+    }
+
+    openEnterpriseAdmin() {
+        new Notice('Enterprise Admin UI is not available in this build.');
     }
 
     async initializeEnterpriseFeatures() {
@@ -203,7 +210,6 @@ class ObsidianAIAssistant extends Plugin {
         }
     }
 }
-
 class AIAssistantSettingTab extends PluginSettingTab {
     constructor(app, plugin) {
         super(app, plugin);
@@ -235,7 +241,6 @@ class AIAssistantSettingTab extends PluginSettingTab {
             });
     }
 }
-
 class EnterpriseLoginModal extends Modal {
     constructor(app, plugin) {
         super(app);
@@ -243,3 +248,6 @@ class EnterpriseLoginModal extends Modal {
     }
     // ...existing code for modal UI...
 }
+
+// Export the plugin entry for Obsidian
+module.exports = ObsidianAIAssistant;

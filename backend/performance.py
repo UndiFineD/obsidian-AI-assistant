@@ -1,4 +1,5 @@
-# backend/performance.py
+# backend/performance.
+
 """
 Performance optimization module implementing Phase 1 optimizations:
 - Advanced caching with multi-level cache hierarchy

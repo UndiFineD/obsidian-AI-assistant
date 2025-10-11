@@ -79,15 +79,20 @@ class AIRightPaneView { constructor(app, plugin) { this.app = app;
         offline = true;
     }
     div.createEl("span", { text: statusText });
-    const reloadBtn = div.createEl("button", { text: "Reload" });
+    const reloadBtn = div.createEl("button", { text: offline ? "Check again" : "Reload config" });
     reloadBtn.onclick = async() => { reloadBtn.disabled = true;
-        reloadBtn.textContent = "Restarting...";
-        try { await this.backendClient.post("/restart", {});
-        new Notice("Restart command sent to backend.");
-        } catch(err) { new Notice("Failed to restart backend. Please restart manually.");
+        reloadBtn.textContent = offline ? "Checking..." : "Reloading...";
+        try {
+            if (offline) {
+                await this.backendClient.get("/status");
+            } else {
+                await this.backendClient.post("/api/config/reload", {});
+                new Notice("Backend config reloaded.");
+            }
+        } catch(err) { new Notice(offline ? "Backend is offline. Please start the server." : "Failed to reload config.");
         }
         reloadBtn.disabled = false;
-        reloadBtn.textContent = "Reload";
+        reloadBtn.textContent = offline ? "Check again" : "Reload config";
         await this.renderBackendStatus(div);
     };
     }
@@ -350,49 +355,47 @@ class AIRightPaneView { constructor(app, plugin) { this.app = app;
     }
     }
 
-    async refreshAnalytics() { if(!this.isLoggedIn) return;
+    async refreshAnalytics() {
+        // Poll lightweight performance metrics from backend when logged in
+        if(!this.isLoggedIn) return;
 
-    try {
-        // Fetch analytics from backend
-        const data = await this.backendClient.get("/api/analytics");
-
-        // Merge with local analytics
-        this.analyticsState = {
-        ...this.analyticsState,
-        ...data,
-        lastUpdated: new Date()
-        };
-
-        // Re-render analytics section
-        const analyticsDiv = this.container?.querySelector('.ai-analytics-section');
-        if(analyticsDiv) { this.renderAnalytics(analyticsDiv);
+        try {
+            const resp = await this.backendClient.get("/api/performance/metrics");
+            // Merge metrics snapshot and timestamp
+            this.analyticsState = {
+                ...this.analyticsState,
+                metrics: resp?.metrics || {},
+                lastUpdated: new Date()
+            };
+            const analyticsDiv = this.container?.querySelector('.ai-analytics-section');
+            if(analyticsDiv) { this.renderAnalytics(analyticsDiv); }
+        } catch(error) {
+            console.error("Failed to refresh analytics:", error);
         }
-    } catch(error) { console.error("Failed to refresh analytics:", error);
-    }
     }
 
-    startAnalyticsPolling() { if(!this.isLoggedIn || this.analyticsPollingId) return;
+    startAnalyticsPolling() {
+        if(!this.isLoggedIn || this.analyticsPollingId) return;
 
-    this.analyticsPollingId = this.backendClient.startPolling("/api/analytics",
-        30000, // 30 seconds(data) => {
-        // Update analytics state with backend data
-        this.analyticsState = {
-            ...this.analyticsState,
-            ...data,
-            lastUpdated: new Date()
-        };
-
-        // Re-render analytics section if visible
-        const analyticsDiv = this.container?.querySelector('.ai-analytics-section');
-        if(analyticsDiv) { this.renderAnalytics(analyticsDiv);
-        }
-        },
-        (error) => { console.error("Analytics polling error:", error);
-        // Stop polling on repeated errors to avoid spam
-        if(error.message.includes('401') || error.message.includes('403')) { this.stopAnalyticsPolling();
-        }
-        }
-    );
+        this.analyticsPollingId = this.backendClient.startPolling(
+            "/api/performance/metrics",
+            30000,
+            (data) => {
+                this.analyticsState = {
+                    ...this.analyticsState,
+                    metrics: data?.metrics || {},
+                    lastUpdated: new Date()
+                };
+                const analyticsDiv = this.container?.querySelector('.ai-analytics-section');
+                if(analyticsDiv) { this.renderAnalytics(analyticsDiv); }
+            },
+            (error) => {
+                console.error("Analytics polling error:", error);
+                if(error.message.includes('401') || error.message.includes('403')) {
+                    this.stopAnalyticsPolling();
+                }
+            }
+        );
     }
 
     stopAnalyticsPolling() { if(this.analyticsPollingId) { this.backendClient.stopPolling(this.analyticsPollingId);
