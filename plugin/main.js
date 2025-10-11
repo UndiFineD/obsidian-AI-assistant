@@ -142,6 +142,61 @@ class ObsidianAIAssistant extends Plugin {
         }
 
         this.addSettingTab(new AIAssistantSettingTab(this.app, this));
+
+        // Enterprise commands for tests and UX
+        this.addCommand({
+            id: 'enterprise-sign-in',
+            name: 'Enterprise Sign In',
+            checkCallback: (checking) => {
+                if (checking) return true;
+                if (this.enterpriseAuth && typeof this.enterpriseAuth.signIn === 'function') {
+                    this.enterpriseAuth.signIn();
+                } else {
+                    new Notice('Enterprise features not available');
+                }
+            }
+        });
+        this.addCommand({
+            id: 'enterprise-configuration',
+            name: 'Enterprise Configuration',
+            checkCallback: (checking) => {
+                if (checking) return true;
+                if (this.enterpriseConfig && typeof this.enterpriseConfig.open === 'function') {
+                    this.enterpriseConfig.open();
+                } else {
+                    new Notice('Enterprise configuration UI not available');
+                }
+            }
+        });
+        this.addCommand({
+            id: 'admin-dashboard',
+            name: 'Admin Dashboard',
+            checkCallback: (checking) => {
+                if (checking) return true;
+                if (this.enterpriseAdmin && typeof this.enterpriseAdmin.open === 'function') {
+                    this.enterpriseAdmin.open();
+                } else {
+                    new Notice('Admin Dashboard not available');
+                }
+            }
+        });
+    }
+
+    onunload() {
+        try {
+            // Clean up enterprise components if they expose disposers
+            if (this.enterpriseAuth && typeof this.enterpriseAuth.dispose === 'function') {
+                this.enterpriseAuth.dispose();
+            }
+            if (this.enterpriseAdmin && typeof this.enterpriseAdmin.dispose === 'function') {
+                this.enterpriseAdmin.dispose();
+            }
+            if (this.enterpriseConfig && typeof this.enterpriseConfig.dispose === 'function') {
+                this.enterpriseConfig.dispose();
+            }
+        } catch (e) {
+            console.error('Error during plugin unload:', e);
+        }
     }
 
     // Safe no-op stubs to avoid runtime errors when features are not wired yet

@@ -271,7 +271,27 @@ class TestVoiceTranscription:
         with pytest.raises(json.JSONDecodeError):
             await voice_transcribe(mock_file)
     
-    def test_voice_transcribe_endpoint_integration(self, test_client):
+
+class TestVoiceEndpointIntegration:
+    """Test voice endpoints without async markers."""
+    
+    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2):
+        """Create a test WAV file with specified parameters."""
+        import struct
+        temp_file = tempfile.NamedTemporaryFile(suffix='.wav', delete=False)
+        with wave.open(temp_file.name, 'wb') as wf:
+            wf.setnchannels(channels)
+            wf.setsampwidth(sample_width)
+            wf.setframerate(sample_rate)
+            # Generate simple sine wave audio data
+            frames = int(duration * sample_rate)
+            for i in range(frames):
+                value = int(32767 * 0.1)  # Low volume to avoid clipping
+                packed_value = struct.pack('<h', value)
+                wf.writeframes(packed_value)
+        return temp_file.name
+    
+    def test_voice_transcribe_endpoint_integration(self, client):
         """Test the voice transcription endpoint integration."""
         # Create a simple test audio file
         test_wav = self.create_test_wav_file()
@@ -284,7 +304,7 @@ class TestVoiceTranscription:
                 mock_kaldi.return_value = mock_recognizer
                 # Upload the file
                 with open(test_wav, "rb") as f:
-                    response = test_client.post(
+                    response = client.post(
                         "/api/voice_transcribe",
                         files={"file": ("test.wav", f, "audio/wav")}
                     )

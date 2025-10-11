@@ -18,10 +18,12 @@ class AnalyticsView extends ItemView { constructor(leaf, state) { super(leaf);
     }
 
     async onClose() {
-        // cleanup if necessary }
+        // cleanup if necessary
+    }
 
     // --- Render the analytics dashboard ---
-    render() { const container = this.containerEl;
+    render() {
+        const container = this.containerEl;
         container.empty();
 
         container.createEl("h2", { text: "Assistant Analytics" });

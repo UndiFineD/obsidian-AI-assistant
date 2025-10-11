@@ -28,11 +28,11 @@ def test_plugin_files():
         file_path = plugin_dir / file
         if not file_path.exists():
             print(f"❌ Missing required file: {file}")
-            return False
+            assert False, f"Missing required file: {file}"
         else:
             print(f"✅ Found: {file}")
     
-    return True
+    assert True
 
 def test_enterprise_imports():
     """Test that main.js properly imports enterprise modules."""
@@ -41,7 +41,7 @@ def test_enterprise_imports():
     main_js = Path("plugin/main.js")
     if not main_js.exists():
         print("❌ main.js not found")
-        return False
+        assert False, "main.js not found"
     
     content = main_js.read_text(encoding='utf-8')
     
@@ -56,9 +56,9 @@ def test_enterprise_imports():
             print(f"✅ Enterprise import found: {import_file}")
         else:
             print(f"❌ Missing enterprise import: {import_file}")
-            return False
+            assert False, f"Missing enterprise import: {import_file}"
     
-    return True
+    assert True
 
 def test_enterprise_classes():
     """Test that enterprise classes are properly defined."""
@@ -74,7 +74,7 @@ def test_enterprise_classes():
         file_path = Path("plugin") / file
         if not file_path.exists():
             print(f"❌ File not found: {file}")
-            return False
+            assert False, f"File not found: {file}"
             
         content = file_path.read_text(encoding='utf-8')
         
@@ -83,9 +83,9 @@ def test_enterprise_classes():
                 print(f"✅ Class found in {file}: {class_name}")
             else:
                 print(f"❌ Missing class in {file}: {class_name}")
-                return False
+                assert False, f"Missing class in {file}: {class_name}"
     
-    return True
+    assert True
 
 def test_backend_modules():
     """Test that backend enterprise modules exist."""
@@ -94,7 +94,8 @@ def test_backend_modules():
     enterprise_dir = Path("backend/enterprise")
     if not enterprise_dir.exists():
         print("⚠️ Enterprise backend directory not found - this is optional")
-        return True
+        assert True  # This is optional, so we pass
+        return
     
     expected_modules = [
         "auth.py",
@@ -113,7 +114,7 @@ def test_backend_modules():
         else:
             print(f"⚠️ Enterprise module missing: {module} (optional)")
     
-    return True
+    assert True
 
 def test_css_styles():
     """Test that enterprise CSS styles are included.""" 
@@ -122,7 +123,7 @@ def test_css_styles():
     styles_path = Path("plugin/styles.css")
     if not styles_path.exists():
         print("❌ styles.css not found")
-        return False
+        assert False, "styles.css not found"
     
     content = styles_path.read_text(encoding='utf-8')
     
@@ -139,9 +140,9 @@ def test_css_styles():
             print(f"✅ Enterprise style found: {style}")
         else:
             print(f"❌ Missing enterprise style: {style}")
-            return False
+            assert False, f"Missing enterprise style: {style}"
     
-    return True
+    assert True
 
 def test_plugin_integration():
     """Test that plugin properly integrates enterprise features."""
@@ -164,9 +165,9 @@ def test_plugin_integration():
             print(f"✅ Integration point found: {point}")
         else:
             print(f"❌ Missing integration point: {point}")
-            return False
+            assert False, f"Missing integration point: {point}"
     
-    return True
+    assert True
 
 def test_configuration():
     """Test configuration file structure."""
@@ -181,13 +182,13 @@ def test_configuration():
                 print("✅ Plugin manifest is valid")
             else:
                 print("❌ Plugin manifest missing required fields")
-                return False
+                assert False, "Plugin manifest missing required fields"
         except json.JSONDecodeError:
             print("❌ Plugin manifest is invalid JSON")
-            return False
+            assert False, "Plugin manifest is invalid JSON"
     else:
         print("❌ Plugin manifest not found")
-        return False
+        assert False, "Plugin manifest not found"
     
     # Test backend config template exists
     config_path = Path("backend/config.yaml")
@@ -196,7 +197,7 @@ def test_configuration():
     else:
         print("⚠️ Backend config not found (will use defaults)")
     
-    return True
+    assert True
 
 def run_all_tests():
     """Run all enterprise integration tests."""

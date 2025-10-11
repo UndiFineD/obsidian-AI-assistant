@@ -58,7 +58,6 @@ Ensure the following files are present in your plugin folder:
 - Disable the plugin in Obsidian settings.
 - Delete the plugin folder from your vault's plugins directory.
 
-
 ## 8. Automated Testing (Optional)
 
 - To add automated tests, create a `tests/` directory and add test files (e.g., using Jest or Mocha).

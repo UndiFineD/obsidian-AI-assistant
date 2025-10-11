@@ -3,6 +3,7 @@
 import os
 import sys as _sys
 import time
+from contextlib import asynccontextmanager
 from typing import List, Optional
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException
@@ -105,23 +106,31 @@ try:
 except Exception as e:
     print(f"[deps] Warning: dependency bootstrap failed: {e}")
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Application lifespan manager."""
+    # Startup
+    await _app_startup()
+    yield
+    # Shutdown (if needed)
+    pass
+
 app = FastAPI(
     title=(
         "Obsidian AI Assistant - Enterprise Edition"
         if ENTERPRISE_AVAILABLE
         else "Obsidian AI Assistant"
-    )
+    ),
+    lifespan=lifespan,
 )
 
-# Initialize enterprise features if available
-if ENTERPRISE_AVAILABLE:
-    try:
-        enterprise_integration = EnterpriseIntegration()
-        enterprise_integration.setup_enterprise_app(app)
-        print("[Enterprise] Enterprise features initialized successfully")
-    except Exception as e:
-        print(f"[Enterprise] Warning: Failed to initialize enterprise features: {e}")
-        ENTERPRISE_AVAILABLE = False
+try:
+    enterprise_integration = EnterpriseIntegration()
+    enterprise_integration.setup_enterprise_app(app)
+    print("[Enterprise] Enterprise features initialized successfully")
+except Exception as e:
+    print(f"[Enterprise] Warning: Failed to initialize enterprise features: {e}")
+    ENTERPRISE_AVAILABLE = False
 
 # Inform about optional ML deps once
 try:
@@ -139,6 +148,14 @@ if not ENTERPRISE_AVAILABLE:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+# Include voice transcription router
+try:
+    from .voice import router as voice_router
+    app.include_router(voice_router)
+    print("[Voice] Voice transcription endpoints loaded")
+except Exception as e:
+    print(f"[Voice] Warning: Failed to load voice endpoints: {e}")
 
 # --- Services (lazy-init) ---
 model_manager = None  # will be set to ModelManager instance
@@ -213,7 +230,45 @@ def init_services():
     cache_manager = safe_init(CacheManager, "./cache")
 
 
-@app.on_event("startup")
+# --- Utilities ---
+def _settings_to_dict(s: object) -> dict:
+    """Convert Settings-like object to a plain dict.
+
+    Supports Pydantic v2 (model_dump), Pydantic v1/mocks (dict), direct dicts,
+    and falls back to reading whitelisted attributes to improve test robustness.
+    """
+    # Direct dict
+    if isinstance(s, dict):
+        return s
+    # Try Pydantic v2
+    try:
+        data = s.model_dump()  # type: ignore[attr-defined]
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    # Try Pydantic v1 / mocks
+    try:
+        data = s.dict()  # type: ignore[attr-defined]
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    # Fallback: pull known fields
+    try:
+        from backend.settings import _ALLOWED_UPDATE_KEYS
+        result = {}
+        for k in _ALLOWED_UPDATE_KEYS:
+            if hasattr(s, k):
+                try:
+                    result[k] = getattr(s, k)
+                except Exception:
+                    continue
+        return result
+    except Exception:
+        return {}
+
+
 async def _app_startup():
     """Initialize services on app startup.
 
@@ -356,7 +411,11 @@ async def get_config():
 
     s = get_settings()
     # Only return whitelisted fields to avoid exposing sensitive data
-    data = s.dict()
+    # Support both Pydantic v2 (model_dump) and mocks providing dict()
+    try:
+        data = s.model_dump()  # type: ignore[attr-defined]
+    except AttributeError:
+        data = s.dict()  # type: ignore[attr-defined]
     return {k: v for k, v in data.items() if k in _ALLOWED_UPDATE_KEYS}
 
 
@@ -364,7 +423,8 @@ async def get_config():
 async def post_reload_config():
     try:
         s = reload_settings()
-        return {"ok": True, "settings": s.dict()}
+        settings_data = _settings_to_dict(s)
+        return {"ok": True, "settings": settings_data}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to reload settings: {str(e)}"
@@ -375,7 +435,8 @@ async def post_reload_config():
 async def post_update_config(partial: dict):
     try:
         s = update_settings(dict(partial or {}))
-        return {"ok": True, "settings": s.dict()}
+        settings_data = _settings_to_dict(s)
+        return {"ok": True, "settings": settings_data}
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Failed to update settings: {str(e)}"
@@ -781,19 +842,20 @@ else:
 # ----------------------
 # Run server
 # ----------------------
-if __name__ == "__main__":
-    # Start FastAPI app using Uvicorn
-    import uvicorn
-
-    # Non-blocking fast startup for CLI run as well
-    if os.getenv("FAST_STARTUP", "0") in ("1", "true", "True"):
-        import threading
-        threading.Thread(target=init_services, daemon=True).start()
-    else:
-        init_services()
-    PORT = 8000
-    print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
-    uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
+# TEMPORARILY DISABLED TO AVOID CONFLICTS WITH UVICORN CLI
+# if __name__ == "__main__":
+#     # Start FastAPI app using Uvicorn
+#     import uvicorn
+# 
+#     # Non-blocking fast startup for CLI run as well
+#     if os.getenv("FAST_STARTUP", "0") in ("1", "true", "True"):
+#         import threading
+#         threading.Thread(target=init_services, daemon=True).start()
+#     else:
+#         init_services()
+#     PORT = 8000
+#     print(f"Starting FastAPI backend at http://127.0.0.1:{PORT}")
+#     uvicorn.run("backend.backend:app", host="127.0.0.1", port=PORT, reload=False)
 
 
 # Ensure this module can be accessed as 'backend.backend' regardless of import mode

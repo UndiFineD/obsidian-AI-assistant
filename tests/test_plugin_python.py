@@ -36,7 +36,7 @@ def test_backend_connectivity():
             print_test("Status Endpoint", False, f"Status code: {response.status_code}")
     except Exception as e:
         print_test("Backend Connection", False, f"Error: {str(e)}")
-        return False
+        assert False, f"Backend Connection Error: {str(e)}"
     
     try:
         # Test ask endpoint
@@ -53,7 +53,7 @@ def test_backend_connectivity():
     except Exception as e:
         print_test("Ask Endpoint", False, f"Error: {str(e)}")
     
-    return True
+    assert True
 
 def test_plugin_files():
     """Test if plugin files exist and have correct structure"""

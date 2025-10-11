@@ -491,23 +491,34 @@ class EnterpriseAdminDashboard { constructor(plugin) { this.plugin = plugin;
         });
     }
 
-    startAutoRefresh() { if(this.refreshInterval) { clearInterval(this.refreshInterval);
+    startAutoRefresh() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
         }
 
-        this.refreshInterval = setInterval(async() => { try { await this.loadDashboardData();
+        this.refreshInterval = setInterval(async () => {
+            try {
+                await this.loadDashboardData();
                 const contentEl = document.querySelector('.enterprise-dashboard-content');
-                if(contentEl) { await this.renderCurrentView(contentEl);
+                if (contentEl) {
+                    await this.renderCurrentView(contentEl);
                 }
 
                 // Update timestamp
                 const timestampEl = document.querySelector('.timestamp');
-                if(timestampEl) { timestampEl.textContent = new Date().toLocaleString();
+                if (timestampEl) {
+                    timestampEl.textContent = new Date().toLocaleString();
                 }
-            } catch(error) { console.error('Auto-refresh failed:', error);
+            } catch (error) {
+                console.error('Auto-refresh failed:', error);
             }
-        }, 30000); // Refresh every 30 seconds }
+        }, 30000);
+        // Refresh every 30 seconds
+    }
 
-    destroy() { if(this.refreshInterval) { clearInterval(this.refreshInterval);
+    destroy() {
+        if (this.refreshInterval) {
+            clearInterval(this.refreshInterval);
         }
     }
 

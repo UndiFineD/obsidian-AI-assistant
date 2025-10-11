@@ -198,10 +198,14 @@ class TestAsyncTaskQueue:
             executed.append(value)
 
         # Submit task
-        success = await queue.submit_task(test_task("test_value"))
+        task_coroutine = test_task("test_value")
+        success = await queue.submit_task(task_coroutine)
         assert success
         # Wait for execution
-        # (removed unreachable code)
+        await asyncio.sleep(0.1)  # Allow time for task execution
+        await queue.stop()
+        # Verify task was executed
+        assert "test_value" in executed
 
     async def test_queue_statistics(self):
         """Test queue performance statistics"""

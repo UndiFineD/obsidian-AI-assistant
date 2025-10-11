@@ -4,70 +4,73 @@
 const { Plugin, WorkspaceLeaf, Setting, Notice } = require("obsidian");
 const BackendClient = require("./backendClient.js");
 
-class AIRightPaneView { constructor(app, plugin) { this.app = app;
-    this.plugin = plugin;
-    this.container = null;
-    this.isLoggedIn = false;
-    this.authToken = null;
-    this.currentUser = null;
-    this.isVoiceRecording = false;
-    this.cancelController = null;
+class AIRightPaneView {
+    constructor(app, plugin) {
+        this.app = app;
+        this.plugin = plugin;
+        this.container = null;
+        this.isLoggedIn = false;
+        this.authToken = null;
+        this.currentUser = null;
+        this.isVoiceRecording = false;
+        this.cancelController = null;
 
-    // Initialize backend client with auth token getter
-    this.backendClient = new BackendClient(plugin.settings.backendUrl, () => this.authToken);
+        // Initialize backend client with auth token getter
+        this.backendClient = new BackendClient(plugin.settings.backendUrl, () => this.authToken);
 
-    // Integrate analytics, task queue, and voice
-    const { TaskQueue } = require("./taskQueue.js");
-    const { VoiceInput } = require("./voiceInput.js");
-    const { VoiceRecorder } = require("./voice.js");
-    this.taskQueue = new TaskQueue(plugin.settings.backendUrl, app, () => this.authToken);
-    this.voiceInput = new VoiceInput(this.taskQueue);
-    this.voiceRecorder = new VoiceRecorder(plugin.settings.backendUrl, () => this.authToken);
-    this.analyticsState = { processedNotes: {},
-        qaHistory: [],
-        modelUsage: {},
-        lastUpdated: new Date()
-    };
+        // Integrate analytics, task queue, and voice
+        const { TaskQueue } = require("./taskQueue.js");
+        const { VoiceInput } = require("./voiceInput.js");
+        const { VoiceRecorder } = require("./voice.js");
+        this.taskQueue = new TaskQueue(plugin.settings.backendUrl, app, () => this.authToken);
+        this.voiceInput = new VoiceInput(this.taskQueue);
+        this.voiceRecorder = new VoiceRecorder(plugin.settings.backendUrl, () => this.authToken);
+        this.analyticsState = {
+            processedNotes: {},
+            qaHistory: [],
+            modelUsage: {},
+            lastUpdated: new Date()
+        };
 
-    // Auto-refresh analytics every 30 seconds using backend client polling
-    this.analyticsPollingId = null;
-    this.startAnalyticsPolling();
+        // Auto-refresh analytics every 30 seconds using backend client polling
+        this.analyticsPollingId = null;
+        this.startAnalyticsPolling();
     }
 
     async open() {
-    // Create right pane container
-    if(this.container) this.container.remove();
-    this.container = this.app.workspace.getRightPaneContainer();
-    this.container.empty();
-    this.container.addClass("ai-assistant-pane");
+        // Create right pane container
+        if(this.container) this.container.remove();
+        this.container = this.app.workspace.getRightPaneContainer();
+        this.container.empty();
+        this.container.addClass("ai-assistant-pane");
 
-    // Backend status
-    const statusDiv = this.container.createEl("div", { cls: "ai-backend-status" });
-    await this.renderBackendStatus(statusDiv);
+        // Backend status
+        const statusDiv = this.container.createEl("div", { cls: "ai-backend-status" });
+        await this.renderBackendStatus(statusDiv);
 
-    // Login section
-    const loginDiv = this.container.createEl("div", { cls: "ai-login-section" });
-    this.renderLogin(loginDiv);
+        // Login section
+        const loginDiv = this.container.createEl("div", { cls: "ai-login-section" });
+        this.renderLogin(loginDiv);
 
-    // Config section
-    const configDiv = this.container.createEl("div", { cls: "ai-config-section" });
-    this.renderConfig(configDiv);
+        // Config section
+        const configDiv = this.container.createEl("div", { cls: "ai-config-section" });
+        this.renderConfig(configDiv);
 
-    // Voice/text input
-    const inputDiv = this.container.createEl("div", { cls: "ai-input-section" });
-    this.renderInput(inputDiv);
+        // Voice/text input
+        const inputDiv = this.container.createEl("div", { cls: "ai-input-section" });
+        this.renderInput(inputDiv);
 
-    // Cancel button
-    const cancelBtn = this.container.createEl("button", { text: "Cancel", cls: "ai-cancel-btn" });
-    cancelBtn.onclick = () => this.cancelCurrentTask();
+        // Cancel button
+        const cancelBtn = this.container.createEl("button", { text: "Cancel", cls: "ai-cancel-btn" });
+        cancelBtn.onclick = () => this.cancelCurrentTask();
 
-    // Analytics
-    const analyticsDiv = this.container.createEl("div", { cls: "ai-analytics-section" });
-    this.renderAnalytics(analyticsDiv);
+        // Analytics
+        const analyticsDiv = this.container.createEl("div", { cls: "ai-analytics-section" });
+        this.renderAnalytics(analyticsDiv);
 
-    // Task queue
-    const queueDiv = this.container.createEl("div", { cls: "ai-taskqueue-section" });
-    this.renderTaskQueue(queueDiv);
+        // Task queue
+        const queueDiv = this.container.createEl("div", { cls: "ai-taskqueue-section" });
+        this.renderTaskQueue(queueDiv);
     }
 
     async renderBackendStatus(div) { div.empty();

@@ -61,10 +61,13 @@ class BackendClient { constructor(baseURL, getToken) { this.baseURL = baseURL;
         }
     }, intervalMs);
 
-    return pollId; // Return interval ID to allow stopping }
-
-    stopPolling(pollId) { if(pollId) { clearInterval(pollId);
+    return pollId; // Return interval ID to allow stopping
     }
+
+    stopPolling(pollId) {
+        if (pollId) {
+            clearInterval(pollId);
+        }
     }
 }
 

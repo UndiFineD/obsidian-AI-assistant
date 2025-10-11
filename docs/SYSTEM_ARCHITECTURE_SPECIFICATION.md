@@ -79,6 +79,7 @@ graph TB
 ### **🚀 Backend Core (`backend/`)**
 
 #### **`backend.py` - FastAPI Application**
+
 ```python
 # Architecture: Single FastAPI instance with modular endpoints
 # Responsibility: HTTP request handling, service coordination, error management
@@ -109,6 +110,7 @@ class FastAPIApplication:
 ```
 
 **Service Integration Pattern**:
+
 ```python
 # Service Access Pattern
 global model_manager, emb_manager, vault_indexer, cache_manager
@@ -121,6 +123,7 @@ def init_services():
 ```
 
 #### **`modelmanager.py` - AI Model Management**
+
 ```python
 # Architecture: Centralized model lifecycle management
 # Responsibility: Model loading, routing, generation, resource management
@@ -150,6 +153,7 @@ class ModelManager:
 ```
 
 #### **`embeddings.py` - Vector Operations**
+
 ```python
 # Architecture: ChromaDB integration with caching layer
 # Responsibility: Document embedding, vector search, similarity computation
@@ -179,6 +183,7 @@ class EmbeddingsManager:
 ```
 
 #### **`indexing.py` - Document Processing**
+
 ```python
 # Architecture: Multi-format document processor with chunking strategy
 # Responsibility: File parsing, content extraction, chunk optimization
@@ -208,6 +213,7 @@ class VaultIndexer:
 ```
 
 #### **`caching.py` - Performance Optimization**
+
 ```python
 # Architecture: Multi-tier caching with TTL management
 # Responsibility: Response caching, performance optimization, memory management
@@ -237,6 +243,7 @@ class CacheManager:
 ```
 
 #### **`llm_router.py` - Intelligent Model Routing**
+
 ```python
 # Architecture: Decision engine for optimal model selection
 # Responsibility: Model routing logic, load balancing, fallback management
@@ -266,6 +273,7 @@ class HybridLLMRouter:
 ```
 
 #### **`security.py` - Security Framework**
+
 ```python
 # Architecture: Centralized security services
 # Responsibility: Authentication, encryption, input validation, audit logging
@@ -295,6 +303,7 @@ class SecurityManager:
 ```
 
 #### **`voice.py` - Speech Processing**
+
 ```python
 # Architecture: Speech-to-text processing with fallback options
 # Responsibility: Audio processing, transcription, voice interface support
@@ -324,6 +333,7 @@ class VoiceProcessor:
 ```
 
 #### **`settings.py` - Configuration Management**
+
 ```python
 # Architecture: Centralized configuration with validation
 # Responsibility: Settings management, environment configuration, validation
@@ -357,6 +367,7 @@ class SettingsManager:
 ### **🔌 Plugin Architecture (`plugin/`)**
 
 #### **`main.ts` - Core Plugin Logic**
+
 ```typescript
 // Architecture: Obsidian Plugin with service integration
 // Responsibility: UI management, API communication, event handling
@@ -396,6 +407,7 @@ class AIAssistantPlugin extends Plugin {
 ```
 
 #### **Component Architecture**
+
 ```typescript
 // UI Component Hierarchy
 interface ComponentArchitecture {
@@ -427,6 +439,7 @@ interface ComponentArchitecture {
 ### **📊 Request Processing Flow**
 
 #### **AI Query Processing (`POST /ask`)**
+
 ```mermaid
 sequenceDiagram
     participant Client as Obsidian Plugin
@@ -456,6 +469,7 @@ sequenceDiagram
 ```
 
 #### **Document Indexing Flow (`POST /reindex`)**
+
 ```mermaid
 sequenceDiagram
     participant Client as Plugin
@@ -484,6 +498,7 @@ sequenceDiagram
 ### **🔍 Search & Retrieval Flow**
 
 #### **Semantic Search (`POST /api/search`)**
+
 ```mermaid
 sequenceDiagram
     participant Client as Plugin
@@ -510,6 +525,7 @@ sequenceDiagram
 ### **🔗 Service Dependencies**
 
 #### **Dependency Graph**
+
 ```python
 # Service Dependency Hierarchy
 ServiceRegistry = {
@@ -559,6 +575,7 @@ ServiceRegistry = {
 ### **🔄 Service Communication**
 
 #### **Inter-Service Communication Patterns**
+
 ```python
 # Service Interface Contracts
 class ServiceInterface:
@@ -605,6 +622,7 @@ ServiceEvents = {
 ### **🗄️ Storage Layer Design**
 
 #### **Multi-Tier Storage Strategy**
+
 ```yaml
 Storage Architecture:
   Tier 1 - In-Memory:
@@ -633,6 +651,7 @@ Storage Architecture:
 ```
 
 #### **Data Flow Between Tiers**
+
 ```python
 # Storage Tier Interaction
 class StorageTierManager:
@@ -657,6 +676,7 @@ class StorageTierManager:
 ### **🔍 Database Schemas**
 
 #### **Vector Database Schema (ChromaDB)**
+
 ```python
 # ChromaDB Collection Schema
 VectorCollections = {
@@ -689,6 +709,7 @@ VectorCollections = {
 ```
 
 #### **Configuration Schema**
+
 ```python
 # Settings Storage Schema
 class Settings(BaseModel):
@@ -733,6 +754,7 @@ class Settings(BaseModel):
 ### **🛡️ Security Layer Design**
 
 #### **Multi-Layer Security Model**
+
 ```python
 # Security Architecture Layers
 SecurityLayers = {
@@ -775,6 +797,7 @@ SecurityLayers = {
 ```
 
 #### **Threat Model & Mitigations**
+
 ```python
 # Security Threat Assessment
 ThreatModel = {
@@ -811,6 +834,7 @@ ThreatModel = {
 ### **⚡ Performance Optimization Strategy**
 
 #### **Multi-Level Caching Architecture**
+
 ```python
 # Performance Optimization Layers
 PerformanceLayers = {
@@ -849,6 +873,7 @@ PerformanceLayers = {
 ```
 
 #### **Resource Management Strategy**
+
 ```python
 # Resource Allocation & Monitoring
 class ResourceManager:
@@ -885,6 +910,7 @@ class ResourceManager:
 ### **🚀 Deployment Strategies**
 
 #### **Environment Configurations**
+
 ```yaml
 # Multi-Environment Deployment Architecture
 environments:
@@ -926,6 +952,7 @@ environments:
 ```
 
 #### **Scalability Architecture**
+
 ```python
 # Horizontal Scaling Strategy
 class ScalabilityManager:
@@ -963,6 +990,7 @@ class ScalabilityManager:
 ### **✅ Design Principles Verification**
 
 #### **SOLID Principles Compliance**
+
 ```python
 # Single Responsibility Principle
 ✅ Each service has a single, well-defined responsibility
@@ -986,6 +1014,7 @@ class ScalabilityManager:
 ```
 
 #### **Microservices Architecture Patterns**
+
 ```python
 # Architecture Pattern Compliance
 Patterns = {

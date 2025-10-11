@@ -373,8 +373,8 @@
   color: var(--text-on-accent);
   cursor: pointer;
   transition: all 0.2s ease;
-  user-select: none;
   -webkit-user-select: none;
+  user-select: none;
 }
 
 .ai-mic-button:hover:not(:disabled) {

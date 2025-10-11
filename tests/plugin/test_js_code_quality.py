@@ -60,7 +60,7 @@ class TestJavaScriptCodeQuality:
             try:
                 # Use Node.js to check syntax
                 result = subprocess.run(
-                    ["node", "-c", str(js_file)],
+                    ["node", "-c", js_file.name],
                     capture_output=True,
                     text=True,
                     cwd=js_file.parent,
