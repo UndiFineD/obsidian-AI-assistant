@@ -25,7 +25,7 @@ readability-lxml>=0.8.1
 pypdf>=4.0.0
 
 # Voice processing
-vosk>=0.3.45
+vosk>=0.3.44
 
 # Data processing and utilities
 python-dotenv>=1.0.0

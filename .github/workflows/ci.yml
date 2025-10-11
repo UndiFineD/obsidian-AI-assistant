@@ -1,459 +1,448 @@
 name: Comprehensive CI/CD Pipeline
 permissions:
-    contents: read
+  contents: read
 
 on:
-    push:
-        branches: [main, develop]
-    pull_request:
-        branches: [main, develop]
-    workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
 
 env:
-    PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.11'
 
 jobs:
-    # Job 1: Code Quality & Security
-    code-quality:
-        runs-on: ubuntu-latest
-        name: Code Quality & Security
-
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: ${{ env.PYTHON_VERSION }}
-
-            - name: Install Dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install flake8 black isort bandit safety mypy
-                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-                  if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-
-            - name: Code Formatting Check (Black)
-              run: black --check --diff backend/ tests/
-
-            - name: Import Sorting Check (isort)
-              run: isort --check-only --diff backend/ tests/
-
-            - name: Linting (Flake8)
-              run: flake8 backend/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
-
-            - name: Type Checking (MyPy)
-              run: mypy backend/ --ignore-missing-imports || true
-
-            - name: Security Scan (Bandit)
-              run: bandit -r backend/ -f json -o bandit-report.json || true
-
-            - name: Dependency Security Check (Safety)
-              run: safety check --json --output safety-report.json || true
-
-            - name: Upload Security Reports
-              uses: actions/upload-artifact@v3
-              if: always()
-              with:
-                  name: security-reports
-                  path: |
-                      bandit-report.json
-                      safety-report.json
-
-    # Job 2: Backend Tests (Multiple Python Versions)
-    backend-tests:
-        runs-on: ${{ matrix.os }}
-        strategy:
-            matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
-                python-version: ['3.10', '3.11', '3.12']
-                exclude:
-                    # Reduce matrix size - test main combinations
-                    - os: windows-latest
-                      python-version: '3.10'
-                    - os: macos-latest
-                      python-version: '3.10'
-
-        name: Backend Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
-
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-
-            - name: Set up Python ${{ matrix.python-version }}
-              uses: actions/setup-python@v4
-              with:
-                  python-version: ${{ matrix.python-version }}
-
-            - name: Cache pip dependencies
-              uses: actions/cache@v3
-              with:
-                  path: ~/.cache/pip
-                  key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements*.txt') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pip-
-
-            - name: Install Dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install pytest pytest-cov pytest-asyncio pytest-xdist
-                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-                  if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-
-            - name: Create Test Environment
-              run: |
-                  mkdir -p cache logs models vector_db
-                  echo "BACKEND_URL=http://127.0.0.1:8000" > .env
-                  echo "VAULT_PATH=./test_vault" >> .env
-                  echo "MODELS_DIR=./models" >> .env
-                  echo "CACHE_DIR=./cache" >> .env
-
-            - name: Run Backend Test Suite
-              run: |
-                  pytest tests/ -v --cov=backend --cov-report=xml --cov-report=term-missing --tb=short
-              env:
-                  PYTHONPATH: .
-
-            - name: Upload Coverage Reports
-              uses: codecov/codecov-action@v3
-              if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
-              with:
-                  file: ./coverage.xml
-                  flags: backend
-                  name: codecov-backend
-
-    # Job 4: End-to-End Integration Tests
-    e2e-tests:
-        runs-on: ubuntu-latest
-        name: End-to-End Integration Tests
-        needs: [backend-tests]
-
-        services:
-            # Optional: Add any external services needed for E2E tests
-            redis:
-                image: redis:7-alpine
-                ports:
-                    - 6379:6379
-                options: >-
-                    --health-cmd "redis-cli ping"
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
-
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: ${{ env.PYTHON_VERSION }}
-
-            - name: Install Dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install pytest pytest-asyncio httpx pytest-cov
-                  if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-                  if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-
-            - name: Start Backend Server
-              run: |
-                  mkdir -p cache logs models vector_db test_vault
-                  echo "# Test Vault" > test_vault/test_note.md
-                  echo "This is a test note for E2E testing" >> test_vault/test_note.md
-
-                  # Create test configuration
-                  cat > backend/config.yaml << EOF
-                  backend_url: "http://127.0.0.1:8000"
-                  api_port: 8000
-                  vault_path: "./test_vault"
-                  models_dir: "./models"
-                  cache_dir: "./cache"
-                  model_backend: "mock"
-                  EOF
-
-                  # Start backend in background
-                  python -m uvicorn backend.backend:app --host 127.0.0.1 --port 8000 &
-                  BACKEND_PID=$!
-                  echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
-
-                  # Wait for server to be ready
-                  echo "Waiting for backend server to start..."
-                  for i in {1..10}; do
-                    if curl -sf http://127.0.0.1:8000/health > /dev/null; then
-                      echo "Server is up!"
-                      break
-                    fi
-                    sleep 2
-                  done
-
-            - name: Run E2E API Tests
-              run: |
-                  python -c "
-                  import requests
-                  import json
-
-                  base_url = 'http://127.0.0.1:8000'
-
-                  # Test health endpoint
-                  response = requests.get(f'{base_url}/health')
-                  assert response.status_code == 200
-                  print('✓ Health check passed')
-
-                  # Test status endpoint
-                  response = requests.get(f'{base_url}/status')
-                  assert response.status_code == 200
-                  print('✓ Status check passed')
-
-                  # Test config endpoint
-                  response = requests.get(f'{base_url}/api/config')
-                  assert response.status_code == 200
-                  print('✓ Config endpoint passed')
-
-                  # Test performance metrics
-                  response = requests.get(f'{base_url}/api/performance/metrics')
-                  assert response.status_code == 200
-                  metrics = response.json()
-                  assert 'metrics' in metrics
-                  print('✓ Performance metrics passed')
-
-                  print('All E2E API tests passed!')
-                  "
-
-            - name: Test Performance Optimization Endpoints
-              run: |
-                  # Test cache stats
-                  curl -f http://127.0.0.1:8000/api/performance/cache/stats
-
-                  # Test cache clear
-                  curl -f -X POST http://127.0.0.1:8000/api/performance/cache/clear
-
-                  # Test optimization trigger
-                  curl -f -X POST http://127.0.0.1:8000/api/performance/optimize
-
-                  echo "Performance optimization endpoints working!"
-
-            - name: Cleanup
-              if: always()
-              run: |
-                  if [ ! -z "$BACKEND_PID" ]; then
-                    kill $BACKEND_PID || true
-                  fi
-
-    # Job 5: Performance Benchmarks
-    performance-benchmarks:
-        runs-on: ubuntu-latest
-        name: Performance Benchmarks
-        needs: [backend-tests]
-
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: ${{ env.PYTHON_VERSION }}
-
-            - name: Install Dependencies
-              run: |
-                  python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install pytest-benchmark memory-profiler
-
-            - name: Run Performance Benchmarks
-              run: |
-                  python -c "
-                  import time
-                  from backend.performance import MultiLevelCache, PerformanceMonitor
-
-                  # Benchmark cache operations
-                  cache = MultiLevelCache(l1_size=1000, l2_size=5000)
-
-                  # Benchmark cache writes
-                  start_time = time.time()
-                  for i in range(1000):
-                      cache.set(f'key_{i}', f'value_{i}')
-                  write_time = time.time() - start_time
-
-                  # Benchmark cache reads (L1 hits)
-                  start_time = time.time()
-                  for i in range(1000):
-                      cache.get(f'key_{i}')
-                  read_time = time.time() - start_time
-
-                  print(f'Cache write benchmark: {1000/write_time:.0f} ops/sec')
-                  print(f'Cache read benchmark: {1000/read_time:.0f} ops/sec')
-
-                  # Get cache statistics
-                  stats = cache.get_stats()
-                  print(f'Cache hit rate: {stats[\"hit_rate\"]:.2%}')
-
-                  # Performance metrics
-                  metrics = PerformanceMonitor.get_system_metrics()
-                  print(f'System metrics collected successfully')
-                  "
-
-            - name: Memory Usage Analysis
-              run: |
-                  python -c "
-                  import psutil
-                  import os
-                  from backend.performance import MultiLevelCache
-
-                  # Monitor memory usage
-                  process = psutil.Process(os.getpid())
-                  initial_memory = process.memory_info().rss / 1024 / 1024  # MB
-
-                  # Create large cache
-                  cache = MultiLevelCache(l1_size=5000, l2_size=10000)
-                  for i in range(5000):
-                      cache.set(f'large_key_{i}', 'x' * 1000)  # 1KB values
-
-                  final_memory = process.memory_info().rss / 1024 / 1024  # MB
-                  memory_increase = final_memory - initial_memory
-
-                  print(f'Initial memory: {initial_memory:.1f} MB')
-                  print(f'Final memory: {final_memory:.1f} MB')
-                  print(f'Memory increase: {memory_increase:.1f} MB')
-                  print(f'Memory per item: {memory_increase*1024/5000:.1f} KB')
-
-                  # Verify memory efficiency
-                  assert memory_increase < 100, f'Memory usage too high: {memory_increase:.1f} MB'
-                  print('✓ Memory usage is within acceptable limits')
-                  "
-
-    # Job 6: Build and Package
-    build-package:
-        runs-on: ubuntu-latest
-        name: Build and Package
-        needs: [code-quality, backend-tests]
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
-
-            - name: Set up Python
-              uses: actions/setup-python@v4
-              with:
-                  python-version: ${{ env.PYTHON_VERSION }}
-
-            - name: Build Documentation
-              run: |
-                  pip install mkdocs mkdocs-material
-
-                  # Generate API documentation
-                  mkdir -p docs/api
-                  echo "# API Documentation" > docs/api/index.md
-                  echo "Auto-generated API docs would go here" >> docs/api/index.md
-
-                  # Create basic mkdocs structure if it doesn't exist
-                  if [ ! -f mkdocs.yml ]; then
-                    cat > mkdocs.yml << EOF
-                  site_name: Obsidian AI Assistant
-                  nav:
-                    - Home: README.md
-                    - API: api/index.md
-                    - Specification: docs/SPECIFICATION.md
-                  theme: material
-                  EOF
-                  fi
-
-                  # Build docs (if mkdocs is configured)
-                  mkdocs build || echo "Documentation build skipped"
-
-            - name: Create Release Archive
-              run: |
-                  # Create release directory
-                  mkdir -p release/obsidian-ai-assistant
-
-                  # Copy essential files
-                  cp -r backend/ release/obsidian-ai-assistant/
-                  cp -r plugin/ release/obsidian-ai-assistant/
-                  cp requirements*.txt release/obsidian-ai-assistant/ || true
-                  cp README.md docs/SPECIFICATION.md release/obsidian-ai-assistant/
-                  cp setup.sh setup.ps1 release/obsidian-ai-assistant/ || true
-
-                  # Create version file
-                  echo "version=$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)" > release/obsidian-ai-assistant/VERSION
-
-                  # Create archive
-                  cd release
-                  tar -czf obsidian-ai-assistant-$(date +%Y%m%d).tar.gz obsidian-ai-assistant/
-
-                  ls -la *.tar.gz
-
-            - name: Upload Release Artifact
-              uses: actions/upload-artifact@v3
-              with:
-                  name: obsidian-ai-assistant-release
-                  path: release/*.tar.gz
-
-    # Job 7: Deployment (if on main branch)
-    deploy:
-        runs-on: ubuntu-latest
-        name: Deploy to Staging
-        needs: [build-package, e2e-tests, performance-benchmarks]
-        steps:
-            - name: Deploy to Staging Environment
-              if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-              run: |
-                  echo "🚀 Deploying to staging environment..."
-                  echo "📦 Release artifact: $(ls release/)"
-                  echo "✅ Deployment completed successfully!"
-            - name: Download Release Artifact
-              uses: actions/download-artifact@v3
-              with:
-                  name: obsidian-ai-assistant-release
-                  path: ./release
-
-            - name: Deploy to Staging Environment
-              run: |
-                  echo "🚀 Deploying to staging environment..."
-                  echo "📦 Release artifact: $(ls release/)"
-
-                  # This would typically deploy to a staging server
-                  # For now, just simulate deployment
-                  echo "✅ Deployment completed successfully!"
-
-                  # Could integrate with:
-                  # - AWS S3/EC2
-                  # - Google Cloud Platform
-                  # - Docker registries
-                  # - Kubernetes clusters
-
-            - name: Run Smoke Tests
-              run: |
-                  echo "🧪 Running post-deployment smoke tests..."
-
-                  # Simulate smoke tests
-                  echo "✓ Health check: PASSED"
-                  echo "✓ API endpoints: PASSED"
-                  echo "✓ Performance: PASSED"
-                  echo "✓ Security: PASSED"
-
-                  echo "✅ All smoke tests passed!"
-
-    # Workflow summary and notifications
-    notify:
-        runs-on: ubuntu-latest
-        name: Notify Results
-        needs: [code-quality, backend-tests, e2e-tests, performance-benchmarks]
-        steps:
-            - name: Workflow Summary
-              if: always()
-              run: |
-                  echo "## 🏁 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-                  echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-                  echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  if [ "${{ needs.backend-tests.result }}" == "success" ] && [ "${{ needs.e2e-tests.result }}" == "success" ]; then
-                    echo "✅ All critical tests passed!" >> $GITHUB_STEP_SUMMARY
-                  else
-                    echo "❌ Some tests failed. Please review." >> $GITHUB_STEP_SUMMARY
-                  fi
+  # Job 1: Code Quality & Security
+  code-quality:
+    runs-on: ubuntu-latest
+    name: Code Quality & Security
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black isort bandit safety mypy ruff
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Code Formatting Check (Black)
+        run: black --check --diff backend/ tests/
+
+      - name: Import Sorting Check (isort)
+        run: isort --check-only --diff backend/ tests/
+
+      - name: Linting (Flake8)
+        run: flake8 backend/ tests/ --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Linting (Ruff)
+        run: ruff check backend/ tests/
+
+      - name: Type Checking (MyPy)
+        run: mypy backend/ --ignore-missing-imports || true
+
+      - name: Security Scan (Bandit)
+        run: bandit -r backend/ -f json -o bandit-report.json || true
+
+      - name: Dependency Security Check (Safety)
+        run: safety check --json --output safety-report.json || true
+
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  # Job 2: Backend Tests (Multiple Python Versions)
+  backend-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11', '3.12']
+        exclude:
+          - os: windows-latest
+            python-version: '3.10'
+          - os: macos-latest
+            python-version: '3.10'
+
+    name: Backend Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Create Test Environment
+        run: |
+          mkdir -p cache logs models vector_db
+          echo "BACKEND_URL=http://127.0.0.1:8000" > .env
+          echo "VAULT_PATH=./test_vault" >> .env
+          echo "MODELS_DIR=./models" >> .env
+          echo "CACHE_DIR=./cache" >> .env
+
+      - name: Run Backend Test Suite
+        run: |
+          pytest tests/ -v -n auto --asyncio-mode=auto --cov=backend --cov-report=xml --cov-report=term --cov-report=html --tb=short
+        env:
+          PYTHONPATH: .
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: backend
+          name: codecov-backend
+
+  # Job 4: End-to-End Integration Tests
+  e2e-tests:
+    runs-on: ubuntu-latest
+    name: End-to-End Integration Tests
+    needs: [backend-tests]
+
+    services:
+      # Optional: Add any external services needed for E2E tests
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio httpx pytest-cov uvicorn requests
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+
+      - name: Start Backend Server
+        run: |
+          mkdir -p cache logs models vector_db test_vault
+          echo "# Test Vault" > test_vault/test_note.md
+          echo "This is a test note for E2E testing" >> test_vault/test_note.md
+
+          # Create test configuration
+          cat > backend/config.yaml << EOF
+          backend_url: "http://127.0.0.1:8000"
+          api_port: 8000
+          vault_path: "./test_vault"
+          models_dir: "./models"
+          cache_dir: "./cache"
+          model_backend: "mock"
+          EOF
+
+          # Start backend in background
+          python -m uvicorn backend.backend:app --host 127.0.0.1 --port 8000 &
+          BACKEND_PID=$!
+          echo "BACKEND_PID=$BACKEND_PID" >> $GITHUB_ENV
+
+          # Wait for server to be ready
+          echo "Waiting for backend server to start..."
+          for i in {1..10}; do
+            if curl -sf http://127.0.0.1:8000/health > /dev/null; then
+              echo "Server is up!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Run E2E API Tests
+        run: |
+          python -c "
+          import requests
+
+          base_url = 'http://127.0.0.1:8000'
+
+          # Test health endpoint
+          response = requests.get(f'{base_url}/health')
+          assert response.status_code == 200
+          print('✓ Health check passed')
+
+          # Test status endpoint
+          response = requests.get(f'{base_url}/status')
+          assert response.status_code == 200
+          print('✓ Status check passed')
+
+          # Test config endpoint
+          response = requests.get(f'{base_url}/api/config')
+          assert response.status_code == 200
+          print('✓ Config endpoint passed')
+
+          # Test performance metrics
+          response = requests.get(f'{base_url}/api/performance/metrics')
+          assert response.status_code == 200
+          metrics = response.json()
+          assert 'metrics' in metrics
+          print('✓ Performance metrics passed')
+
+          print('All E2E API tests passed!')
+          "
+
+      - name: Test Performance Optimization Endpoints
+        run: |
+          # Test cache stats
+          curl -f http://127.0.0.1:8000/api/performance/cache/stats
+
+          # Test cache clear
+          curl -f -X POST http://127.0.0.1:8000/api/performance/cache/clear
+
+          # Test optimization trigger
+          curl -f -X POST http://127.0.0.1:8000/api/performance/optimize
+
+          echo "Performance optimization endpoints working!"
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ ! -z "$BACKEND_PID" ]; then
+            kill $BACKEND_PID || true
+          fi
+
+  # Job 5: Performance Benchmarks
+  performance-benchmarks:
+    runs-on: ubuntu-latest
+    name: Performance Benchmarks
+    needs: [backend-tests]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-benchmark memory-profiler psutil
+
+      - name: Run Performance Benchmarks
+        run: |
+          python -c "
+          import time
+          from backend.performance import MultiLevelCache, PerformanceMonitor
+
+          # Benchmark cache operations
+          cache = MultiLevelCache(l1_size=1000, l2_size=5000)
+
+          # Benchmark cache writes
+          start_time = time.time()
+          for i in range(1000):
+              cache.set(f'key_{i}', f'value_{i}')
+          write_time = time.time() - start_time
+
+          # Benchmark cache reads (L1 hits)
+          start_time = time.time()
+          for i in range(1000):
+              cache.get(f'key_{i}')
+          read_time = time.time() - start_time
+
+          print(f'Cache write benchmark: {1000/write_time:.0f} ops/sec')
+          print(f'Cache read benchmark: {1000/read_time:.0f} ops/sec')
+
+          # Get cache statistics
+          stats = cache.get_stats()
+          print(f'Cache hit rate: {stats[\"hit_rate\"]:.2%}')
+
+          # Performance metrics
+          metrics = PerformanceMonitor.get_system_metrics()
+          print(f'System metrics collected successfully')
+          "
+
+      - name: Memory Usage Analysis
+        run: |
+          python -c "
+          import psutil
+          import os
+          from backend.performance import MultiLevelCache
+
+          # Monitor memory usage
+          process = psutil.Process(os.getpid())
+          initial_memory = process.memory_info().rss / 1024 / 1024  # MB
+
+          # Create large cache
+          cache = MultiLevelCache(l1_size=5000, l2_size=10000)
+          for i in range(5000):
+              cache.set(f'large_key_{i}', 'x' * 1000)  # 1KB values
+
+          final_memory = process.memory_info().rss / 1024 / 1024  # MB
+          memory_increase = final_memory - initial_memory
+
+          print(f'Initial memory: {initial_memory:.1f} MB')
+          print(f'Final memory: {final_memory:.1f} MB')
+          print(f'Memory increase: {memory_increase:.1f} MB')
+          print(f'Memory per item: {memory_increase*1024/5000:.1f} KB')
+
+          # Verify memory efficiency
+          assert memory_increase < 100, f'Memory usage too high: {memory_increase:.1f} MB'
+          print('✓ Memory usage is within acceptable limits')
+          "
+
+  # Job 6: Build and Package
+  build-package:
+    runs-on: ubuntu-latest
+    name: Build and Package
+    needs: [code-quality, backend-tests]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Build Documentation
+        run: |
+          pip install mkdocs mkdocs-material
+
+          # Generate API documentation
+          mkdir -p docs/api
+          echo "# API Documentation" > docs/api/index.md
+          echo "Auto-generated API docs would go here" >> docs/api/index.md
+
+          # Create basic mkdocs structure if it doesn't exist
+          if [ ! -f mkdocs.yml ]; then
+            cat > mkdocs.yml << EOF
+          site_name: Obsidian AI Assistant
+          nav:
+            - Home: README.md
+            - API: api/index.md
+            - Specification: docs/SPECIFICATION.md
+          theme: material
+          EOF
+          fi
+
+          # Build docs (if mkdocs is configured)
+          mkdocs build || echo "Documentation build skipped"
+
+      - name: Create Release Archive
+        run: |
+          # Create release directory
+          mkdir -p release/obsidian-ai-assistant
+
+          # Copy essential files
+          cp -r backend/ release/obsidian-ai-assistant/
+          cp -r plugin/ release/obsidian-ai-assistant/
+          cp requirements*.txt release/obsidian-ai-assistant/ || true
+          cp README.md docs/SPECIFICATION.md release/obsidian-ai-assistant/
+          cp setup.sh setup.ps1 release/obsidian-ai-assistant/ || true
+
+          # Create version file
+          echo "version=$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)" > release/obsidian-ai-assistant/VERSION
+
+          # Create archive
+          cd release
+          tar -czf obsidian-ai-assistant-$(date +%Y%m%d).tar.gz obsidian-ai-assistant/
+
+          ls -la *.tar.gz
+
+      - name: Upload Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: obsidian-ai-assistant-release
+          path: release/*.tar.gz
+
+  # Job 7: Deployment (if on main branch)
+  deploy:
+    runs-on: ubuntu-latest
+    name: Deploy to Staging
+    needs: [build-package, e2e-tests, performance-benchmarks]
+    steps:
+      - name: Download Release Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: obsidian-ai-assistant-release
+          path: ./release
+
+      - name: Deploy to Staging Environment
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "🚀 Deploying to staging environment..."
+          echo "📦 Release artifact: $(ls release/)"
+          echo "✅ Deployment completed successfully!"
+
+      - name: Run Smoke Tests
+        run: |
+          echo "🧪 Running post-deployment smoke tests..."
+
+          # Simulate smoke tests
+          echo "✓ Health check: PASSED"
+          echo "✓ API endpoints: PASSED"
+          echo "✓ Performance: PASSED"
+          echo "✓ Security: PASSED"
+
+          echo "✅ All smoke tests passed!"
+
+  # Workflow summary and notifications
+  notify:
+    runs-on: ubuntu-latest
+    name: Notify Results
+    needs: [code-quality, backend-tests, e2e-tests, performance-benchmarks]
+    steps:
+      - name: Workflow Summary
+        if: always()
+        run: |
+          echo "## 🏁 CI/CD Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Code Quality | ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance | ${{ needs.performance-benchmarks.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.backend-tests.result }}" == "success" ] && [ "${{ needs.e2e-tests.result }}" == "success" ]; then
+            echo "✅ All critical tests passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Some tests failed. Please review." >> $GITHUB_STEP_SUMMARY
+          fi

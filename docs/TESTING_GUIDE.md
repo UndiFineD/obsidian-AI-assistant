@@ -330,6 +330,20 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --dis
 python .\run_tests_safe.py -v --asyncio-mode=auto
 ```
 
+### CI Status and Badges
+
+- CI: GitHub Actions runs the full suite on push/PR
+  - Workflows: ci.yml (lint + multi-OS tests + packaging), test-backend.yml (matrix backend runs)
+- Badges are shown at the top of README
+
+To reproduce CI locally, mirror the steps:
+
+```bash
+pip install -r requirements.txt
+pip install pytest pytest-asyncio pytest-cov pytest-xdist
+pytest tests/ -v -n auto --asyncio-mode=auto --cov=backend --cov-report=term --tb=short
+```
+
 ### **Expected Output**
 
 ```text

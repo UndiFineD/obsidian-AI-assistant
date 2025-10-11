@@ -1,5 +1,9 @@
 # Obsidian AI Assistant
 
+[![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
+[![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
+[![Coverage](https://img.shields.io/badge/coverage-61%25_backend-blue)](#9-testing--quality-assurance)
+
 **Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
 
 ---
@@ -12,6 +16,7 @@ This project implements a **modular, service-oriented architecture** with clearl
 
 ```text
 **Test Results Summary** (Latest: 498 Passed, 0 Failed, 0 Skipped - 100% Pass Rate)
+Backend coverage snapshot (from CI/local): 61% overall backend line coverage.
 
 ┌───────────────────────────────────────┐───────────────┐─────────────────────────────────────────┐
 | **Test Category**                     | **Pass Rate** | **Status** |
