@@ -2,12 +2,12 @@
 
 ## Why
 
-Ensure the root README is explicitly governed by OpenSpec so updates are tracked and consistent with project documentation standards.
+Ensure `README.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
 
 ## What Changes
 
 - Add a documentation governance requirement for `README.md` under the `project-documentation` capability.
-- Track updates via OpenSpec proposals for material changes (no functional code changes).
+- Track material updates via OpenSpec proposals (no functional code changes).
 
 ## Impact
 

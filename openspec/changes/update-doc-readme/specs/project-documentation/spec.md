@@ -2,9 +2,9 @@
 
 ## ADDED Requirements
 
-### Requirement: README Governance
+### Requirement: Governance for README.md
 
-The project SHALL govern material changes to `README.md` via OpenSpec change proposals to maintain consistency with documented standards.
+The project SHALL govern material changes to `README.md` via OpenSpec change proposals to maintain consistency and review.
 
 #### Scenario: Material change requires proposal
 
