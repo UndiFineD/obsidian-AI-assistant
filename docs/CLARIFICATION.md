@@ -15,6 +15,7 @@ This document addresses common confusion points, provides clear explanations of 
 **❌ Critical Issues Found:**
 
 1. **Missing Import References**:
+
    ```python
    # These are used but not defined/imported:
    init_services()     # Function exists in backend.py but not imported
@@ -24,6 +25,7 @@ This document addresses common confusion points, provides clear explanations of 
    ```
 
 2. **Undefined Variables**:
+
    ```python
    # These appear without definition:
    client = TestClient(app)           # app is undefined
@@ -31,6 +33,7 @@ This document addresses common confusion points, provides clear explanations of 
    ```
 
 3. **Circular Import Issues**:
+
    ```python
    # This pattern causes issues:
    sys.path.insert(0, ...)          # Path manipulation
@@ -155,7 +158,7 @@ def test_something(mock_model_manager):
 
 #### **Service Dependencies**
 
-```
+```text
 ModelManager ──┐
 EmbeddingsManager ──┤
 VaultIndexer ──┤──→ Used by FastAPI endpoints
@@ -163,6 +166,7 @@ CacheManager ──┘
 ```
 
 **Key Points:**
+
 - Services are initialized once via `init_services()`
 - All endpoints share the same service instances
 - Services depend on external libraries (PyTorch, transformers, etc.)
@@ -173,7 +177,7 @@ CacheManager ──┘
 
 #### **Three-Tier Configuration Hierarchy**
 
-```
+```text
 Environment Variables  (highest priority)
          ↓
     YAML config file   (backend/config.yaml)
@@ -215,7 +219,7 @@ def test_with_config(mock_get_settings):
 
 #### **Test Structure Overview**
 
-```
+```text
 tests/
 ├── backend/                    # Backend Python tests
 │   ├── conftest.py            # Shared fixtures
@@ -225,7 +229,7 @@ tests/
 ├── setup/                     # Setup script tests
 │   ├── test_setup_ps1.ps1     # PowerShell setup tests
 │   └── test_setup_sh.bats     # Bash setup tests
-├── plugin/                    # TypeScript plugin tests (planned)
+├── .obsidian/plugins/obsidian-ai-assistant/                    # TypeScript plugin tests (planned)
 └── integration/               # End-to-end tests (planned)
 ```
 
@@ -268,15 +272,15 @@ def mock_ml_dependencies():
 
 #### **Directory Purpose Guide**
 
-```
+```text
 obsidian-AI-assistant/
 ├── backend/                   # Python FastAPI server
 │   ├── __init__.py           # ⚠️  MISSING - causes import issues
 │   ├── backend.py            # Main FastAPI app
 │   ├── settings.py           # Configuration management  
 │   ├── models.txt            # Available LLM models list
-│   └── *.py                  # Service modules
-├── plugin/                   # TypeScript Obsidian plugin
+│   └── models/models.txt     # Available LLM models list
+├── .obsidian/plugins/obsidian-ai-assistant/                   # TypeScript Obsidian plugin
 │   ├── main.ts              # Plugin entry point
 │   ├── manifest.json        # Plugin metadata
 │   └── *.ts                 # Plugin components
@@ -314,11 +318,13 @@ __all__ = ['app', 'get_settings']
 #### **Issue 1: "Module Not Found" Errors**
 
 **Problem:**
+
 ```bash
 ModuleNotFoundError: No module named 'backend'
 ```
 
 **Solutions:**
+
 ```python
 # Option A: Add to Python path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
@@ -333,11 +339,13 @@ from .settings import get_settings  # Within backend/
 #### **Issue 2: Test Import Conflicts**
 
 **Problem:**
+
 ```bash
 ImportError: PyTorch not available
 ```
 
 **Solution:**
+
 ```python
 # Mock early and consistently
 @pytest.fixture(autouse=True, scope="session")
@@ -355,11 +363,13 @@ def setup_test_environment():
 #### **Issue 3: Service Initialization Failures**
 
 **Problem:**
+
 ```bash
 AttributeError: 'NoneType' object has no attribute 'generate'
 ```
 
 **Solution:**
+
 ```python
 # Always mock services before importing backend
 @pytest.fixture
@@ -388,11 +398,13 @@ def mock_services():
 ### **Phase 1: Fix Test Infrastructure**
 
 1. **Create Missing `__init__.py`**:
+
    ```bash
    touch backend/__init__.py
    ```
 
 2. **Fix Test Imports**:
+
    ```python
    # Replace problematic imports in test files
    # OLD:
@@ -407,6 +419,7 @@ def mock_services():
    ```
 
 3. **Standardize Mock Pattern**:
+
    ```python
    # Use this in conftest.py
    @pytest.fixture(scope="session", autouse=True)
@@ -427,6 +440,7 @@ def mock_services():
 ### **Phase 2: Align Tests with Reality**
 
 1. **Verify Actual API Endpoints**:
+
    ```bash
    # Check what endpoints actually exist
    python -c "
@@ -440,6 +454,7 @@ def mock_services():
    ```
 
 2. **Update Test Expectations**:
+
    ```python
    # Use actual endpoints, not assumed ones
    def test_health_endpoint(client):
@@ -527,16 +542,19 @@ def fully_mocked_backend():
 ### **🎯 Priority Actions**
 
 1. **Immediate** (< 1 hour):
-   - Create `backend/__init__.py` 
+
+   - Create `backend/__init__.py`
    - Fix test imports and undefined variables
    - Standardize mocking approach
 
 2. **Short-term** (1-2 hours):
+
    - Align test expectations with actual API
    - Implement comprehensive service mocking
    - Get basic endpoint tests passing
 
 3. **Medium-term** (1 day):
+
    - Expand test coverage for working modules
    - Add integration test scenarios
    - Document testing best practices

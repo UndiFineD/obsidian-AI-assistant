@@ -41,14 +41,24 @@ class HybridLLMRouter:
             if Llama and os.path.exists(llama_model_path):
                 return Llama(model_path=llama_model_path, n_ctx=2048, n_threads=4)
             return None
-        self.llama = safe_call(do_load_llama, error_msg="[HybridLLMRouter] Error loading LLaMA model", default=None)
+
+        self.llama = safe_call(
+            do_load_llama,
+            error_msg="[HybridLLMRouter] Error loading LLaMA model",
+            default=None,
+        )
 
         # Load GPT4All with error boundary
         def do_load_gpt4all():
             if GPT4All and os.path.exists(gpt4all_model_path):
                 return GPT4All(model_name=gpt4all_model_path)
             return None
-        self.gpt4all = safe_call(do_load_gpt4all, error_msg="[HybridLLMRouter] Error loading GPT4All model", default=None)
+
+        self.gpt4all = safe_call(
+            do_load_gpt4all,
+            error_msg="[HybridLLMRouter] Error loading GPT4All model",
+            default=None,
+        )
 
     # -------------------
     # Memory Handling
@@ -104,16 +114,27 @@ class HybridLLMRouter:
             _side_effect = getattr(self.llama, "side_effect", None)
             if _side_effect:
                 raise _side_effect
-            output = self.llama(prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"])
+            output = self.llama(
+                prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"]
+            )
             return output["choices"][0]["text"].strip()
-        output = self.llama(prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"])
+        output = self.llama(
+            prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"]
+        )
         return output["choices"][0]["text"].strip()
 
     def _invoke_gpt4all(self, prompt: str, max_tokens: int) -> str:
         """Invoke the GPT4All model."""
         return self.gpt4all.generate(prompt, max_tokens=max_tokens)
 
-    def generate(self, prompt: str, *, prefer_fast: Optional[bool] = None, max_tokens: int = 512, context: Optional[str] = None) -> str:
+    def generate(
+        self,
+        prompt: str,
+        *,
+        prefer_fast: Optional[bool] = None,
+        max_tokens: int = 512,
+        context: Optional[str] = None,
+    ) -> str:
         full_context = self.build_context(prompt, extra_context=context)
         model_choice = self.choose_model(prompt, prefer_fast=prefer_fast)
         text = "No model available."
@@ -123,7 +144,9 @@ class HybridLLMRouter:
             if model_choice == "gpt4all" and self.gpt4all is None and GPT4All:
                 self.gpt4all = GPT4All(model_name=self._gpt4all_model_path)
             if model_choice == "llama" and self.llama is None and Llama:
-                self.llama = Llama(model_path=self._llama_model_path, n_ctx=2048, n_threads=4)
+                self.llama = Llama(
+                    model_path=self._llama_model_path, n_ctx=2048, n_threads=4
+                )
 
             if model_choice == "llama" and self.llama:
                 return self._invoke_llama(full_context, max_tokens)
@@ -132,7 +155,11 @@ class HybridLLMRouter:
 
             return "No model available."
 
-        text = safe_call(do_generate, error_msg="[HybridLLMRouter] Error during generation", default=text)
+        text = safe_call(
+            do_generate,
+            error_msg="[HybridLLMRouter] Error during generation",
+            default=text,
+        )
         # Update memory
         self.add_to_memory("User", prompt)
         self.add_to_memory("Assistant", text)

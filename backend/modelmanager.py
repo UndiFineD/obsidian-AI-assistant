@@ -8,25 +8,28 @@ from .llm_router import HybridLLMRouter
 from .utils import safe_call
 from .settings import get_settings
 
+
 class ModelManager:
     """Manages local and Hugging Face models for LLMs."""
 
     def __init__(
         self,
-        models_dir="./models",
+        models_dir="./backend/models",
         env_file=".env",
         models_file="models.txt",
         default_model="gpt4all-lora",
         hf_token: str = None,
         minimal_models=None,
-        check_interval_hours=24
+        check_interval_hours=24,
     ):
         # Load environment variables from .env
         env_path = Path(env_file)
         if env_path.exists():
             load_dotenv(env_path)
         else:
-            print(f"[ModelManager] Warning: {env_file} not found, relying on system env vars.")
+            print(
+                f"[ModelManager] Warning: {env_file} not found, relying on system env vars."
+            )
 
         # Persist init args for tests
         self.env_file = env_file
@@ -42,7 +45,9 @@ class ModelManager:
                 # Allow tests to proceed even if login fails
                 print("[ModelManager] Warning: Failed to login to Hugging Face.")
         else:
-            print("[ModelManager] Warning: No Hugging Face token provided or found in environment!")
+            print(
+                "[ModelManager] Warning: No Hugging Face token provided or found in environment!"
+            )
 
         # Models directory
         self.models_dir = models_dir
@@ -60,14 +65,19 @@ class ModelManager:
         if minimal_models is None:
             # Select lightweight, quantized models suitable for low-end GPU
             minimal_models = [
-                "deepseek-ai/Janus-Pro-1B",           # 1B params - very lightweight
-                "unsloth/Qwen2.5-Omni-3B-GGUF",      # 3B quantized - good balance
-                "ggml-org/Qwen2.5-Omni-3B-GGUF"      # Alternative 3B GGUF format
+                "deepseek-ai/Janus-Pro-1B",  # 1B params - very lightweight
+                "unsloth/Qwen2.5-Omni-3B-GGUF",  # 3B quantized - good balance
+                "ggml-org/Qwen2.5-Omni-3B-GGUF",  # Alternative 3B GGUF format
             ]
         self._minimal_models = minimal_models
 
         # Download minimal working set on init (unless disabled)
-        if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {"1", "true", "yes", "on"}:
+        if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }:
             self._download_minimal_models()
 
         # Check for newer models once per day
@@ -94,11 +104,17 @@ class ModelManager:
         if self.default_model not in self.available_models:
             if self.available_models:
                 # For tests, preserve original default if it's explicitly set and non-default
-                if default_model != "gpt4all-lora":  # Only fallback for actual default, not test values
-                    print(f"[ModelManager] Default model '{default_model}' not found, but preserving for tests")
+                if (
+                    default_model != "gpt4all-lora"
+                ):  # Only fallback for actual default, not test values
+                    print(
+                        f"[ModelManager] Default model '{default_model}' not found, but preserving for tests"
+                    )
                 else:
                     self.default_model = next(iter(self.available_models))
-                    print(f"[ModelManager] Default model not found. Using: {self.default_model}")
+                    print(
+                        f"[ModelManager] Default model not found. Using: {self.default_model}"
+                    )
             else:
                 print("[ModelManager] No models available at all!")
                 # Keep provided default even if not in available list to satisfy tests
@@ -112,13 +128,15 @@ class ModelManager:
                 self.download_model(model, revision="latest")
             except Exception as e:
                 import logging
+
                 logging.error(f"Failed to download minimal model {model}: {e}")
             finally:
-                if hasattr(self, '_automated_download'):
-                    delattr(self, '_automated_download')
+                if hasattr(self, "_automated_download"):
+                    delattr(self, "_automated_download")
 
     def _check_and_update_models(self):
         import time
+
         now = time.time()
         last_check = 0
         if self._last_model_check_file.exists():
@@ -128,7 +146,12 @@ class ModelManager:
                 last_check = 0
         # If it's been more than check_interval_hours, check for updates
         if now - last_check > self._check_interval_hours * 3600:
-            if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {"1", "true", "yes", "on"}:
+            if str(os.getenv("SKIP_MODEL_DOWNLOADS", "0")).lower() not in {
+                "1",
+                "true",
+                "yes",
+                "on",
+            }:
                 self._update_models()
             self._last_model_check_file.write_text(str(now))
 
@@ -142,20 +165,28 @@ class ModelManager:
                 self.download_model(model, revision="latest")
             except Exception as e:
                 import logging
+
                 logging.error(f"Failed to update model {model}: {e}")
             finally:
-                if hasattr(self, '_automated_download'):
-                    delattr(self, '_automated_download')
+                if hasattr(self, "_automated_download"):
+                    delattr(self, "_automated_download")
         # Optionally, remove older versions and keep only the most recent
         # (Implementation depends on model storage format)
 
     def _load_models_file(self, models_file: str):
         models_path = Path(models_file)
+        # Ensure parent directory exists if a nested path is provided
+        try:
+            if models_path.parent and str(models_path.parent) not in ("", "."):
+                models_path.parent.mkdir(parents=True, exist_ok=True)
+        except Exception:
+            pass
         if not models_path.exists():
             print(f"[ModelManager] Warning: {models_file} not found. No models loaded.")
             return {}
 
         available_models = {}
+
         def do_load():
             with open(models_path, "r", encoding="utf-8") as f:
                 for line in f:
@@ -164,17 +195,31 @@ class ModelManager:
                         continue
                     key = line.split("/")[-1].lower()
                     available_models[key] = line
-            print(f"[ModelManager] Loaded {len(available_models)} models from {models_file}")
+            print(
+                f"[ModelManager] Loaded {len(available_models)} models from {models_file}"
+            )
             return available_models
-        return safe_call(do_load, error_msg=f"[ModelManager] Error loading models from {models_file}", default={})
 
-    def download_model(self, model_name: str, *, filename: str | None = None, revision: str | None = "main", max_retries: int = 3):
+        return safe_call(
+            do_load,
+            error_msg=f"[ModelManager] Error loading models from {models_file}",
+            default={},
+        )
+
+    def download_model(
+        self,
+        model_name: str,
+        *,
+        filename: str | None = None,
+        revision: str | None = "main",
+        max_retries: int = 3,
+    ):
         # If model_name looks like a repo id (org/name), go through hf_hub_download API expected by tests
         if "/" in model_name:
             # Handle "latest" revision by using a safe default
             if revision == "latest":
                 # Only allow 'main' for automated downloads, never for manual
-                if hasattr(self, '_automated_download'):
+                if hasattr(self, "_automated_download"):
                     revision = "main"  # In production, query HF API for actual latest
                 else:
                     raise ValueError(
@@ -182,7 +227,9 @@ class ModelManager:
                         "Please specify a pinned revision (commit hash or tag)."
                     )
             # Enforce revision pinning for security (except for our automated downloads)
-            if revision is None or (revision == "main" and not hasattr(self, '_automated_download')):
+            if revision is None or (
+                revision == "main" and not hasattr(self, "_automated_download")
+            ):
                 raise ValueError(
                     "Revision must be explicitly pinned for secure model downloads (not 'main')."
                 )
@@ -193,7 +240,7 @@ class ModelManager:
                     filename=filename,
                     revision=revision,
                     local_dir=str(self.models_dir),
-                    token=self.hf_token
+                    token=self.hf_token,
                 )
                 return {"status": "downloaded", "path": path}
             except Exception as e:
@@ -209,7 +256,7 @@ class ModelManager:
             model_path.touch()
             return {"status": "success", "path": str(model_path)}
         except Exception as e:
-                return {"status": "error", "error": str(e)}
+            return {"status": "error", "error": str(e)}
 
     def load_model(self, model_name: str = None):
         if not model_name:
@@ -224,7 +271,12 @@ class ModelManager:
             if isinstance(result, dict) and "path" in result:
                 return result["path"]
             return result
-        model_path = safe_call(do_download, error_msg=f"[ModelManager] Could not download {model_name}, checking offline cache...", default=str(Path(self.models_dir) / model_name))
+
+        model_path = safe_call(
+            do_download,
+            error_msg=f"[ModelManager] Could not download {model_name}, checking offline cache...",
+            default=str(Path(self.models_dir) / model_name),
+        )
         # Ensure model_path is a Path object
         if not isinstance(model_path, Path):
             model_path = Path(model_path)
@@ -237,15 +289,19 @@ class ModelManager:
             if model_path.is_file():
                 return HybridLLMRouter(
                     llama_model_path=str(model_path),
-                    gpt4all_model_path=str(model_path) # GPT4All can also load gguf
+                    gpt4all_model_path=str(model_path),  # GPT4All can also load gguf
                 )
             else:
                 return HybridLLMRouter(
                     llama_model_path=str(model_path / "model.bin"),
-                    gpt4all_model_path=str(model_path / "gpt4all.bin")
+                    gpt4all_model_path=str(model_path / "gpt4all.bin"),
                 )
 
-        llm = safe_call(do_instantiate, error_msg=f"[ModelManager] Error instantiating HybridLLMRouter for {model_name}", default=None)
+        llm = safe_call(
+            do_instantiate,
+            error_msg=f"[ModelManager] Error instantiating HybridLLMRouter for {model_name}",
+            default=None,
+        )
         if llm is None:
             raise RuntimeError(f"Failed to instantiate model router for {model_name}")
         self.loaded_models[model_name] = llm
@@ -254,7 +310,7 @@ class ModelManager:
     @classmethod
     def from_settings(cls) -> "ModelManager":
         """Create a ModelManager using centralized settings.
-        
+
         Falls back to default initialization if settings are unavailable.
         """
         try:
@@ -263,7 +319,7 @@ class ModelManager:
                 models_dir=str(s.abs_models_dir),
                 default_model=s.model_backend,
                 hf_token=os.getenv("HF_TOKEN"),  # Still use env for token
-                minimal_models=[]  # Disable automatic downloads for settings-based initialization
+                minimal_models=[],  # Disable automatic downloads for settings-based initialization
             )
         except Exception:
             # Fallback to default initialization
@@ -273,19 +329,31 @@ class ModelManager:
     # Test-facing helper APIs
     # -------------------
     def list_available_models(self):
-        return list(self.available_models.keys()) if isinstance(self.available_models, dict) else []
+        return (
+            list(self.available_models.keys())
+            if isinstance(self.available_models, dict)
+            else []
+        )
 
-    def generate(self, prompt: str, *, model_name: str | None = None, prefer_fast: bool = True, max_tokens: int = 256, context: str | None = None):
+    def generate(
+        self,
+        prompt: str,
+        *,
+        model_name: str | None = None,
+        prefer_fast: bool = True,
+        max_tokens: int = 256,
+        context: str | None = None,
+    ):
         # Initialize router on first use
-        if not hasattr(self, 'llm_router') or self.llm_router is None:
+        if not hasattr(self, "llm_router") or self.llm_router is None:
             self.llm_router = HybridLLMRouter()
-        kwargs = {'prefer_fast': prefer_fast, 'max_tokens': max_tokens}
+        kwargs = {"prefer_fast": prefer_fast, "max_tokens": max_tokens}
         if context is not None:
-            kwargs['context'] = context
+            kwargs["context"] = context
         return self.llm_router.generate(prompt, **kwargs)
 
     def get_model_info(self):
-        if not hasattr(self, 'llm_router') or self.llm_router is None:
+        if not hasattr(self, "llm_router") or self.llm_router is None:
             self.llm_router = HybridLLMRouter()
         return {
             "available_models": self.llm_router.get_available_models(),

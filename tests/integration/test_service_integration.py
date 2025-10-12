@@ -24,7 +24,9 @@ class TestServiceInitialization:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture
@@ -33,10 +35,10 @@ class TestServiceInitialization:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_path = Path(temp_dir)
             yield {
-                "models_dir": temp_path / "models",
-                "cache_dir": temp_path / "cache", 
-                "vector_db_dir": temp_path / "vector_db",
-                "vault_dir": temp_path / "vault"
+                "models_dir": temp_path / "backend" / "models",
+                "cache_dir": temp_path / "backend" / "cache",
+                                "vector_db_dir": temp_path / "backend/vector_db",
+                "vault_dir": temp_path / "vault",
             }
 
     # def test_service_initialization_order(self, temp_dirs):
@@ -80,32 +82,33 @@ class TestServiceInitialization:
         """Test that services receive correct dependencies."""
         for dir_path in temp_dirs.values():
             dir_path.mkdir(parents=True, exist_ok=True)
-        
-        with patch('backend.modelmanager.ModelManager') as MockMM, \
-            patch('backend.embeddings.EmbeddingsManager') as MockEM, \
-            patch('backend.indexing.VaultIndexer') as MockVI, \
-            patch('backend.caching.CacheManager') as MockCM:
-            
+
+        with patch("backend.modelmanager.ModelManager") as MockMM, patch(
+            "backend.embeddings.EmbeddingsManager"
+        ) as MockEM, patch("backend.indexing.VaultIndexer") as MockVI, patch(
+            "backend.caching.CacheManager"
+        ) as MockCM:
+
             # Create mock instances
             mock_mm = Mock()
-            mock_em = Mock() 
+            mock_em = Mock()
             mock_vi = Mock()
             mock_cm = Mock()
-            
+
             MockMM.from_settings.return_value = mock_mm
             MockEM.from_settings.return_value = mock_em
             MockVI.return_value = mock_vi
             MockCM.return_value = mock_cm
-            
+
             from backend.backend import init_services
-            
+
             init_services()
-            
+
             # Verify VaultIndexer received EmbeddingsManager dependency
             MockVI.assert_called_once()
             call_args = MockVI.call_args
-            assert 'emb_mgr' in call_args.kwargs or len(call_args.args) > 0
-            
+            assert "emb_mgr" in call_args.kwargs or len(call_args.args) > 0
+
             print("✓ Service dependency injection test passed")
 
     # def test_service_initialization_with_failures(self):
@@ -132,7 +135,7 @@ class TestServiceInitialization:
     #         MockEM.from_settings.assert_called_once()
     #         MockVI.assert_called_once()
     #         MockCM.assert_called_once()
-            # print("✓ Service partial failure handling test passed")
+    # print("✓ Service partial failure handling test passed")
 
 
 class TestConfigurationIntegration:
@@ -141,7 +144,9 @@ class TestConfigurationIntegration:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     # def test_settings_propagation_to_services(self):
@@ -223,7 +228,9 @@ class TestCrossServiceCommunication:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     # @pytest.mark.asyncio
@@ -280,8 +287,9 @@ class TestCrossServiceCommunication:
 
     def test_embeddings_and_indexing_integration(self):
         """Test integration between embeddings and vault indexing."""
-        with patch('backend.embeddings.EmbeddingsManager') as MockEM, \
-            patch('backend.indexing.VaultIndexer') as MockVI:
+        with patch("backend.embeddings.EmbeddingsManager") as MockEM, patch(
+            "backend.indexing.VaultIndexer"
+        ) as MockVI:
             # Create mock instances
             mock_em = Mock()
             mock_vi = Mock()

@@ -1,5 +1,7 @@
 # Tasks: Add Unit Tests (002-add-unit-tests)
 
+**IMPORTANT:** All test scaffolding, execution, and reporting must use the './tests/' folder. Never create or reference './test/'.
+
 **Input**: Design documents from `docs/`
 **Date:** 2025-10-05
 **Branch:** 002-add-unit-tests

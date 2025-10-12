@@ -19,6 +19,7 @@ __author__ = "Obsidian AI Assistant"
 # Make key classes available at package level
 try:
     import importlib.util
+
     importlib.util.find_spec(f"{__name__}.backend")
     importlib.util.find_spec(f"{__name__}.caching")
     importlib.util.find_spec(f"{__name__}.embeddings")
@@ -28,6 +29,7 @@ try:
 except ImportError as e:
     # Handle imports gracefully during testing or when dependencies are missing
     import logging
+
     logging.error(f"ImportError in backend.__init__: {e}")
 
 
@@ -35,9 +37,11 @@ except ImportError as e:
 try:
     import importlib as _importlib
     import sys as _sys
-    _backend_mod = _importlib.import_module('.backend', __name__)
+
+    _backend_mod = _importlib.import_module(".backend", __name__)
     # Expose attribute on package
     _sys.modules[__name__].backend = _backend_mod
 except Exception as e:
     import logging
+
     logging.error(f"Exception in backend.__init__ (submodule import): {e}")

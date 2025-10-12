@@ -7,11 +7,11 @@ from backend.backend import app
 
 class TestStatusEndpoint:
     """Test the /status endpoint."""
-    
+
     def setup_method(self):
         """Set up test client."""
         self.client = TestClient(app)
-    
+
     def test_status_endpoint_success(self):
         """Test that /status returns 200 OK with correct JSON."""
         response = self.client.get("/status")
@@ -20,14 +20,17 @@ class TestStatusEndpoint:
         assert data == {"status": "ok"}
         # Ensure response has correct content type
         assert response.headers["content-type"].startswith("application/json")
-    
+
     def test_status_endpoint_options(self):
         """Test that /status handles OPTIONS (CORS support may not be required)."""
         response = self.client.options("/status")
-        
+
         # OPTIONS may return 405 if not explicitly supported, which is acceptable
-        assert response.status_code in [200, 405]  # Either supported or method not allowed
-    
+        assert response.status_code in [
+            200,
+            405,
+        ]  # Either supported or method not allowed
+
     def test_status_vs_health_endpoints(self):
         """Test that /status and /health have different response formats."""
         status_response = self.client.get("/status")

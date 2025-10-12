@@ -110,7 +110,7 @@ class AsyncTestRunner:
         print("=" * 60)
 
         # Directories to remove completely
-        dirs_to_remove = ["cache", "models", "vector_db", "setup", "__pycache__"]
+        dirs_to_remove = ["cache", "models", "backend/vector_db", "setup", "__pycache__"]
 
         # Files to remove
         files_to_remove = [
@@ -218,11 +218,11 @@ class AsyncTestRunner:
             "LLM Router": {"priority": 7, "patterns": ["backend/test_llm_router.py"]},
             "JavaScript Quality": {
                 "priority": 8,
-                "patterns": ["plugin/test_js_code_quality.py"],
+                "patterns": ["obsidian-ai-assistant/test_js_code_quality.py"],
             },
             "Plugin System": {
                 "priority": 9,
-                "patterns": ["plugin/test_*.py", "test_plugin_python.py"],
+                "patterns": ["obsidian-ai-assistant/test_*.py", "test_plugin_python.py"],
             },
             "Integration Tests": {
                 "priority": 10,

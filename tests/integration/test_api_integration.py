@@ -13,16 +13,16 @@ import pytest_asyncio
 # Import FastAPI app
 from backend.backend import app
 
+
 @pytest_asyncio.fixture
 async def client():
     """Create async HTTP client for testing."""
     import httpx
     from httpx import AsyncClient
+
     # Use HTTPX AsyncClient with transport for FastAPI
     transport = httpx.ASGITransport(app=app)
-    async with AsyncClient(
-        transport=transport, base_url="http://testserver"
-    ) as client:
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         yield client
 
 
@@ -97,7 +97,9 @@ class TestAPIIntegration:
             # If no valid model is present, expect 500 error and specific message
             data = response.json()
             assert "detail" in data
-            assert "Model unavailable or failed to generate an answer." in data["detail"]
+            assert (
+                "Model unavailable or failed to generate an answer." in data["detail"]
+            )
         else:
             # Or accept successful response with fallback behavior in test environment
             assert response.status_code == 200
@@ -151,13 +153,18 @@ class TestAPIIntegration:
         """Test vault scanning endpoint integration."""
         # Configure mock to return expected file list
         mock_all_services["vault_indexer"].index_vault.return_value = [
-            "note1.md", "note2.md", "note3.md"
+            "note1.md",
+            "note2.md",
+            "note3.md",
         ]
         # Test with a non-existent path - behavior may vary between mock and real implementation
         params = {"vault_path": "./non_existent_vault"}
         response = await client.post("/api/scan_vault", params=params)
         # Accept different behaviors: validation error (400) or successful processing (200)
-        assert response.status_code in [200, 400], f"Expected 200 or 400, got {response.status_code}"
+        assert response.status_code in [
+            200,
+            400,
+        ], f"Expected 200 or 400, got {response.status_code}"
         if response.status_code == 400:
             # Validation error as expected
             data = response.json()
@@ -214,6 +221,7 @@ class TestAPIIntegration:
             mock_update.assert_called_once_with(update_data)
             print("✓ Config update endpoint integration test passed")
 
+
 class TestAPIErrorHandling:
     """Test API error handling and edge cases."""
 
@@ -246,21 +254,32 @@ class TestAPIErrorHandling:
     @pytest.mark.asyncio
     async def test_service_failure_error_handling(self, client):
         """Test API error handling when services fail."""
-        with patch("backend.backend.model_manager") as mock_mm, \
-                patch("backend.backend.emb_manager") as mock_em:
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em:
             # Configure service to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
-            mock_em.search.return_value = [] # Ensure search doesn't fail
+            mock_em.search.return_value = []  # Ensure search doesn't fail
 
-            request_data = {"question": "Test question", "vault_path": "./vault", "use_context": True}
+            request_data = {
+                "question": "Test question",
+                "vault_path": "./vault",
+                "use_context": True,
+            }
 
             response = await client.post("/api/ask", json=request_data)
 
             # Should handle service failure - may return 500 (mock) or 200 with error message (real)
-            assert response.status_code in [200, 500], f"Expected 200 or 500, but got {response.status_code}"
+            assert response.status_code in [
+                200,
+                500,
+            ], f"Expected 200 or 500, but got {response.status_code}"
             data = response.json()
             if response.status_code == 500:
-                assert "Model unavailable or failed to generate an answer." in data["detail"]
+                assert (
+                    "Model unavailable or failed to generate an answer."
+                    in data["detail"]
+                )
             else:
                 # Real implementation might return success with fallback response
                 assert data is not None
@@ -316,7 +335,9 @@ class TestAPIPerformance:
     @pytest.mark.asyncio
     async def test_large_request_handling(self, client, mock_all_services):
         """Test handling of large requests."""
-        mock_all_services["model_manager"].generate.return_value = "Response to large question"
+        mock_all_services["model_manager"].generate.return_value = (
+            "Response to large question"
+        )
         mock_all_services["emb_manager"].search.return_value = []
 
         # Create large request

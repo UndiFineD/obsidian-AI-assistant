@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 import logging
+
 try:
     from sentence_transformers import SentenceTransformer  # type: ignore
 except Exception:
@@ -29,9 +30,9 @@ class EmbeddingsManager:
         chunk_size: int = 500,
         overlap: int = 50,
         top_k: int = 5,
-        db_path: str = "./vector_db",
+        db_path: str = "./backend/vector_db",
         collection_name: str = "obsidian_notes",
-        model_name: str = "all-MiniLM-L6-v2"
+        model_name: str = "all-MiniLM-L6-v2",
     ):
         self.chunk_size = chunk_size
         self.overlap = overlap
@@ -42,7 +43,9 @@ class EmbeddingsManager:
 
         # Load embedding model if available; swallow errors
         if SentenceTransformer is None:
-            logging.warning("[EmbeddingsManager] sentence_transformers not available; embeddings disabled")
+            logging.warning(
+                "[EmbeddingsManager] sentence_transformers not available; embeddings disabled"
+            )
             self.model = None
         else:
             self.model = safe_call(
@@ -74,7 +77,9 @@ class EmbeddingsManager:
             try:
                 self.collection = self.chroma_client.get_or_create_collection(
                     name=self.collection_name,
-                    embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(model_name),
+                    embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
+                        model_name
+                    ),
                 )
             except Exception:
                 logging.error("[EmbeddingsManager] Error creating/getting collection")
@@ -94,7 +99,8 @@ class EmbeddingsManager:
         # Derive a persistent vector DB path under project root unless the
         # caller later supplies a different location. Keep the collection name
         # stable.
-        vector_db_path = str(Path(s.project_root) / "vector_db")
+        # Tests expect the vector DB to live under ./backend/vector_db relative to project root
+        vector_db_path = str(Path(s.project_root) / "backend" / "vector_db")
         return cls(
             chunk_size=s.chunk_size,
             overlap=s.chunk_overlap,
@@ -112,7 +118,12 @@ class EmbeddingsManager:
         if self.model is None:
             logging.error("[EmbeddingsManager] No embedding model loaded.")
             return []
-        return safe_call(lambda t: self.model.encode(t).tolist(), text, error_msg="[EmbeddingsManager] Error computing embedding", default=[])
+        return safe_call(
+            lambda t: self.model.encode(t).tolist(),
+            text,
+            error_msg="[EmbeddingsManager] Error computing embedding",
+            default=[],
+        )
 
     def add_embedding(self, text: str, note_path: str):
         vec = self.compute_embedding(text)
@@ -124,9 +135,11 @@ class EmbeddingsManager:
             lambda: self.collection.upsert(
                 ids=[note_path],
                 embeddings=[vec],
-                metadatas=[{"note_path": note_path, "source": os.path.basename(note_path)}]
+                metadatas=[
+                    {"note_path": note_path, "source": os.path.basename(note_path)}
+                ],
             ),
-            error_msg="[EmbeddingsManager] Error upserting embedding"
+            error_msg="[EmbeddingsManager] Error upserting embedding",
         )
 
     def search(self, query: str, top_k: Optional[int] = None) -> List[Dict]:
@@ -136,19 +149,28 @@ class EmbeddingsManager:
         if self.collection is None:
             logging.error("[EmbeddingsManager] No collection available for search.")
             return []
+
         def do_search():
-            results = self.collection.query(query_embeddings=[query_vec], n_results=top_k)
+            results = self.collection.query(
+                query_embeddings=[query_vec], n_results=top_k
+            )
             hits = []
             for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
                 hits.append({"text": doc, "source": meta.get("note_path", "")})
             return hits
-        return safe_call(do_search, error_msg="[EmbeddingsManager] Error during search", default=[])
+
+        return safe_call(
+            do_search, error_msg="[EmbeddingsManager] Error during search", default=[]
+        )
 
     def get_embedding_by_id(self, note_id: str) -> List[float]:
         """Retrieve an embedding vector by its ID (note_path)."""
         if self.collection is None:
-            logging.error("[EmbeddingsManager] No collection available for get_embedding_by_id.")
+            logging.error(
+                "[EmbeddingsManager] No collection available for get_embedding_by_id."
+            )
             return []
+
         def do_get():
             results = self.collection.get(ids=[note_id], include=["embeddings"])
             # The 'get' method returns a list of embeddings, one for each ID.
@@ -156,18 +178,29 @@ class EmbeddingsManager:
             if results and results["embeddings"]:
                 return results["embeddings"][0]
             return []
-        return safe_call(do_get, error_msg=f"[EmbeddingsManager] Error getting embedding for id {note_id}", default=[])
+
+        return safe_call(
+            do_get,
+            error_msg=f"[EmbeddingsManager] Error getting embedding for id {note_id}",
+            default=[],
+        )
 
     def reset_db(self):
         if self.chroma_client is None:
-            logging.error("[EmbeddingsManager] No Chroma client available for reset_db.")
+            logging.error(
+                "[EmbeddingsManager] No Chroma client available for reset_db."
+            )
             return
+
         def do_reset():
             self.chroma_client.delete_collection(self.collection_name)
             self.collection = self.chroma_client.get_or_create_collection(
                 name=self.collection_name,
-                embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(self.model_name)
+                embedding_function=embedding_functions.SentenceTransformerEmbeddingFunction(
+                    self.model_name
+                ),
             )
+
         safe_call(do_reset, error_msg="[EmbeddingsManager] Error resetting DB")
 
     def clear_collection(self):
@@ -176,24 +209,24 @@ class EmbeddingsManager:
 
     def add_documents(self, chunks: List[str], metadatas: Optional[List[Dict]] = None):
         """Add multiple document chunks to the collection.
-        
+
         Expected by tests and indexing workflows for batch document insertion.
         """
         if not chunks or self.collection is None:
             return
-        
-        # Generate IDs for chunks 
+
+        # Generate IDs for chunks
         ids = [self._hash_text(chunk) for chunk in chunks]
         # Use provided metadata or generate basic metadata
-        final_metadatas = metadatas if metadatas is not None else [{"chunk_index": i} for i in range(len(chunks))]
-        
+        final_metadatas = (
+            metadatas
+            if metadatas is not None
+            else [{"chunk_index": i} for i in range(len(chunks))]
+        )
+
         def do_add():
-            self.collection.add(
-                documents=chunks,
-                ids=ids,
-                metadatas=final_metadatas
-            )
-            
+            self.collection.add(documents=chunks, ids=ids, metadatas=final_metadatas)
+
         safe_call(do_add, error_msg="[EmbeddingsManager] Error adding documents")
 
     def close(self):
@@ -209,6 +242,7 @@ class EmbeddingsManager:
             self.model = None
         except Exception as e:
             import logging
+
             logging.warning(f"Failed to set model to None: {e}")
 
     # ----------------------
@@ -223,7 +257,11 @@ class EmbeddingsManager:
         """
         count = 0
         if self.collection is not None:
-            count = safe_call(self.collection.count, error_msg="[EmbeddingsManager] Error getting collection count", default=0)
+            count = safe_call(
+                self.collection.count,
+                error_msg="[EmbeddingsManager] Error getting collection count",
+                default=0,
+            )
         return {
             "name": self.collection_name,
             "count": count,
@@ -238,7 +276,9 @@ class EmbeddingsManager:
             return []
         words = text.split()
         step = self.chunk_size - self.overlap
-        return [" ".join(words[i:i + self.chunk_size]) for i in range(0, len(words), step)]
+        return [
+            " ".join(words[i : i + self.chunk_size]) for i in range(0, len(words), step)
+        ]
 
     # ----------------------
     # Indexing helpers
@@ -254,7 +294,7 @@ class EmbeddingsManager:
         self.collection.add(
             documents=chunks,
             ids=ids,
-            metadatas=[{"note_path": file_path} for _ in chunks]
+            metadatas=[{"note_path": file_path} for _ in chunks],
         )
         self.chroma_client.persist()
         return len(chunks)

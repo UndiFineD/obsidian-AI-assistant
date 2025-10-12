@@ -1,4 +1,3 @@
-
 """
 Centralized settings for backend and plugin bridge.
 
@@ -32,7 +31,7 @@ _ALLOWED_UPDATE_KEYS = {
     "chunk_size",
     "chunk_overlap",
     "similarity_threshold",
-    "vosk_model_path"
+    "vosk_model_path",
 }
 
 
@@ -48,8 +47,8 @@ class Settings(BaseModel):
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
     vault_path: str = "vault"
-    models_dir: str = "models"
-    cache_dir: str = "cache"
+    models_dir: str = "backend/models"
+    cache_dir: str = "backend/cache"
 
     # LLM / embeddings / vector DB
     model_backend: str = "llama_cpp"
@@ -86,7 +85,6 @@ class Settings(BaseModel):
         return p if p.is_absolute() else self.base_dir / p
 
 
-
 def _load_yaml_config() -> dict:
     cfg_path = Path(__file__).parent / "config.yaml"
     try:
@@ -103,7 +101,6 @@ def _load_yaml_config() -> dict:
         return data
     except Exception:
         return {}
-
 
 
 def _coerce_value_for_field(field_name: str, value: Any) -> Optional[Any]:
@@ -126,6 +123,7 @@ def _coerce_value_for_field(field_name: str, value: Any) -> Optional[Any]:
         # If coercion fails, return None to indicate the value should be skipped.
         return None
 
+
 def _merge_env(overrides: dict) -> dict:
     """Map selected environment variables into settings fields."""
     env_map = {
@@ -145,7 +143,7 @@ def _merge_env(overrides: dict) -> dict:
         "CHUNK_SIZE": "chunk_size",
         "CHUNK_OVERLAP": "chunk_overlap",
         "SIMILARITY_THRESHOLD": "similarity_threshold",
-        "VOSK_MODEL_PATH": "vosk_model_path"
+        "VOSK_MODEL_PATH": "vosk_model_path",
     }
 
     for env_key, field in env_map.items():
@@ -179,6 +177,7 @@ def update_settings(updates: dict) -> Settings:
     """Update settings with new values and reload."""
     import yaml
     from pathlib import Path
+
     # Filter updates to only include whitelisted keys
     filtered_updates = {}
     for key, value in updates.items():
@@ -188,7 +187,7 @@ def update_settings(updates: dict) -> Settings:
                 if key == "chunk_size" and isinstance(value, str):
                     filtered_updates[key] = int(value)
                 elif key == "gpu" and isinstance(value, str):
-                    filtered_updates[key] = value.lower() in ('true', '1', 'yes')
+                    filtered_updates[key] = value.lower() in ("true", "1", "yes")
                 elif key == "similarity_threshold" and isinstance(value, str):
                     filtered_updates[key] = float(value)
                 elif key == "vault_path":

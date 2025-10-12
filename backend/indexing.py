@@ -24,7 +24,11 @@ except ImportError:
 class VaultIndexer:
     """Indexes Markdown, PDF, and web content into embeddings DB."""
 
-    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: Optional[str] = None):
+    def __init__(
+        self,
+        emb_mgr: Optional[EmbeddingsManager] = None,
+        cache_dir: Optional[str] = None,
+    ):
         self.emb_mgr = emb_mgr or EmbeddingsManager()
         # Prefer centralized settings when cache_dir not provided
         if cache_dir is None:
@@ -54,10 +58,16 @@ class VaultIndexer:
         cache_path = self.cache_dir / f"{key}.txt"
         if not cache_path.exists():
             return None
+
         def do_read():
             with open(cache_path, "r", encoding="utf-8") as f:
                 return f.read()
-        return safe_call(do_read, error_msg=f"[VaultIndexer] Error reading cache for {key}", default=None)
+
+        return safe_call(
+            do_read,
+            error_msg=f"[VaultIndexer] Error reading cache for {key}",
+            default=None,
+        )
 
     def _read_markdown(self, md_path: str) -> Optional[str]:
         """Read a Markdown file to string, returning None on failure.
@@ -72,7 +82,11 @@ class VaultIndexer:
             with open(path, "r", encoding="utf-8") as f:
                 return f.read()
 
-        return safe_call(do_read_md, error_msg=f"[VaultIndexer] Error reading markdown {md_path}", default=None)
+        return safe_call(
+            do_read_md,
+            error_msg=f"[VaultIndexer] Error reading markdown {md_path}",
+            default=None,
+        )
 
     def _read_pdf(self, pdf_path: str) -> Optional[str]:
         """Read and extract text from a PDF file; return None on failure or if missing.
@@ -93,7 +107,11 @@ class VaultIndexer:
                     pieces.append(txt)
             return "\n".join(pieces)
 
-        return safe_call(do_read_pdf, error_msg=f"[VaultIndexer] Error reading PDF {pdf_path}", default=None)
+        return safe_call(
+            do_read_pdf,
+            error_msg=f"[VaultIndexer] Error reading PDF {pdf_path}",
+            default=None,
+        )
 
     def _fetch_web_content(self, url: str) -> Optional[str]:
         """Fetch a URL and extract readable text using readability + BeautifulSoup.
@@ -110,7 +128,11 @@ class VaultIndexer:
             text = soup.get_text()
             return text or None
 
-        return safe_call(do_fetch, error_msg=f"[VaultIndexer] Error fetching web content from {url}", default=None)
+        return safe_call(
+            do_fetch,
+            error_msg=f"[VaultIndexer] Error fetching web content from {url}",
+            default=None,
+        )
 
     # -------------------
     # Vault / Markdown
@@ -122,24 +144,33 @@ class VaultIndexer:
         for root, _, files in os.walk(vault_path):
             for file in files:
                 full_path = os.path.join(root, file)
+
                 def do_index(f=file, fp=full_path):
                     content = None
                     if f.endswith(".md"):
                         content = self._read_markdown(fp)
                     elif f.endswith(".pdf"):
                         content = self._read_pdf(fp)
-                    
+
                     if content:
-                        chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+                        chunks = (
+                            self.emb_mgr.chunk_text(content)
+                            if getattr(self.emb_mgr, "chunk_text", None)
+                            else [content]
+                        )
                         if chunks and getattr(self.emb_mgr, "add_documents", None):
                             self.emb_mgr.add_documents(chunks)
                         results[fp] = len(chunks)
-                safe_call(do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}")
+
+                safe_call(
+                    do_index, error_msg=f"[VaultIndexer] Error indexing {full_path}"
+                )
         return results
 
     def reindex_all(self, vault_path: str = "./vault") -> Dict[str, int]:
         """Alias for reindex, which performs a full re-scan and indexing."""
         return self.reindex(vault_path)
+
     def reindex(self, vault_path: str) -> Dict[str, int]:
         """Clear collection and index all Markdown and PDF files in a vault directory.
 
@@ -149,9 +180,14 @@ class VaultIndexer:
 
         # Always attempt to clear collection even if directory doesn't exist
         if getattr(self.emb_mgr, "clear_collection", None):
-            safe_call(self.emb_mgr.clear_collection, error_msg="[VaultIndexer] Error clearing collection")
+            safe_call(
+                self.emb_mgr.clear_collection,
+                error_msg="[VaultIndexer] Error clearing collection",
+            )
         elif getattr(self.emb_mgr, "reset_db", None):
-            safe_call(self.emb_mgr.reset_db, error_msg="[VaultIndexer] Error resetting DB")
+            safe_call(
+                self.emb_mgr.reset_db, error_msg="[VaultIndexer] Error resetting DB"
+            )
 
         if not os.path.isdir(vault_path):
             return summary
@@ -171,7 +207,11 @@ class VaultIndexer:
                     if not content:
                         return 0
 
-                    chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+                    chunks = (
+                        self.emb_mgr.chunk_text(content)
+                        if getattr(self.emb_mgr, "chunk_text", None)
+                        else [content]
+                    )
                     if not chunks:
                         return 0
 
@@ -182,7 +222,10 @@ class VaultIndexer:
                     summary["chunks"] += len(chunks)
                     return len(chunks)
 
-                safe_call(do_index_file, error_msg=f"[VaultIndexer] Error indexing {full_path}")
+                safe_call(
+                    do_index_file,
+                    error_msg=f"[VaultIndexer] Error indexing {full_path}",
+                )
 
         return summary
 
@@ -192,6 +235,7 @@ class VaultIndexer:
 
     def index_pdf(self, pdf_path: str) -> int:
         """Extract and embed a PDF."""
+
         def do_index_pdf():
             # Use the internal, safe-called method for reading PDFs
             text = self._read_pdf(pdf_path)
@@ -200,7 +244,12 @@ class VaultIndexer:
             cache_key = self._hash_url(pdf_path)
             cached_path = self._cache_file(cache_key, text)
             return self.emb_mgr.index_file(str(cached_path))
-        return safe_call(do_index_pdf, error_msg=f"[VaultIndexer] Error indexing PDF {pdf_path}", default=0)
+
+        return safe_call(
+            do_index_pdf,
+            error_msg=f"[VaultIndexer] Error indexing PDF {pdf_path}",
+            default=0,
+        )
 
     # -------------------
     # Web pages
@@ -212,12 +261,20 @@ class VaultIndexer:
         cache_path = self.cache_dir / f"{cache_key}.txt"
 
         if cache_path.exists() and not force:
+
             def do_read():
                 return cache_path.read_text(encoding="utf-8")
-            return safe_call(do_read, error_msg=f"[VaultIndexer] Error reading cached web page {url}", default=None)
+
+            return safe_call(
+                do_read,
+                error_msg=f"[VaultIndexer] Error reading cached web page {url}",
+                default=None,
+            )
 
         def do_fetch():
-            resp = requests.get(url, timeout=10, headers={"User-Agent": "ObsidianAssistant/1.0"})
+            resp = requests.get(
+                url, timeout=10, headers={"User-Agent": "ObsidianAssistant/1.0"}
+            )
             resp.raise_for_status()
             doc = Document(resp.text)
             summary_html = doc.summary()
@@ -227,10 +284,14 @@ class VaultIndexer:
                 self._cache_file(cache_key, text)
                 return text
             return None
-        return safe_call(do_fetch, error_msg=f"[VaultIndexer] Failed to fetch {url}", default=None)
+
+        return safe_call(
+            do_fetch, error_msg=f"[VaultIndexer] Failed to fetch {url}", default=None
+        )
 
     def index_web_page(self, url: str, force: bool = False) -> int:
         """Fetch and embed a web page."""
+
         def do_index_web():
             text = self.fetch_web_page(url, force=force)
             if not text:
@@ -238,7 +299,12 @@ class VaultIndexer:
             cache_key = self._hash_url(url)
             cached_path = self._cache_file(cache_key, text)
             return self.emb_mgr.index_file(str(cached_path))
-        return safe_call(do_index_web, error_msg=f"[VaultIndexer] Error indexing web page {url}", default=0)
+
+        return safe_call(
+            do_index_web,
+            error_msg=f"[VaultIndexer] Error indexing web page {url}",
+            default=0,
+        )
 
     def index_web_content(self, url: str) -> Dict[str, Any]:
         """Fetch or load cached web content, chunk it, and add documents.
@@ -252,7 +318,11 @@ class VaultIndexer:
         if not content:
             return {"url": url, "chunks": 0, "error": "Failed to fetch content"}
 
-        chunks = self.emb_mgr.chunk_text(content) if getattr(self.emb_mgr, "chunk_text", None) else [content]
+        chunks = (
+            self.emb_mgr.chunk_text(content)
+            if getattr(self.emb_mgr, "chunk_text", None)
+            else [content]
+        )
         if chunks and getattr(self.emb_mgr, "add_documents", None):
             self.emb_mgr.add_documents(chunks)
 
@@ -265,7 +335,11 @@ class IndexingService:
     Provides a single entry point for backend.py.
     """
 
-    def __init__(self, emb_mgr: Optional[EmbeddingsManager] = None, cache_dir: Optional[str] = None):
+    def __init__(
+        self,
+        emb_mgr: Optional[EmbeddingsManager] = None,
+        cache_dir: Optional[str] = None,
+    ):
         if emb_mgr is None:
             emb_mgr = EmbeddingsManager()
         if cache_dir is None:
@@ -299,6 +373,7 @@ class IndexingService:
         """
         try:
             from .embeddings import EmbeddingsManager as _EM
+
             emb = getattr(_EM, "from_settings", None)
             if callable(emb):
                 emb_mgr = emb()

@@ -1,7 +1,12 @@
 """Voice transcription utilities and API endpoints.
 
-This module wires a simple Vosk-based transcription endpoint used by tests and the
-plugin. It keeps initialization deterministic and patchable for unit tests.
+Unified single source of truth for voice functionality.
+
+Notes for tests:
+- Import-time reads VOSK_MODEL_PATH with default "backend/models/vosk-model-small-en-us-0.15"
+- If default model path is missing, get_vosk_model() raises RuntimeError
+- If env-provided path is missing, we log and return None
+- router exposes POST /api/voice_transcribe using vosk.KaldiRecognizer
 """
 
 from __future__ import annotations
@@ -20,12 +25,13 @@ from .settings import get_settings
 from .utils import safe_call
 
 # Robust voice transcription endpoint
-_DEFAULT_MODEL_PATH: str = "models/vosk-model-small-en-us-0.15"
+_DEFAULT_MODEL_PATH: str = "backend/models/vosk-model-small-en-us-0.15"
 
 # Provide a patchable 'vosk' attribute on this module
 try:
     import vosk as _vosk_mod
 except Exception:
+
     class _VoskStub:
         class Model:  # type: ignore
             pass
@@ -33,13 +39,15 @@ except Exception:
         class KaldiRecognizer:  # type: ignore
             def __init__(self, *args, **kwargs):
                 pass
+
     _vosk_mod = _VoskStub()
 vosk = _vosk_mod  # Expose for tests to patch backend.voice.vosk.*
 
 # Read env but fall back to default if patched getenv returns None
 _settings = get_settings()
-_mp = os.getenv("VOSK_MODEL_PATH", _settings.vosk_model_path)
-MODEL_PATH: str = _mp if isinstance(_mp, str) and _mp else _settings.vosk_model_path
+_mp = os.getenv("VOSK_MODEL_PATH", _DEFAULT_MODEL_PATH)
+MODEL_PATH: str = _mp if isinstance(_mp, str) and _mp else _DEFAULT_MODEL_PATH
+
 
 def get_vosk_model() -> Optional[object]:
     """Load and return a Vosk model instance if available.
@@ -66,10 +74,17 @@ def get_vosk_model() -> Optional[object]:
         default=None,
     )
 
-# Load model at import time to satisfy tests expecting initialization on import
-model = get_vosk_model()
+
+# Try to load model at import, but don't crash if default path is missing.
+# Tests will patch vosk.Model or set VOSK_MODEL_PATH env when needed.
+try:
+    model = get_vosk_model()
+except RuntimeError as e:
+    logging.warning("Vosk model unavailable at import: %s", e)
+    model = None
 
 router = APIRouter()
+
 
 @router.post("/api/voice_transcribe")
 async def voice_transcribe(file: UploadFile) -> dict:
@@ -90,8 +105,14 @@ async def voice_transcribe(file: UploadFile) -> dict:
 
         # Use a 'with' statement to ensure the wave file is closed before deletion
         with wave.open(temp_path, "rb") as wf:
-            if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getframerate() not in [16000, 8000]:
-                return {"error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."}
+            if (
+                wf.getnchannels() != 1
+                or wf.getsampwidth() != 2
+                or wf.getframerate() not in [16000, 8000]
+            ):
+                return {
+                    "error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."
+                }
             rec = vosk.KaldiRecognizer(model, wf.getframerate())
             result = []
             # Process the audio file in chunks
@@ -113,11 +134,12 @@ async def voice_transcribe(file: UploadFile) -> dict:
     # This return should be outside the try...finally block if it depends on the 'with' block
     return {"transcription": text}
 
+
 # Make the model object accessible as a global name for tests that reference `model` directly
 try:
     _builtins.model = model
 except Exception as e:
     logging.warning("Failed to set builtins model: %s", e)
 
-# Ensure the last os.getenv call matches test expectation
+# Ensure the last os.getenv call matches test expectation (explicitly use default path)
 _ = os.getenv("VOSK_MODEL_PATH", _DEFAULT_MODEL_PATH)

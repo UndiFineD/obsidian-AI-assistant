@@ -1,3 +1,0 @@
-# List of available models for ModelManager
-# Format: <subdir>/<filename>
-gpt4all/mistral-7b-instruct-v0.1.Q4_0.gguf

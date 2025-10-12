@@ -6,12 +6,12 @@ This package contains comprehensive tests for the Obsidian AI Assistant.
 Test Organization:
 - backend/: Backend module tests
 - integration/: Integration and end-to-end tests
-- plugin/: Plugin-specific tests
+.obsidian/plugins/obsidian-ai-assistant/: Plugin-specific tests
 - Root level: Utility and general tests
 
 Run all tests with:
     python tests/comprehensive_async_test_runner.py
-    
+
 Or use pytest directly:
     pytest tests/ -v
 """

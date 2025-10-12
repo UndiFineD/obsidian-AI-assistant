@@ -11,45 +11,12 @@
 # $KEEP_LOG_DAYS = 7
 
 # Backend server configuration (defaults)
-$global:SERVER_START_TIMEOUT = 3           # Seconds to wait for backend server to start
-$global:HEALTH_CHECK_TIMEOUT = 5           # Seconds to wait for health check response
-$global:BACKEND_HOST = "127.0.0.1"         # Host for backend server
-$global:BACKEND_PORT = 8000                # Port for backend server
-$global:BACKEND_RELOAD = $false            # Enable auto-reload for backend server
+if (-not $global:SERVER_START_TIMEOUT) { $global:SERVER_START_TIMEOUT = 3 }
+if (-not $global:HEALTH_CHECK_TIMEOUT) { $global:HEALTH_CHECK_TIMEOUT = 5 }
+if (-not $global:BACKEND_HOST) { $global:BACKEND_HOST = "127.0.0.1" }
+if (-not $global:BACKEND_PORT) { $global:BACKEND_PORT = 8000 }
+if (-not $global:BACKEND_RELOAD) { $global:BACKEND_RELOAD = $false }
 
 # Plugin configuration
-$global:PLUGIN_NAME = "AI Assistant"       # Name of the plugin directory
-$global:REQUIRED_PLUGIN_FILES = @(
-    # Core
-    "main.js",
-    "manifest.json",
-    "styles.css",
-    # Views and client
-    "rightPane.js",
-    "backendClient.js",
-    # Optional features (present in repo; safe to copy if exist)
-    "voice.js",
-    "voiceInput.js",
-    "taskQueue.js",
-    "taskQueueView.js",
-    "analyticsPane.js",
-    # Enterprise (loaded conditionally in try/catch)
-    "enterpriseAuth.js",
-    "enterpriseConfig.js",
-    "adminDashboard.js"
-)                                    # List of plugin files to copy if present
-
-# Backend server configuration
-$global:SERVER_START_TIMEOUT = 3
-$global:HEALTH_CHECK_TIMEOUT = 5
-$global:BACKEND_HOST = "127.0.0.1"
-$global:BACKEND_PORT = 8000
-$global:BACKEND_RELOAD = $false
-
-# Plugin configuration
-$global:PLUGIN_NAME = "AI Assistant"
-$global:REQUIRED_PLUGIN_FILES = @(
-    "main.js",
-    "manifest.json",
-    "styles.css"
-)
+# Must match manifest.json "id": "obsidian-ai-assistant"
+if (-not $global:PLUGIN_NAME) { $global:PLUGIN_NAME = "obsidian-ai-assistant" }

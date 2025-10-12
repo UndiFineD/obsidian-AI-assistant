@@ -620,7 +620,7 @@ node -c plugin/filename.js  # Syntax validation
 ```bash
 # Linting and security
 ruff check backend/
-bandit -r backend/ -f json -o bandit_report.json
+bandit -r backend/ -f json -o tests/bandit_report.json
 
 # Type checking
 mypy backend/ --ignore-missing-imports
@@ -898,13 +898,14 @@ This specification is a living document that should evolve with the codebase. Co
 #### Automated Checks
 ```bash
 # Validate documentation against codebase
-python scripts/validate_docs.py
+# Documentation validation moved to test suite
+python -m pytest tests/ -k "doc"
 
-# Check for broken links and references
-python scripts/check_references.py
+# Reference checking integrated into tests
+python -m pytest tests/ -k "reference"
 
-# Test all code examples
-python scripts/test_examples.py
+# Code examples tested in integration tests
+python -m pytest tests/integration/ -v
 ```
 
 ### Success Criteria

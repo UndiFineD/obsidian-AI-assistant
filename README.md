@@ -60,8 +60,10 @@ Backend coverage snapshot (from CI/local): 61% overall backend line coverage.
 ```
 
 #### Latest CI/CD Results (Oct 11, 2025)
+
 - Test Suite: 498/498 passed (100%)
 - Backend Coverage: 61%
+- Code Quality: Lint clean (Flake8), formatted (Black), type-checked (MyPy)
 - Status: Production Ready
 
 ### **Enterprise Architecture**
@@ -86,7 +88,7 @@ Support for LLaMA/GPT4All models with hybrid routing
 
 ## Install Plugin in Obsidian
 
-1. Copy the `plugin/` folder contents to your vault's `.obsidian/plugins/obsidian-ai-assistant/`
+1. Copy the `.obsidian/plugins/obsidian-ai-assistant/` folder contents to your vault's `.obsidian/plugins/obsidian-ai-assistant/`
 2. Ensure all required files are present:
     - `main.js`, `manifest.json` (core plugin files)
     - `rightPane.js`, `backendClient.js` (UI and API communication)
@@ -100,31 +102,16 @@ Support for LLaMA/GPT4All models with hybrid routing
 
 **Troubleshooting Plugin Load Issues:**
 
-- Verify all `.js` files exist in the plugin folder
-- Check Obsidian Developer Console (Ctrl+Shift+I) for error messages
-- Ensure file permissions are readable
-- Restart Obsidian after copying files
-- Settings Management: Environment variables → YAML → code defaults precedence
-- **Semantic Search**: Vector embeddings with ChromaDB for similarity search
-- **Document Indexing**: Markdown, PDF, and web page indexing with caching
-- **Voice Input**: Vosk-based speech recognition with push-to-talk functionality
-- **Task Queue System**: Batch processing with analytics and progress tracking
-- **Comprehensive Caching**: TTL-based caching for embeddings, file hashes, and responses
-- **Security**: Optional encryption for cached data with Fernet encryption
-- **FastAPI Backend**: RESTful API with automatic documentation and error handling
-
----
-
 ## **Project Structure**
 
+Then copy the files in `.obsidian/plugins/obsidian-ai-assistant/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
+
 ````text
-obsidian-llm-assistant/
+├─ .obsidian/plugins/obsidian-ai-assistant/                 # Obsidian plugin
 ├─ backend/                # FastAPI backend modules
-├─ plugin/                 # Obsidian plugin
-├─ models/                 # Offline LLaMA/GPT4All models
-├─ vault/                  # Example vault for notes
-├─ cache/                  # Cached answers
-├─ venv/                   # Python virtual environment
+├─ backend/models/         # Offline LLaMA/GPT4All models
+├─ backend/cache/          # Cached answers
+├─ .venv/                   # Python virtual environment
 ├─ setup.sh                # Linux/macOS setup script
 ├─ setup.ps1               # Windows setup script
 └─ README.md
@@ -150,7 +137,7 @@ backend/enterprise/
 ### **Enterprise Plugin Components**
 
 ```bash
-plugin/
+.obsidian/plugins/obsidian-ai-assistant/
 ├── adminDashboard.js    # Admin interface
 ├── enterpriseAuth.js    # SSO authentication
 ├── enterpriseConfig.js  # Enterprise settings
@@ -212,9 +199,9 @@ bash setup.sh
 
 ```bash
 # 1. Create Python virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or: venv\Scripts\Activate.ps1  # Windows
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# or: .venv\Scripts\Activate.ps1  # Windows
 
 # 2. Install Python dependencies
 pip install -r requirements.txt
@@ -225,7 +212,7 @@ winget install llama.cpp  # Windows
 # or: Manual download from GitHub releases
 
 # 4. Download AI models (automated)
-python scripts/download_models.py
+# Model download functionality moved to backend setup
 ```
 
 **What the setup includes:**
@@ -255,18 +242,19 @@ continuous_mode: false
 
 # Paths
 vault_path: 'vault'
-models_dir: 'models'
+models_dir: 'backend/models'
 cache_dir: 'cache'
+cache_dir: 'backend/cache'
 
 # LLM Settings
 model_backend: 'llama_cpp'
-model_path: 'models/llama-7b.gguf'
+model_path: 'backend/models/llama-7b.gguf'
 embed_model: 'sentence-transformers/all-MiniLM-L6-v2'
 vector_db: 'chroma'
 gpu: true
 
 # Voice Settings
-vosk_model_path: 'models/vosk-model-small-en-us-0.15'
+vosk_model_path: 'backend/models/vosk-model-small-en-us-0.15'
 ```
 
 #### **Runtime Configuration**
@@ -289,7 +277,7 @@ python test_server.py
 Content-Type: application/json
 {
 "vault_path": "new_vault",
-"gpu": false
+Then copy the files in `.obsidian/plugins/obsidian-ai-assistant/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
 }
 
 ## Reload settings from file
@@ -305,7 +293,7 @@ Content-Type: application/json
 ```
 
 $env:VAULT_PATH="$(Resolve-Path .\vault)"
-$env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
+$env:VOSK_MODEL_PATH="$(Resolve-Path .\backend\models\vosk-model-small-en-us-0.15)"
 $env:API_PORT=8000
 $env:VAULT_PATH="$(Resolve-Path .\vault)"
 $env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
@@ -341,7 +329,7 @@ Copy-Item .\plugin\config.template.json .\plugin\config.json -Force
 notepad .\plugin\config.json
 ```
 
-Then copy the files in `plugin/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
+Then copy the files in `.obsidian/plugins/obsidian-ai-assistant/` to your Obsidian vault plugins folder (e.g., `C:\Users\<you>\Vault\.obsidian\plugins\obsidian-ai-assistant\`).
 No Node.js build step is required—the plugin JS and CSS are ready-to-use.
 
 ---
@@ -352,12 +340,12 @@ No Node.js build step is required—the plugin JS and CSS are ready-to-use.
 
 ```bash
 # Linux/macOS
-source venv/bin/activate
+source .venv/bin/activate
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Windows PowerShell
-& venv\Scripts\Activate.ps1
+& .venv\Scripts\Activate.ps1
 cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ```
@@ -404,7 +392,7 @@ Windows note (port binding): If you see WinError 10013 when starting Uvicorn on 
 
 ### **3. Install Plugin in Obsidian**
 
-1. Copy the `plugin/` folder to your vault’s `.obsidian/plugins/obsidian-llm-plugin/`
+1. Copy the `.obsidian/plugins/obsidian-ai-assistant/` folder to your vault’s `.obsidian/plugins/obsidian-ai-assistant/`
 2. Open Obsidian → Settings → Community Plugins → Enable `Obsidian LLM Assistant`
 3. Configure:
     - **Backend URL**: `http://localhost:8000`
@@ -486,7 +474,7 @@ The plugin follows PEP8-inspired JavaScript conventions for consistency and main
 
 ```bash
 # JavaScript code quality validation
-pytest tests/plugin/test_js_code_quality.py -v
+pytest tests/obsidian-ai-assistant/test_js_code_quality.py -v
 
 # Automatic style fixing
 python fix_js_quality.py
@@ -544,7 +532,7 @@ tests/
 │   ├── test_security.py        # Encryption & authentication
 │   ├── test_settings.py        # Configuration management
 │   └── test_voice.py           # Speech recognition & processing
-├── plugin/                      # Plugin system tests (100% pass rate)
+├── .obsidian/plugins/obsidian-ai-assistant/                      # Plugin system tests (100% pass rate)
 │   ├── test_plugin_structure.py # File structure validation
 │   ├── test_plugin_integration.py # Obsidian integration
 │   └── test_enterprise_features.py # Enterprise functionality
@@ -576,9 +564,9 @@ tests/
 
 ```bash
 # Activate environment
-source venv/bin/activate  # Linux/macOS
+source .venv/bin/activate  # Linux/macOS
 # or
-& venv\Scripts\Activate.ps1  # Windows
+& .venv\Scripts\Activate.ps1  # Windows
 
 # Install test dependencies
 pip install pytest pytest-cov pytest-asyncio
@@ -608,7 +596,7 @@ This bypasses enterprise authentication middleware during tests only and mirrors
 ```bash
 # Run specific test categories
 pytest tests/backend/ -v                    # Backend tests only
-pytest tests/plugin/ -v                     # Plugin tests only
+pytest tests/obsidian-ai-assistant/ -v                     # Plugin tests only
 pytest tests/performance/ -v                # Performance tests only
 
 # Run specific modules
@@ -617,7 +605,7 @@ pytest tests/backend/test_security.py -v    # Security tests
 pytest tests/backend/test_modelmanager.py -v # Model management tests
 
 # JavaScript Quality Tests
-pytest tests/plugin/test_js_code_quality.py -v  # JavaScript validation tests
+pytest tests/obsidian-ai-assistant/test_js_code_quality.py -v  # JavaScript validation tests
 ```
 
 Dedicated async-heavy suites you can run directly:

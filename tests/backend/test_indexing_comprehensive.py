@@ -637,6 +637,7 @@ class TestPDFIndexing:
     def test_extract_pdf_text_success(self, mock_pdf_reader, temp_cache_dir):
         """Test successful PDF text extraction."""
         from backend.indexing import VaultIndexer
+
         with patch("backend.indexing.EmbeddingsManager"):
             indexer = VaultIndexer(cache_dir=temp_cache_dir)
         mock_reader = Mock()
@@ -656,6 +657,7 @@ class TestPDFIndexing:
     def test_extract_pdf_text_error(self, mock_pdf_reader, temp_cache_dir):
         """Test PDF text extraction with error."""
         from backend.indexing import VaultIndexer
+
         with patch("backend.indexing.EmbeddingsManager"):
             indexer = VaultIndexer(cache_dir=temp_cache_dir)
         mock_pdf_reader.side_effect = Exception("PDF parsing failed")

@@ -76,7 +76,7 @@ brew install llama.cpp
 ```bash
 # 1. Python environment setup
 python -m venv venv
-source venv/bin/activate  # Linux/macOS
+source .venv/bin/activate  # Linux/macOS
 # or: venv\Scripts\Activate.ps1  # Windows
 
 # 2. Install dependencies

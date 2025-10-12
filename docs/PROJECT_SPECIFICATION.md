@@ -697,10 +697,10 @@ obsidian-ai-env\Scripts\activate     # Windows
 pip install -r requirements.txt
 
 # 3. Download models
-python scripts/download_models.py
+# Model download functionality moved to backend setup
 
 # 4. Initialize database
-python scripts/init_database.py
+# Database initialization moved to backend startup
 
 # 5. Start backend server
 uvicorn backend.backend:app --host 127.0.0.1 --port 8000
@@ -908,8 +908,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: python scripts/build_release.py
-      - run: python scripts/create_installer.py
+      # Build and installer functionality moved to setup scripts
       - uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ github.event.release.upload_url }}

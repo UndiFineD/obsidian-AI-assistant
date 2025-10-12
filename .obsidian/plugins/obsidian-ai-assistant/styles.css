@@ -1,0 +1,81 @@
+/* Basic styles for enterprise components to satisfy tests */
+.enterprise-dashboard-header { display: flex; align-items: center; justify-content: space-between; }
+.dashboard-title { font-size: 1.4em; margin: 0; }
+.status-badge.enterprise { background: #2d7; color: #000; padding: 2px 6px; border-radius: 4px; }
+.enterprise-dashboard-content { padding: 8px; }
+.nav-tab { margin-right: 6px; }
+.nav-tab.active { font-weight: bold; }
+.metric-card { padding: 8px; border: 1px solid var(--background-modifier-border); border-radius: 6px; }
+.role-badge { background: #eef; padding: 2px 4px; border-radius: 4px; margin-right: 4px; }
+.status-badge.active { background: #cfc; }
+.severity-badge.critical { background: #f88; }
+/* Obsidian AI Assistant Styles */
+
+.ai-assistant-pane {
+    padding: 16px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.ai-assistant-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 12px;
+}
+
+.ai-assistant-btn {
+    background: #4f8cff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    margin: 4px 0;
+    transition: background 0.2s;
+}
+
+.ai-assistant-btn:hover {
+    background: #357ae8;
+}
+
+.ai-assistant-error {
+    color: #d32f2f;
+    background: #fff0f0;
+    border: 1px solid #d32f2f;
+    padding: 8px;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.note-box {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #fff;
+}
+
+.role-badge {
+    display: inline-block;
+    background: #e3f2fd;
+    color: #1976d2;
+    border-radius: 12px;
+    padding: 2px 8px;
+    margin-right: 4px;
+    font-size: 0.9em;
+}
+
+/* Enterprise admin panel style required by tests */
+.enterprise-admin-panel {
+     background: #f5f5f5;
+     border: 1px solid #ccc;
+     padding: 16px;
+     font-size: 16px;
+}
+
+/* Additional enterprise styles required by tests */
+.enterprise-nav { display: flex; gap: 8px; margin-bottom: 10px; }
+.enterprise-table { width: 100%; border-collapse: collapse; }
+.enterprise-table th, .enterprise-table td { border: 1px solid var(--background-modifier-border); padding: 6px; }
+.enterprise-form-group { margin: 8px 0; display: flex; flex-direction: column; }

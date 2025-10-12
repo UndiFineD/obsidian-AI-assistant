@@ -12,6 +12,7 @@ from typing import Generator, Dict
 from unittest.mock import Mock, patch, MagicMock, mock_open
 import unittest.mock as _um
 import pytest
+
 # pytest_asyncio ensures plugin is importable
 
 # Ensure Mock behaves like MagicMock so __call__ is also a Mock in tests
@@ -19,13 +20,16 @@ _um.Mock = _um.MagicMock
 pytest_plugins = ("pytest_asyncio",)
 
 # Add project root to Python path for proper package imports - STRONGER! 💪
-project_root = Path(__file__).parent.parent  # Go up one level from tests to project root
+project_root = Path(
+    __file__
+).parent.parent  # Go up one level from tests to project root
 sys.path.insert(0, str(project_root))
 
 # ============================================================================
 # CRITICAL: PREVENT HUGGINGFACE LIBRARY CONFLICTS
 # Mock HuggingFace modules BEFORE any imports can cause metaclass conflicts
 # ============================================================================
+
 
 def create_mock_huggingface_hub():
     """Create comprehensive HuggingFace Hub mock module."""
@@ -43,6 +47,7 @@ def create_mock_huggingface_hub():
     hub_mock.HUGGINGFACE_HUB_CACHE = "/fake/cache"
     return hub_mock
 
+
 def create_mock_transformers():
     """Create comprehensive transformers mock module."""
     transformers_mock = MagicMock()
@@ -53,16 +58,20 @@ def create_mock_transformers():
     transformers_mock.pipeline = MagicMock(return_value=MagicMock())
     return transformers_mock
 
+
 # Apply module-level mocks BEFORE any other imports
-sys.modules['huggingface_hub'] = create_mock_huggingface_hub()
-sys.modules['huggingface_hub.login'] = MagicMock()
-sys.modules['huggingface_hub._login'] = MagicMock()  # Prevent the problematic _login module
-sys.modules['transformers'] = create_mock_transformers()
+sys.modules["huggingface_hub"] = create_mock_huggingface_hub()
+sys.modules["huggingface_hub.login"] = MagicMock()
+sys.modules["huggingface_hub._login"] = (
+    MagicMock()
+)  # Prevent the problematic _login module
+sys.modules["transformers"] = create_mock_transformers()
 
 # Also mock sentence-transformers early
 sentence_transformers_mock = MagicMock()
 sentence_transformers_mock.SentenceTransformer = MagicMock
-sys.modules['sentence_transformers'] = sentence_transformers_mock
+sys.modules["sentence_transformers"] = sentence_transformers_mock
+
 
 # Mock llama_cpp and gpt4all at module level to prevent import issues
 def create_mock_llama_cpp():
@@ -70,6 +79,7 @@ def create_mock_llama_cpp():
     mock = MagicMock()
     mock.Llama = MagicMock()
     return mock
+
 
 def create_mock_gpt4all():
     """Create mock GPT4All module."""
@@ -79,27 +89,32 @@ def create_mock_gpt4all():
     gpt4all_instance.generate.return_value = "Mock GPT4All response"
     mock.GPT4All = MagicMock(return_value=gpt4all_instance)
     return mock
-    sys.modules['llama_cpp'] = create_mock_llama_cpp()
-    sys.modules['gpt4all'] = create_mock_gpt4all()
+    sys.modules["llama_cpp"] = create_mock_llama_cpp()
+    sys.modules["gpt4all"] = create_mock_gpt4all()
     print("🔧 HuggingFace library conflicts prevented with early module mocking")
+
 
 # ============================================================================
 # SESSION-SCOPED FIXTURES
 # ============================================================================
+
 
 @pytest.fixture(scope="session")
 def project_root_path() -> Path:
     """Get the project root directory path."""
     return Path(__file__).parent.parent  # Project root is parent of tests directory
 
+
 @pytest.fixture(scope="session")
 def backend_path(project_root_path: Path) -> Path:
     """Get the backend directory path."""
     return project_root_path / "backend"
 
+
 # ============================================================================
 # FUNCTION-SCOPED FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def temp_dir() -> Generator[str, None, None]:
@@ -109,6 +124,7 @@ def temp_dir() -> Generator[str, None, None]:
         yield temp_path
     finally:
         shutil.rmtree(temp_path, ignore_errors=True)
+
 
 @pytest.fixture
 def temp_file() -> Generator[str, None, None]:
@@ -123,15 +139,16 @@ def temp_file() -> Generator[str, None, None]:
         except OSError:
             pass
 
+
 @pytest.fixture
 def mock_env_vars() -> Generator[Dict[str, str], None, None]:
     """Provide mock environment variables and clean them up."""
     original_env = os.environ.copy()
     mock_vars = {
         "HF_TOKEN": "test_hf_token_12345",
-        "VOSK_MODEL_PATH": "tests/models/vosk-test",
+        "VOSK_MODEL_PATH": "backend/models/vosk-test",
         "TEST_MODE": "true",
-        "CUDA_VISIBLE_DEVICES": "-1"  # Disable CUDA for tests
+        "CUDA_VISIBLE_DEVICES": "-1",  # Disable CUDA for tests
     }
     # Set mock environment variables
     os.environ.update(mock_vars)
@@ -142,30 +159,33 @@ def mock_env_vars() -> Generator[Dict[str, str], None, None]:
         os.environ.clear()
         os.environ.update(original_env)
 
+
 # ============================================================================
 # MOCK FIXTURES FOR EXTERNAL DEPENDENCIES
 # ============================================================================
 
+
 @pytest.fixture
 def mock_sentence_transformers():
     """Mock sentence-transformers SentenceTransformer."""
-    with patch('sentence_transformers.SentenceTransformer') as mock:
+    with patch("sentence_transformers.SentenceTransformer") as mock:
         mock_instance = Mock()
         mock_instance.encode.return_value = [[0.1, 0.2, 0.3, 0.4]]  # Mock embedding
         mock.return_value = mock_instance
         yield mock_instance
 
+
 @pytest.fixture
 def mock_chromadb():
     """Mock ChromaDB client."""
-    with patch('chromadb.PersistentClient') as mock_client:
+    with patch("chromadb.PersistentClient") as mock_client:
         # Mock collection
         mock_collection = Mock()
         mock_collection.add.return_value = None
         mock_collection.query.return_value = {
-            'documents': [['test document']],
-            'distances': [[0.5]],
-            'metadatas': [[{'source': 'test'}]]
+            "documents": [["test document"]],
+            "distances": [[0.5]],
+            "metadatas": [[{"source": "test"}]],
         }
         mock_collection.count.return_value = 1
         # Mock client
@@ -173,57 +193,64 @@ def mock_chromadb():
         mock_client_instance.get_or_create_collection.return_value = mock_collection
         mock_client_instance.delete_collection.return_value = None
         mock_client.return_value = mock_client_instance
-        
+
         yield mock_client_instance
+
 
 @pytest.fixture
 def mock_llama_cpp():
     """Mock llama-cpp-python Llama model."""
-    with patch('llama_cpp.Llama') as mock:
+    with patch("llama_cpp.Llama") as mock:
         mock_instance = Mock()
         mock_instance.create_completion.return_value = {
-            'choices': [{'text': 'Mock LLaMA response'}]
+            "choices": [{"text": "Mock LLaMA response"}]
         }
         mock_instance.__call__.return_value = {
-            'choices': [{'text': 'Mock LLaMA response'}]
+            "choices": [{"text": "Mock LLaMA response"}]
         }
         mock.return_value = mock_instance
         yield mock_instance
 
+
 @pytest.fixture
 def mock_gpt4all():
     """Mock GPT4All model."""
-    with patch('gpt4all.GPT4All') as mock:
+    with patch("gpt4all.GPT4All") as mock:
         mock_instance = Mock()
         mock_instance.generate.return_value = "Mock GPT4All response"
         mock.return_value = mock_instance
         yield mock_instance
 
+
 @pytest.fixture
 def mock_huggingface_hub():
     """Mock Hugging Face Hub functions - enhanced version."""
     # Use the already mocked module from sys.modules
-    hub_mock = sys.modules['huggingface_hub']
+    hub_mock = sys.modules["huggingface_hub"]
     # Reset and configure mocks for this test
     hub_mock.login.reset_mock()
     hub_mock.hf_hub_download.reset_mock()
     hub_mock.login.return_value = None
     hub_mock.hf_hub_download.return_value = "/fake/path/to/model.bin"
     yield {
-        'login': hub_mock.login,
-        'download': hub_mock.hf_hub_download,
-        'module': hub_mock
+        "login": hub_mock.login,
+        "download": hub_mock.hf_hub_download,
+        "module": hub_mock,
     }
+
 
 @pytest.fixture
 def mock_model_files():
     """Mock model file operations for comprehensive model testing."""
-    with patch('os.path.exists') as mock_exists, \
-        patch('os.path.isfile') as mock_isfile, \
-        patch('os.path.isdir') as mock_isdir, \
-        patch('pathlib.Path.exists') as mock_path_exists, \
-        patch('pathlib.Path.is_file') as mock_path_isfile, \
-        patch('pathlib.Path.is_dir') as mock_path_isdir:
+    with patch("os.path.exists") as mock_exists, patch(
+        "os.path.isfile"
+    ) as mock_isfile, patch("os.path.isdir") as mock_isdir, patch(
+        "pathlib.Path.exists"
+    ) as mock_path_exists, patch(
+        "pathlib.Path.is_file"
+    ) as mock_path_isfile, patch(
+        "pathlib.Path.is_dir"
+    ) as mock_path_isdir:
         # Configure realistic file system responses
         mock_exists.return_value = True
         mock_isfile.return_value = True
@@ -232,27 +259,32 @@ def mock_model_files():
         mock_path_isfile.return_value = True
         mock_path_isdir.return_value = True
         yield {
-            'exists': mock_exists,
-            'isfile': mock_isfile,
-            'isdir': mock_isdir,
-            'path_exists': mock_path_exists,
-            'path_isfile': mock_path_isfile,
-            'path_isdir': mock_path_isdir
+            "exists": mock_exists,
+            "isfile": mock_isfile,
+            "isdir": mock_isdir,
+            "path_exists": mock_path_exists,
+            "path_isfile": mock_path_isfile,
+            "path_isdir": mock_path_isdir,
         }
+
 
 @pytest.fixture
 def mock_model_operations():
     """Comprehensive mocking for model operations including loading and initialization."""
-    with patch('backend.modelmanager.load_dotenv') as mock_load_dotenv, \
-        patch('backend.modelmanager.HybridLLMRouter') as mock_router, \
-        patch('backend.modelmanager.huggingface_hub.login') as mock_hf_login, \
-        patch('os.getenv') as mock_getenv, \
-        patch('builtins.open', mock_open(read_data="test-model\nother-model\n")) as mock_file:
+    with patch("backend.modelmanager.load_dotenv") as mock_load_dotenv, patch(
+        "backend.modelmanager.HybridLLMRouter"
+    ) as mock_router, patch(
+        "backend.modelmanager.huggingface_hub.login"
+    ) as mock_hf_login, patch(
+        "os.getenv"
+    ) as mock_getenv, patch(
+        "builtins.open", mock_open(read_data="test-model\nother-model\n")
+    ) as mock_file:
         # Configure environment and authentication
         mock_load_dotenv.return_value = True
         mock_getenv.side_effect = lambda key, default=None: {
-            'HF_TOKEN': 'test_token_12345',
-            'HUGGINGFACE_TOKEN': 'test_token_12345'
+            "HF_TOKEN": "test_token_12345",
+            "HUGGINGFACE_TOKEN": "test_token_12345",
         }.get(key, default)
         mock_hf_login.return_value = None
         # Configure router
@@ -262,18 +294,20 @@ def mock_model_operations():
         mock_router_instance.is_ready.return_value = True
         mock_router.return_value = mock_router_instance
         yield {
-            'load_dotenv': mock_load_dotenv,
-            'router': mock_router_instance,
-            'hf_login': mock_hf_login,
-            'getenv': mock_getenv,
-            'open': mock_file
+            "load_dotenv": mock_load_dotenv,
+            "router": mock_router_instance,
+            "hf_login": mock_hf_login,
+            "getenv": mock_getenv,
+            "open": mock_file,
         }
+
 
 @pytest.fixture
 def mock_vosk():
     """Mock Vosk speech recognition."""
-    with patch('vosk.Model') as mock_model, \
-        patch('vosk.KaldiRecognizer') as mock_recognizer:
+    with patch("vosk.Model") as mock_model, patch(
+        "vosk.KaldiRecognizer"
+    ) as mock_recognizer:
         # Mock model
         mock_model_instance = Mock()
         mock_model.return_value = mock_model_instance
@@ -283,34 +317,29 @@ def mock_vosk():
         mock_recognizer_instance.Result.return_value = '{"text": "hello world"}'
         mock_recognizer_instance.FinalResult.return_value = '{"text": "final text"}'
         mock_recognizer.return_value = mock_recognizer_instance
-        yield {
-            'model': mock_model_instance,
-            'recognizer': mock_recognizer_instance
-        }
+        yield {"model": mock_model_instance, "recognizer": mock_recognizer_instance}
+
 
 @pytest.fixture
 def mock_requests():
     """Mock requests library for web requests."""
-    with patch('requests.get') as mock_get, \
-        patch('requests.post') as mock_post:
+    with patch("requests.get") as mock_get, patch("requests.post") as mock_post:
         # Mock response
         mock_response = Mock()
         mock_response.status_code = 200
         mock_response.text = "<html><body>Test content</body></html>"
         mock_response.content = b"Test content"
-        mock_response.headers = {'Content-Type': 'text/html'}
-        mock_response.json.return_value = {'status': 'success'}
+        mock_response.headers = {"Content-Type": "text/html"}
+        mock_response.json.return_value = {"status": "success"}
         mock_get.return_value = mock_response
         mock_post.return_value = mock_response
-        yield {
-            'get': mock_get,
-            'post': mock_post,
-            'response': mock_response
-        }
+        yield {"get": mock_get, "post": mock_post, "response": mock_response}
+
 
 # ============================================================================
 # FILE SYSTEM FIXTURES
 # ============================================================================
+
 
 @pytest.fixture
 def sample_markdown_files(temp_dir: str) -> Dict[str, str]:
@@ -327,9 +356,9 @@ Important information here.
 #tag1 #tag2
 """
     note1_path = os.path.join(temp_dir, "note1.md")
-    with open(note1_path, 'w', encoding='utf-8') as f:
+    with open(note1_path, "w", encoding="utf-8") as f:
         f.write(note1_content)
-    files['note1'] = note1_path
+    files["note1"] = note1_path
     # Sample note 2
     note2_content = """# Sample Note 2
 
@@ -341,10 +370,11 @@ Another test note with different content.
 [[Sample Note 1]]
 """
     note2_path = os.path.join(temp_dir, "note2.md")
-    with open(note2_path, 'w', encoding='utf-8') as f:
+    with open(note2_path, "w", encoding="utf-8") as f:
         f.write(note2_content)
-    files['note2'] = note2_path
+    files["note2"] = note2_path
     return files
+
 
 @pytest.fixture
 def sample_pdf_file(temp_dir: str) -> str:
@@ -352,9 +382,10 @@ def sample_pdf_file(temp_dir: str) -> str:
     pdf_path = os.path.join(temp_dir, "sample.pdf")
     # Create a fake PDF file (just bytes that represent PDF structure)
     pdf_content = b"%PDF-1.4\n%Mock PDF content for testing\nendobj\n%%EOF"
-    with open(pdf_path, 'wb') as f:
+    with open(pdf_path, "wb") as f:
         f.write(pdf_content)
     return pdf_path
+
 
 @pytest.fixture
 def mock_vault_structure(temp_dir: str) -> str:
@@ -366,19 +397,24 @@ def mock_vault_structure(temp_dir: str) -> str:
     os.makedirs(obsidian_dir, exist_ok=True)
     # Create some sample notes
     notes = [
-        ("Daily Note 2024-01-15.md", "# Daily Note\n\nToday's tasks:\n- Review code\n- Write tests"),
+        (
+            "Daily Note 2024-01-15.md",
+            "# Daily Note\n\nToday's tasks:\n- Review code\n- Write tests",
+        ),
         ("Project Overview.md", "# Project Overview\n\nThis is the main project file."),
-        ("Meeting Notes.md", "# Meeting Notes\n\nDiscussed testing strategy.")
+        ("Meeting Notes.md", "# Meeting Notes\n\nDiscussed testing strategy."),
     ]
     for filename, content in notes:
         file_path = os.path.join(vault_path, filename)
-        with open(file_path, 'w', encoding='utf-8') as f:
+        with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
     return vault_path
+
 
 # ============================================================================
 # MODEL FIXTURES FOR MODEL MANAGER TESTS
 # ============================================================================
+
 
 @pytest.fixture
 def temp_models_dir() -> Generator[str, None, None]:
@@ -389,50 +425,60 @@ def temp_models_dir() -> Generator[str, None, None]:
     finally:
         shutil.rmtree(d, ignore_errors=True)
 
+
 @pytest.fixture
 def mock_models_file(temp_models_dir: str) -> str:
     """Create a simple models.txt file in the temporary models directory."""
-    path = Path(temp_models_dir) / "models.txt"
-    content = "\n".join([
-        "gpt4all-lora",
-        "llama-7b-q4",
-        "code-llama-13b",
-    ])
+    path = Path(temp_models_dir) / "backend/models/models.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    content = "\n".join(
+        [
+            "gpt4all-lora",
+            "llama-7b-q4",
+            "code-llama-13b",
+        ]
+    )
     path.write_text(content, encoding="utf-8")
     return str(path)
+
 
 # ============================================================================
 # APPLICATION FIXTURES
 # ============================================================================
 
+
 @pytest.fixture
 def mock_config():
     """Provide mock configuration for tests."""
     return {
-        'backend_url': 'http://localhost:8000',
-        'models_dir': './models',
-        'cache_dir': './cache',
-        'vault_path': './vault',
-        'max_tokens': 256,
-        'temperature': 0.7,
-        'chunk_size': 512,
-        'chunk_overlap': 50,
-        'cache_ttl': 3600,
-        'enable_encryption': False
+        "backend_url": "http://localhost:8000",
+        "models_dir": "./backend/models",
+        "cache_dir": "./backend/cache",
+        "vault_path": "./vault",
+        "max_tokens": 256,
+        "temperature": 0.7,
+        "chunk_size": 512,
+        "chunk_overlap": 50,
+        "cache_ttl": 3600,
+        "enable_encryption": False,
     }
+
 
 @pytest.fixture
 def mock_fastapi_client():
     """Create a mock FastAPI test client."""
     from fastapi.testclient import TestClient
     from fastapi import FastAPI
-    
+
     # Create minimal FastAPI app for testing
     app = FastAPI()
+
     @app.get("/health")
     def health():
         return {"status": "healthy"}
+
     return TestClient(app)
+
 
 @pytest.fixture
 def mock_all_services():
@@ -462,20 +508,37 @@ def mock_all_services():
     mock_os_path.exists.return_value = True
     mock_os_path.isfile.return_value = True
     mock_os_path.isdir.return_value = True
-    with patch('backend.backend.model_manager', mock_model_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
-        patch('backend.backend.cache_manager', mock_cache_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
-        patch('backend.backend.emb_manager', mock_embeddings_manager) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
-        patch('backend.backend.vault_indexer', mock_vault_indexer) if 'backend.backend' in sys.modules else patch('builtins.id', lambda x: x), \
-        patch('os.path.exists', mock_os_path.exists), \
-        patch('os.path.isfile', mock_os_path.isfile), \
-        patch('os.path.isdir', mock_os_path.isdir):
+    with (
+        patch("backend.backend.model_manager", mock_model_manager)
+        if "backend.backend" in sys.modules
+        else patch("builtins.id", lambda x: x)
+    ), (
+        patch("backend.backend.cache_manager", mock_cache_manager)
+        if "backend.backend" in sys.modules
+        else patch("builtins.id", lambda x: x)
+    ), (
+        patch("backend.backend.emb_manager", mock_embeddings_manager)
+        if "backend.backend" in sys.modules
+        else patch("builtins.id", lambda x: x)
+    ), (
+        patch("backend.backend.vault_indexer", mock_vault_indexer)
+        if "backend.backend" in sys.modules
+        else patch("builtins.id", lambda x: x)
+    ), patch(
+        "os.path.exists", mock_os_path.exists
+    ), patch(
+        "os.path.isfile", mock_os_path.isfile
+    ), patch(
+        "os.path.isdir", mock_os_path.isdir
+    ):
         yield {
-            'model_manager': mock_model_manager,
-            'cache_manager': mock_cache_manager,
-            'emb_manager': mock_embeddings_manager,
-            'vault_indexer': mock_vault_indexer,
-            'os_path': mock_os_path
+            "model_manager": mock_model_manager,
+            "cache_manager": mock_cache_manager,
+            "emb_manager": mock_embeddings_manager,
+            "vault_indexer": mock_vault_indexer,
+            "os_path": mock_os_path,
         }
+
 
 # Provide a global 'client' fixture bound to the real backend FastAPI app if available
 @pytest.fixture
@@ -489,16 +552,21 @@ def client():
             # Some tests add backend/ to sys.path and import app at package level
             from backend import app as real_app  # type: ignore
         from fastapi.testclient import TestClient
+
         return TestClient(real_app)
     except Exception:
         # Fallback minimal app
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
+
         _app = FastAPI()
+
         @_app.get("/health")
         def _h():
             return {"status": "ok"}
+
         return TestClient(_app)
+
 
 # ---------------------------------------------------------------------------
 # AUTOUSE: Route localhost:8000 requests to in-process FastAPI app
@@ -525,11 +593,18 @@ def route_localhost_requests_to_app(monkeypatch):
         def _route(url, method, *args, **kwargs):
             try:
                 parsed = urlparse(url)
-                if parsed.scheme in ("http", "https") and parsed.netloc == "localhost:8000":
+                if (
+                    parsed.scheme in ("http", "https")
+                    and parsed.netloc == "localhost:8000"
+                ):
                     path = parsed.path or "/"
                     # Map params/json/headers
                     if method == "GET":
-                        return test_client.get(path, params=kwargs.get("params"), headers=kwargs.get("headers"))
+                        return test_client.get(
+                            path,
+                            params=kwargs.get("params"),
+                            headers=kwargs.get("headers"),
+                        )
                     if method == "POST":
                         return test_client.post(
                             path,
@@ -546,16 +621,22 @@ def route_localhost_requests_to_app(monkeypatch):
                 return orig_get(url, *args, **kwargs)
             return orig_post(url, *args, **kwargs)
 
-        monkeypatch.setattr(_requests, "get", lambda url, *a, **k: _route(url, "GET", *a, **k))
-        monkeypatch.setattr(_requests, "post", lambda url, *a, **k: _route(url, "POST", *a, **k))
+        monkeypatch.setattr(
+            _requests, "get", lambda url, *a, **k: _route(url, "GET", *a, **k)
+        )
+        monkeypatch.setattr(
+            _requests, "post", lambda url, *a, **k: _route(url, "POST", *a, **k)
+        )
         yield
     except Exception:
         # If anything goes wrong, don't block tests
         yield
 
+
 # ============================================================================
 # PYTEST HOOKS AND CONFIGURATION
 # ============================================================================
+
 
 def pytest_configure(config):
     """Configure pytest with custom markers."""
@@ -572,17 +653,13 @@ def pytest_configure(config):
     except Exception:
         pass
     config.addinivalue_line(
-        "markers",
-        "unit: mark test as a unit test (fast, isolated)"
+        "markers", "unit: mark test as a unit test (fast, isolated)"
     )
     config.addinivalue_line(
-        "markers",
-        "integration: mark test as an integration test (slower)"
+        "markers", "integration: mark test as an integration test (slower)"
     )
-    config.addinivalue_line(
-        "markers",
-        "slow: mark test as slow (model loading, etc.)"
-    )
+    config.addinivalue_line("markers", "slow: mark test as slow (model loading, etc.)")
+
 
 def pytest_collection_modifyitems(config, items):
     """Modify test collection to add markers automatically."""
@@ -594,8 +671,12 @@ def pytest_collection_modifyitems(config, items):
         if "integration" in str(item.fspath) or "test_integration" in item.name:
             item.add_marker(pytest.mark.integration)
         # Add 'slow' marker to tests that likely load models
-        if any(keyword in item.name.lower() for keyword in ['model', 'llm', 'embedding', 'download']):
+        if any(
+            keyword in item.name.lower()
+            for keyword in ["model", "llm", "embedding", "download"]
+        ):
             item.add_marker(pytest.mark.slow)
+
 
 @pytest.fixture(autouse=True)
 def test_isolation():
@@ -603,40 +684,52 @@ def test_isolation():
     # Pre-test cleanup - clear any lingering state
     import gc
     import sys
+
     # Clear any backend modules from cache to prevent state leakage
-    modules_to_clear = [k for k in sys.modules.keys() if k.startswith('backend.')]
+    modules_to_clear = [k for k in sys.modules.keys() if k.startswith("backend.")]
     for module_name in modules_to_clear:
-        if hasattr(sys.modules[module_name], '__dict__'):
+        if hasattr(sys.modules[module_name], "__dict__"):
             # Reset global variables in backend modules
             module_dict = sys.modules[module_name].__dict__
             for key, value in list(module_dict.items()):
-                if key.startswith('_') or key in ['__file__', '__name__', '__package__']:
+                if key.startswith("_") or key in [
+                    "__file__",
+                    "__name__",
+                    "__package__",
+                ]:
                     continue
                 if callable(value) and not key.isupper():
                     continue  # Skip functions and methods
                 # Reset global variables that might hold state
-                if key in ['model_manager', 'cache_manager', 'embeddings_manager', 'vault_indexer']:
+                if key in [
+                    "model_manager",
+                    "cache_manager",
+                    "embeddings_manager",
+                    "vault_indexer",
+                ]:
                     module_dict[key] = None
-    
+
     # Force garbage collection
     gc.collect()
     yield
     # Post-test cleanup
     gc.collect()
 
-@pytest.fixture(autouse=True) 
+
+@pytest.fixture(autouse=True)
 def cleanup_temp_files():
     """Automatically clean up temporary files after each test."""
     yield
     # Clean up any remaining temporary files using tempfile.gettempdir()
     import glob
     import tempfile
+
     temp_dir = tempfile.gettempdir()
     temp_patterns = [
         os.path.join(temp_dir, "obsidian_ai_test_*"),
         os.path.join(temp_dir, "test_*.tmp"),
         "temp_audio.wav",
-        "*.pyc"
+        "*.pyc",
     ]
     for pattern in temp_patterns:
         for file_path in glob.glob(pattern):

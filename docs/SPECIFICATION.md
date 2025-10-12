@@ -16,10 +16,9 @@ Offline-first AI assistant for Obsidian with comprehensive backend services, sem
 
 ---
 
-
 [// --- BEGIN MERGED SPECIFICATIONS ---]
 
-# 📋 COMPREHENSIVE TECHNICAL SPECIFICATION
+## 📋 COMPREHENSIVE TECHNICAL SPECIFICATION
 
 ## **🏗️ System Architecture**
 
@@ -40,15 +39,15 @@ Offline-first AI assistant for Obsidian with comprehensive backend services, sem
                     └─────────────────┘
 ```
 
-# 📋 SPECIFICATION SUMMARY
+## 📋 SPECIFICATION SUMMARY
 
 [Content from SPECIFICATION_SUMMARY.md]
 
-# 📋 FEATURE SPECIFICATION: ADD UNIT TESTS
+## 📋 FEATURE SPECIFICATION: ADD UNIT TESTS
 
 [Content from spec.md]
 
-# 📋 FEATURE SPECIFICATION: ADD UNIT TESTS (FIXED)
+## 📋 FEATURE SPECIFICATION: ADD UNIT TESTS (FIXED)
 
 [Content from spec-fixed.md]
 
@@ -63,8 +62,6 @@ The Obsidian AI Assistant backend is built on FastAPI, providing a modern, high-
 #### Core Architecture Features
 
 ...
-
-### Core Components
 
 ```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -110,13 +107,7 @@ plugin/
 
 ---
 
-## 🔧 Backend API Documentation
-
-### FastAPI Architecture Overview
-
 The Obsidian AI Assistant backend is built on FastAPI, providing a modern, high-performance Python web framework with automatic API documentation, request validation, and type safety. The API follows RESTful principles with comprehensive error handling and standardized response formats.
-
-#### Core Architecture Features
 
 - **Automatic Documentation**: OpenAPI/Swagger UI at `/docs` and ReDoc at `/redoc`
 - **Type Safety**: Pydantic models for request/response validation
@@ -158,7 +149,7 @@ app.add_middleware(
 | `GPU` | true | Enable GPU acceleration |
 | `MODEL_BACKEND` | `llama_cpp` | AI model backend type |
 | `VAULT_PATH` | `vault` | Default vault directory |
-| `CACHE_DIR` | `cache` | Cache storage directory |
+| `CACHE_DIR` | `backend/cache` | Cache storage directory |
 
 ---
 
@@ -181,8 +172,8 @@ interface HealthResponse {
     backend_url: string;                  // Configured backend URL
     api_port: number;                     // Active API port
     vault_path: string;                   // Vault directory path
-    models_dir: string;                   // Models directory path
-    cache_dir: string;                    // Cache directory path
+    models_dir: string;                   // Models directory path (now backend/models)
+    cache_dir: string;                    // Cache directory path (now backend/cache)
     model_backend: string;                // Active model backend
     embed_model: string;                  // Embedding model name
     vector_db: string;                    // Vector database type
@@ -206,8 +197,8 @@ interface HealthResponse {
     "backend_url": "http://127.0.0.1:8000",
     "api_port": 8000,
     "vault_path": "vault",
-    "models_dir": "models",
-    "cache_dir": "cache",
+    "models_dir": "backend/models",
+    "cache_dir": "backend/cache",
     "model_backend": "llama_cpp",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
     "vector_db": "chroma",
@@ -279,16 +270,16 @@ interface ConfigResponse {
     // Core Settings
     allow_network: boolean;
     model_backend: string;
-    model_path: string;
+    model_path: string; // Path under backend/models
     embed_model: string;
     vector_db: string;
     api_port: number;
     gpu: boolean;
     
     // Directory Paths
-    cache_dir: string;
+    cache_dir: string; // Path under backend/cache
     vault_path: string;
-    models_dir: string;
+    models_dir: string; // Path under backend/models
     
     // Processing Parameters
     top_k: number;
@@ -298,7 +289,7 @@ interface ConfigResponse {
     continuous_mode: boolean;
     
     // Voice Settings (if available)
-    vosk_model_path?: string;
+    vosk_model_path?: string; // Path under backend/models
 }
 ```
 
@@ -308,20 +299,20 @@ interface ConfigResponse {
 {
     "allow_network": true,
     "model_backend": "llama_cpp",
-    "model_path": "models/llama-7b.gguf",
+    "model_path": "backend/models/llama-7b.gguf",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
     "vector_db": "chroma",
     "api_port": 8000,
     "gpu": false,
-    "cache_dir": "cache",
-    "vault_path": "test_vault",
-    "models_dir": "models",
+    "cache_dir": "backend/cache",
+    "vault_path": "tests_vault",
+    "models_dir": "backend/models",
     "top_k": 10,
     "chunk_size": 2000,
     "chunk_overlap": 200,
     "similarity_threshold": 0.75,
     "continuous_mode": false,
-    "vosk_model_path": "models/vosk-model-small-en-us-0.15"
+    "vosk_model_path": "backend/models/vosk-model-small-en-us-0.15"
 }
 ```
 
@@ -344,19 +335,19 @@ interface ConfigUpdateRequest {
     // Optional fields - only provided fields will be updated
     allow_network?: boolean;
     model_backend?: string;
-    model_path?: string;
+    model_path?: string; // Path under backend/models
     embed_model?: string;
     vector_db?: string;
     gpu?: boolean;
-    cache_dir?: string;
+    cache_dir?: string; // Path under backend/cache
     vault_path?: string;
-    models_dir?: string;
+    models_dir?: string; // Path under backend/models
     top_k?: number;
     chunk_size?: number;
     chunk_overlap?: number;
     similarity_threshold?: number;
     continuous_mode?: boolean;
-    vosk_model_path?: string;
+    vosk_model_path?: string; // Path under backend/models
 }
 ```
 
@@ -872,8 +863,6 @@ interface IndexPdfResponse {
 - `404 Not Found`: PDF file not found
 - `500 Internal Server Error`: PDF processing or indexing failure
 
-
-
 ### Search Operations
 
 #### POST /api/search
@@ -1196,12 +1185,12 @@ class Settings(BaseModel):
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
     vault_path: str = "vault"
-    models_dir: str = "models"
-    cache_dir: str = "cache"
+    models_dir: str = "backend/models"
+    cache_dir: str = "backend/cache"
     
     # LLM Settings
     model_backend: str = "llama_cpp"
-    model_path: str = "models/llama-7b.gguf"
+    model_path: str = "backend/models/llama-7b.gguf"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: str = "chroma"
     gpu: bool = True
@@ -1213,7 +1202,7 @@ class Settings(BaseModel):
     similarity_threshold: float = 0.75
     
     # Voice Settings
-    vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "backend/models/vosk-model-small-en-us-0.15"
 ```
 
 ### Environment Variables
@@ -1226,12 +1215,12 @@ ALLOW_NETWORK=false
 
 # Paths
 VAULT_PATH=./vault
-MODELS_DIR=./models
-CACHE_DIR=./cache
+MODELS_DIR=./backend/models
+CACHE_DIR=./backend/cache
 
 # LLM Configuration
 MODEL_BACKEND=llama_cpp
-MODEL_PATH=models/llama-7b.gguf
+MODEL_PATH=backend/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 GPU=true
 
@@ -1242,7 +1231,7 @@ TOP_K=10
 SIMILARITY_THRESHOLD=0.75
 
 # Voice
-VOSK_MODEL_PATH=models/vosk-model-small-en-us-0.15
+VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 ```
 
 ---
@@ -1330,7 +1319,7 @@ async def test_embedding_generation():
 @pytest.mark.integration
 async def test_full_question_workflow(test_client):
     # Index test document
-    response = await test_client.post("/reindex", json={"vault_path": "test_vault"})
+    response = await test_client.post("/reindex", json={"vault_path": "tests_vault"})
     assert response.status_code == 200
     
     # Ask question
@@ -2185,10 +2174,10 @@ class MultiLevelCache:
         self.memory_ttl: Dict[str, datetime] = {}
         
         # L2: Disk cache (persistent)
-        self.disk_cache_dir = "cache/responses"
+    self.disk_cache_dir = "backend/cache/responses"
         
         # L3: Vector embeddings cache
-        self.embedding_cache_dir = "cache/embeddings"
+    self.embedding_cache_dir = "backend/cache/embeddings"
         
         # Cache configuration
         self.max_memory_entries = 1000
@@ -2573,7 +2562,7 @@ python -m venv venv
 # Windows:
 venv\Scripts\activate
 # Linux/macOS:
-source venv/bin/activate
+source .venv/bin/activate
 
 # Upgrade pip
 pip install --upgrade pip setuptools wheel
@@ -2619,12 +2608,12 @@ CONTINUOUS_MODE=false
 
 # Paths (relative to project root)
 VAULT_PATH=vault
-MODELS_DIR=models
-CACHE_DIR=cache
+MODELS_DIR=backend/models
+CACHE_DIR=backend/cache
 
 # AI/ML Configuration
 MODEL_BACKEND=llama_cpp
-MODEL_PATH=models/llama-7b.gguf
+MODEL_PATH=backend/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 VECTOR_DB=chroma
 GPU=true
@@ -2636,7 +2625,7 @@ CHUNK_OVERLAP=200
 SIMILARITY_THRESHOLD=0.75
 
 # Voice Processing
-VOSK_MODEL_PATH=models/vosk-model-small-en-us-0.15
+VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 
 # Security (Production)
 CACHE_ENCRYPTION=true
@@ -2688,7 +2677,7 @@ backup:
   retention_count: 7
   backup_paths:
     - vault
-    - cache/embeddings
+    - backend/cache/embeddings
     - logs
 ```
 
@@ -3306,9 +3295,9 @@ class BackupManager:
                         tar.add('vector_db', arcname='vector_db')
                     
                     # Backup cache (embeddings only)
-                    cache_embeddings = Path('cache/embeddings')
+                    cache_embeddings = Path('backend/cache/embeddings')
                     if cache_embeddings.exists():
-                        tar.add(cache_embeddings, arcname='cache/embeddings')
+                        tar.add(cache_embeddings, arcname='backend/cache/embeddings')
                 
                 if backup_type in ['full', 'config']:
                     # Backup configuration
@@ -3396,7 +3385,7 @@ class BackupManager:
         # Restore embeddings cache
         embeddings_backup = restore_dir / 'cache' / 'embeddings'
         if embeddings_backup.exists():
-            embeddings_dir = Path('cache/embeddings')
+            embeddings_dir = Path('backend/cache/embeddings')
             embeddings_dir.mkdir(parents=True, exist_ok=True)
             if embeddings_dir.exists():
                 shutil.rmtree(embeddings_dir)
@@ -3450,7 +3439,7 @@ python -m backend.modelmanager verify --model llama-7b.gguf
 
 # Solutions
 1. Check model file exists and has correct permissions:
-   ls -la models/llama-7b.gguf
+    ls -la backend/models/llama-7b.gguf
 
 2. Verify model file integrity:
    python -m backend.modelmanager checksum --model llama-7b.gguf
@@ -3459,7 +3448,7 @@ python -m backend.modelmanager verify --model llama-7b.gguf
    python -m backend.modelmanager download --model llama-7b-chat --force
 
 4. Check available disk space:
-   df -h models/
+    df -h backend/models/
 
 5. Verify memory requirements:
    python -c "import psutil; print(f'Available RAM: {psutil.virtual_memory().available / 1e9:.1f}GB')"
@@ -3477,7 +3466,7 @@ python -m backend.diagnostics memory-profile
 # Solutions
 1. Reduce model size in config:
    MODEL_BACKEND=llama_cpp
-   MODEL_PATH=models/llama-7b-q4.gguf  # Quantized version
+    MODEL_PATH=backend/models/llama-7b-q4.gguf  # Quantized version
 
 2. Lower concurrent request limits:
    MAX_CONCURRENT_AI_REQUESTS=1
@@ -3511,7 +3500,7 @@ python -m backend.diagnostics performance-profile --duration 300
    CACHE_TTL=3600
 
 4. Use faster model:
-   MODEL_PATH=models/llama-7b-q4-fast.gguf
+    MODEL_PATH=backend/models/llama-7b-q4-fast.gguf
 ```
 
 #### Diagnostic Tools
@@ -3580,8 +3569,8 @@ class SystemDiagnostics:
             }
         
         # Check models
-        models_dir = Path('models')
-        if models_dir.exists():
+    models_dir = Path('backend/models')
+    if models_dir.exists():
             for model_file in models_dir.glob('*.gguf'):
                 checks['models'][model_file.name] = {
                     'size_mb': model_file.stat().st_size / 1e6,

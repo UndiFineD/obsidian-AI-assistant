@@ -19,44 +19,48 @@ class TestBackendHealthAndBasics:
     def test_backend_module_imports(self):
         """Test that all backend modules can be imported successfully."""
         import importlib.util
-        
+
         modules = [
             "backend.backend",
-            "backend.modelmanager", 
+            "backend.modelmanager",
             "backend.embeddings",
             "backend.indexing",
             "backend.caching",
-            "backend.settings"
+            "backend.settings",
         ]
-        
+
         for module_name in modules:
             spec = importlib.util.find_spec(module_name)
             if spec is None:
                 pytest.fail(f"Module {module_name} not found")
-        
+
         print("✓ All backend modules found successfully")
 
     def test_fastapi_app_creation(self):
         """Test that FastAPI app is created correctly."""
         from backend.backend import app
-        
+
         assert app is not None
         # Accept both standard and enterprise edition titles
-        assert "Obsidian AI Assistant" in app.title  # Accepts both standard and enterprise edition
+        assert (
+            "Obsidian AI Assistant" in app.title
+        )  # Accepts both standard and enterprise edition
         print("✓ FastAPI app created successfully")
 
-    @patch.dict(os.environ, {'HUGGINGFACE_TOKEN': 'test_token'})
+    @patch.dict(os.environ, {"HUGGINGFACE_TOKEN": "test_token"})
     def test_service_initialization_runs(self):
         """Test that service initialization runs without crashing."""
         # Clear any existing services first
         import backend.backend
+
         backend.backend.model_manager = None
         backend.backend.emb_manager = None
         backend.backend.vault_indexer = None
         backend.backend.cache_manager = None
-        
+
         try:
             from backend.backend import init_services
+
             init_services()
             print("✓ Service initialization completed without errors")
             assert True
@@ -72,37 +76,39 @@ class TestBackendServiceAccess:
     def setUp(self):
         """Initialize services before tests."""
         from backend.backend import init_services
+
         init_services()
 
     def test_service_singletons_exist(self):
         """Test that service singletons are accessible."""
         from backend import backend
-        
+
         # Services might be None if initialization failed in test env, that's OK
         print(f"✓ model_manager: {type(backend.model_manager)}")
         print(f"✓ emb_manager: {type(backend.emb_manager)}")
         print(f"✓ vault_indexer: {type(backend.vault_indexer)}")
         print(f"✓ cache_manager: {type(backend.cache_manager)}")
-        
+
         # At least the globals should exist (even if None)
-        assert hasattr(backend, 'model_manager')
-        assert hasattr(backend, 'emb_manager')
-        assert hasattr(backend, 'vault_indexer')
-        assert hasattr(backend, 'cache_manager')
+        assert hasattr(backend, "model_manager")
+        assert hasattr(backend, "emb_manager")
+        assert hasattr(backend, "vault_indexer")
+        assert hasattr(backend, "cache_manager")
 
     def test_settings_access(self):
         """Test that settings can be loaded."""
         try:
             from backend.settings import get_settings
+
             settings = get_settings()
-            
+
             assert settings is not None
             print(f"✓ Settings loaded: {type(settings)}")
-            
+
             # Check some expected attributes exist
-            assert hasattr(settings, 'model_backend')
+            assert hasattr(settings, "model_backend")
             print(f"✓ Model backend setting: {settings.model_backend}")
-            
+
         except Exception as e:
             print(f"✓ Settings access handled gracefully: {e}")
             # Settings might fail in test environment, that's acceptable
@@ -114,59 +120,60 @@ class TestMockedWorkflowIntegration:
     @pytest.fixture
     def mock_services(self):
         """Create comprehensive service mocks."""
-        with patch('backend.backend.model_manager') as mock_mm, \
-            patch('backend.backend.emb_manager') as mock_em, \
-            patch('backend.backend.vault_indexer') as mock_vi, \
-            patch('backend.backend.cache_manager') as mock_cm:
-            
+        with patch("backend.backend.model_manager") as mock_mm, patch(
+            "backend.backend.emb_manager"
+        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
+            "backend.backend.cache_manager"
+        ) as mock_cm:
+
             # Configure realistic mock responses using standardized patterns
             mock_mm.generate.return_value = "AI response from model"
             mock_mm.is_ready.return_value = True
             mock_mm.get_available_models.return_value = ["test-model"]
             mock_mm.initialize.return_value = True
-            
+
             mock_em.generate_embeddings.return_value = [0.1, 0.2, 0.3]
             mock_em.is_ready.return_value = True
             mock_em.search.return_value = [
                 {"text": "Relevant context", "score": 0.9, "source": "test.md"}
             ]
-            
+
             mock_vi.index_vault.return_value = {"files_indexed": 5}
             mock_vi.scan_vault.return_value = {"files_found": 5}
             mock_vi.reindex.return_value = {"indexed": 2, "updated": 1}
             mock_vi.search.return_value = [{"content": "test", "score": 0.9}]
-            
+
             mock_cm.get_cached_answer.return_value = None  # Cache miss
             mock_cm.cache_answer.return_value = True
-            
+
             yield {
                 "model_manager": mock_mm,
                 "emb_manager": mock_em,
                 "vault_indexer": mock_vi,
-                "cache_manager": mock_cm
+                "cache_manager": mock_cm,
             }
 
     def test_ask_workflow_integration(self, mock_services):
         """Test complete ask workflow with mocked services."""
         from backend.backend import _ask_impl, AskRequest
-        
+
         request = AskRequest(
             question="What is machine learning?",
             vault_path="./test_vault",
-            use_context=True
+            use_context=True,
         )
-        
+
         try:
             response = _ask_impl(request)
-            
+
             # Verify workflow executed
             assert response is not None
             print("✓ Ask workflow completed successfully")
-            
+
             # Verify services were called as expected
             mock_services["emb_manager"].search.assert_called_once()
             mock_services["model_manager"].generate.assert_called_once()
-            
+
         except Exception as e:
             print(f"Ask workflow test: {e}")
             # Some failures expected in test environment
@@ -175,15 +182,17 @@ class TestMockedWorkflowIntegration:
         """Test search functionality integration."""
         from backend.backend import search
         import asyncio
-        
+
         try:
             response = asyncio.run(search("test query", top_k=3))
             assert response is not None
             print("✓ Search integration completed")
-            
+
             # Verify embeddings manager was called
-            mock_services["emb_manager"].search.assert_called_once_with("test query", top_k=3)
-            
+            mock_services["emb_manager"].search.assert_called_once_with(
+                "test query", top_k=3
+            )
+
         except Exception as e:
             print(f"Search integration test: {e}")
 
@@ -191,16 +200,18 @@ class TestMockedWorkflowIntegration:
         """Test vault indexing integration."""
         from backend.backend import scan_vault
         import asyncio
-        
+
         try:
             response = asyncio.run(scan_vault("./test_vault"))
-            
+
             assert response is not None
             print("✓ Vault indexing integration completed")
-            
+
             # Verify vault indexer was called
-            mock_services["vault_indexer"].index_vault.assert_called_once_with("./test_vault")
-            
+            mock_services["vault_indexer"].index_vault.assert_called_once_with(
+                "./test_vault"
+            )
+
         except Exception as e:
             print(f"Vault indexing integration test: {e}")
 
@@ -212,57 +223,59 @@ class TestConfigurationIntegration:
         """Test that settings can be loaded and accessed."""
         try:
             from backend.settings import get_settings
+
             settings = get_settings()
-            
+
             # Basic validation that settings object exists
             assert settings is not None
             print("✓ Settings loading successful")
-            
+
         except Exception as e:
             print(f"Settings loading handled gracefully: {e}")
 
-    @patch('backend.settings.reload_settings')
+    @patch("backend.settings.reload_settings")
     def test_config_reload_endpoint(self, mock_reload):
         """Test configuration reload endpoint."""
         # Mock settings response
         mock_settings = Mock()
         mock_settings.dict.return_value = {"test": "config"}
         mock_reload.return_value = mock_settings
-        
+
         from backend.backend import post_reload_config
         import asyncio
-        
+
         try:
             response = asyncio.run(post_reload_config())
             assert response is not None
             assert response.get("ok") is True
             print("✓ Config reload endpoint integration successful")
-            
+
             mock_reload.assert_called_once()
-            
+
         except Exception as e:
             print(f"Config reload test: {e}")
 
-    @patch('backend.settings.update_settings')
+    @patch("backend.settings.update_settings")
     def test_config_update_endpoint(self, mock_update):
-        """Test configuration update endpoint.""" 
+        """Test configuration update endpoint."""
         # Mock update response
         mock_settings = Mock()
         mock_settings.dict.return_value = {"updated": "config"}
         mock_update.return_value = mock_settings
         from backend.backend import post_update_config
         import asyncio
+
         update_data = {"model_backend": "new-model"}
-        
+
         try:
             response = asyncio.run(post_update_config(update_data))
-            
+
             assert response is not None
             assert response.get("ok") is True
             print("✓ Config update endpoint integration successful")
-            
+
             mock_update.assert_called_once_with(update_data)
-            
+
         except Exception as e:
             print(f"Config update test: {e}")
 
@@ -274,35 +287,38 @@ class TestErrorHandlingIntegration:
         """Test behavior when services are not initialized."""
         # Force services to None
         import backend.backend
+
         original_mm = backend.backend.model_manager
         original_em = backend.backend.emb_manager
-        
+
         try:
             backend.backend.model_manager = None
             backend.backend.emb_manager = None
             from backend.backend import _ask_impl, AskRequest
+
             request = AskRequest(question="Test", vault_path="./vault")
-            
+
             # Should handle missing services gracefully
             try:
                 _ask_impl(request)
                 print("✓ Missing services handled gracefully")
             except Exception as e:
                 print(f"✓ Missing services error handled: {e}")
-                
+
         finally:
             # Restore original services
             backend.backend.model_manager = original_mm
             backend.backend.emb_manager = original_em
 
-    @patch('backend.backend.model_manager')
+    @patch("backend.backend.model_manager")
     def test_service_failure_handling(self, mock_mm):
         """Test handling of service failures."""
         # Make model manager fail
         mock_mm.generate.side_effect = Exception("Model service failed")
         from backend.backend import _ask_impl, AskRequest
+
         request = AskRequest(question="Test", vault_path="./vault")
-        
+
         try:
             _ask_impl(request)
             print("✓ Service failure handled gracefully")
@@ -314,7 +330,8 @@ if __name__ == "__main__":
     # Run integration tests
     print("🧪 Running Backend Integration Tests")
     print("===================================")
-    
+
     # Run with pytest
     import pytest
+
     pytest.main([__file__, "-v", "--tb=short"])

@@ -111,10 +111,10 @@ setup-models:
 
 run-backend:
 	@echo "Starting backend server..."
-	@if [ -f "venv/bin/activate" ]; then \
-		. venv/bin/activate && python backend/backend.py; \
-	elif [ -f "venv/Scripts/activate" ]; then \
-		. venv/Scripts/activate && python backend/backend.py; \
+	@if [ -f ".venv/bin/activate" ]; then \
+		. .venv/bin/activate && python backend/backend.py; \
+	elif [ -f ".venv/Scripts/activate" ]; then \
+		. .venv/Scripts/activate && python backend/backend.py; \
 	else \
 		echo "Virtual environment not found. Run setup script first."; \
 		exit 1; \

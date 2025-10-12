@@ -42,11 +42,11 @@ class TestFullWorkflowIntegration:
                 "# Nested Note\nNested content."
             )
             # Create models directory
-            models_dir = temp_path / "models"
-            models_dir.mkdir()
+            models_dir = temp_path / "backend" / "models"
+            models_dir.mkdir(parents=True)
             # Create cache directory
-            cache_dir = temp_path / "cache"
-            cache_dir.mkdir()
+            cache_dir = temp_path / "backend" / "cache"
+            cache_dir.mkdir(parents=True)
             yield {
                 "temp_path": temp_path,
                 "vault_dir": vault_dir,

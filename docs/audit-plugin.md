@@ -1,14 +1,14 @@
 # Plugin Module Audit
 
 **Date**: October 11, 2025  
-**Task**: T002 - Audit plugin modules in `plugin/` and list all major files/classes/functions
+**Task**: T002 - Audit plugin modules in `.obsidian/plugins/obsidian-ai-assistant/` and list all major files/classes/functions
 
 ---
 
 ## Plugin Directory Structure
 
 ```text
-plugin/
+.obsidian/plugins/obsidian-ai-assistant/
 ├── adminDashboard.js         # Enterprise admin dashboard
 ├── analyticsPane.js          # Analytics display component
 ├── backendClient.js          # Backend API client

@@ -11,6 +11,7 @@ Notes:
 - Heavy ML deps (torch, sentence-transformers, chromadb) are optional
   and handled lazily by the relevant modules.
 """
+
 from __future__ import annotations
 
 import sys
@@ -42,7 +43,6 @@ def _run(cmd: List[str]) -> Tuple[int, str]:
         return proc.returncode, out
     except Exception as e:
         return 1, f"subprocess error: {e}"
-
 
 
 def ensure_minimal_dependencies() -> bool:
