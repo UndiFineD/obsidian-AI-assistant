@@ -31,8 +31,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install flake8 black isort bandit safety mypy ruff
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
 
       - name: Code Formatting Check (Black)
         run: black --check --diff backend/ tests/
@@ -99,17 +97,32 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-asyncio pytest-xdist
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx
+          # Create filtered requirement files excluding heavy ML libs for CI
+          python -c "import os; ex=('torch','transformers','sentence-transformers','llama-cpp','vosk','chromadb');\n\nfn='requirements.txt'\nlines=[]\nif os.path.exists(fn):\n    with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()\nwith open('filtered-requirements.txt','w',encoding='utf-8') as f:\n    f.writelines([l for l in lines if not any(x in l for x in ex)])\n\nfn='requirements-dev.txt'\nlines=[]\nif os.path.exists(fn):\n    with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()\nwith open('filtered-requirements-dev.txt','w',encoding='utf-8') as f:\n    f.writelines([l for l in lines if not any(x in l for x in ex)])"
+          pip install -r filtered-requirements.txt
+          pip install -r filtered-requirements-dev.txt || true
 
       - name: Create Test Environment
         run: |
-          mkdir -p cache logs models vector_db
-          echo "BACKEND_URL=http://127.0.0.1:8000" > .env
-          echo "VAULT_PATH=./test_vault" >> .env
-          echo "MODELS_DIR=./models" >> .env
-          echo "CACHE_DIR=./cache" >> .env
+          python - << 'PY'
+          import pathlib
+          for p in [
+              'backend/cache',
+              'backend/logs',
+              'backend/models',
+              'backend/vector_db',
+              'test_vault',
+          ]:
+              pathlib.Path(p).mkdir(parents=True, exist_ok=True)
+          PY
+      - name: Set environment variables
+        run: |
+          echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+          echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
+          echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
+          echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
+        shell: bash
 
       - name: Run Backend Test Suite
         run: |
@@ -122,7 +135,6 @@ jobs:
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
         continue-on-error: true
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage.xml
           flags: backend
           name: codecov-backend
@@ -158,12 +170,14 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install pytest pytest-asyncio httpx pytest-cov uvicorn requests
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          # Avoid heavy ML libs here as well
+          python -c "import os; ex=('torch','transformers','sentence-transformers','llama-cpp','vosk','chromadb');\n\nfn='requirements.txt'\nlines=[]\nif os.path.exists(fn):\n    with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()\nwith open('filtered-requirements.txt','w',encoding='utf-8') as f:\n    f.writelines([l for l in lines if not any(x in l for x in ex)])\n\nfn='requirements-dev.txt'\nlines=[]\nif os.path.exists(fn):\n    with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()\nwith open('filtered-requirements-dev.txt','w',encoding='utf-8') as f:\n    f.writelines([l for l in lines if not any(x in l for x in ex)])"
+          pip install -r filtered-requirements.txt
+          pip install -r filtered-requirements-dev.txt || true
 
       - name: Start Backend Server
         run: |
-          mkdir -p cache logs models vector_db test_vault
+          mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
           echo "# Test Vault" > test_vault/test_note.md
           echo "This is a test note for E2E testing" >> test_vault/test_note.md
 
@@ -172,8 +186,8 @@ jobs:
           backend_url: "http://127.0.0.1:8000"
           api_port: 8000
           vault_path: "./test_vault"
-          models_dir: "./models"
-          cache_dir: "./cache"
+          models_dir: "./backend/models"
+          cache_dir: "./backend/cache"
           model_backend: "mock"
           EOF
 
@@ -262,7 +276,6 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
           pip install pytest-benchmark memory-profiler psutil
 
       - name: Run Performance Benchmarks

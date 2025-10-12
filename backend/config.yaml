@@ -1,5 +1,5 @@
 allow_network: true
-api_port: 9999
+api_port: 8001
 cache_dir: backend/cache
 chunk_overlap: 200
 chunk_size: 1000

@@ -33,6 +33,15 @@ jobs:
           # Install only non-ML dependencies for testing
           grep -v "torch\|transformers\|sentence-transformers\|llama-cpp\|vosk\|chromadb" requirements.txt | pip install -r /dev/stdin || true
         fi
+    - name: Prepare test environment (paths and env)
+      run: |
+        mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
+        echo "# Test Vault" > test_vault/test_note.md
+        echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+        echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
+        echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
+        echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
+      shell: bash
     
     - name: Run backend tests (full suite)
       run: |

@@ -52,7 +52,7 @@ class Settings(BaseModel):
 
     # LLM / embeddings / vector DB
     model_backend: str = "llama_cpp"
-    model_path: str = "models/llama-7b.gguf"
+    model_path: str = "backend/models/llama-7b.gguf"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: str = "chroma"
     gpu: bool = True
@@ -62,7 +62,7 @@ class Settings(BaseModel):
     similarity_threshold: float = 0.75
 
     # Voice
-    vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "backend/models/vosk-model-small-en-us-0.15"
 
     # Derived
     @property
@@ -94,11 +94,13 @@ def _load_yaml_config() -> dict:
     if not cfg_path.exists() or yaml is None:
         return {}
     try:
-        with open(cfg_path, "r", encoding="utf-8") as f:
-            data = yaml.safe_load(f) or {}
-        if not isinstance(data, dict):
-            return {}
-        return data
+            with open(cfg_path, "r", encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            if not isinstance(data, dict):
+                return {}
+            # Drop unknown keys for safety
+            allowed = set(Settings.model_fields.keys())
+            return {k: v for k, v in data.items() if k in allowed}
     except Exception:
         return {}
 

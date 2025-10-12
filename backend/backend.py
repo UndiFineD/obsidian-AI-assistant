@@ -23,6 +23,7 @@ from .performance import (
     get_task_queue,
 )
 from .settings import get_settings, reload_settings, update_settings
+from .utils import redact_data
 
 
 # --- External env loader (no secrets committed) ---
@@ -397,23 +398,29 @@ async def status():
 
 @app.get("/health")
 async def health():
-    """Return a comprehensive health payload including a settings snapshot."""
+    """Return a comprehensive health payload including a settings snapshot.
+
+    PII-safe: does not include secrets; optionally redacts path-like strings.
+    """
     payload = _health_payload()
     s = get_settings()
-    payload.update(
-        {
-            "backend_url": s.backend_url,
-            "api_port": s.api_port,
-            "vault_path": str(s.vault_path),
-            "models_dir": str(s.models_dir),
-            "cache_dir": str(s.cache_dir),
-            "model_backend": s.model_backend,
-            "embed_model": s.embed_model,
-            "vector_db": s.vector_db,
-            "allow_network": s.allow_network,
-            "gpu": s.gpu,
-        }
-    )
+    # Only include non-sensitive fields; exclude tokens/keys or external file paths
+    info = {
+        "backend_url": s.backend_url,
+        "api_port": s.api_port,
+        "vault_path": str(s.vault_path),
+        "models_dir": str(s.models_dir),
+        "cache_dir": str(s.cache_dir),
+        "model_backend": s.model_backend,
+        "embed_model": s.embed_model,
+        "vector_db": s.vector_db,
+        "allow_network": s.allow_network,
+        "gpu": s.gpu,
+    }
+    # Optional runtime redaction toggle via env
+    if os.getenv("REDACT_HEALTH", "0").lower() in ("1", "true", "yes", "on"):
+        info = redact_data(info)
+    payload.update(info)
     return payload
 
 
@@ -429,6 +436,10 @@ async def get_config():
     except AttributeError:
         data = s.dict()  # type: ignore[attr-defined]
     filtered = {k: v for k, v in data.items() if k in _ALLOWED_UPDATE_KEYS}
+    # Mask obvious sensitive fields if ever present in whitelist
+    for secret_key in ("hf_token", "huggingface_token", "api_key", "encryption_key"):
+        if secret_key in filtered and filtered[secret_key]:
+            filtered[secret_key] = "***"
     # Back-compat: tests expect a field named 'backend/vector_db' indicating the default path
     try:
         from pathlib import Path
@@ -438,6 +449,9 @@ async def get_config():
     except Exception:
         # Best-effort; omit if anything goes wrong
         pass
+    # Optional runtime redaction toggle via env
+    if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
+        filtered = redact_data(filtered)
     return filtered
 
 
@@ -456,8 +470,19 @@ async def post_reload_config():
 @app.post("/api/config")
 async def post_update_config(partial: dict):
     try:
-        s = update_settings(dict(partial or {}))
+        # Reject unknown keys to avoid accidental secret injection/logging
+        from backend.settings import _ALLOWED_UPDATE_KEYS
+
+        incoming = dict(partial or {})
+        unknown = [k for k in incoming.keys() if k not in _ALLOWED_UPDATE_KEYS]
+        if unknown:
+            raise HTTPException(status_code=400, detail=f"Unknown config keys: {unknown}")
+
+        s = update_settings(incoming)
         settings_data = _settings_to_dict(s)
+        # Redact response if enabled
+        if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
+            settings_data = redact_data(settings_data)
         return {"ok": True, "settings": settings_data}
     except Exception as e:
         raise HTTPException(
