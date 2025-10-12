@@ -50,13 +50,13 @@ coverage.xml
 .tox/
 
 # Models and large files (download locally)
-models/*.bin
-models/*.ggml
-models/*.safetensors
-models/vosk-model-*/
+backend/models/*.bin
+backend/models/*.ggml
+backend/models/*.safetensors
+backend/models/vosk-model-*/
 
 # Cache directories
-cache/
+backend/cache/
 vector_db/
 *.sqlite3
 *.db

@@ -243,7 +243,6 @@ continuous_mode: false
 # Paths
 vault_path: 'vault'
 models_dir: 'backend/models'
-cache_dir: 'cache'
 cache_dir: 'backend/cache'
 
 # LLM Settings
@@ -256,6 +255,19 @@ gpu: true
 # Voice Settings
 vosk_model_path: 'backend/models/vosk-model-small-en-us-0.15'
 ```
+
+#### Path Migration Note (Oct 2025)
+
+We moved AI models and cache under the backend directory:
+
+- Old: models/ and cache/
+- New: backend/models/ and backend/cache/
+
+Actions for existing users:
+
+- Move your local model files into backend/models (same filenames).
+- Move any persistent cache you want to keep into backend/cache (optional).
+- Update any custom scripts or env vars that referenced top-level models/ or cache/.
 
 #### **Runtime Configuration**
 
@@ -296,7 +308,6 @@ $env:VAULT_PATH="$(Resolve-Path .\vault)"
 $env:VOSK_MODEL_PATH="$(Resolve-Path .\backend\models\vosk-model-small-en-us-0.15)"
 $env:API_PORT=8000
 $env:VAULT_PATH="$(Resolve-Path .\vault)"
-$env:VOSK_MODEL_PATH="$(Resolve-Path .\models\vosk-model-small-en-us-0.15)"
 
 ## 2) Edit backend/config.yaml as needed
 

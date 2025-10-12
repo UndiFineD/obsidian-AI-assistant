@@ -65,6 +65,22 @@ if (Test-Path $Requirements) {
     foreach ($d in $deps) { & $VenvPython -m pip install $d }
 }
 
+# ----- 3.5 Ensure required directories exist -----
+try {
+    $dirs = @(
+        (Join-Path $RepoRoot "backend\cache"),
+        (Join-Path $RepoRoot "backend\models"),
+        (Join-Path $RepoRoot "vector_db"),
+        (Join-Path $RepoRoot "logs")
+    )
+    foreach ($d in $dirs) {
+        if (-not (Test-Path $d)) { New-Item -ItemType Directory -Path $d -Force | Out-Null }
+    }
+    Write-Host "Ensured backend/cache, backend/models, vector_db, logs directories exist."
+} catch {
+    Write-Warning "Failed to create required directories: $($_.Exception.Message)"
+}
+
 # ----- 4. Node dependencies via package-lock (npm ci) -----
 ## Node.js and npm installation steps removed; only Python dependencies are installed
 

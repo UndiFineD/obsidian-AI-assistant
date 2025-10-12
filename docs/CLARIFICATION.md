@@ -285,8 +285,8 @@ obsidian-AI-assistant/
 │   ├── manifest.json        # Plugin metadata
 │   └── *.ts                 # Plugin components
 ├── tests/                    # Test suites
-├── cache/                    # Runtime cache storage
-├── models/                   # Downloaded AI models
+├── backend/cache/            # Runtime cache storage
+├── backend/models/           # Downloaded AI models
 ├── vault/                    # Sample Obsidian vault
 └── vector_db/               # ChromaDB storage
 ```

@@ -93,12 +93,12 @@ clean:
 
 clean-models:
 	@echo "Cleaning model files (keeping directories)..."
-	find models/ -name "*.bin" -delete 2>/dev/null || true
-	find models/ -name "*.ggml" -delete 2>/dev/null || true
+	find backend/models/ -name "*.bin" -delete 2>/dev/null || true
+	find backend/models/ -name "*.ggml" -delete 2>/dev/null || true
 
 clean-cache:
 	@echo "Cleaning cache directories..."
-	rm -rf cache/*
+	rm -rf backend/cache/*
 	rm -rf vector_db/*
 
 clean-all: clean clean-models clean-cache
@@ -106,7 +106,7 @@ clean-all: clean clean-models clean-cache
 # Setup and run targets
 setup-models:
 	@echo "Creating models directory..."
-	mkdir -p models/
+	mkdir -p backend/models/
 	@echo "Models directory created. Download models manually or run setup scripts."
 
 run-backend:
@@ -165,9 +165,8 @@ backup:
 	@echo "Creating backup..."
 	tar -czf "backup-$(shell date +%Y%m%d-%H%M%S).tar.gz" \
 		--exclude=venv \
-
-		--exclude=models \
-		--exclude=cache \
+		--exclude=backend/models \
+		--exclude=backend/cache \
 		--exclude=vector_db \
 		--exclude=__pycache__ \
 		--exclude=.git \
@@ -190,5 +189,5 @@ status:
 	@echo "Backend tests: $(shell find tests/backend -name "test_*.py" | wc -l) files"
 	@echo "Setup tests: $(shell find tests/setup -name "test_*" | wc -l) files"  
 	@echo "Python files: $(shell find backend -name "*.py" | wc -l) files"
-	@echo "Cache size: $(shell du -sh cache 2>/dev/null || echo '0B')"
-	@echo "Models size: $(shell du -sh models 2>/dev/null || echo '0B')"
+	@echo "Cache size: $(shell du -sh backend/cache 2>/dev/null || echo '0B')"
+	@echo "Models size: $(shell du -sh backend/models 2>/dev/null || echo '0B')"

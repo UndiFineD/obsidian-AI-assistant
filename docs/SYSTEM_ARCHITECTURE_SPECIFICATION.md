@@ -720,8 +720,8 @@ class Settings(BaseModel):
     
     # Storage Configuration
     vault_path: Path = Field(Path("./vault"))
-    models_dir: Path = Field(Path("./models")) 
-    cache_dir: Path = Field(Path("./cache"))
+        models_dir: Path = Field(Path("./backend/models")) 
+        cache_dir: Path = Field(Path("./backend/cache"))
     vector_db_path: Path = Field(Path("./vector_db"))
     
     # AI Model Configuration

@@ -54,12 +54,12 @@ obsidian-AI-assistant/
 │   ├── backend/                # Backend module tests (90%+ coverage)
 │   ├── integration/            # API integration tests
 │   └── plugin/                 # Plugin functionality tests
-├── cache/                       # Caching Infrastructure
+├── backend/cache/               # Caching Infrastructure
 │   ├── embeddings/             # Vector cache storage
 │   ├── pdf/                    # PDF processing cache
 │   └── web/                    # Web content cache
 ├── vector_db/                   # ChromaDB Vector Database
-├── models/                      # AI Model Storage
+├── backend/models/              # AI Model Storage
 ├── vault/                       # Obsidian Vault Directory
 └── specs/                       # Project Specifications & Documentation
 ```
@@ -131,8 +131,8 @@ Documentation:
   "backend_url": "http://127.0.0.1:8000", 
   "api_port": 8000,
   "vault_path": "vault",
-  "models_dir": "models",
-  "cache_dir": "cache", 
+    "models_dir": "backend/models",
+    "cache_dir": "backend/cache", 
   "model_backend": "llama_cpp",
   "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
   "vector_db": "chroma",
@@ -1138,8 +1138,8 @@ services:
       - "8000:8000"
     volumes:
       - ./vault:/app/vault:ro
-      - ./cache:/app/cache
-      - ./models:/app/models
+        - ./backend/cache:/app/backend/cache
+        - ./backend/models:/app/backend/models
       - ./vector_db:/app/vector_db
     environment:
       - ENVIRONMENT=production
@@ -1167,8 +1167,8 @@ class Settings(BaseModel):
     
     # Storage Paths
     vault_path: Path = Path("./vault")
-    models_dir: Path = Path("./models")
-    cache_dir: Path = Path("./cache")
+    models_dir: Path = Path("./backend/models")
+    cache_dir: Path = Path("./backend/cache")
     
     # AI Configuration
     model_backend: str = "llama_cpp"

@@ -613,13 +613,13 @@ class HealthResponse(BaseModel):
     models_dir: str = Field(
         ...,
         description="AI models directory",
-        example="./models"
+        example="./backend/models"
     )
     
     cache_dir: str = Field(
         ...,
         description="Cache directory path", 
-        example="./cache"
+        example="./backend/cache"
     )
     
     # AI Configuration
@@ -742,15 +742,15 @@ class Settings(BaseModel):
     )
     
     models_dir: Path = Field(
-        Path("./models"),
+        Path("./backend/models"),
         description="AI models storage directory",
-        example="./models"
+        example="./backend/models"
     )
     
     cache_dir: Path = Field(
-        Path("./cache"),
+        Path("./backend/cache"),
         description="Cache storage directory", 
-        example="./cache"
+        example="./backend/cache"
     )
     
     vector_db_path: Path = Field(
@@ -1759,12 +1759,14 @@ invalid_settings = [
 ### **✅ Model Completeness Checklist**
 
 #### **Request Models (4 Complete)**
+
 - ✅ **AskRequest**: AI query processing with validation
 - ✅ **ReindexRequest**: Document indexing configuration
 - ✅ **WebRequest**: Web content processing with security
 - ✅ **TranscribeRequest**: Audio processing with format validation
 
 #### **Response Models (8 Complete)**
+
 - ✅ **AskResponse**: AI generation results with metadata
 - ✅ **HealthResponse**: Comprehensive system status
 - ✅ **StatusResponse**: Lightweight health check
@@ -1775,11 +1777,13 @@ invalid_settings = [
 - ✅ **TranscribeResponse**: Voice processing results
 
 #### **Configuration Models (3 Complete)**
+
 - ✅ **Settings**: Complete system configuration
 - ✅ **ConfigUpdateRequest**: Runtime configuration updates
 - ✅ **ConfigResponse**: Configuration operation results
 
 #### **Domain Models (12 Complete)**
+
 - ✅ **Document**: File processing and metadata
 - ✅ **DocumentChunk**: Vector storage optimization
 - ✅ **Embedding**: Vector representation data
@@ -1792,6 +1796,7 @@ invalid_settings = [
 ### **🎯 Data Quality Standards**
 
 #### **Validation Coverage**
+
 - **100% Field Validation**: All fields have appropriate type and constraint validation
 - **Security Validation**: Input sanitization and path traversal prevention
 - **Business Logic Validation**: Domain-specific rules and constraints
@@ -1799,6 +1804,7 @@ invalid_settings = [
 - **Custom Validators**: 25+ custom validation functions implemented
 
 #### **Documentation Quality**
+
 - **Complete Field Documentation**: Every field has description and example
 - **Usage Examples**: Valid and invalid examples for all models
 - **Error Documentation**: Expected validation errors documented

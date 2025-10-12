@@ -2731,8 +2731,8 @@ COPY --from=builder /root/.local /home/aiassist/.local
 COPY --chown=aiassist:aiassist . .
 
 # Create necessary directories
-RUN mkdir -p logs cache models vault && \
-    chown -R aiassist:aiassist logs cache models vault
+RUN mkdir -p logs backend/cache backend/models vault && \
+    chown -R aiassist:aiassist logs backend vault
 
 # Switch to non-root user
 USER aiassist
@@ -2769,8 +2769,8 @@ services:
       - LOG_LEVEL=INFO
     volumes:
       - ./vault:/app/vault:ro
-      - ./models:/app/models
-      - ./cache:/app/cache
+            - ./backend/models:/app/backend/models
+            - ./backend/cache:/app/backend/cache
       - ./logs:/app/logs
       - ./backend/config.yaml:/app/backend/config.yaml:ro
     restart: unless-stopped

@@ -6,7 +6,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 
 - **Backend**: FastAPI server (`backend/`) with REST APIs, vector search (ChromaDB), LLM routing, caching layers
 - **Plugin**: Obsidian plugin (`plugin/`) with vanilla JavaScript (no build step), enterprise features optional
-- **Models**: Local AI models (GPT4All, LLaMA) stored in `models/` directory
+- **Models**: Local AI models (GPT4All, LLaMA) stored in `backend/models/` directory
 - **Configuration**: Hierarchical settings (env vars → `backend/config.yaml` → code defaults)
 
 ## API Endpoint Reference
@@ -96,9 +96,9 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ### Key Config Options
 - **Core**: `api_port` (8000), `backend_url` (http://localhost:8000), `allow_network` (false)
 - **Models**: `gpu` (auto-detect), `model_backend` (gpt4all), `model_path`, `embed_model` (all-MiniLM-L6-v2)
-- **Storage**: `vault_path`, `models_dir` (./models), `cache_dir` (./cache)
+- **Storage**: `vault_path`, `models_dir` (./backend/models), `cache_dir` (./backend/cache)
 - **Vector DB**: `vector_db` (chromadb), `top_k` (5), `chunk_size` (1000), `chunk_overlap` (200), `similarity_threshold` (0.7)
-- **Voice**: `vosk_model_path` (./models/vosk-model-small-en-us-0.15)
+- **Voice**: `vosk_model_path` (./backend/models/vosk-model-small-en-us-0.15)
 - **Enterprise**: `enterprise_enabled`, `sso_providers`, `tenant_isolation`, `compliance_mode`
 
 ### Deployment Environments
@@ -307,7 +307,7 @@ export TENANT_STORAGE_QUOTA=100GB
 ### Common Issues
 - Plugin not loading: Check `manifest.json`, all `.js` files present
 - Backend connection: Verify `http://localhost:8000/health`
-- Model loading: Check `models/` for `.gguf` files
+- Model loading: Check `backend/models/` for `.gguf` files
 - Cache issues: Clear with `POST /api/performance/cache/clear`
 - Performance: Check `/api/performance/metrics` for bottlenecks
 
@@ -345,9 +345,9 @@ try {
 ```
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
-├── models/           # AI models (GPT4All, LLaMA)
+├── backend/models/   # AI models (GPT4All, LLaMA)
 ├── tests/            # Comprehensive test suite (442 tests)
-├── cache/            # Cached embeddings and responses
+├── backend/cache/    # Cached embeddings and responses
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
 └── Makefile          # Development commands
@@ -453,7 +453,7 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 
 - **ModelManager** (`backend/modelmanager.py`): Unified interface for GPT4All, LLaMA-cpp, embeddings
 - **LLM Router** (`backend/llm_router.py`): Intelligent model selection with fallbacks
-- **Model storage**: `models/` directory with automated downloads via setup scripts
+- **Model storage**: `backend/models/` directory with automated downloads via setup scripts
 - **Connection pooling**: `performance.py` manages AI model instance pools (1-3 instances)
 
 ### Vector Search Pipeline
@@ -752,7 +752,7 @@ enterprise:
 
 1. **Plugin not loading**: Check `plugin/manifest.json` and ensure all `.js` files copied
 2. **Backend connection**: Verify `http://localhost:8000/health` responds
-3. **Model loading**: Check `models/` directory exists and contains `.gguf` files
+3. **Model loading**: Check `backend/models/` directory exists and contains `.gguf` files
 4. **Tests failing**: Run `python -m pytest tests/backend/ -v` to isolate backend issues
 5. **Cache issues**: Clear with `GET /api/cache/clear` or restart backend
 6. **Performance degradation**: Check `/api/performance/metrics` for bottlenecks
@@ -841,9 +841,9 @@ try {
 ```
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
-├── models/           # AI models (GPT4All, LLaMA)
+├── backend/models/   # AI models (GPT4All, LLaMA)
 ├── tests/            # Comprehensive test suite (442 tests)
-├── cache/            # Cached embeddings and responses
+├── backend/cache/    # Cached embeddings and responses
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
 └── Makefile          # Development commands

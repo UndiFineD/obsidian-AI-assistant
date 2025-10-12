@@ -717,7 +717,7 @@ ANTHROPIC_API_KEY=your_anthropic_key_here
 
 # Model Settings
 DEFAULT_MODEL=gpt-4
-MODEL_CACHE_DIR=./models
+MODEL_CACHE_DIR=./backend/models
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 # Performance Settings

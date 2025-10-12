@@ -30,6 +30,10 @@ fi
 
 ## Node.js dependencies and instructions removed; project uses only Python
 
+# --- 4. Ensure required directories exist ---
+mkdir -p "$REPO_ROOT/backend/cache" "$REPO_ROOT/backend/models" "$REPO_ROOT/vector_db" "$REPO_ROOT/logs"
+echo "Ensured backend/cache, backend/models, vector_db, logs directories exist."
+
 # --- 5. Run tests ---
 echo "Running Python tests (pytest)..."
 set +e
