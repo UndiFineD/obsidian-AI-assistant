@@ -231,7 +231,7 @@ def temp_cache_dir():
 def mock_settings():
     """Mock settings object."""
     settings = Mock()
-    settings.abs_models_dir = Path("/test/backend/models")
+    settings.abs_models_dir = Path("./tests/backend/models")
     settings.model_backend = "test-model"
     return settings
 
@@ -695,7 +695,7 @@ class TestFromSettings:
     def test_from_settings_success(self, mock_settings):
         """Test successful from_settings initialization."""
         # Set up the mock to return the expected values
-        mock_settings.abs_models_dir = Path("/test/backend/models")
+        mock_settings.abs_models_dir = Path("./tests/backend/models")
         mock_settings.model_backend = "test-model"
         with patch(
             "backend.modelmanager.get_settings", return_value=mock_settings

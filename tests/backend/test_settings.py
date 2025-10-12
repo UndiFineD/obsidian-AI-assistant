@@ -41,15 +41,15 @@ class TestSettings:
     def test_derived_properties(self):
         """Test that derived path properties work correctly."""
         s = Settings(
-            project_root="/test/project",
+            project_root="./tests/project",
             vault_path="my_vault",
             models_dir="my_models",
             cache_dir="my_cache",
         )
-        assert s.base_dir == Path("/test/project")
-        assert s.abs_vault_path == Path("/test/project/my_vault")
-        assert s.abs_models_dir == Path("/test/project/my_models")
-        assert s.abs_cache_dir == Path("/test/project/my_cache")
+        assert s.base_dir == Path("./tests/project")
+        assert s.abs_vault_path == Path("./tests/project/my_vault")
+        assert s.abs_models_dir == Path("./tests/project/my_models")
+        assert s.abs_cache_dir == Path("./tests/project/my_cache")
 
     def test_absolute_paths(self):
         """Test that absolute paths are preserved."""

@@ -35,7 +35,7 @@ class VaultIndexer:
             try:
                 cache_dir = str(get_settings().abs_cache_dir)
             except Exception:
-                cache_dir = "cache"
+                cache_dir = "backend/cache"
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -346,7 +346,7 @@ class IndexingService:
             try:
                 cache_dir = str(get_settings().abs_cache_dir)
             except Exception:
-                cache_dir = "cache"
+                cache_dir = "backend/cache"
         self.emb_mgr = emb_mgr
         self.vault_indexer = VaultIndexer(emb_mgr=self.emb_mgr, cache_dir=cache_dir)
 
@@ -384,5 +384,5 @@ class IndexingService:
         try:
             cache_dir = str(get_settings().abs_cache_dir)
         except Exception:
-            cache_dir = "cache"
+            cache_dir = "backend/cache"
         return cls(emb_mgr=emb_mgr, cache_dir=cache_dir)
