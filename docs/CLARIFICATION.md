@@ -16,29 +16,29 @@ This document addresses common confusion points, provides clear explanations of 
 
 1. **Missing Import References**:
 
-   ```python
-   # These are used but not defined/imported:
-   init_services()     # Function exists in backend.py but not imported
-   backend_module      # Used throughout but undefined
-   app                 # Used in fixtures but not imported
-   TestClient          # Missing from fastapi.testclient
-   ```
+    ```python
+    # These are used but not defined/imported:
+    init_services()     # Function exists in backend.py but not imported
+    backend_module      # Used throughout but undefined
+    app                 # Used in fixtures but not imported
+    TestClient          # Missing from fastapi.testclient
+    ```
 
 2. **Undefined Variables**:
 
-   ```python
-   # These appear without definition:
-   client = TestClient(app)           # app is undefined
-   backend_module.model_manager      # backend_module is undefined
-   ```
+    ```python
+    # These appear without definition:
+    client = TestClient(app)           # app is undefined
+    backend_module.model_manager      # backend_module is undefined
+    ```
 
 3. **Circular Import Issues**:
 
-   ```python
-   # This pattern causes issues:
-   sys.path.insert(0, ...)          # Path manipulation
-   import backend.backend as backend_module  # Late import after mocking
-   ```
+    ```python
+    # This pattern causes issues:
+    sys.path.insert(0, ...)          # Path manipulation
+    import backend.backend as backend_module  # Late import after mocking
+    ```
 
 **✅ Corrected Approach:**
 
@@ -92,7 +92,7 @@ GET  /                    # Root welcome
 GET  /health             # Health check
 GET  /status             # Service status
 GET  /api/config         # Get configuration
-POST /api/config         # Update configuration  
+POST /api/config         # Update configuration
 POST /api/config/reload  # Reload configuration
 POST /ask                # Ask LLM question
 POST /reindex            # Reindex vault
@@ -129,7 +129,7 @@ The backend uses **global singletons** that are lazily initialized:
 ```python
 # In backend.py - These are module-level globals
 model_manager = None    # ModelManager instance
-emb_manager = None      # EmbeddingsManager instance  
+emb_manager = None      # EmbeddingsManager instance
 vault_indexer = None    # VaultIndexer instance
 cache_manager = None    # CacheManager instance
 
@@ -181,7 +181,7 @@ CacheManager ──┘
 Environment Variables  (highest priority)
          ↓
     YAML config file   (backend/config.yaml)
-         ↓  
+         ↓
     Default values     (settings.py)
 ```
 
@@ -235,14 +235,14 @@ tests/
 
 #### **Test Categories & Status**
 
-| Test Category | Status | Coverage Target | Issues |
-|--------------|--------|-----------------|--------|
-| **API Endpoints** | 🟡 Partial | 80%+ | Import/mock issues |
-| **Service Logic** | 🟡 Partial | 70%+ | API mismatches |
-| **Configuration** | ✅ Good | 90%+ | Working well |
-| **Security** | ✅ Good | 90%+ | Mostly working |
-| **Voice/Audio** | ❌ Broken | 60%+ | Missing models |
-| **Setup Scripts** | ✅ Excellent | 95%+ | Comprehensive |
+| Test Category     | Status       | Coverage Target | Issues             |
+| ----------------- | ------------ | --------------- | ------------------ |
+| **API Endpoints** | 🟡 Partial   | 80%+            | Import/mock issues |
+| **Service Logic** | 🟡 Partial   | 70%+            | API mismatches     |
+| **Configuration** | ✅ Good      | 90%+            | Working well       |
+| **Security**      | ✅ Good      | 90%+            | Mostly working     |
+| **Voice/Audio**   | ❌ Broken    | 60%+            | Missing models     |
+| **Setup Scripts** | ✅ Excellent | 95%+            | Comprehensive      |
 
 #### **PyTorch Conflict Resolution**
 
@@ -257,7 +257,7 @@ def mock_ml_dependencies():
     """Mock ML libraries to avoid import issues."""
     with patch.dict('sys.modules', {
         'torch': MagicMock(),
-        'transformers': MagicMock(), 
+        'transformers': MagicMock(),
         'sentence_transformers': MagicMock(),
         'llama_cpp': MagicMock(),
         'vosk': MagicMock(),
@@ -277,7 +277,7 @@ obsidian-AI-assistant/
 ├── backend/                   # Python FastAPI server
 │   ├── __init__.py           # ⚠️  MISSING - causes import issues
 │   ├── backend.py            # Main FastAPI app
-│   ├── settings.py           # Configuration management  
+│   ├── settings.py           # Configuration management
 │   ├── models.txt            # Available LLM models list
 │   └── models/models.txt     # Available LLM models list
 ├── .obsidian/plugins/obsidian-ai-assistant/                   # TypeScript Obsidian plugin
@@ -332,7 +332,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 # Option B: Create __init__.py files
 touch backend/__init__.py
 
-# Option C: Use relative imports  
+# Option C: Use relative imports
 from .settings import get_settings  # Within backend/
 ```
 
@@ -355,7 +355,7 @@ def setup_test_environment():
         'torch', 'transformers', 'sentence_transformers',
         'llama_cpp', 'vosk', 'chromadb', 'faiss'
     ]
-    
+
     with patch.dict('sys.modules', {mod: MagicMock() for mod in mock_modules}):
         yield
 ```
@@ -377,17 +377,17 @@ def mock_services():
     """Mock all backend services."""
     with patch('backend.backend.init_services'):
         import backend.backend as backend
-        
+
         # Mock the global instances
         backend.model_manager = Mock()
         backend.emb_manager = Mock()
-        backend.vault_indexer = Mock() 
+        backend.vault_indexer = Mock()
         backend.cache_manager = Mock()
-        
+
         # Configure mock responses
         backend.model_manager.generate.return_value = "test response"
         backend.cache_manager.get_cached_answer.return_value = None
-        
+
         yield backend
 ```
 
@@ -399,72 +399,72 @@ def mock_services():
 
 1. **Create Missing `__init__.py`**:
 
-   ```bash
-   touch backend/__init__.py
-   ```
+    ```bash
+    touch backend/__init__.py
+    ```
 
 2. **Fix Test Imports**:
 
-   ```python
-   # Replace problematic imports in test files
-   # OLD:
-   import backend.backend as backend_module  # Undefined variable
-   
-   # NEW:
-   @pytest.fixture
-   def backend_module():
-       with patch.dict('sys.modules', {'torch': MagicMock()}):
-           import backend.backend
-           return backend.backend
-   ```
+    ```python
+    # Replace problematic imports in test files
+    # OLD:
+    import backend.backend as backend_module  # Undefined variable
+
+    # NEW:
+    @pytest.fixture
+    def backend_module():
+        with patch.dict('sys.modules', {'torch': MagicMock()}):
+            import backend.backend
+            return backend.backend
+    ```
 
 3. **Standardize Mock Pattern**:
 
-   ```python
-   # Use this in conftest.py
-   @pytest.fixture(scope="session", autouse=True)
-   def mock_all_ml_libs():
-       """Mock all ML libraries globally."""
-       mock_libs = {
-           'torch': MagicMock(),
-           'transformers': MagicMock(),
-           'sentence_transformers': MagicMock(),
-           'llama_cpp': MagicMock(),
-           'vosk': MagicMock(),
-           'chromadb': MagicMock()
-       }
-       with patch.dict('sys.modules', mock_libs):
-           yield
-   ```
+    ```python
+    # Use this in conftest.py
+    @pytest.fixture(scope="session", autouse=True)
+    def mock_all_ml_libs():
+        """Mock all ML libraries globally."""
+        mock_libs = {
+            'torch': MagicMock(),
+            'transformers': MagicMock(),
+            'sentence_transformers': MagicMock(),
+            'llama_cpp': MagicMock(),
+            'vosk': MagicMock(),
+            'chromadb': MagicMock()
+        }
+        with patch.dict('sys.modules', mock_libs):
+            yield
+    ```
 
 ### **Phase 2: Align Tests with Reality**
 
 1. **Verify Actual API Endpoints**:
 
-   ```bash
-   # Check what endpoints actually exist
-   python -c "
-   import sys; sys.path.append('.');
-   from unittest.mock import patch, MagicMock;
-   with patch.dict('sys.modules', {'torch': MagicMock()}):
-       import backend.backend as b;
-       routes = [r.path for r in b.app.routes if hasattr(r, 'path')];
-       print('Actual routes:', routes)
-   "
-   ```
+    ```bash
+    # Check what endpoints actually exist
+    python -c "
+    import sys; sys.path.append('.');
+    from unittest.mock import patch, MagicMock;
+    with patch.dict('sys.modules', {'torch': MagicMock()}):
+        import backend.backend as b;
+        routes = [r.path for r in b.app.routes if hasattr(r, 'path')];
+        print('Actual routes:', routes)
+    "
+    ```
 
 2. **Update Test Expectations**:
 
-   ```python
-   # Use actual endpoints, not assumed ones
-   def test_health_endpoint(client):
-       response = client.get("/health")  # Not /api/health
-       assert response.status_code == 200
-   
-   def test_ask_endpoint(client):
-       response = client.post("/ask", json={"question": "test"})  # Not /api/ask
-       assert response.status_code in [200, 400, 500]  # Be flexible
-   ```
+    ```python
+    # Use actual endpoints, not assumed ones
+    def test_health_endpoint(client):
+        response = client.get("/health")  # Not /api/health
+        assert response.status_code == 200
+
+    def test_ask_endpoint(client):
+        response = client.post("/ask", json={"question": "test"})  # Not /api/ask
+        assert response.status_code in [200, 400, 500]  # Be flexible
+    ```
 
 ### **Phase 3: Service Mocking Strategy**
 
@@ -473,7 +473,7 @@ def mock_services():
 @pytest.fixture
 def fully_mocked_backend():
     """Backend with all services properly mocked."""
-    
+
     # Mock ML libraries first
     ml_mocks = {
         'torch': MagicMock(),
@@ -481,37 +481,37 @@ def fully_mocked_backend():
         'sentence_transformers': MagicMock(),
         'llama_cpp': MagicMock()
     }
-    
+
     with patch.dict('sys.modules', ml_mocks):
         # Now import backend
         import backend.backend as backend
-        
+
         # Mock service classes before init_services
         with patch('backend.backend.ModelManager') as mock_model_cls, \
              patch('backend.backend.EmbeddingsManager') as mock_emb_cls, \
              patch('backend.backend.VaultIndexer') as mock_vault_cls, \
              patch('backend.backend.CacheManager') as mock_cache_cls:
-            
+
             # Create mock instances
             mock_model = Mock()
             mock_emb = Mock()
             mock_vault = Mock()
             mock_cache = Mock()
-            
+
             # Configure class returns
             mock_model_cls.return_value = mock_model
             mock_emb_cls.return_value = mock_emb
             mock_vault_cls.return_value = mock_vault
             mock_cache_cls.return_value = mock_cache
-            
+
             # Configure method returns
             mock_model.generate.return_value = "test response"
             mock_cache.get_cached_answer.return_value = None
             mock_vault.reindex.return_value = {"files": 5, "chunks": 25}
-            
+
             # Initialize services
             backend.init_services()
-            
+
             yield {
                 'app': backend.app,
                 'model': mock_model,
@@ -542,27 +542,24 @@ def fully_mocked_backend():
 ### **🎯 Priority Actions**
 
 1. **Immediate** (< 1 hour):
-
-   - Create `backend/__init__.py`
-   - Fix test imports and undefined variables
-   - Standardize mocking approach
+    - Create `backend/__init__.py`
+    - Fix test imports and undefined variables
+    - Standardize mocking approach
 
 2. **Short-term** (1-2 hours):
-
-   - Align test expectations with actual API
-   - Implement comprehensive service mocking
-   - Get basic endpoint tests passing
+    - Align test expectations with actual API
+    - Implement comprehensive service mocking
+    - Get basic endpoint tests passing
 
 3. **Medium-term** (1 day):
-
-   - Expand test coverage for working modules
-   - Add integration test scenarios
-   - Document testing best practices
+    - Expand test coverage for working modules
+    - Add integration test scenarios
+    - Document testing best practices
 
 ### **🧪 Testing Best Practices**
 
 1. **Always Mock ML Libraries**: Use `patch.dict('sys.modules', ...)` pattern
-2. **Mock Services, Not Classes**: Mock global service instances, not their classes  
+2. **Mock Services, Not Classes**: Mock global service instances, not their classes
 3. **Be Flexible with Assertions**: Use status code ranges (`[200, 400, 500]`) instead of exact codes
 4. **Test Endpoint Existence**: Focus on "does it respond" rather than "exact behavior"
 5. **Isolate Test Data**: Use temporary files and cleanup fixtures
@@ -574,11 +571,11 @@ def fully_mocked_backend():
 If you encounter issues not covered here:
 
 1. **Check Existing Tests**: Look at `test_security.py` for working patterns
-2. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures  
+2. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures
 3. **Test One Module**: Start with a single working test file and expand
 4. **Use Mock Liberally**: When in doubt, mock external dependencies
 
 ---
 
-*Last Updated: October 6, 2025*
-*Version: 1.0*
+_Last Updated: October 6, 2025_
+_Version: 1.0_

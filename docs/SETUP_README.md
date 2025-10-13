@@ -251,7 +251,9 @@ pip install fastapi uvicorn python-multipart
 - ✅ Check firewall settings
 - ✅ Verify port 8000 is not blocked
 - ✅ Test health endpoint: `http://127.0.0.1:8000/health`
-- 🪟 Windows: If you see WinError 10013 when starting Uvicorn on port 8000, try a different port (e.g., 8001), remove `--reload`, check conflicts with `netstat -ano | findstr :8000`, or run PowerShell as Administrator.
+- 🪟 Windows: If you see WinError 10013 when starting Uvicorn on port 8000, try a
+  different port (e.g., 8001), remove `--reload`, check conflicts with `netstat
+-ano | findstr :8000`, or run PowerShell as Administrator.
 
 ## 🔄 Re-running Setup
 

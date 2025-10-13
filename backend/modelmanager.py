@@ -2,11 +2,13 @@
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
+
 import huggingface_hub
+from dotenv import load_dotenv
+
 from .llm_router import HybridLLMRouter
-from .utils import safe_call
 from .settings import get_settings
+from .utils import safe_call
 
 
 class ModelManager:

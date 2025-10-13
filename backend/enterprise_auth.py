@@ -1,12 +1,13 @@
 # Enterprise Authentication Module - SSO Integration
 # Provides Single Sign-On capabilities for enterprise deployment
 
-from typing import Optional, Dict, Any, List
-import jwt
-from datetime import datetime, timedelta
-from enum import Enum
 import logging
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+import jwt
 
 logger = logging.getLogger(__name__)
 

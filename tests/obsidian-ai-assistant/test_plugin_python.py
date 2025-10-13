@@ -5,10 +5,10 @@ Tests the plugin files and backend connectivity using Python only
 """
 
 import json
-import os
-import requests
 import time
 from pathlib import Path
+
+import requests
 
 
 def print_header(text):
@@ -43,7 +43,7 @@ def test_backend_connectivity():
             print_test("Status Endpoint", False, f"Status code: {response.status_code}")
     except Exception as e:
         print_test("Backend Connection", False, f"Error: {str(e)}")
-        assert False, f"Backend Connection Error: {str(e)}"
+        raise AssertionError(f"Backend Connection Error: {str(e)}") from e
 
     try:
         # Test ask endpoint
@@ -111,7 +111,9 @@ def test_plugin_content():
 
     # Test main.js content
     try:
-        with open(".obsidian/plugins/obsidian-ai-assistant/main.js", "r", encoding="utf-8") as f:
+        with open(
+            ".obsidian/plugins/obsidian-ai-assistant/main.js", "r", encoding="utf-8"
+        ) as f:
             main_content = f.read()
 
         required_features = [
@@ -132,7 +134,11 @@ def test_plugin_content():
 
     # Test manifest.json content
     try:
-        with open(".obsidian/plugins/obsidian-ai-assistant/manifest.json", "r", encoding="utf-8") as f:
+        with open(
+            ".obsidian/plugins/obsidian-ai-assistant/manifest.json",
+            "r",
+            encoding="utf-8",
+        ) as f:
             manifest = json.load(f)
 
         required_fields = ["id", "name", "version", "minAppVersion", "description"]
@@ -146,7 +152,9 @@ def test_plugin_content():
 
     # Test styles.css content
     try:
-        with open(".obsidian/plugins/obsidian-ai-assistant/styles.css", "r", encoding="utf-8") as f:
+        with open(
+            ".obsidian/plugins/obsidian-ai-assistant/styles.css", "r", encoding="utf-8"
+        ) as f:
             styles_content = f.read()
 
         required_styles = [

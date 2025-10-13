@@ -2,19 +2,20 @@
 # Integrates all enterprise features with the main backend application
 
 import logging
-from typing import Dict, Any
-from fastapi import FastAPI, Request, HTTPException, status
+from datetime import datetime
+from typing import Any, Dict
+
+import jwt
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
-import jwt
-from datetime import datetime
 
-from .enterprise_auth import SSOManager, SSOEndpoints
-from .enterprise_tenant import TenantManager, TenantEndpoints
-from .enterprise_rbac import RBACManager, RBACEndpoints
+from .enterprise_admin import AdminDashboardEndpoints, EnterpriseAdminDashboard
+from .enterprise_auth import SSOEndpoints, SSOManager
 from .enterprise_gdpr import GDPRComplianceManager, GDPREndpoints
+from .enterprise_rbac import RBACEndpoints, RBACManager
 from .enterprise_soc2 import SOC2ComplianceManager, SOC2Endpoints
-from .enterprise_admin import EnterpriseAdminDashboard, AdminDashboardEndpoints
+from .enterprise_tenant import TenantEndpoints, TenantManager
 
 logger = logging.getLogger(__name__)
 
@@ -222,7 +223,8 @@ class EnterpriseIntegration:
         )
 
         # Skip enterprise authentication middleware in test mode
-        import os, sys
+        import os
+        import sys
 
         is_test_mode = (
             os.getenv("TEST_MODE") == "true"

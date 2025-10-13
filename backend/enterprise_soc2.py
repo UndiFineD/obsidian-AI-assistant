@@ -1,12 +1,13 @@
 # Enterprise SOC2 Compliance Module
 # Implements security controls and audit framework for SOC2 Type II compliance
 
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from enum import Enum
-from datetime import datetime, timedelta, UTC
 import logging
 import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 from fastapi import Request
 
 logger = logging.getLogger(__name__)
@@ -484,9 +485,9 @@ class SOC2ComplianceManager:
     def update_availability_metric(self, uptime_percentage: float):
         """Update system availability metric"""
         self.monitoring_metrics["system_availability"]["current"] = uptime_percentage
-        self.monitoring_metrics["system_availability"][
-            "last_updated"
-    ] = datetime.now(UTC)
+        self.monitoring_metrics["system_availability"]["last_updated"] = datetime.now(
+            UTC
+        )
 
         if uptime_percentage < 99.9:
             logger.warning(f"System availability below target: {uptime_percentage}%")

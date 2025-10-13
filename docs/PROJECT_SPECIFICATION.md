@@ -6,15 +6,15 @@
 
 ## 📌 **DOCUMENT CONTROL**
 
-| **Field** | **Value** |
-|-----------|-----------|
+| **Field**         | **Value**                           |
+| ----------------- | ----------------------------------- |
 | **Document Type** | Comprehensive Project Specification |
-| **Version** | 2.0 |
-| **Date** | October 6, 2025 |
-| **Status** | Active/Current |
-| **Author** | Project Team |
-| **Approval** | Pending |
-| **Next Review** | January 6, 2026 |
+| **Version**       | 2.0                                 |
+| **Date**          | October 6, 2025                     |
+| **Status**        | Active/Current                      |
+| **Author**        | Project Team                        |
+| **Approval**      | Pending                             |
+| **Next Review**   | January 6, 2026                     |
 
 ---
 
@@ -58,15 +58,15 @@ graph TB
 
 ### **Component Breakdown**
 
-| **Component** | **Responsibility** | **Technology** | **Status** |
-|---------------|-------------------|----------------|------------|
-| **Frontend Plugin** | Obsidian UI integration | TypeScript | ✅ Complete |
-| **Backend API** | Core processing logic | FastAPI/Python | ✅ Complete |
-| **Model Manager** | AI model orchestration | Python | ✅ Complete |
-| **Vector Database** | Semantic search | ChromaDB | ✅ Complete |
-| **Caching System** | Performance optimization | Python/Redis | ✅ Complete |
-| **Voice Processing** | Speech-to-text | Vosk | ✅ Complete |
-| **Security Module** | Encryption/Auth | Python/Cryptography | ✅ Complete |
+| **Component**        | **Responsibility**       | **Technology**      | **Status**  |
+| -------------------- | ------------------------ | ------------------- | ----------- |
+| **Frontend Plugin**  | Obsidian UI integration  | TypeScript          | ✅ Complete |
+| **Backend API**      | Core processing logic    | FastAPI/Python      | ✅ Complete |
+| **Model Manager**    | AI model orchestration   | Python              | ✅ Complete |
+| **Vector Database**  | Semantic search          | ChromaDB            | ✅ Complete |
+| **Caching System**   | Performance optimization | Python/Redis        | ✅ Complete |
+| **Voice Processing** | Speech-to-text           | Vosk                | ✅ Complete |
+| **Security Module**  | Encryption/Auth          | Python/Cryptography | ✅ Complete |
 
 ### **Data Flow Architecture**
 
@@ -78,7 +78,7 @@ sequenceDiagram
     participant B as Backend
     participant M as Model
     participant V as Vector DB
-    
+
     U->>O: Types query
     O->>P: Captures input
     P->>B: HTTP request
@@ -106,7 +106,7 @@ sequenceDiagram
 - Ranking based on relevance and recency
 - Integration with Obsidian's native search
 
-**Priority**: High  
+**Priority**: High
 **Status**: ✅ Implemented
 
 ### **FR-002: Conversational AI**
@@ -120,7 +120,7 @@ sequenceDiagram
 - Support for multiple AI models (GPT-4, Claude, local models)
 - Customizable response length and style
 
-**Priority**: High  
+**Priority**: High
 **Status**: ✅ Implemented
 
 ### **FR-003: Voice Interaction**
@@ -134,7 +134,7 @@ sequenceDiagram
 - Push-to-talk and continuous listening modes
 - Audio feedback and confirmation
 
-**Priority**: Medium  
+**Priority**: Medium
 **Status**: ✅ Implemented
 
 ### **FR-004: Document Indexing**
@@ -148,7 +148,7 @@ sequenceDiagram
 - Incremental updates without full re-indexing
 - Progress indicators for large operations
 
-**Priority**: High  
+**Priority**: High
 **Status**: ✅ Implemented
 
 ### **FR-005: Configuration Management**
@@ -162,7 +162,7 @@ sequenceDiagram
 - Runtime configuration updates
 - Configuration validation and error handling
 
-**Priority**: Medium  
+**Priority**: Medium
 **Status**: ✅ Implemented
 
 ---
@@ -171,12 +171,12 @@ sequenceDiagram
 
 ### **NFR-001: Performance**
 
-| **Metric** | **Target** | **Current** | **Status** |
-|------------|------------|-------------|------------|
-| **API Response Time** | <200ms (cached) | ~150ms | ✅ |
-| **Search Latency** | <500ms | ~300ms | ✅ |
-| **Memory Usage** | <500MB baseline | ~400MB | ✅ |
-| **CPU Usage** | <50% sustained | ~30% | ✅ |
+| **Metric**            | **Target**      | **Current** | **Status** |
+| --------------------- | --------------- | ----------- | ---------- |
+| **API Response Time** | <200ms (cached) | ~150ms      | ✅         |
+| **Search Latency**    | <500ms          | ~300ms      | ✅         |
+| **Memory Usage**      | <500MB baseline | ~400MB      | ✅         |
+| **CPU Usage**         | <50% sustained  | ~30%        | ✅         |
 
 ### **NFR-002: Reliability**
 
@@ -501,16 +501,16 @@ class ModelConfig(BaseModel):
 
 ### **Test Coverage Requirements**
 
-| **Component** | **Target Coverage** | **Current Coverage** | **Status** |
-|---------------|-------------------|----------------------|------------|
-| **Model Manager** | 95% | **100%** | ✅ Complete |
-| **Security Module** | 95% | **100%** | ✅ Complete |
-| **Caching System** | 95% | **99%** | ✅ Complete |
-| **Indexing** | 90% | **94%** | ✅ Complete |
-| **Configuration** | 90% | **93%** | ✅ Complete |
-| **Voice Processing** | 85% | **84%** | ✅ Complete |
-| **Backend API** | 85% | **77%** | 🟡 In Progress |
-| **Overall** | 90% | **90.02%** | ✅ Complete |
+| **Component**        | **Target Coverage** | **Current Coverage** | **Status**     |
+| -------------------- | ------------------- | -------------------- | -------------- |
+| **Model Manager**    | 95%                 | **100%**             | ✅ Complete    |
+| **Security Module**  | 95%                 | **100%**             | ✅ Complete    |
+| **Caching System**   | 95%                 | **99%**              | ✅ Complete    |
+| **Indexing**         | 90%                 | **94%**              | ✅ Complete    |
+| **Configuration**    | 90%                 | **93%**              | ✅ Complete    |
+| **Voice Processing** | 85%                 | **84%**              | ✅ Complete    |
+| **Backend API**      | 85%                 | **77%**              | 🟡 In Progress |
+| **Overall**          | 90%                 | **90.02%**           | ✅ Complete    |
 
 ### **Test Categories**
 
@@ -612,13 +612,13 @@ class TestConfig:
 
 ### **Response Time Targets**
 
-| **Operation** | **Target** | **Current** | **Optimization** |
-|---------------|------------|-------------|------------------|
-| **Cached Query** | <200ms | 150ms | ✅ Achieved |
-| **New Query** | <2s | 1.8s | ✅ Achieved |
-| **Search** | <500ms | 300ms | ✅ Achieved |
-| **Indexing** | 100 files/min | 85 files/min | 🟡 Optimizing |
-| **Voice Transcription** | <1s | 800ms | ✅ Achieved |
+| **Operation**           | **Target**    | **Current**  | **Optimization** |
+| ----------------------- | ------------- | ------------ | ---------------- |
+| **Cached Query**        | <200ms        | 150ms        | ✅ Achieved      |
+| **New Query**           | <2s           | 1.8s         | ✅ Achieved      |
+| **Search**              | <500ms        | 300ms        | ✅ Achieved      |
+| **Indexing**            | 100 files/min | 85 files/min | 🟡 Optimizing    |
+| **Voice Transcription** | <1s           | 800ms        | ✅ Achieved      |
 
 ### **Resource Utilization**
 
@@ -736,33 +736,33 @@ CORS_ORIGINS=["http://localhost:3000"]
 ```yaml
 # backend/config.yaml
 server:
-  host: 127.0.0.1
-  port: 8000
-  debug: false
-  
+    host: 127.0.0.1
+    port: 8000
+    debug: false
+
 models:
-  default: "gpt-4"
-  fallback: "gpt4all"
-  temperature: 0.7
-  max_tokens: 2048
-  
+    default: 'gpt-4'
+    fallback: 'gpt4all'
+    temperature: 0.7
+    max_tokens: 2048
+
 search:
-  chunk_size: 512
-  overlap: 50
-  similarity_threshold: 0.7
-  max_results: 50
+    chunk_size: 512
+    overlap: 50
+    similarity_threshold: 0.7
+    max_results: 50
 
 performance:
-  cache_enabled: true
-  async_processing: true
-  max_workers: 4
-  timeout: 30
+    cache_enabled: true
+    async_processing: true
+    max_workers: 4
+    timeout: 30
 
 security:
-  encrypt_config: true
-  api_key_required: false
-  cors_enabled: true
-  audit_logging: true
+    encrypt_config: true
+    api_key_required: false
+    cors_enabled: true
+    audit_logging: true
 ```
 
 ---
@@ -781,18 +781,18 @@ repos:
     hooks:
       - id: black
         language_version: python3.10
-        
+
   - repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
       - id: isort
-        
+
   - repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
       - id: flake8
         args: [--max-line-length=88]
-        
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1
     hooks:
@@ -809,12 +809,12 @@ def process_query(
 ) -> Dict[str, Any]:
     """
     Process user query with AI model and context.
-    
+
     Args:
         query: User's natural language query
         context: Optional context information including vault path and filters
         model_preference: Preferred AI model identifier (e.g., "gpt-4", "claude")
-        
+
     Returns:
         Dictionary containing:
             - answer: AI-generated response text
@@ -822,17 +822,17 @@ def process_query(
             - model_used: Actual model used for generation
             - processing_time: Time taken to process query
             - token_count: Number of tokens in response
-            
+
     Raises:
         ValidationError: If query is empty or invalid
         ModelError: If AI model fails to generate response
         TimeoutError: If processing exceeds timeout limit
-        
+
     Examples:
         >>> result = process_query("What is machine learning?")
         >>> print(result["answer"])
         "Machine learning is a subset of artificial intelligence..."
-        
+
         >>> result = process_query(
         ...     "Summarize my AI notes",
         ...     context={"vault_path": "/path/to/vault"},
@@ -879,19 +879,19 @@ name: Test Suite
 on: [push, pull_request]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-      - run: pip install -r requirements-test.txt
-      - run: python -m pytest tests/ --cov=backend --cov-report=xml
-      - run: python tests/comprehensive_async_test_runner.py
-      - uses: codecov/codecov-action@v3
-        with:
-          file: ./coverage.xml
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - uses: actions/setup-python@v4
+              with:
+                  python-version: '3.10'
+            - run: pip install -r requirements-test.txt
+            - run: python -m pytest tests/ --cov=backend --cov-report=xml
+            - run: python tests/comprehensive_async_test_runner.py
+            - uses: codecov/codecov-action@v3
+              with:
+                  file: ./coverage.xml
 ```
 
 #### **Deployment Pipeline**
@@ -900,21 +900,21 @@ jobs:
 # .github/workflows/deploy.yml
 name: Deploy
 on:
-  release:
-    types: [published]
+    release:
+        types: [published]
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      # Build and installer functionality moved to setup scripts
-      - uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./dist/obsidian-ai-assistant.zip
-          asset_name: obsidian-ai-assistant.zip
-          asset_content_type: application/zip
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            # Build and installer functionality moved to setup scripts
+            - uses: actions/upload-release-asset@v1
+              with:
+                  upload_url: ${{ github.event.release.upload_url }}
+                  asset_path: ./dist/obsidian-ai-assistant.zip
+                  asset_name: obsidian-ai-assistant.zip
+                  asset_content_type: application/zip
 ```
 
 ---
@@ -1003,7 +1003,7 @@ structlog.configure(
 logger = structlog.get_logger()
 
 # Example structured log entries
-logger.info("query_processed", 
+logger.info("query_processed",
            query="What is machine learning?",
            model="gpt-4",
            response_time=1.23,
@@ -1059,7 +1059,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     --strict-markers
     --strict-config
     --cov=backend
@@ -1262,7 +1262,9 @@ Security audit results and recommendations
 
 ## 📄 **DOCUMENT CLOSURE**
 
-*This document serves as the comprehensive specification for the Obsidian AI Assistant project. It should be reviewed and updated regularly to reflect the current state and future direction of the project.*
+_This document serves as the comprehensive specification for the Obsidian AI
+Assistant project. It should be reviewed and updated regularly to reflect the
+current state and future direction of the project._
 
 ### **Document Control**
 

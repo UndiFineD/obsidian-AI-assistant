@@ -12,6 +12,7 @@ help:
 	@echo "  test-backend - Run backend Python tests only"
 	@echo "  test-setup   - Run setup script tests"
 	@echo "  test-coverage- Run tests with coverage reporting"
+	@echo "  openspec-validate - Run OpenSpec validation test suites"
 	@echo "  lint         - Run code quality checks"
 	@echo "  format       - Format code with black and isort"
 	@echo "  clean        - Clean up temporary files and caches"
@@ -48,6 +49,16 @@ test-setup:
 test-coverage:
 	@echo "Running tests with coverage..."
 	pytest tests/backend/ --cov=backend --cov-report=html --cov-report=term-missing --cov-report=xml
+
+# OpenSpec validation target
+.PHONY: openspec-validate
+openspec-validate:
+	@echo "Running OpenSpec validation suites..."
+	python -m pytest \
+		tests/test_openspec_cli.py \
+		tests/test_openspec_integration.py \
+		tests/test_openspec_changes.py \
+		tests/test_openspec_workflow.py -q
 
 test-unit:
 	@echo "Running unit tests only..."

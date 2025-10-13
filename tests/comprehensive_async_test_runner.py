@@ -110,7 +110,13 @@ class AsyncTestRunner:
         print("=" * 60)
 
         # Directories to remove completely
-        dirs_to_remove = ["cache", "models", "backend/vector_db", "setup", "__pycache__"]
+        dirs_to_remove = [
+            "cache",
+            "models",
+            "backend/vector_db",
+            "setup",
+            "__pycache__",
+        ]
 
         # Files to remove
         files_to_remove = [
@@ -222,7 +228,10 @@ class AsyncTestRunner:
             },
             "Plugin System": {
                 "priority": 9,
-                "patterns": ["obsidian-ai-assistant/test_*.py", "test_plugin_python.py"],
+                "patterns": [
+                    "obsidian-ai-assistant/test_*.py",
+                    "test_plugin_python.py",
+                ],
             },
             "Integration Tests": {
                 "priority": 10,

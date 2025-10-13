@@ -7,10 +7,11 @@ import os
 import shutil
 import sys
 import tempfile
-from pathlib import Path
-from typing import Generator, Dict
-from unittest.mock import Mock, patch, MagicMock, mock_open
 import unittest.mock as _um
+from pathlib import Path
+from typing import Dict, Generator
+from unittest.mock import MagicMock, Mock, mock_open, patch
+
 import pytest
 
 # pytest_asyncio ensures plugin is importable
@@ -467,8 +468,8 @@ def mock_config():
 @pytest.fixture
 def mock_fastapi_client():
     """Create a mock FastAPI test client."""
-    from fastapi.testclient import TestClient
     from fastapi import FastAPI
+    from fastapi.testclient import TestClient
 
     # Create minimal FastAPI app for testing
     app = FastAPI()
@@ -581,9 +582,10 @@ def route_localhost_requests_to_app(monkeypatch):
             from backend.backend import app as real_app  # type: ignore
         except Exception:
             from backend import app as real_app  # type: ignore
-        from fastapi.testclient import TestClient
-        import requests as _requests
         from urllib.parse import urlparse
+
+        import requests as _requests
+        from fastapi.testclient import TestClient
 
         test_client = TestClient(real_app)
 

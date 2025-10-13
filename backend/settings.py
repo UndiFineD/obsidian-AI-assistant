@@ -6,11 +6,10 @@ Precedence: environment variables > backend/config.yaml > code defaults.
 Expose get_settings() to retrieve a cached singleton instance.
 """
 
-from typing import Any, Optional
-
 import os
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, Optional
 
 from pydantic import BaseModel
 
@@ -94,13 +93,13 @@ def _load_yaml_config() -> dict:
     if not cfg_path.exists() or yaml is None:
         return {}
     try:
-            with open(cfg_path, "r", encoding="utf-8") as f:
-                data = yaml.safe_load(f) or {}
-            if not isinstance(data, dict):
-                return {}
-            # Drop unknown keys for safety
-            allowed = set(Settings.model_fields.keys())
-            return {k: v for k, v in data.items() if k in allowed}
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        if not isinstance(data, dict):
+            return {}
+        # Drop unknown keys for safety
+        allowed = set(Settings.model_fields.keys())
+        return {k: v for k, v in data.items() if k in allowed}
     except Exception:
         return {}
 
@@ -177,8 +176,9 @@ def reload_settings() -> Settings:
 
 def update_settings(updates: dict) -> Settings:
     """Update settings with new values and reload."""
-    import yaml
     from pathlib import Path
+
+    import yaml
 
     # Filter updates to only include whitelisted keys
     filtered_updates = {}

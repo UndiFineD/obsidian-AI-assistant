@@ -71,7 +71,7 @@ def mock_ml_dependencies():
         'chromadb': MagicMock(),
         'faiss': MagicMock()
     }
-    
+
     with patch.dict('sys.modules', mock_modules):
         yield
 
@@ -79,83 +79,83 @@ def mock_ml_dependencies():
 def client():
     """FastAPI test client with properly mocked backend."""
     from fastapi.testclient import TestClient
-    
+
     # Mock service classes before importing backend
     with patch('backend.modelmanager.ModelManager') as mock_model_cls, \
          patch('backend.embeddings.EmbeddingsManager') as mock_emb_cls, \
          patch('backend.indexing.VaultIndexer') as mock_vault_cls, \
          patch('backend.caching.CacheManager') as mock_cache_cls:
-        
+
         # Configure mock instances
         mock_model = Mock()
         mock_emb = Mock()
         mock_vault = Mock()
         mock_cache = Mock()
-        
+
         mock_model_cls.return_value = mock_model
         mock_emb_cls.return_value = mock_emb
         mock_vault_cls.return_value = mock_vault
         mock_cache_cls.return_value = mock_cache
-        
+
         # Configure mock behaviors
         mock_model.generate.return_value = "Test response"
         mock_cache.get_cached_answer.return_value = None
         mock_vault.reindex.return_value = {"files": 5, "chunks": 25}
-        
+
         # Now import backend
         import backend.backend as backend
-        
+
         # Set global instances
         backend.model_manager = mock_model
         backend.emb_manager = mock_emb
         backend.vault_indexer = mock_vault
         backend.cache_manager = mock_cache
-        
+
         return TestClient(backend.app)
 
 class TestBasicEndpoints:
     """Test basic endpoint functionality."""
-    
+
     def test_health_endpoint(self, client):
         """Test health endpoint exists and responds."""
         response = client.get("/health")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-    
+
     def test_ask_endpoint_basic(self, client):
         """Test ask endpoint accepts requests."""
         request_data = {"question": "What is Python?"}
         response = client.post("/ask", json=request_data)
-        
+
         # Should respond (200, 400, 422, or 500 are all acceptable)
         assert response.status_code in [200, 400, 422, 500]
-        
+
         if response.status_code == 200:
             data = response.json()
             assert "answer" in data
-    
+
     def test_reindex_endpoint_basic(self, client):
         """Test reindex endpoint accepts requests."""
     request_data = {"vault_path": "./tests"}
         response = client.post("/reindex", json=request_data)
-        
+
         # Should respond appropriately
         assert response.status_code in [200, 400, 422, 500]
 
 class TestEndpointExistence:
     """Test that expected endpoints exist."""
-    
+
     def test_config_endpoints(self, client):
         """Test configuration endpoints exist."""
         # GET config
         response = client.get("/api/config")
         assert response.status_code in [200, 400, 500]
-        
+
         # POST config (with minimal valid data)
         response = client.post("/api/config", json={})
         assert response.status_code in [200, 400, 422, 500]
-    
+
     def test_other_endpoints_exist(self, client):
         """Test other endpoints respond."""
         endpoints = [
@@ -163,13 +163,13 @@ class TestEndpointExistence:
             ("POST", "/transcribe", {}),
             ("GET", "/status", None)
         ]
-        
+
         for method, path, data in endpoints:
             if method == "GET":
                 response = client.get(path)
             else:
                 response = client.post(path, json=data or {})
-            
+
             # Any response is better than 404
             assert response.status_code != 404
 
@@ -230,7 +230,7 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v
 ## 🎯 **What This Fixes**
 
 1. **✅ Import Errors**: `backend/__init__.py` makes backend a proper Python package
-2. **✅ Undefined Variables**: Proper fixtures define all needed variables  
+2. **✅ Undefined Variables**: Proper fixtures define all needed variables
 3. **✅ PyTorch Conflicts**: Global ML library mocking prevents import issues
 4. **✅ Service Mocking**: Comprehensive service mocking before backend import
 5. **✅ API Reality**: Tests use actual endpoints, not assumed ones
@@ -278,21 +278,21 @@ After implementing these fixes:
 
 1. **Python Path Issues**:
 
-   ```powershell
-   $env:PYTHONPATH = "$(Get-Location);$env:PYTHONPATH"
-   ```
+    ```powershell
+    $env:PYTHONPATH = "$(Get-Location);$env:PYTHONPATH"
+    ```
 
 2. **Import Conflicts**: Clear Python cache
 
-   ```powershell
-   Remove-Item -Recurse -Force backend\__pycache__\, tests\__pycache__\ -ErrorAction SilentlyContinue
-   ```
+    ```powershell
+    Remove-Item -Recurse -Force backend\__pycache__\, tests\__pycache__\ -ErrorAction SilentlyContinue
+    ```
 
 3. **Dependency Issues**: Check virtual environment
 
-   ```powershell
-   python -c "import sys; print(sys.executable)"
-   ```
+    ```powershell
+    python -c "import sys; print(sys.executable)"
+    ```
 
 ---
 

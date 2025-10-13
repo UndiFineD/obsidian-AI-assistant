@@ -1,6 +1,6 @@
 # Plugin Module Audit
 
-**Date**: October 11, 2025  
+**Date**: October 11, 2025
 **Task**: T002 - Audit plugin modules in `.obsidian/plugins/obsidian-ai-assistant/` and list all major files/classes/functions
 
 ---
@@ -215,29 +215,25 @@ Note: Different style implementations
 ## Testing Priority
 
 1. High Priority (Core functionality):
-
-   - main.js
-   - backendClient.js
-   - rightPane.js
-   - taskQueue.js
+    - main.js
+    - backendClient.js
+    - rightPane.js
+    - taskQueue.js
 
 2. Medium Priority (Features):
-
-   - taskQueueView.js
-   - voice.js
-   - voiceInput.js
-   - analyticsPane.js
+    - taskQueueView.js
+    - voice.js
+    - voiceInput.js
+    - analyticsPane.js
 
 3. Low Priority (Enterprise):
-
-   - enterpriseAuth.js
-   - enterpriseConfig.js
-   - adminDashboard.js
+    - enterpriseAuth.js
+    - enterpriseConfig.js
+    - adminDashboard.js
 
 4. Support (Configuration):
-
-   - manifest.json
-   - config.template.json
+    - manifest.json
+    - config.template.json
 
 ## Sensitive Modules Requiring Security Testing
 

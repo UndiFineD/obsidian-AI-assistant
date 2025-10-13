@@ -1,6 +1,7 @@
-import os
 import logging
+import os
 from typing import Optional
+
 from cryptography.fernet import Fernet, InvalidToken
 
 logger = logging.getLogger(__name__)

@@ -1,11 +1,11 @@
 # tests/backend/test_embeddings.py
-import pytest
-import tempfile
-import shutil
-
-from unittest.mock import Mock, patch
-import sys
 import os
+import shutil
+import sys
+import tempfile
+from unittest.mock import Mock, patch
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from backend.embeddings import EmbeddingsManager

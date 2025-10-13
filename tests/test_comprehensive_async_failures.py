@@ -18,33 +18,26 @@ Test Categories:
 - Enterprise feature failure modes
 """
 
-import pytest
 import asyncio
+import os
+import sys
+import tempfile
+import time
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
 import aiofiles
 import aiohttp
-import os
-import tempfile
-import shutil
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-from pathlib import Path
-import json
-import time
-import threading
-from concurrent.futures import ThreadPoolExecutor
-import signal
 import psutil
-from contextlib import asynccontextmanager
+import pytest
+
+from backend.embeddings import EmbeddingsManager
+from backend.modelmanager import ModelManager
+from backend.performance import AsyncTaskQueue, ConnectionPool
+from backend.security import decrypt_data, encrypt_data
 
 # Test imports
-from backend.backend import app
 from backend.settings import get_settings
-from backend.embeddings import EmbeddingsManager
-from backend.indexing import VaultIndexer
-from backend.modelmanager import ModelManager
-from backend.caching import CacheManager
-from backend.performance import PerformanceMonitor, AsyncTaskQueue, ConnectionPool
-from backend.security import encrypt_data, decrypt_data
-from backend.llm_router import HybridLLMRouter
 
 pytest_plugins = ["pytest_asyncio"]
 
@@ -118,18 +111,18 @@ class TestDatabaseFailureScenarios:
     @pytest.mark.asyncio
     async def test_chromadb_connection_failure(self):
         """Test ChromaDB connection failures"""
-        try:
-            import chromadb
-        except ImportError:
-            pytest.skip("ChromaDB not installed - skipping database tests")
-            return
-
-        with patch("chromadb.Client") as mock_client:
-            mock_client.side_effect = Exception("Database connection failed")
+        # Mock ChromaDB module to test connection failure handling
+        with patch.dict("sys.modules", {"chromadb": MagicMock()}):
+            mock_chromadb = sys.modules["chromadb"]
+            mock_client_class = MagicMock()
+            mock_client_class.side_effect = ConnectionError(
+                "Database connection failed"
+            )
+            mock_chromadb.Client = mock_client_class
 
             # Test that database failures are handled gracefully
-            with pytest.raises(Exception):
-                _ = chromadb.Client()
+            with pytest.raises(ConnectionError, match="Database connection failed"):
+                mock_chromadb.Client()
 
     @pytest.mark.asyncio
     async def test_concurrent_database_operations(self):
@@ -228,7 +221,7 @@ class TestModelFailureScenarios:
         # Test with various timeout values
         for timeout in [0.5, 1.0, 2.0]:
             try:
-                result = await asyncio.wait_for(slow_inference(), timeout=timeout)
+                await asyncio.wait_for(slow_inference(), timeout=timeout)
                 # Should not reach here for short timeouts
                 assert timeout >= 5.0
             except asyncio.TimeoutError:
@@ -372,8 +365,8 @@ class TestAuthenticationFailureScenarios:
 
         # Test encryption failure path: encrypt should raise
         with patch("backend.security.fernet") as mock_fernet:
-            mock_fernet.encrypt.side_effect = Exception("Encryption failed")
-            with pytest.raises(Exception):
+            mock_fernet.encrypt.side_effect = RuntimeError("Encryption failed")
+            with pytest.raises(RuntimeError, match="Encryption failed"):
                 _ = encrypt_data(test_data)
 
         # Test decryption with corrupted data
@@ -424,7 +417,7 @@ class TestFileSystemFailureScenarios:
                 # Try to write to read-only file
                 async with aiofiles.open(test_file, "w") as f:
                     await f.write("new content")
-                assert False, "Should have raised permission error"
+                raise AssertionError("Should have raised permission error")
             except (PermissionError, OSError):
                 # Expected behavior
                 pass
@@ -759,7 +752,7 @@ class TestRecoveryScenarios:
         results = []
         for i in range(10):
             try:
-                result = await circuit_breaker.call(failing_service)
+                await circuit_breaker.call(failing_service)
                 results.append(f"Call {i} succeeded")
             except Exception as e:
                 results.append(f"Call {i} failed: {e}")

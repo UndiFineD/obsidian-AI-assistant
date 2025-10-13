@@ -56,11 +56,11 @@ def main():
         'HF_TOKEN': 'test_token_12345',
         'ENCRYPTION_KEY': 'ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg='
     }
-    
+
     # Run pytest with test environment
     env = os.environ.copy()
     env.update(test_env)
-    
+
     cmd = ['python', '-m', 'pytest'] + sys.argv[1:]
     result = subprocess.run(cmd, env=env)
     return result.returncode
@@ -79,9 +79,8 @@ def main():
 - Failed Tests: 2 tests (0.4% of suite)
 - Success Rate: 99.6% (456 passed, 2 failed)
 - Remaining Issues:
-
-  1. App title test expects "Obsidian AI Assistant" but gets "Enterprise Edition" variant
-  2. Missing `psutil` dependency for memory monitoring tests
+    1. App title test expects "Obsidian AI Assistant" but gets "Enterprise Edition" variant
+    2. Missing `psutil` dependency for memory monitoring tests
 
 ### Coverage Improvement
 
@@ -100,7 +99,7 @@ Issue: `test_fastapi_app_creation` expects exact title match
 # Actual: "Obsidian AI Assistant - Enterprise Edition"
 ```
 
-Status: This is expected behavior when enterprise modules are loaded  
+Status: This is expected behavior when enterprise modules are loaded
 Action: Update test assertion to accept enterprise variant
 
 ### 2. Missing psutil Dependency
@@ -111,7 +110,7 @@ Issue: `ModuleNotFoundError: No module named 'psutil'` in memory monitoring test
 ModuleNotFoundError: No module named 'psutil'
 ```
 
-Status: Missing optional dependency for system monitoring  
+Status: Missing optional dependency for system monitoring
 Action: Add psutil to requirements.txt or make test conditional
 
 ## Security Analysis Integration

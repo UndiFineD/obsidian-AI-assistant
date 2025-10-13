@@ -18,37 +18,19 @@ Test Categories:
 - Performance monitoring edge cases
 """
 
-import pytest
 import asyncio
-import aiofiles
-import aiohttp
-import os
-import tempfile
-import shutil
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
-from pathlib import Path
 import json
-import time
-import threading
-from concurrent.futures import ThreadPoolExecutor
-import jwt
-import base64
-from datetime import datetime, timedelta
-from cryptography.fernet import Fernet
 import sqlite3
+import tempfile
+import time
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+
+import jwt
 import numpy as np
+import pytest
 
 # Test imports
-from backend.backend import app
-from backend.settings import get_settings
-from backend.embeddings import EmbeddingsManager
-from backend.indexing import VaultIndexer
-from backend.modelmanager import ModelManager
-from backend.caching import CacheManager, EmbeddingCache, FileHashCache
-from backend.performance import PerformanceMonitor, AsyncTaskQueue, ConnectionPool
-from backend.security import encrypt_data, decrypt_data
-from backend.llm_router import HybridLLMRouter
-from backend.voice import voice_transcribe
 
 pytest_plugins = ["pytest_asyncio"]
 
@@ -76,8 +58,8 @@ class TestEnterpriseAuthenticationEdgeCases:
             payload = {
                 "user_id": user_id,
                 "provider": provider,
-                "exp": datetime.utcnow() + timedelta(hours=1),
-                "iat": datetime.utcnow(),
+                "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+                "iat": datetime.now(timezone.utc),
                 "permissions": ["read", "write"] if user_id % 3 == 0 else ["read"],
             }
             token = jwt.encode(payload, "secret", algorithm="HS256")
@@ -117,7 +99,8 @@ class TestEnterpriseAuthenticationEdgeCases:
                     # Expired token
                     payload = {
                         "user_id": 123,
-                        "exp": datetime.utcnow() - timedelta(hours=1),  # Expired
+                        "exp": datetime.now(timezone.utc)
+                        - timedelta(hours=1),  # Expired
                     }
                     token = jwt.encode(payload, "secret", algorithm="HS256")
                     decoded = jwt.decode(token, "secret", algorithms=["HS256"])
@@ -127,7 +110,7 @@ class TestEnterpriseAuthenticationEdgeCases:
                     # Invalid signature
                     payload = {
                         "user_id": 123,
-                        "exp": datetime.utcnow() + timedelta(hours=1),
+                        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
                     }
                     token = jwt.encode(payload, "wrong_secret", algorithm="HS256")
                     try:
@@ -138,7 +121,7 @@ class TestEnterpriseAuthenticationEdgeCases:
                 if token_data.get("missing_claims"):
                     # Missing required claims
                     payload = {
-                        "exp": datetime.utcnow() + timedelta(hours=1)
+                        "exp": datetime.now(timezone.utc) + timedelta(hours=1)
                     }  # No user_id
                     token = jwt.encode(payload, "secret", algorithm="HS256")
                     decoded = jwt.decode(token, "secret", algorithms=["HS256"])
@@ -148,7 +131,7 @@ class TestEnterpriseAuthenticationEdgeCases:
                 # Valid token
                 payload = {
                     "user_id": token_data.get("user_id", 123),
-                    "exp": datetime.utcnow() + timedelta(hours=1),
+                    "exp": datetime.now(timezone.utc) + timedelta(hours=1),
                 }
                 token = jwt.encode(payload, "secret", algorithm="HS256")
                 decoded = jwt.decode(token, "secret", algorithms=["HS256"])
@@ -305,9 +288,7 @@ class TestMultiTenantIsolationFailures:
         # Test legitimate access
         async def legitimate_access(tenant_id: str):
             try:
-                data = await tenant_manager.get_data(
-                    tenant_id, "secret_data", tenant_id
-                )
+                await tenant_manager.get_data(tenant_id, "secret_data", tenant_id)
                 return f"Tenant {tenant_id} accessed own data successfully"
             except Exception as e:
                 return f"Tenant {tenant_id} failed to access own data: {e}"
@@ -315,7 +296,7 @@ class TestMultiTenantIsolationFailures:
         # Test isolation breach attempts
         async def breach_attempt(attacking_tenant: str, target_tenant: str):
             try:
-                data = await tenant_manager.get_data(
+                await tenant_manager.get_data(
                     target_tenant, "secret_data", attacking_tenant
                 )
                 return (
@@ -398,15 +379,11 @@ class TestMultiTenantIsolationFailures:
         async def resource_allocation_test(tenant_id: str, num_requests: int):
             results = {"successes": 0, "quota_exceeded": 0, "errors": 0}
 
-            for i in range(num_requests):
+            for _ in range(num_requests):
                 try:
                     # Try to allocate resources
-                    cpu_usage = await quota_manager.allocate_resource(
-                        tenant_id, "cpu_units", 10
-                    )
-                    memory_usage = await quota_manager.allocate_resource(
-                        tenant_id, "memory_mb", 50
-                    )
+                    await quota_manager.allocate_resource(tenant_id, "cpu_units", 10)
+                    await quota_manager.allocate_resource(tenant_id, "memory_mb", 50)
                     results["successes"] += 1
                     await asyncio.sleep(0.001)  # Brief delay
 
@@ -492,7 +469,7 @@ class TestAdvancedCachingScenarios:
 
         # Simulate cache stampede - many concurrent requests for same key
         tasks = []
-        for i in range(50):  # 50 concurrent requests
+        for _ in range(50):  # 50 concurrent requests
             task = cache.get_or_compute(
                 "popular_key", expensive_computation, "popular_key"
             )
@@ -616,7 +593,7 @@ class TestVectorDatabaseEdgeCases:
         async def create_high_dim_vectors(dimensions: int, count: int):
             """Create high-dimensional vectors for testing"""
             vectors = []
-            for i in range(count):
+            for _ in range(count):
                 # Create random vector
                 vector = np.random.rand(dimensions).astype(np.float32)
                 # Normalize
@@ -673,7 +650,6 @@ class TestVectorDatabaseEdgeCases:
 
         # All should complete successfully or fail gracefully
         successful_results = [r for r in results if r["success"]]
-        failed_results = [r for r in results if not r["success"]]
 
         # Should handle most dimensions successfully
         assert len(successful_results) >= len(dimensions_to_test) // 2
@@ -775,7 +751,7 @@ class TestVectorDatabaseEdgeCases:
                 await corrupted_db.initialize()
                 # Should fail due to corruption
                 await corrupted_db.retrieve_vector("vec_1")
-                assert False, "Should have failed with corrupted database"
+                raise AssertionError("Should have failed with corrupted database")
 
             except Exception as e:
                 # Expected corruption error
@@ -874,10 +850,16 @@ class TestVoiceProcessingFailures:
         async def simulate_voice_model_loading(model_size_mb: int):
             """Simulate loading voice models of different sizes"""
             try:
-                # Check available memory
-                import psutil
+                # Check available memory (with fallback if psutil unavailable)
+                try:
+                    import psutil  # type: ignore[import-not-found]
 
-                available_memory_mb = psutil.virtual_memory().available / (1024 * 1024)
+                    available_bytes = psutil.virtual_memory().available
+                except ImportError:
+                    # Fallback: assume 8 GiB available in environments without psutil
+                    available_bytes = 8 * 1024 * 1024 * 1024
+
+                available_memory_mb = available_bytes / (1024 * 1024)
 
                 if model_size_mb > available_memory_mb * 0.8:  # Use 80% as threshold
                     raise MemoryError(
@@ -909,7 +891,6 @@ class TestVoiceProcessingFailures:
         results = await asyncio.gather(*tasks)
 
         # Analyze loading results
-        loaded_models = [r for r in results if r["status"] == "loaded"]
         failed_models = [r for r in results if r["status"] == "failed"]
 
         # Should handle memory constraints appropriately
@@ -1019,7 +1000,7 @@ async def test_comprehensive_enterprise_failure_simulation():
 
     # Run 500 concurrent enterprise operations
     tasks = [enterprise_operation_simulation(i) for i in range(500)]
-    operation_results = await asyncio.gather(*tasks)
+    await asyncio.gather(*tasks)
 
     # Verify we got expected distribution of failures
     # Only successful_operations + failures represent total attempts; failures are counted per-category and may overlap
@@ -1038,7 +1019,7 @@ async def test_comprehensive_enterprise_failure_simulation():
     assert success_rate > 0.6  # At least 60% success rate
 
     # Log results for analysis
-    print(f"Enterprise Failure Simulation Results:")
+    print("Enterprise Failure Simulation Results:")
     for failure_type, count in results.items():
         percentage = (count / total_operations) * 100
         print(f"  {failure_type}: {count} ({percentage:.1f}%)")

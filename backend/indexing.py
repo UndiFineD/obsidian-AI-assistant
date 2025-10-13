@@ -1,14 +1,16 @@
 # backend/indexing.py
-import os
 import hashlib
+import os
 from pathlib import Path
-from typing import Dict, Optional, Any
-from bs4 import BeautifulSoup
+from typing import Any, Dict, Optional
+
 import requests
-from readability import Document
+from bs4 import BeautifulSoup
 from pypdf import PdfReader
-from .utils import safe_call
+from readability import Document
+
 from .settings import get_settings
+from .utils import safe_call
 
 try:
     from .embeddings import EmbeddingsManager

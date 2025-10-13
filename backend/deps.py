@@ -14,10 +14,9 @@ Notes:
 
 from __future__ import annotations
 
-import sys
 import subprocess
+import sys
 from typing import List, Tuple
-
 
 # All required packages for backend and indexing
 REQUIRED_PACKAGES = [

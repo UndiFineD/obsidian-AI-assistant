@@ -1,6 +1,7 @@
 # backend/llm_router.py
 import os
 from typing import Dict, List, Optional
+
 from .utils import safe_call
 
 # LLM backends
@@ -23,8 +24,8 @@ class HybridLLMRouter:
 
     def __init__(
         self,
-    llama_model_path: str = "backend/models/llama-7b-q4.bin",
-    gpt4all_model_path: str = "backend/models/gpt4all-lora-quantized.bin",
+        llama_model_path: str = "backend/models/llama-7b-q4.bin",
+        gpt4all_model_path: str = "backend/models/gpt4all-lora-quantized.bin",
         prefer_fast: bool = True,
         session_memory: bool = True,
         memory_limit: int = 5,

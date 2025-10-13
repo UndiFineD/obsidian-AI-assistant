@@ -83,7 +83,10 @@ python -m uvicorn backend.backend:app --host 0.0.0.0 --port 8000
 gunicorn backend.backend:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
-Windows note: If Uvicorn fails to bind to port 8000 (WinError 10013), try a different port (e.g., 8001), run without --reload, check for conflicting processes with `netstat -ano | findstr :8000`, or run PowerShell as Administrator.
+Windows note: If Uvicorn fails to bind to port 8000 (WinError 10013), try a
+different port (e.g., 8001), run without --reload, check for conflicting
+processes with `netstat -ano | findstr :8000`, or run PowerShell as
+Administrator.
 
 **Requirements**:
 

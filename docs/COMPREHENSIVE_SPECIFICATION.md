@@ -1,14 +1,18 @@
 # 📋 **OBSIDIAN AI ASSISTANT - COMPREHENSIVE TECHNICAL SPECIFICATION**
 
-*Version: 2.1*  
-*Date: October 11, 2025*  
-*Status: Complete & Authoritative - Code Quality Enhanced*
+_Version: 2.1_
+_Date: October 11, 2025_
+_Status: Complete & Authoritative - Code Quality Enhanced_
 
 ---
 
 ## 🎯 **EXECUTIVE SUMMARY**
 
-The Obsidian AI Assistant is a sophisticated, production-ready AI-powered plugin for Obsidian that provides semantic search, conversational AI, voice interaction, and intelligent document processing capabilities. This specification documents the complete technical architecture, API endpoints, data models, performance requirements, and integration standards.
+The Obsidian AI Assistant is a sophisticated, production-ready AI-powered plugin
+for Obsidian that provides semantic search, conversational AI, voice
+interaction, and intelligent document processing capabilities. This
+specification documents the complete technical architecture, API endpoints, data
+models, performance requirements, and integration standards.
 
 ### **Key Features**
 
@@ -72,16 +76,16 @@ graph TD
     A --> C[EmbeddingsManager]
     A --> D[VaultIndexer]
     A --> E[CacheManager]
-    
+
     B --> F[HybridLLMRouter]
     C --> G[ChromaDB]
     D --> C
     D --> E
-    
+
     H[Obsidian Plugin] --> A
     I[Voice Processing] --> A
     J[Configuration] --> A
-    
+
     F --> K[OpenAI API]
     F --> L[Hugging Face]
     F --> M[Local Models]
@@ -99,17 +103,17 @@ Host: 127.0.0.1
 Port: 8000
 Framework: FastAPI v0.104+
 Base URL: http://127.0.0.1:8000
-Title: "Obsidian AI Assistant"
+Title: 'Obsidian AI Assistant'
 
 CORS Settings:
-  allow_origins: ["*"]
-  allow_credentials: true  
-  allow_methods: ["*"]
-  allow_headers: ["*"]
+    allow_origins: ['*']
+    allow_credentials: true
+    allow_methods: ['*']
+    allow_headers: ['*']
 
 Documentation:
-  Swagger UI: http://127.0.0.1:8000/docs
-  ReDoc: http://127.0.0.1:8000/redoc
+    Swagger UI: http://127.0.0.1:8000/docs
+    ReDoc: http://127.0.0.1:8000/redoc
 ```
 
 ---
@@ -126,18 +130,18 @@ Documentation:
 
 ```json
 {
-  "status": "ok",
-  "timestamp": 1728123456,
-  "backend_url": "http://127.0.0.1:8000", 
-  "api_port": 8000,
-  "vault_path": "vault",
+    "status": "ok",
+    "timestamp": 1728123456,
+    "backend_url": "http://127.0.0.1:8000",
+    "api_port": 8000,
+    "vault_path": "vault",
     "models_dir": "backend/models",
-    "cache_dir": "backend/cache", 
-  "model_backend": "llama_cpp",
-  "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "vector_db": "chroma",
-  "allow_network": false,
-  "gpu": true
+    "cache_dir": "backend/cache",
+    "model_backend": "llama_cpp",
+    "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "vector_db": "chroma",
+    "allow_network": false,
+    "gpu": true
 }
 ```
 
@@ -147,7 +151,7 @@ Documentation:
 
 ---
 
-#### **GET /status**  
+#### **GET /status**
 
 **Purpose**: Lightweight liveness check for monitoring
 
@@ -155,7 +159,7 @@ Documentation:
 
 ```json
 {
-  "status": "ok"
+    "status": "ok"
 }
 ```
 
@@ -183,15 +187,15 @@ Documentation:
 
 ```json
 {
-  "vault_path": "vault",
-  "api_port": 8000,
-  "model_backend": "llama_cpp",
-  "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
-  "vector_db": "chroma",
-  "allow_network": false,
-  "gpu": true,
-  "cache_ttl": 3600,
-  "max_tokens": 2048
+    "vault_path": "vault",
+    "api_port": 8000,
+    "model_backend": "llama_cpp",
+    "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "vector_db": "chroma",
+    "allow_network": false,
+    "gpu": true,
+    "cache_ttl": 3600,
+    "max_tokens": 2048
 }
 ```
 
@@ -209,10 +213,10 @@ Documentation:
 
 ```json
 {
-  "vault_path": "./new_vault",
-  "api_port": 8001, 
-  "gpu": false,
-  "cache_ttl": 7200
+    "vault_path": "./new_vault",
+    "api_port": 8001,
+    "gpu": false,
+    "cache_ttl": 7200
 }
 ```
 
@@ -220,14 +224,14 @@ Documentation:
 
 ```json
 {
-  "ok": true,
-  "settings": {
-    "vault_path": "./new_vault",
-    "api_port": 8001,
-    "gpu": false,
-    "cache_ttl": 7200
-    // ... complete updated settings
-  }
+    "ok": true,
+    "settings": {
+        "vault_path": "./new_vault",
+        "api_port": 8001,
+        "gpu": false,
+        "cache_ttl": 7200
+        // ... complete updated settings
+    }
 }
 ```
 
@@ -249,10 +253,10 @@ Documentation:
 
 ```json
 {
-  "ok": true,
-  "settings": {
-    // ... complete reloaded settings object
-  }
+    "ok": true,
+    "settings": {
+        // ... complete reloaded settings object
+    }
 }
 ```
 
@@ -273,12 +277,12 @@ Documentation:
 
 ```json
 {
-  "question": "What are the main themes in my notes about machine learning?",
-  "prefer_fast": true,
-  "max_tokens": 256,
-  "context_paths": ["ML_Research.md", "AI_Notes.md"],
-  "prompt": "You are an expert research assistant...",
-  "model_name": "gpt-4"
+    "question": "What are the main themes in my notes about machine learning?",
+    "prefer_fast": true,
+    "max_tokens": 256,
+    "context_paths": ["ML_Research.md", "AI_Notes.md"],
+    "prompt": "You are an expert research assistant...",
+    "model_name": "gpt-4"
 }
 ```
 
@@ -286,12 +290,12 @@ Documentation:
 
 ```json
 {
-  "answer": "Based on your notes, the main ML themes include supervised learning algorithms, neural network architectures, and data preprocessing techniques...",
-  "cached": false,
-  "model": "gpt-4",
-  "processing_time": 1.234,
-  "context_used": ["ML_Research.md", "AI_Notes.md"],
-  "token_count": 150
+    "answer": "Based on your notes, the main ML themes include supervised learning algorithms, neural network architectures, and data preprocessing techniques...",
+    "cached": false,
+    "model": "gpt-4",
+    "processing_time": 1.234,
+    "context_used": ["ML_Research.md", "AI_Notes.md"],
+    "token_count": 150
 }
 ```
 
@@ -319,9 +323,9 @@ Documentation:
 
 ```json
 {
-  "audio_data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
-  "format": "webm",
-  "language": "en"
+    "audio_data": "UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=",
+    "format": "webm",
+    "language": "en"
 }
 ```
 
@@ -329,11 +333,11 @@ Documentation:
 
 ```json
 {
-  "transcription": "Hello, how can I help you with your research today?",
-  "confidence": 0.95,
-  "status": "success",
-  "processing_time": 0.456,
-  "language": "en"
+    "transcription": "Hello, how can I help you with your research today?",
+    "confidence": 0.95,
+    "status": "success",
+    "processing_time": 0.456,
+    "language": "en"
 }
 ```
 
@@ -355,7 +359,7 @@ Documentation:
 
 ```json
 {
-  "vault_path": "./vault"
+    "vault_path": "./vault"
 }
 ```
 
@@ -363,11 +367,11 @@ Documentation:
 
 ```json
 {
-  "indexed_files": ["Note1.md", "Research.pdf", "Ideas.txt"],
-  "total_files": 3,
-  "processing_time": 2.34,
-  "chunks_created": 156,
-  "status": "success"
+    "indexed_files": ["Note1.md", "Research.pdf", "Ideas.txt"],
+    "total_files": 3,
+    "processing_time": 2.34,
+    "chunks_created": 156,
+    "status": "success"
 }
 ```
 
@@ -395,8 +399,8 @@ Documentation:
 
 ```json
 {
-  "url": "https://example.com/article",
-  "question": "What are the key points in this article?"
+    "url": "https://example.com/article",
+    "question": "What are the key points in this article?"
 }
 ```
 
@@ -404,10 +408,10 @@ Documentation:
 
 ```json
 {
-  "answer": "The key points include: 1) AI advancement trends, 2) Ethical considerations, 3) Future implications...",
-  "url_processed": "https://example.com/article",
-  "content_length": 5420,
-  "processing_time": 3.12
+    "answer": "The key points include: 1) AI advancement trends, 2) Ethical considerations, 3) Future implications...",
+    "url_processed": "https://example.com/article",
+    "content_length": 5420,
+    "processing_time": 3.12
 }
 ```
 
@@ -442,20 +446,20 @@ Documentation:
 
 ```json
 {
-  "results": [
-    {
-      "content": "Machine learning is a subset of artificial intelligence...",
-      "source": "AI_Notes.md",
-      "score": 0.95,
-      "metadata": {
-        "file_type": "markdown",
-        "last_modified": "2025-10-06T10:30:00Z"
-      }
-    }
-  ],
-  "query": "machine learning basics",
-  "total_results": 1,
-  "processing_time": 0.123
+    "results": [
+        {
+            "content": "Machine learning is a subset of artificial intelligence...",
+            "source": "AI_Notes.md",
+            "score": 0.95,
+            "metadata": {
+                "file_type": "markdown",
+                "last_modified": "2025-10-06T10:30:00Z"
+            }
+        }
+    ],
+    "query": "machine learning basics",
+    "total_results": 1,
+    "processing_time": 0.123
 }
 ```
 
@@ -479,11 +483,11 @@ Documentation:
 
 ```json
 {
-  "indexed_files": ["Note1.md", "Note2.md", "Document.pdf"],
-  "total_files": 3,
-  "processing_time": 1.45,
-  "vault_path": "vault",
-  "status": "success"
+    "indexed_files": ["Note1.md", "Note2.md", "Document.pdf"],
+    "total_files": 3,
+    "processing_time": 1.45,
+    "vault_path": "vault",
+    "status": "success"
 }
 ```
 
@@ -507,11 +511,11 @@ Documentation:
 
 ```json
 {
-  "chunks_indexed": 24,
-  "file_processed": "research_paper.pdf",
-  "status": "success",
-  "processing_time": 4.67,
-  "file_size": 2.4
+    "chunks_indexed": 24,
+    "file_processed": "research_paper.pdf",
+    "status": "success",
+    "processing_time": 4.67,
+    "file_size": 2.4
 }
 ```
 
@@ -532,7 +536,7 @@ Documentation:
 ```python
 class AskRequest(BaseModel):
     model_config = {"protected_namespaces": ()}
-    
+
     question: str                               # Required: User's question
     prefer_fast: bool = True                    # Use fastest available model
     max_tokens: int = 256                       # Response length limit
@@ -606,22 +610,22 @@ class TranscribeRequest(BaseModel):
 
 ### **📈 Response Time Requirements**
 
-| **Endpoint Category** | **Target Response Time** | **Maximum Acceptable** | **SLA Requirement** |
-|---------------------|-------------------------|----------------------|-------------------|
-| **Health/Status** | < 20ms | < 50ms | 99.9% uptime |
-| **Configuration** | < 100ms | < 200ms | 99.5% success |
-| **Simple AI Query** | < 1s | < 2s | 95% under target |
-| **Complex AI Query** | < 3s | < 5s | 90% under target |
-| **Document Indexing** | < 2s | < 10s | 95% completion |
-| **Search Operations** | < 200ms | < 500ms | 99% under target |
-| **Voice Transcription** | < 1s | < 3s | 90% under target |
+| **Endpoint Category**   | **Target Response Time** | **Maximum Acceptable** | **SLA Requirement** |
+| ----------------------- | ------------------------ | ---------------------- | ------------------- |
+| **Health/Status**       | < 20ms                   | < 50ms                 | 99.9% uptime        |
+| **Configuration**       | < 100ms                  | < 200ms                | 99.5% success       |
+| **Simple AI Query**     | < 1s                     | < 2s                   | 95% under target    |
+| **Complex AI Query**    | < 3s                     | < 5s                   | 90% under target    |
+| **Document Indexing**   | < 2s                     | < 10s                  | 95% completion      |
+| **Search Operations**   | < 200ms                  | < 500ms                | 99% under target    |
+| **Voice Transcription** | < 1s                     | < 3s                   | 90% under target    |
 
 ### **💾 Resource Usage Standards**
 
 #### **Memory Management**
 
 - **Baseline Usage**: < 256MB (idle state)
-- **Active Processing**: < 1GB (during AI operations)  
+- **Active Processing**: < 1GB (during AI operations)
 - **Peak Usage**: < 2GB (heavy document processing)
 - **Memory Leaks**: Zero tolerance - automatic cleanup
 
@@ -804,12 +808,12 @@ tests/
 # Test Pattern Example
 class TestAskEndpoint:
     """Test /ask endpoint functionality."""
-    
+
     @pytest_asyncio.fixture
     async def client(self):
         """Async test client with proper service mocking."""
         return AsyncClient(transport=ASGITransport(app=app))
-    
+
     async def test_ask_success(self, client, mock_all_services):
         """Test successful AI question processing."""
         request_data = {
@@ -817,9 +821,9 @@ class TestAskEndpoint:
             "prefer_fast": true,
             "max_tokens": 256
         }
-        
+
         response = await client.post("/ask", json=request_data)
-        
+
         assert response.status_code == 200
         data = response.json()
         assert "answer" in data
@@ -833,19 +837,19 @@ class TestAskEndpoint:
 # Integration Test Pattern
 class TestFullAPIWorkflow:
     """Test complete API workflow scenarios."""
-    
+
     async def test_ask_reindex_search_workflow(self, client):
         """Test complete user workflow."""
         # 1. Reindex documents
-        reindex_response = await client.post("/reindex", 
+        reindex_response = await client.post("/reindex",
                                            json={"vault_path": "./test_vault"})
         assert reindex_response.status_code == 200
-        
+
         # 2. Ask question
-        ask_response = await client.post("/ask", 
+        ask_response = await client.post("/ask",
                                        json={"question": "Test question"})
         assert ask_response.status_code == 200
-        
+
         # 3. Search for related content
         search_response = await client.post("/api/search?query=test&top_k=5")
         assert search_response.status_code == 200
@@ -857,16 +861,16 @@ class TestFullAPIWorkflow:
 # Performance Test Pattern
 class TestPerformanceRequirements:
     """Validate performance SLA compliance."""
-    
+
     async def test_health_endpoint_performance(self, client):
         """Ensure health check meets <50ms requirement."""
         start_time = time.time()
         response = await client.get("/health")
         end_time = time.time()
-        
+
         assert response.status_code == 200
         assert (end_time - start_time) < 0.05  # 50ms limit
-    
+
     @pytest.mark.load_test
     async def test_concurrent_ask_requests(self, client):
         """Test concurrent request handling."""
@@ -874,7 +878,7 @@ class TestPerformanceRequirements:
         for i in range(10):
             task = client.post("/ask", json={"question": f"Question {i}"})
             tasks.append(task)
-        
+
         responses = await asyncio.gather(*tasks)
         assert all(r.status_code == 200 for r in responses)
 ```
@@ -911,16 +915,16 @@ Memory Usage: <2GB during test execution
 
 ```json
 {
-  "id": "ai-assistant",
-  "name": "AI Assistant",
-  "version": "1.0.0",
-  "minAppVersion": "0.15.0",
-  "description": "AI-powered assistant with semantic search and conversational capabilities",
-  "author": "Obsidian AI Assistant Team",
-  "authorUrl": "https://github.com/UndiFineD/obsidian-AI-assistant",
-  "isDesktopOnly": false,
-  "main": "main.js",
-  "styles": "styles.css"
+    "id": "ai-assistant",
+    "name": "AI Assistant",
+    "version": "1.0.0",
+    "minAppVersion": "0.15.0",
+    "description": "AI-powered assistant with semantic search and conversational capabilities",
+    "author": "Obsidian AI Assistant Team",
+    "authorUrl": "https://github.com/UndiFineD/obsidian-AI-assistant",
+    "isDesktopOnly": false,
+    "main": "main.js",
+    "styles": "styles.css"
 }
 ```
 
@@ -934,7 +938,7 @@ interface AIAssistantPlugin extends Plugin {
     taskQueue: TaskQueueManager;
     voiceInterface: VoiceInputManager;
     analyticsPane: AnalyticsPane;
-    
+
     // Core Methods
     onload(): Promise<void>;
     onunload(): void;
@@ -944,14 +948,14 @@ interface AIAssistantPlugin extends Plugin {
 
 // Settings Interface
 interface AIAssistantSettings {
-    backendUrl: string;          // Default: "http://127.0.0.1:8000"
-    apiKey?: string;             // Optional API authentication
-    enableVoiceInput: boolean;   // Voice interface toggle
-    autoIndexing: boolean;       // Automatic vault indexing
-    cacheEnabled: boolean;       // Response caching
-    preferFastModel: boolean;    // Model preference
-    maxTokens: number;           // Response length limit
-    theme: "light" | "dark";     // UI theme preference
+    backendUrl: string; // Default: "http://127.0.0.1:8000"
+    apiKey?: string; // Optional API authentication
+    enableVoiceInput: boolean; // Voice interface toggle
+    autoIndexing: boolean; // Automatic vault indexing
+    cacheEnabled: boolean; // Response caching
+    preferFastModel: boolean; // Model preference
+    maxTokens: number; // Response length limit
+    theme: 'light' | 'dark'; // UI theme preference
 }
 ```
 
@@ -964,7 +968,7 @@ interface AIAssistantSettings {
 class BackendAPIClient {
     private baseUrl: string;
     private timeout: number = 30000;
-    
+
     async ask(question: string, options?: AskOptions): Promise<AskResponse> {
         const response = await fetch(`${this.baseUrl}/ask`, {
             method: 'POST',
@@ -973,22 +977,22 @@ class BackendAPIClient {
                 question,
                 prefer_fast: options?.preferFast ?? true,
                 max_tokens: options?.maxTokens ?? 256,
-                model_name: options?.modelName
-            })
+                model_name: options?.modelName,
+            }),
         });
-        
+
         if (!response.ok) {
             throw new Error(`API Error: ${response.status} ${response.statusText}`);
         }
-        
+
         return await response.json();
     }
-    
+
     async health(): Promise<HealthResponse> {
         const response = await fetch(`${this.baseUrl}/health`);
         return await response.json();
     }
-    
+
     // Additional methods for reindex, search, transcribe, etc.
 }
 ```
@@ -998,7 +1002,7 @@ class BackendAPIClient {
 ```typescript
 class ErrorHandler {
     static async withRetry<T>(
-        operation: () => Promise<T>, 
+        operation: () => Promise<T>,
         maxRetries: number = 3,
         backoffMs: number = 1000
     ): Promise<T> {
@@ -1007,13 +1011,13 @@ class ErrorHandler {
                 return await operation();
             } catch (error) {
                 if (attempt === maxRetries) throw error;
-                
-                await new Promise(resolve => 
+
+                await new Promise((resolve) =>
                     setTimeout(resolve, backoffMs * Math.pow(2, attempt))
                 );
             }
         }
-        throw new Error("Max retries exceeded");
+        throw new Error('Max retries exceeded');
     }
 }
 ```
@@ -1036,17 +1040,21 @@ interface TaskQueueItem {
 }
 
 class TaskQueueView extends ItemView {
-    getViewType(): string { return 'ai-task-queue'; }
-    getDisplayText(): string { return 'AI Task Queue'; }
-    
+    getViewType(): string {
+        return 'ai-task-queue';
+    }
+    getDisplayText(): string {
+        return 'AI Task Queue';
+    }
+
     async onOpen() {
         this.containerEl.empty();
         this.containerEl.createEl('h2', { text: 'AI Assistant Tasks' });
-        
+
         const queueContainer = this.containerEl.createDiv('task-queue-container');
         this.renderTaskQueue(queueContainer);
     }
-    
+
     private renderTaskQueue(container: HTMLElement) {
         // Render task list with real-time updates
         // Show progress indicators, retry options, etc.
@@ -1061,33 +1069,33 @@ class TaskQueueView extends ItemView {
 class VoiceInputManager {
     private recognition?: SpeechRecognition;
     private isListening: boolean = false;
-    
+
     async startListening(): Promise<string> {
         return new Promise((resolve, reject) => {
             if (!this.isRecognitionSupported()) {
                 // Fall back to backend transcription
                 return this.fallbackTranscription();
             }
-            
+
             this.recognition = new webkitSpeechRecognition();
             this.recognition.continuous = false;
             this.recognition.interimResults = false;
             this.recognition.lang = 'en-US';
-            
+
             this.recognition.onresult = (event) => {
                 const transcript = event.results[0][0].transcript;
                 resolve(transcript);
             };
-            
+
             this.recognition.onerror = (event) => {
                 reject(new Error(`Speech recognition error: ${event.error}`));
             };
-            
+
             this.recognition.start();
             this.isListening = true;
         });
     }
-    
+
     private async fallbackTranscription(): Promise<string> {
         // Use backend transcription service
         // Record audio, send to /transcribe endpoint
@@ -1132,25 +1140,25 @@ npm install
 # Docker Configuration
 version: '3.8'
 services:
-  ai-assistant-backend:
-    image: obsidian-ai-assistant:latest
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./vault:/app/vault:ro
-        - ./backend/cache:/app/backend/cache
-        - ./backend/models:/app/backend/models
-      - ./vector_db:/app/vector_db
-    environment:
-      - ENVIRONMENT=production
-      - GPU_ENABLED=true
-      - CACHE_TTL=3600
-      - MAX_TOKENS=2048
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    ai-assistant-backend:
+        image: obsidian-ai-assistant:latest
+        ports:
+            - '8000:8000'
+        volumes:
+            - ./vault:/app/vault:ro
+              - ./backend/cache:/app/backend/cache
+              - ./backend/models:/app/backend/models
+            - ./vector_db:/app/vector_db
+        environment:
+            - ENVIRONMENT=production
+            - GPU_ENABLED=true
+            - CACHE_TTL=3600
+            - MAX_TOKENS=2048
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
+            interval: 30s
+            timeout: 10s
+            retries: 3
 ```
 
 ### **⚙️ Configuration Management**
@@ -1164,24 +1172,24 @@ class Settings(BaseModel):
     api_port: int = 8000
     backend_url: str = "http://127.0.0.1:8000"
     host: str = "127.0.0.1"
-    
+
     # Storage Paths
     vault_path: Path = Path("./vault")
     models_dir: Path = Path("./backend/models")
     cache_dir: Path = Path("./backend/cache")
-    
+
     # AI Configuration
     model_backend: str = "llama_cpp"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: str = "chroma"
     allow_network: bool = False
     gpu: bool = True
-    
+
     # Performance Settings
     cache_ttl: int = 3600  # 1 hour
     max_tokens: int = 2048
     concurrent_requests: int = 10
-    
+
     # Security Settings
     enable_cors: bool = True
     api_key_required: bool = False
@@ -1267,17 +1275,17 @@ repos:
     hooks:
       - id: black
         language_version: python3.9
-        
-  - repo: https://github.com/pycqa/flake8  
+
+  - repo: https://github.com/pycqa/flake8
     hooks:
       - id: flake8
         args: [--max-line-length=88, --extend-ignore=E203]
-        
+
   - repo: https://github.com/pre-commit/mirrors-mypy
     hooks:
       - id: mypy
         additional_dependencies: [types-all]
-        
+
   - repo: https://github.com/PyCQA/bandit
     hooks:
       - id: bandit
@@ -1298,21 +1306,21 @@ repos:
 ```python
 # Performance Test Requirements
 class PerformanceTests:
-    
+
     @pytest.mark.benchmark
     async def test_ask_endpoint_performance(self):
         """Benchmark /ask endpoint under load."""
         # Target: <2s for 95% of requests
         # Load: 10 concurrent users, 100 requests each
         # Success Rate: >99%
-        
-    @pytest.mark.benchmark  
+
+    @pytest.mark.benchmark
     async def test_search_performance(self):
         """Benchmark search across large datasets."""
         # Target: <500ms for semantic search
         # Dataset: 10,000+ documents
         # Query Types: Simple and complex semantic queries
-        
+
     @pytest.mark.stress
     async def test_concurrent_operations(self):
         """Stress test with multiple simultaneous operations."""
@@ -1326,16 +1334,16 @@ class PerformanceTests:
 ```python
 # Resource Usage Monitoring
 class ResourceTests:
-    
+
     def test_memory_usage_baseline(self):
         """Ensure baseline memory usage <256MB."""
-        
+
     def test_memory_leak_detection(self):
         """Detect memory leaks in long-running operations."""
-        
+
     def test_cpu_utilization_limits(self):
         """Ensure CPU usage stays within limits."""
-        
+
     def test_storage_cleanup(self):
         """Verify temporary file cleanup."""
 ```
@@ -1351,7 +1359,7 @@ class ResourceTests:
 ```text
 Version Format: MAJOR.MINOR.PATCH
 MAJOR: Breaking API changes, major architecture updates
-MINOR: New features, backward-compatible API additions  
+MINOR: New features, backward-compatible API additions
 PATCH: Bug fixes, security updates, performance improvements
 
 Examples:
@@ -1475,7 +1483,7 @@ netstat -an | grep 8000  # Network connections
 This comprehensive specification establishes the **Obsidian AI Assistant** as a **production-ready, enterprise-grade AI integration** for Obsidian. The specification covers:
 
 1. **✅ Complete API Documentation**: All 16 endpoints with request/response models
-2. **✅ System Architecture**: Modular design with clear service boundaries  
+2. **✅ System Architecture**: Modular design with clear service boundaries
 3. **✅ Performance Standards**: Response time SLAs and resource requirements
 4. **✅ Security Framework**: Authentication, encryption, and input validation
 5. **✅ Testing Standards**: Comprehensive test coverage with async execution

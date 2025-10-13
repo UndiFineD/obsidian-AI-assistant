@@ -3,9 +3,10 @@
 Python-based tests for validating Obsidian Plugin JavaScript functionality.
 Tests specific features and behaviors without requiring Node.js.
 """
-import pytest
 import re
 from pathlib import Path
+
+import pytest
 
 
 class TestPluginFunctionality:
@@ -209,9 +210,9 @@ class TestVoiceFunctionality:
 
     @property
     def voice_content(self):
-            voice_path = Path(".obsidian/plugins/obsidian-ai-assistant/voice.js")
-            with open(voice_path, "r", encoding="utf-8") as f:
-                return f.read()
+        voice_path = Path(".obsidian/plugins/obsidian-ai-assistant/voice.js")
+        with open(voice_path, "r", encoding="utf-8") as f:
+            return f.read()
 
     @property
     def voice_input_content(self):
@@ -272,7 +273,9 @@ class TestAnalyticsFunctionality:
 
     @property
     def analytics_content(self):
-        analytics_path = Path(".obsidian/plugins/obsidian-ai-assistant/analyticsPane.js")
+        analytics_path = Path(
+            ".obsidian/plugins/obsidian-ai-assistant/analyticsPane.js"
+        )
         with open(analytics_path, "r", encoding="utf-8") as f:
             return f.read()
 

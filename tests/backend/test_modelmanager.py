@@ -1,11 +1,12 @@
 # tests/backend/test_modelmanager.py
 
-import pytest
-import tempfile
 import shutil
+import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-import sys
+
+import pytest
 
 # 🎵 Work it HARDER - use proper package imports! 🎵
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -39,9 +40,9 @@ class TestModelManager:
 
     def test_model_manager_initialization_defaults(self):
         """Test ModelManager initialization with default parameters."""
-        with patch("backend.modelmanager.load_dotenv"), \
-             patch("backend.modelmanager.huggingface_hub.login"), \
-             patch("pathlib.Path.exists", return_value=False):
+        with patch("backend.modelmanager.load_dotenv"), patch(
+            "backend.modelmanager.huggingface_hub.login"
+        ), patch("pathlib.Path.exists", return_value=False):
             manager = ModelManager()
             assert manager.models_dir == "./backend/models"
             assert manager.env_file == ".env"

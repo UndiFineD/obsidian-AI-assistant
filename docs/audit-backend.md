@@ -1,6 +1,6 @@
 # Backend Module Audit
 
-**Date**: October 11, 2025  
+**Date**: October 11, 2025
 **Task**: T001 - Audit backend modules in `backend/` and list all major files/classes/functions
 
 ---
@@ -45,11 +45,11 @@ backend/
 
 - FastAPI app initialization
 - All API endpoints (16 endpoints):
-  - GET /health, /status, /api/health
-  - GET/POST /api/config, POST /api/config/reload
-  - POST /ask, /api/ask, /transcribe
-  - POST /reindex, /api/reindex, /web, /api/web
-  - POST /api/search, /api/scan_vault, /api/index_pdf
+    - GET /health, /status, /api/health
+    - GET/POST /api/config, POST /api/config/reload
+    - POST /ask, /api/ask, /transcribe
+    - POST /reindex, /api/reindex, /web, /api/web
+    - POST /api/search, /api/scan_vault, /api/index_pdf
 - Error handling middleware
 - CORS configuration
 
@@ -218,7 +218,7 @@ backend/
 
 1. High Priority (Core functionality): backend.py, settings.py, modelmanager.py, embeddings.py, indexing.py
 2. Medium Priority (Features): llm_router.py, caching.py, security.py, voice.py, performance.py
-3. Low Priority (Enterprise): All enterprise_*.py modules
+3. Low Priority (Enterprise): All enterprise\_\*.py modules
 4. Support: utils.py, deps.py
 
 ## Sensitive Modules Requiring Security Testing

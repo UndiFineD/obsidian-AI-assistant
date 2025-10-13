@@ -1,8 +1,8 @@
-const { Plugin, Modal, Notice, PluginSettingTab, Setting } = require("obsidian");
+const { Plugin, Modal, Notice, PluginSettingTab, Setting } = require('obsidian');
 let AIRightPaneView;
 try {
     // Use explicit relative path so Obsidian resolves local module correctly
-    AIRightPaneView = require("./rightPane.js");
+    AIRightPaneView = require('./rightPane.js');
 } catch (error) {
     try {
         const path = require('path');
@@ -11,7 +11,12 @@ try {
         if (fs.existsSync(candidate)) {
             AIRightPaneView = require(candidate);
         } else {
-            console.error('AI Assistant: rightPane.js not found. __dirname =', __dirname, 'error =', error);
+            console.error(
+                'AI Assistant: rightPane.js not found. __dirname =',
+                __dirname,
+                'error =',
+                error
+            );
             // Minimal stub to avoid crashing the plugin; guides user to reinstall
             AIRightPaneView = class {
                 constructor(app, plugin) {
@@ -19,7 +24,9 @@ try {
                     this.plugin = plugin;
                 }
                 open() {
-                    new Notice('AI Assistant: rightPane.js missing. Please reinstall the plugin to fix.');
+                    new Notice(
+                        'AI Assistant: rightPane.js missing. Please reinstall the plugin to fix.'
+                    );
                 }
             };
         }
@@ -31,13 +38,15 @@ try {
                 this.plugin = plugin;
             }
             open() {
-                new Notice('AI Assistant: rightPane.js missing. Please reinstall the plugin to fix.');
+                new Notice(
+                    'AI Assistant: rightPane.js missing. Please reinstall the plugin to fix.'
+                );
             }
         };
     }
 }
 // Explicit relative path for local module
-const BackendClient = require("./backendClient.js");
+const BackendClient = require('./backendClient.js');
 
 // Enterprise components
 let EnterpriseAuth, EnterpriseAdminDashboard, EnterpriseConfig;
@@ -45,9 +54,9 @@ let ENTERPRISE_AVAILABLE = false;
 
 try {
     // These may not exist; try-catch handles absence
-    EnterpriseAuth = require("./enterpriseAuth.js");
-    EnterpriseAdminDashboard = require("./adminDashboard.js");
-    EnterpriseConfig = require("./enterpriseConfig.js");
+    EnterpriseAuth = require('./enterpriseAuth.js');
+    EnterpriseAdminDashboard = require('./adminDashboard.js');
+    EnterpriseConfig = require('./enterpriseConfig.js');
     ENTERPRISE_AVAILABLE = true;
 } catch (error) {
     console.log('Enterprise features not available:', error.message);
@@ -192,7 +201,7 @@ class ObsidianAIAssistant extends Plugin {
                 } else {
                     new Notice('Enterprise features not available');
                 }
-            }
+            },
         });
         this.addCommand({
             id: 'enterprise-configuration',
@@ -204,7 +213,7 @@ class ObsidianAIAssistant extends Plugin {
                 } else {
                     new Notice('Enterprise configuration UI not available');
                 }
-            }
+            },
         });
         this.addCommand({
             id: 'admin-dashboard',
@@ -216,7 +225,7 @@ class ObsidianAIAssistant extends Plugin {
                 } else {
                     new Notice('Admin Dashboard not available');
                 }
-            }
+            },
         });
     }
 

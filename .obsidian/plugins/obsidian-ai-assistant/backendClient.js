@@ -1,8 +1,8 @@
 class BackendClient {
     constructor(baseUrl, options = {}) {
-        this.baseUrl = baseUrl || "http://localhost:8000";
+        this.baseUrl = baseUrl || 'http://localhost:8000';
         // Support passing a function as token provider directly
-        if (typeof options === "function") {
+        if (typeof options === 'function') {
             this._tokenProvider = options;
             options = {};
         } else {
@@ -25,19 +25,19 @@ class BackendClient {
     isAbortSignal(obj) {
         return !!(
             obj &&
-            typeof obj === "object" &&
-            "aborted" in obj &&
-            typeof obj.addEventListener === "function"
+            typeof obj === 'object' &&
+            'aborted' in obj &&
+            typeof obj.addEventListener === 'function'
         );
     }
 
     async request(method, endpoint, body = null, headers = {}, signal) {
         // Support calling as request(endpoint, options) like in some plugin code
-        if (typeof method === "string" && method.startsWith("/")) {
+        if (typeof method === 'string' && method.startsWith('/')) {
             // Shift args: request(endpoint, options)
             const ep = method;
             const opts = endpoint || {};
-            method = (opts.method || "GET").toUpperCase();
+            method = (opts.method || 'GET').toUpperCase();
             body = opts.body || opts.data || null;
             headers = opts.headers || {};
             signal = opts.signal;
@@ -47,14 +47,14 @@ class BackendClient {
         const url = this.resolveUrl(endpoint);
         const finalHeaders = Object.assign(
             {
-                Accept: "application/json",
-                "Content-Type": "application/json",
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
             },
             headers
         );
         const token = this._tokenProvider ? this._tokenProvider() : this.token;
-        if (token && !finalHeaders["Authorization"]) {
-            finalHeaders["Authorization"] = `Bearer ${token}`;
+        if (token && !finalHeaders['Authorization']) {
+            finalHeaders['Authorization'] = `Bearer ${token}`;
         }
 
         const controller = new AbortController();
@@ -91,11 +91,11 @@ class BackendClient {
         let signal;
         if (this.isAbortSignal(extra)) {
             signal = extra;
-        } else if (extra && typeof extra === "object") {
+        } else if (extra && typeof extra === 'object') {
             headers = extra.headers || extra;
             signal = extra.signal;
         }
-        return this.request("GET", endpoint, null, headers, signal);
+        return this.request('GET', endpoint, null, headers, signal);
     }
 
     async post(endpoint, body = {}, extra = {}) {
@@ -104,11 +104,11 @@ class BackendClient {
         let signal;
         if (this.isAbortSignal(extra)) {
             signal = extra;
-        } else if (extra && typeof extra === "object") {
+        } else if (extra && typeof extra === 'object') {
             headers = extra.headers || extra;
             signal = extra.signal;
         }
-        return this.request("POST", endpoint, body, headers, signal);
+        return this.request('POST', endpoint, body, headers, signal);
     }
 
     startPolling(endpoint, intervalMs, onData, onError) {
@@ -117,15 +117,13 @@ class BackendClient {
             try {
                 const res = await this.get(endpoint);
                 if (res && res.ok) {
-                    if (typeof onData === "function") onData(res.data);
+                    if (typeof onData === 'function') onData(res.data);
                 } else {
-                    const err = new Error(
-                        `Polling failed: ${res ? res.status : "no response"}`
-                    );
-                    if (typeof onError === "function") onError(err);
+                    const err = new Error(`Polling failed: ${res ? res.status : 'no response'}`);
+                    if (typeof onError === 'function') onError(err);
                 }
             } catch (e) {
-                if (typeof onError === "function") onError(e);
+                if (typeof onError === 'function') onError(e);
             }
         };
         const handle = setInterval(tick, Math.max(1000, intervalMs || 30000));
@@ -145,15 +143,9 @@ class BackendClient {
 
     resolveUrl(endpoint) {
         if (!endpoint) return this.baseUrl;
-        if (
-            endpoint.startsWith("http://") ||
-            endpoint.startsWith("https://")
-        )
-            return endpoint;
-        const base = this.baseUrl.endsWith("/")
-            ? this.baseUrl.slice(0, -1)
-            : this.baseUrl;
-        const ep = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+        if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
+        const base = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+        const ep = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
         return `${base}${ep}`;
     }
 }

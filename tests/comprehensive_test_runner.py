@@ -4,15 +4,15 @@ Comprehensive Test Runner for Obsidian AI Assistant
 Provides numbered tests with timing and colored status results.
 """
 
-import sys
-import time
-import subprocess
-from pathlib import Path
-from typing import Dict, List, Optional
-from dataclasses import dataclass
-from enum import Enum
 import json
 import re
+import subprocess
+import sys
+import time
+from dataclasses import dataclass
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

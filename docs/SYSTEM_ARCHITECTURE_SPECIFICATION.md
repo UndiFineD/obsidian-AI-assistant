@@ -1,15 +1,18 @@
 # 🏗️ **SYSTEM ARCHITECTURE SPECIFICATION**
 
-*Obsidian AI Assistant - Technical Architecture Design*  
-*Version: 1.0*  
-*Date: October 6, 2025*  
-*Scope: Complete System Design & Data Flow*
+_Obsidian AI Assistant - Technical Architecture Design_
+_Version: 1.0_
+_Date: October 6, 2025_
+_Scope: Complete System Design & Data Flow_
 
 ---
 
 ## 🎯 **ARCHITECTURE OVERVIEW**
 
-The Obsidian AI Assistant employs a **modular, service-oriented architecture** designed for scalability, maintainability, and high performance. The system consists of three primary layers: **Frontend Plugin**, **Backend API Services**, and **Data Storage Layer**.
+The Obsidian AI Assistant employs a **modular, service-oriented architecture**
+designed for scalability, maintainability, and high performance. The system
+consists of three primary layers: **Frontend Plugin**, **Backend API Services**,
+and **Data Storage Layer**.
 
 ### **🏛️ High-Level Architecture**
 
@@ -20,13 +23,13 @@ graph TB
         B[Voice Interface]
         C[Task Queue Manager]
     end
-    
+
     subgraph "API Layer"
         D[FastAPI Application]
         E[Request Validation]
         F[Response Formatting]
     end
-    
+
     subgraph "Service Layer"
         G[ModelManager]
         H[EmbeddingsManager]
@@ -34,39 +37,39 @@ graph TB
         J[CacheManager]
         K[SecurityManager]
     end
-    
+
     subgraph "Integration Layer"
         L[HybridLLMRouter]
         M[Voice Processing]
         N[Document Processor]
     end
-    
+
     subgraph "Data Layer"
         O[ChromaDB Vector Store]
         P[File System Cache]
         Q[Configuration Store]
         R[Model Storage]
     end
-    
+
     A --> D
     B --> D
     C --> D
-    
+
     D --> E
     E --> F
-    
+
     F --> G
     F --> H
     F --> I
     F --> J
     F --> K
-    
+
     G --> L
     H --> O
     I --> N
     J --> P
     K --> Q
-    
+
     L --> R
     M --> R
     N --> O
@@ -94,17 +97,17 @@ class FastAPIApplication:
     - Error handling and logging
     - CORS and middleware configuration
     """
-    
+
     services: ServiceRegistry
     middleware: List[Middleware]
     routers: List[APIRouter]
-    
+
     def initialize_services() -> None:
         """Lazy initialization of all backend services."""
-        
+
     def register_middleware() -> None:
         """Configure CORS, logging, security middleware."""
-        
+
     def setup_error_handlers() -> None:
         """Global exception handling and error formatting."""
 ```
@@ -137,17 +140,17 @@ class ModelManager:
     - Resource optimization and memory management
     - Model health monitoring and failover
     """
-    
+
     llm_router: HybridLLMRouter
     model_cache: Dict[str, Any]
     resource_monitor: ResourceMonitor
-    
+
     async def generate(text: str, **kwargs) -> str:
         """Primary generation interface with routing."""
-        
+
     def list_available_models() -> Dict[str, bool]:
         """Check model availability and status."""
-        
+
     def get_model_health() -> Dict[str, HealthStatus]:
         """Monitor model performance and availability."""
 ```
@@ -167,17 +170,17 @@ class EmbeddingsManager:
     - Vector database optimization and maintenance
     - Batch processing for large document sets
     """
-    
+
     chroma_client: chromadb.Client
     embedding_model: SentenceTransformer
     vector_cache: VectorCache
-    
+
     async def embed_documents(docs: List[str]) -> List[List[float]]:
         """Generate embeddings for document chunks."""
-        
+
     async def search(query: str, top_k: int) -> List[SearchResult]:
         """Semantic search with relevance ranking."""
-        
+
     async def add_documents(docs: List[Document]) -> None:
         """Add new documents to vector database."""
 ```
@@ -197,17 +200,17 @@ class VaultIndexer:
     - Incremental indexing with change detection
     - Metadata extraction and enrichment
     """
-    
+
     embeddings_manager: EmbeddingsManager
     file_processors: Dict[str, FileProcessor]
     chunk_optimizer: ChunkOptimizer
-    
+
     def index_vault(vault_path: str) -> List[str]:
         """Full vault indexing with progress tracking."""
-        
+
     def index_file(file_path: str) -> IndexResult:
         """Single file processing with error handling."""
-        
+
     def reindex(vault_path: str) -> ReindexResult:
         """Incremental reindexing with change detection."""
 ```
@@ -227,17 +230,17 @@ class CacheManager:
     - TTL-based expiration with configurable policies
     - Cache warming and preloading strategies
     """
-    
+
     memory_cache: LRUCache
     file_cache: FileCacheBackend
     cache_policies: CachePolicyManager
-    
+
     def get_cached_answer(question: str) -> Optional[str]:
         """Retrieve cached response with validation."""
-        
+
     def store_answer(question: str, answer: str) -> None:
         """Store response with appropriate caching tier."""
-        
+
     def invalidate_cache(pattern: str) -> None:
         """Selective cache invalidation."""
 ```
@@ -257,17 +260,17 @@ class HybridLLMRouter:
     - Automatic failover and retry logic
     - Cost optimization and rate limit management
     """
-    
+
     model_registry: ModelRegistry
     routing_policies: RoutingPolicyManager
     health_monitor: ModelHealthMonitor
-    
+
     def route_request(request: GenerationRequest) -> ModelInstance:
         """Select optimal model for request."""
-        
+
     def get_available_models() -> Dict[str, ModelStatus]:
         """Real-time model availability checking."""
-        
+
     def handle_failover(failed_model: str, request: Any) -> str:
         """Automatic failover to backup models."""
 ```
@@ -287,17 +290,17 @@ class SecurityManager:
     - Authentication and authorization
     - Security audit logging
     """
-    
+
     crypto_handler: CryptographyHandler
     validator: InputValidator
     auth_manager: AuthenticationManager
-    
+
     def validate_input(data: Any, schema: Schema) -> ValidationResult:
         """Comprehensive input validation."""
-        
+
     def encrypt_sensitive_data(data: str) -> str:
         """AES-256 encryption for sensitive information."""
-        
+
     def audit_log(event: SecurityEvent) -> None:
         """Security event logging and monitoring."""
 ```
@@ -317,17 +320,17 @@ class VoiceProcessor:
     - Language detection and model selection
     - Audio quality assessment and enhancement
     """
-    
+
     vosk_model: VoskModel
     audio_processor: AudioProcessor
     language_detector: LanguageDetector
-    
+
     def transcribe_audio(audio_data: bytes, format: str) -> TranscriptionResult:
         """Convert speech to text with confidence scoring."""
-        
+
     def detect_language(audio_data: bytes) -> LanguageCode:
         """Automatic language detection from audio."""
-        
+
     def enhance_audio_quality(audio_data: bytes) -> bytes:
         """Audio preprocessing for better recognition."""
 ```
@@ -347,17 +350,17 @@ class SettingsManager:
     - Configuration validation and type checking
     - Settings persistence and backup
     """
-    
+
     current_settings: Settings
     validators: Dict[str, Validator]
     update_handlers: List[UpdateHandler]
-    
+
     def get_settings() -> Settings:
         """Retrieve current validated settings."""
-        
+
     def update_settings(partial: Dict[str, Any]) -> Settings:
         """Runtime configuration updates with validation."""
-        
+
     def reload_settings() -> Settings:
         """Reload configuration from file system."""
 ```
@@ -381,25 +384,25 @@ class AIAssistantPlugin extends Plugin {
      * - Command registration and handling
      * - UI component coordination
      */
-    
+
     settings: AIAssistantSettings;
     apiClient: BackendAPIClient;
     taskQueue: TaskQueueManager;
     voiceInterface: VoiceInputManager;
     analyticsPane: AnalyticsPane;
-    
+
     async onload(): Promise<void> {
         // Plugin initialization and service setup
     }
-    
+
     async initializeServices(): Promise<void> {
         // Backend connectivity and service verification
     }
-    
+
     registerCommands(): void {
         // Command palette integration
     }
-    
+
     setupUI(): void {
         // UI component initialization and event binding
     }
@@ -413,17 +416,17 @@ class AIAssistantPlugin extends Plugin {
 interface ComponentArchitecture {
     MainPlugin: {
         TaskQueueView: TaskQueueManager;
-        AnalyticsPane: AnalyticsManager; 
+        AnalyticsPane: AnalyticsManager;
         VoiceInterface: VoiceInputManager;
         SettingsPane: SettingsManager;
     };
-    
+
     APIClient: {
         HTTPClient: RequestManager;
         ErrorHandler: ErrorRecoveryManager;
         CacheManager: ResponseCacheManager;
     };
-    
+
     EventSystem: {
         PluginEvents: EventDispatcher;
         BackendEvents: ServiceEventHandler;
@@ -448,11 +451,11 @@ sequenceDiagram
     participant Model as ModelManager
     participant Router as LLMRouter
     participant External as External AI API
-    
+
     Client->>API: POST /ask {question, options}
     API->>API: Validate Request (Pydantic)
     API->>Cache: Check Cache(question_hash)
-    
+
     alt Cache Hit
         Cache-->>API: Cached Response
         API-->>Client: {answer, cached: true}
@@ -478,11 +481,11 @@ sequenceDiagram
     participant Processor as DocumentProcessor
     participant Embeddings as EmbeddingsManager
     participant VectorDB as ChromaDB
-    
+
     Client->>API: POST /reindex {vault_path}
     API->>Indexer: reindex(vault_path)
     Indexer->>Indexer: Scan Directory
-    
+
     loop For Each File
         Indexer->>Processor: Process File
         Processor->>Processor: Extract Content
@@ -490,7 +493,7 @@ sequenceDiagram
         Processor->>Embeddings: Generate Embeddings
         Embeddings->>VectorDB: Store Vectors
     end
-    
+
     Indexer-->>API: {indexed_files, stats}
     API-->>Client: Indexing Results
 ```
@@ -506,7 +509,7 @@ sequenceDiagram
     participant Embeddings as EmbeddingsManager
     participant VectorDB as ChromaDB
     participant Cache as CacheManager
-    
+
     Client->>API: POST /api/search {query, top_k}
     API->>Embeddings: search(query, top_k)
     Embeddings->>Embeddings: Generate Query Embedding
@@ -537,7 +540,7 @@ ServiceRegistry = {
         },
         "EmbeddingsManager": {
             "dependencies": ["ChromaDB", "SentenceTransformers"],
-            "interfaces": ["IVectorSearch", "IEmbeddingGenerator"], 
+            "interfaces": ["IVectorSearch", "IEmbeddingGenerator"],
             "lifecycle": "singleton"
         },
         "VaultIndexer": {
@@ -551,7 +554,7 @@ ServiceRegistry = {
             "lifecycle": "singleton"
         }
     },
-    
+
     "integration_services": {
         "HybridLLMRouter": {
             "dependencies": ["ExternalAPIs", "ModelRegistry"],
@@ -561,7 +564,7 @@ ServiceRegistry = {
         "SecurityManager": {
             "dependencies": ["CryptographyLibs", "ConfigManager"],
             "interfaces": ["IValidator", "IEncryption"],
-            "lifecycle": "singleton"  
+            "lifecycle": "singleton"
         },
         "VoiceProcessor": {
             "dependencies": ["VoskModels", "AudioLibraries"],
@@ -580,29 +583,29 @@ ServiceRegistry = {
 # Service Interface Contracts
 class ServiceInterface:
     """Standard interface for all backend services."""
-    
+
     async def initialize(config: ServiceConfig) -> ServiceStatus:
         """Service initialization with configuration."""
-        
+
     async def health_check() -> HealthStatus:
         """Service health and readiness verification."""
-        
+
     async def graceful_shutdown() -> None:
         """Clean shutdown with resource cleanup."""
-        
+
     def get_metrics() -> ServiceMetrics:
         """Performance and operational metrics."""
 
 # Event-Driven Communication
 class ServiceEventBus:
     """Decoupled service communication via events."""
-    
+
     def publish(event: ServiceEvent) -> None:
         """Publish service event to interested subscribers."""
-        
+
     def subscribe(event_type: str, handler: Callable) -> None:
         """Subscribe to specific service events."""
-        
+
     def unsubscribe(event_type: str, handler: Callable) -> None:
         """Remove event subscription."""
 
@@ -625,29 +628,29 @@ ServiceEvents = {
 
 ```yaml
 Storage Architecture:
-  Tier 1 - In-Memory:
-    Type: Python dictionaries, LRU caches
-    Usage: Frequently accessed data, active sessions
-    Size Limit: 256MB
-    TTL: 1-60 minutes
-    
-  Tier 2 - Local Cache:
-    Type: File system cache with JSON/pickle
-    Usage: API responses, processed documents
-    Size Limit: 1-5GB (configurable)
-    TTL: 1-24 hours
-    
-  Tier 3 - Vector Database:
-    Type: ChromaDB with SQLite backend
-    Usage: Document embeddings, semantic search
-    Size Limit: Unlimited (scales with content)
-    Persistence: Permanent with backup strategy
-    
-  Tier 4 - Model Storage:
-    Type: File system with version management
-    Usage: AI models, voice models, configuration
-    Size Limit: 10-50GB (user configurable)
-    Persistence: Permanent with update capability
+    Tier 1 - In-Memory:
+        Type: Python dictionaries, LRU caches
+        Usage: Frequently accessed data, active sessions
+        Size Limit: 256MB
+        TTL: 1-60 minutes
+
+    Tier 2 - Local Cache:
+        Type: File system cache with JSON/pickle
+        Usage: API responses, processed documents
+        Size Limit: 1-5GB (configurable)
+        TTL: 1-24 hours
+
+    Tier 3 - Vector Database:
+        Type: ChromaDB with SQLite backend
+        Usage: Document embeddings, semantic search
+        Size Limit: Unlimited (scales with content)
+        Persistence: Permanent with backup strategy
+
+    Tier 4 - Model Storage:
+        Type: File system with version management
+        Usage: AI models, voice models, configuration
+        Size Limit: 10-50GB (user configurable)
+        Persistence: Permanent with update capability
 ```
 
 #### **Data Flow Between Tiers**
@@ -656,19 +659,19 @@ Storage Architecture:
 # Storage Tier Interaction
 class StorageTierManager:
     """Manages data flow between storage tiers."""
-    
+
     def store_data(key: str, data: Any, tier_hints: List[str]) -> None:
         """Store data with appropriate tier selection."""
-        
+
     def retrieve_data(key: str) -> Optional[Any]:
         """Retrieve data with tier promotion/demotion."""
-        
+
     def evict_data(key: str, tiers: List[str] = None) -> None:
         """Remove data from specified tiers."""
-        
+
     def tier_promotion(key: str, access_pattern: AccessPattern) -> None:
         """Move frequently accessed data to faster tiers."""
-        
+
     def tier_demotion(key: str, age: timedelta) -> None:
         """Move old data to slower, more persistent tiers."""
 ```
@@ -693,7 +696,7 @@ VectorCollections = {
         },
         "documents": str            # Original text content
     },
-    
+
     "conversations": {
         "embeddings": List[float],  # Query embedding
         "metadata": {
@@ -717,29 +720,29 @@ class Settings(BaseModel):
     api_port: int = Field(8000, ge=1024, le=65535)
     backend_url: str = Field("http://127.0.0.1:8000")
     host: str = Field("127.0.0.1")
-    
+
     # Storage Configuration
     vault_path: Path = Field(Path("./vault"))
-        models_dir: Path = Field(Path("./backend/models")) 
+        models_dir: Path = Field(Path("./backend/models"))
         cache_dir: Path = Field(Path("./backend/cache"))
     vector_db_path: Path = Field(Path("./vector_db"))
-    
+
     # AI Model Configuration
     model_backend: Literal["llama_cpp", "openai", "huggingface"] = "llama_cpp"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: Literal["chroma", "faiss", "pinecone"] = "chroma"
-    
+
     # Performance Configuration
     cache_ttl: int = Field(3600, ge=60, le=86400)  # 1 minute to 24 hours
     max_tokens: int = Field(2048, ge=1, le=8192)
     concurrent_requests: int = Field(10, ge=1, le=100)
-    
+
     # Security Configuration
     allow_network: bool = False
     api_key_required: bool = False
     rate_limit_rpm: int = Field(60, ge=1, le=1000)
     enable_cors: bool = True
-    
+
     # Feature Configuration
     gpu: bool = True
     voice_enabled: bool = True
@@ -763,31 +766,31 @@ SecurityLayers = {
         "responsibility": "Input sanitization, type validation, size limits",
         "implementation": "Pydantic models with custom validators"
     },
-    
+
     "Layer_2_Authentication": {
-        "component": "AuthenticationManager", 
+        "component": "AuthenticationManager",
         "responsibility": "API key validation, JWT tokens, session management",
         "implementation": "FastAPI security dependencies"
     },
-    
+
     "Layer_3_Authorization": {
         "component": "AuthorizationManager",
         "responsibility": "Role-based access control, permission checking",
         "implementation": "Custom middleware with policy engine"
     },
-    
+
     "Layer_4_Data": {
         "component": "DataProtectionManager",
         "responsibility": "Encryption at rest, secure storage, key management",
         "implementation": "AES-256 encryption with secure key derivation"
     },
-    
+
     "Layer_5_Network": {
         "component": "NetworkSecurityManager",
         "responsibility": "TLS/SSL, CORS, rate limiting, DDoS protection",
         "implementation": "FastAPI middleware with custom rate limiters"
     },
-    
+
     "Layer_6_Audit": {
         "component": "SecurityAuditManager",
         "responsibility": "Security event logging, threat detection, compliance",
@@ -806,19 +809,19 @@ ThreatModel = {
         "mitigations": ["Input validation", "Parameterized queries", "Path sanitization"],
         "implementation": "Pydantic validators + whitelist validation"
     },
-    
+
     "Authentication_Bypass": {
         "threats": ["Weak passwords", "Session hijacking", "Credential stuffing"],
         "mitigations": ["Strong auth requirements", "Secure sessions", "Rate limiting"],
         "implementation": "JWT tokens + API keys + session management"
     },
-    
+
     "Data_Exposure": {
         "threats": ["Information leakage", "Unauthorized access", "Data exfiltration"],
         "mitigations": ["Encryption at rest", "Access controls", "Audit logging"],
         "implementation": "AES-256 + RBAC + comprehensive audit trail"
     },
-    
+
     "Service_Disruption": {
         "threats": ["DDoS attacks", "Resource exhaustion", "Service overload"],
         "mitigations": ["Rate limiting", "Resource monitoring", "Graceful degradation"],
@@ -845,23 +848,23 @@ PerformanceLayers = {
         "size_limit": "64MB",
         "use_cases": ["Frequent API responses", "Model outputs", "User sessions"]
     },
-    
+
     "L2_Process": {
         "cache_type": "Process-local file cache",
-        "storage": "JSON/Pickle files", 
+        "storage": "JSON/Pickle files",
         "ttl": "1 hour",
         "size_limit": "512MB",
         "use_cases": ["Document chunks", "Embeddings cache", "Configuration"]
     },
-    
+
     "L3_Persistent": {
         "cache_type": "Disk-based persistent cache",
         "storage": "SQLite database",
-        "ttl": "24 hours", 
+        "ttl": "24 hours",
         "size_limit": "5GB",
         "use_cases": ["Large responses", "Processed documents", "Model artifacts"]
     },
-    
+
     "L4_Vector": {
         "cache_type": "Vector database with indexing",
         "storage": "ChromaDB with HNSW indexes",
@@ -878,27 +881,27 @@ PerformanceLayers = {
 # Resource Allocation & Monitoring
 class ResourceManager:
     """System resource management and optimization."""
-    
+
     memory_limits = {
         "baseline_usage": 256,      # MB - idle state
         "normal_operation": 1024,   # MB - typical workload
         "peak_processing": 2048,    # MB - maximum allowed
         "emergency_threshold": 2560 # MB - trigger cleanup
     }
-    
+
     cpu_limits = {
         "idle_target": 5,           # % CPU - background state
         "normal_target": 50,        # % CPU - active processing
         "peak_threshold": 80,       # % CPU - maximum sustained
         "throttle_point": 90        # % CPU - trigger throttling
     }
-    
+
     def monitor_resources(self) -> ResourceStatus:
         """Real-time resource monitoring and alerting."""
-        
+
     def optimize_memory(self) -> OptimizationResult:
         """Memory cleanup and optimization."""
-        
+
     def throttle_requests(self, cpu_usage: float) -> ThrottlePolicy:
         """Dynamic request throttling based on resource usage."""
 ```
@@ -914,41 +917,41 @@ class ResourceManager:
 ```yaml
 # Multi-Environment Deployment Architecture
 environments:
-  development:
-    resources:
-      memory: "512MB"
-      cpu: "1 core"
-      storage: "5GB"
-    services:
-      - "FastAPI Backend"
-      - "Local ChromaDB"
-      - "File-based cache"
-    monitoring: "Basic logging"
-    
-  staging:
-    resources:
-      memory: "2GB" 
-      cpu: "2 cores"
-      storage: "20GB"
-    services:
-      - "FastAPI Backend"
-      - "ChromaDB with persistence"
-      - "Redis cache (optional)"
-      - "Model storage optimization"
-    monitoring: "Performance metrics + health checks"
-    
-  production:
-    resources:
-      memory: "4-8GB"
-      cpu: "4+ cores"
-      storage: "50-100GB"
-    services:
-      - "Load-balanced FastAPI backends" 
-      - "Distributed ChromaDB cluster"
-      - "Redis cache cluster"
-      - "Model CDN distribution"
-      - "Backup and recovery services"
-    monitoring: "Full observability stack + alerting"
+    development:
+        resources:
+            memory: '512MB'
+            cpu: '1 core'
+            storage: '5GB'
+        services:
+            - 'FastAPI Backend'
+            - 'Local ChromaDB'
+            - 'File-based cache'
+        monitoring: 'Basic logging'
+
+    staging:
+        resources:
+            memory: '2GB'
+            cpu: '2 cores'
+            storage: '20GB'
+        services:
+            - 'FastAPI Backend'
+            - 'ChromaDB with persistence'
+            - 'Redis cache (optional)'
+            - 'Model storage optimization'
+        monitoring: 'Performance metrics + health checks'
+
+    production:
+        resources:
+            memory: '4-8GB'
+            cpu: '4+ cores'
+            storage: '50-100GB'
+        services:
+            - 'Load-balanced FastAPI backends'
+            - 'Distributed ChromaDB cluster'
+            - 'Redis cache cluster'
+            - 'Model CDN distribution'
+            - 'Backup and recovery services'
+        monitoring: 'Full observability stack + alerting'
 ```
 
 #### **Scalability Architecture**
@@ -957,7 +960,7 @@ environments:
 # Horizontal Scaling Strategy
 class ScalabilityManager:
     """Manages horizontal scaling of services."""
-    
+
     scaling_policies = {
         "api_backend": {
             "min_instances": 1,
@@ -966,14 +969,14 @@ class ScalabilityManager:
             "memory_threshold": 80,     # Scale up when memory > 80%
             "request_threshold": 100    # Scale up when requests/sec > 100
         },
-        
+
         "vector_database": {
             "sharding_strategy": "by_collection",
             "replication_factor": 2,
             "consistency_level": "eventual",
             "backup_frequency": "daily"
         },
-        
+
         "cache_layer": {
             "distribution_strategy": "consistent_hashing",
             "eviction_policy": "LRU",
@@ -996,8 +999,8 @@ class ScalabilityManager:
 ✅ Each service has a single, well-defined responsibility
 ✅ Clear separation between API, business logic, and data layers
 
-# Open/Closed Principle  
-✅ Services are open for extension (new models, processors) 
+# Open/Closed Principle
+✅ Services are open for extension (new models, processors)
 ✅ Closed for modification (stable interfaces and contracts)
 
 # Liskov Substitution Principle
@@ -1019,7 +1022,7 @@ class ScalabilityManager:
 # Architecture Pattern Compliance
 Patterns = {
     "Service_Discovery": "✅ Service registry with health checking",
-    "Circuit_Breaker": "✅ Automatic failover for external dependencies", 
+    "Circuit_Breaker": "✅ Automatic failover for external dependencies",
     "Bulkhead_Isolation": "✅ Resource isolation between services",
     "Timeout_Management": "✅ Configurable timeouts with fallbacks",
     "Retry_Logic": "✅ Exponential backoff with jitter",
@@ -1043,31 +1046,31 @@ ArchitectureMetrics = {
         "measurement": "Clear service boundaries, minimal coupling",
         "evidence": "16 distinct services with well-defined interfaces"
     },
-    
+
     "Scalability": {
         "score": 9.0,
         "measurement": "Horizontal scaling capability, resource efficiency",
         "evidence": "Stateless services, distributed caching, load balancing ready"
     },
-    
+
     "Maintainability": {
         "score": 9.2,
         "measurement": "Code organization, documentation, testing",
         "evidence": "95%+ test coverage, comprehensive documentation, clean code"
     },
-    
+
     "Performance": {
         "score": 8.8,
         "measurement": "Response times, resource usage, throughput",
         "evidence": "<200ms API responses, 6.2x test speedup, efficient caching"
     },
-    
+
     "Security": {
         "score": 8.5,
-        "measurement": "Security layers, threat mitigation, compliance", 
+        "measurement": "Security layers, threat mitigation, compliance",
         "evidence": "Multi-layer security, input validation, audit logging"
     },
-    
+
     "Reliability": {
         "score": 9.0,
         "measurement": "Error handling, failover, recovery",
@@ -1083,7 +1086,7 @@ ArchitectureMetrics = {
 ### **✅ Architecture Strengths**
 
 1. **🏗️ Modular Design**: Clean separation of concerns with well-defined service boundaries
-2. **⚡ Performance Optimized**: Multi-tier caching with sub-second response times  
+2. **⚡ Performance Optimized**: Multi-tier caching with sub-second response times
 3. **🔒 Security First**: Comprehensive security layers with threat mitigation
 4. **📈 Scalable**: Horizontal scaling ready with distributed architecture support
 5. **🧪 Testable**: 95%+ test coverage with comprehensive mocking strategies
@@ -1096,15 +1099,17 @@ ArchitectureMetrics = {
 - ✅ **High Performance**: Sub-200ms API responses with intelligent caching
 - ✅ **Reliability**: 99.9% uptime target with automatic failover
 - ✅ **Security**: Multi-layer security with comprehensive threat protection
-- ✅ **Scalability**: Ready for 100+ concurrent users and large datasets  
+- ✅ **Scalability**: Ready for 100+ concurrent users and large datasets
 - ✅ **Maintainability**: Clean code with 95%+ documentation coverage
 - ✅ **Extensibility**: Plugin-ready architecture for future enhancements
 
-**This architecture establishes the Obsidian AI Assistant as a production-ready, enterprise-grade system capable of scaling to meet diverse user needs while maintaining high performance, security, and reliability standards.**
+**This architecture establishes the Obsidian AI Assistant as a production-ready,
+enterprise-grade system capable of scaling to meet diverse user needs while
+maintaining high performance, security, and reliability standards.**
 
 ---
 
-*Architecture Version: 1.0*  
-*Last Updated: October 6, 2025*  
-*Next Review: January 6, 2026*  
-*Status: Production Ready*
+_Architecture Version: 1.0_
+_Last Updated: October 6, 2025_
+_Next Review: January 6, 2026_
+_Status: Production Ready_

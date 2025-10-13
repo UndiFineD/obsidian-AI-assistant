@@ -1,6 +1,9 @@
 # backend/backend.py
 
 import os
+import pathlib
+import signal
+import subprocess
 import sys as _sys
 import time
 from contextlib import asynccontextmanager
@@ -143,8 +146,8 @@ except Exception as e:
 
 # Inform about optional ML deps once
 try:
-    import sentence_transformers  # noqa: F401
     import chromadb  # noqa: F401
+    import sentence_transformers  # noqa: F401
 except Exception:
     print("[deps] " + optional_ml_hint())
 
@@ -476,7 +479,9 @@ async def post_update_config(partial: dict):
         incoming = dict(partial or {})
         unknown = [k for k in incoming.keys() if k not in _ALLOWED_UPDATE_KEYS]
         if unknown:
-            raise HTTPException(status_code=400, detail=f"Unknown config keys: {unknown}")
+            raise HTTPException(
+                status_code=400, detail=f"Unknown config keys: {unknown}"
+            )
 
         s = update_settings(incoming)
         settings_data = _settings_to_dict(s)
@@ -891,9 +896,6 @@ else:
 # ----------------------
 
 # --- CLI Entrypoint for start/stop/status/restart ---
-import subprocess
-import signal
-import pathlib
 
 PID_FILE = pathlib.Path("backend_server.pid")
 DEFAULT_PORT = 8000

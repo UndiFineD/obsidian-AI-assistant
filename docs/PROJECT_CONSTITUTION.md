@@ -2,7 +2,9 @@
 
 ## 1. Mission and Scope
 
-The Obsidian AI Assistant project aims to deliver a secure, scalable, and extensible AI-powered assistant for Obsidian users, integrating advanced language models, voice recognition, and knowledge management features.
+The Obsidian AI Assistant project aims to deliver a secure, scalable, and
+extensible AI-powered assistant for Obsidian users, integrating advanced
+language models, voice recognition, and knowledge management features.
 
 ## 2. Governance Structure
 
@@ -68,4 +70,6 @@ The Obsidian AI Assistant project aims to deliver a secure, scalable, and extens
 
 ---
 
-This constitution is subject to revision by consensus of the project lead and core maintainers. All contributors are expected to uphold these principles to ensure a healthy, productive, and inclusive project environment.
+This constitution is subject to revision by consensus of the project lead and
+core maintainers. All contributors are expected to uphold these principles to
+ensure a healthy, productive, and inclusive project environment.

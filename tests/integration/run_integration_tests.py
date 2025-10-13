@@ -3,11 +3,12 @@
 Integration test runner for the Obsidian AI Assistant.
 Runs all integration tests in proper order and provides comprehensive reporting.
 """
-import pytest
 import sys
 import time
 from pathlib import Path
 from typing import Dict, List, Tuple
+
+import pytest
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))

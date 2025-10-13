@@ -4,10 +4,11 @@ Final Obsidian AI Assistant Plugin Test
 Tests the simplified plugin and backend integration
 """
 
-import os
 import json
-import requests
+import os
 from pathlib import Path
+
+import requests
 
 # Configuration
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -34,7 +35,7 @@ def test_plugin_structure():
             print(f"✅ {file} ({size:,} bytes) - {description}")
         else:
             print(f"❌ {file} - Missing!")
-            assert False, f"{file} - Missing!"
+            raise AssertionError(f"{file} - Missing!")
 
     assert True
 
@@ -69,7 +70,7 @@ def test_manifest_content():
 
     except Exception as e:
         print(f"❌ Error reading manifest: {e}")
-        assert False, f"Error reading manifest: {e}"
+        raise AssertionError(f"Error reading manifest: {e}") from e
 
 
 def test_main_js_structure():
@@ -96,7 +97,7 @@ def test_main_js_structure():
                 print(f"✅ {check}")
             else:
                 print(f"❌ {check}")
-                assert False, f"Failed check: {check}"
+                raise AssertionError(f"Failed check: {check}")
 
         print(f"📊 File size: {len(content):,} characters")
         print(f"📊 Lines of code: {len(content.splitlines())}")
@@ -105,7 +106,7 @@ def test_main_js_structure():
 
     except Exception as e:
         print(f"❌ Error reading main.js: {e}")
-        assert False, f"Error reading main.js: {e}"
+        raise AssertionError(f"Error reading main.js: {e}") from e
 
 
 def test_backend_availability():
@@ -121,17 +122,17 @@ def test_backend_availability():
                 data = response.json()
                 print(f"✅ Backend status: {data.get('status', 'unknown')}")
                 assert True
-            except json.JSONDecodeError:
+            except json.JSONDecodeError as e:
                 print("⚠️  Backend responding but not returning JSON")
-                assert False, "Backend responding but not returning JSON"
+                raise AssertionError("Backend responding but not returning JSON") from e
         else:
             print(f"❌ Backend returned status {response.status_code}")
-            assert False, f"Backend returned status {response.status_code}"
+            raise AssertionError(f"Backend returned status {response.status_code}")
 
     except requests.RequestException as e:
         print(f"❌ Backend not available: {e}")
         print("💡 Start the backend with: python test_server.py")
-        assert False, f"Backend not available: {e}"
+        raise AssertionError(f"Backend not available: {e}") from e
 
 
 def test_backend_endpoints():
@@ -167,11 +168,11 @@ def test_backend_endpoints():
             )
         else:
             print(f"❌ /ask endpoint returned {response.status_code}")
-            assert False, f"/ask endpoint returned {response.status_code}"
+            raise AssertionError(f"/ask endpoint returned {response.status_code}")
 
     except Exception as e:
         print(f"❌ Error testing endpoints: {e}")
-        assert False, f"Error testing endpoints: {e}"
+        raise AssertionError(f"Error testing endpoints: {e}") from e
 
 
 def main():

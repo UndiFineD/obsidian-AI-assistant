@@ -1,0 +1,27 @@
+digraph G {
+  rankdir=LR;
+  node [shape=box, style=rounded];
+
+  A [label="Obsidian Plugin\n(UI/Frontend)"];
+  B [label="FastAPI Backend\n(REST API, Health, Config, Auth)"];
+  C [label="AI Model Manager\n(LLaMA, GPT4All, Embeddings, Routing)"];
+  D [label="Vector DB\n(ChromaDB)"];
+  E [label="Multi-level Cache\n(L1-L4)"];
+  F [label="Security\n(Encryption/Auth)"];
+  G [label="Document Indexing\n(Markdown, PDF, Web)"];
+  H [label="Voice Processing\n(Vosk)"];
+  I [label="Enterprise Features\n(SSO, RBAC, Multi-Tenant, Compliance)"];
+
+  A -> B [label="API Calls"];
+  B -> C [label="Model Requests"];
+  B -> D [label="Index/Search"];
+  B -> E [label="Cache Ops"];
+  B -> F [label="Security Ops"];
+  B -> G [label="Index Docs"];
+  B -> H [label="Voice Input"];
+  B -> I [label="Enterprise Ops"];
+  C -> D [label="Embeddings"];
+  G -> D [label="Embeddings"];
+  H -> B [label="Transcription"];
+  I -> B [label="Auth/Config"];
+}

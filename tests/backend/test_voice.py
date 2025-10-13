@@ -1,13 +1,14 @@
 # tests/backend/test_voice.py
-import pytest
-import tempfile
-import wave
 import json
 import os
-from pathlib import Path
-from unittest.mock import Mock, patch, mock_open, AsyncMock
-from fastapi.testclient import TestClient
+import tempfile
+import wave
+from unittest.mock import AsyncMock, Mock, mock_open, patch
+
+import pytest
 from fastapi import UploadFile
+from fastapi.testclient import TestClient
+
 from backend.voice import router
 
 # Define MODEL_PATH for tests based on the default path
@@ -34,6 +35,7 @@ class TestVoiceModule:
 
         # Reimport to test initialization
         import importlib
+
         import backend.voice as voice
 
         importlib.reload(voice)
@@ -46,6 +48,7 @@ class TestVoiceModule:
         """Test model initialization failure when model path doesn't exist."""
         # Reimport to test initialization without raising at import
         import importlib
+
         import backend.voice as voice
 
         module = importlib.reload(voice)
@@ -122,7 +125,7 @@ class TestVoiceTranscription:
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b"frame2", b""]
         mock_wave_open.return_value.__enter__.return_value = mock_wf
-    # Mock Kaldi recognizer
+        # Mock Kaldi recognizer
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.side_effect = [True, False]
         mock_recognizer.Result.return_value = '{"text": "hello world"}'
@@ -141,7 +144,7 @@ class TestVoiceTranscription:
         mock_audio_data = b"fake_audio_data"
         mock_file = Mock(spec=UploadFile)
         mock_file.read = AsyncMock(return_value=mock_audio_data)
-    # Mock wave file with invalid format
+        # Mock wave file with invalid format
         mock_wf = Mock()
         mock_wf.getnchannels.return_value = 2  # Stereo (invalid)
         mock_wf.getsampwidth.return_value = 2
@@ -159,7 +162,7 @@ class TestVoiceTranscription:
         mock_audio_data = b"fake_audio_data"
         mock_file = Mock(spec=UploadFile)
         mock_file.read = AsyncMock(return_value=mock_audio_data)
-    # Mock wave file with invalid sample width
+        # Mock wave file with invalid sample width
         mock_wf = Mock()
         mock_wf.getnchannels.return_value = 1
         mock_wf.getsampwidth.return_value = 3  # Invalid sample width
@@ -177,7 +180,7 @@ class TestVoiceTranscription:
         mock_audio_data = b"fake_audio_data"
         mock_file = Mock(spec=UploadFile)
         mock_file.read = AsyncMock(return_value=mock_audio_data)
-    # Mock wave file with invalid sample rate
+        # Mock wave file with invalid sample rate
         mock_wf = Mock()
         mock_wf.getnchannels.return_value = 1
         mock_wf.getsampwidth.return_value = 2
@@ -207,7 +210,7 @@ class TestVoiceTranscription:
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b""]  # No audio frames
         mock_wave_open.return_value.__enter__.return_value = mock_wf
-    # Mock Kaldi recognizer with empty results
+        # Mock Kaldi recognizer with empty results
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.return_value = False
         mock_recognizer.FinalResult.return_value = '{"text": ""}'
@@ -234,7 +237,7 @@ class TestVoiceTranscription:
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b"frame2", b"frame3", b""]
         mock_wave_open.return_value.__enter__.return_value = mock_wf
-    # Mock Kaldi recognizer with multiple results
+        # Mock Kaldi recognizer with multiple results
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.side_effect = [True, True, False]
         results = ['{"text": "hello"}', '{"text": "world"}']
@@ -278,7 +281,7 @@ class TestVoiceTranscription:
         mock_wf.getframerate.return_value = 16000
         mock_wf.readframes.side_effect = [b"frame1", b""]
         mock_wave_open.return_value.__enter__.return_value = mock_wf
-    # Mock Kaldi recognizer with invalid JSON
+        # Mock Kaldi recognizer with invalid JSON
         mock_recognizer = Mock()
         mock_recognizer.AcceptWaveform.return_value = True
         mock_recognizer.Result.return_value = "invalid json"
@@ -306,7 +309,7 @@ class TestVoiceEndpointIntegration:
             wf.setframerate(sample_rate)
             # Generate simple sine wave audio data
             frames = int(duration * sample_rate)
-            for i in range(frames):
+            for _i in range(frames):
                 value = int(32767 * 0.1)  # Low volume to avoid clipping
                 packed_value = struct.pack("<h", value)
                 wf.writeframes(packed_value)
@@ -349,6 +352,7 @@ class TestVoiceUtilities:
         mock_getenv.return_value = test_path
         # Reimport to test environment loading
         import importlib
+
         import backend.voice as voice
 
         importlib.reload(voice)
@@ -362,6 +366,7 @@ class TestVoiceUtilities:
         mock_getenv.return_value = None
         # Reimport to test default
         import importlib
+
         import backend.voice as voice
 
         importlib.reload(voice)

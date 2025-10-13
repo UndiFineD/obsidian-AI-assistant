@@ -3,11 +3,12 @@
 Simplified integration tests that validate backend functionality
 without complex mocking that conflicts with real service initialization.
 """
-import pytest
-import sys
 import os
+import sys
 from pathlib import Path
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
+
+import pytest
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -155,7 +156,7 @@ class TestMockedWorkflowIntegration:
 
     def test_ask_workflow_integration(self, mock_services):
         """Test complete ask workflow with mocked services."""
-        from backend.backend import _ask_impl, AskRequest
+        from backend.backend import AskRequest, _ask_impl
 
         request = AskRequest(
             question="What is machine learning?",
@@ -180,8 +181,9 @@ class TestMockedWorkflowIntegration:
 
     def test_search_integration(self, mock_services):
         """Test search functionality integration."""
-        from backend.backend import search
         import asyncio
+
+        from backend.backend import search
 
         try:
             response = asyncio.run(search("test query", top_k=3))
@@ -198,8 +200,9 @@ class TestMockedWorkflowIntegration:
 
     def test_vault_indexing_integration(self, mock_services):
         """Test vault indexing integration."""
-        from backend.backend import scan_vault
         import asyncio
+
+        from backend.backend import scan_vault
 
         try:
             response = asyncio.run(scan_vault("./test_vault"))
@@ -241,8 +244,9 @@ class TestConfigurationIntegration:
         mock_settings.dict.return_value = {"test": "config"}
         mock_reload.return_value = mock_settings
 
-        from backend.backend import post_reload_config
         import asyncio
+
+        from backend.backend import post_reload_config
 
         try:
             response = asyncio.run(post_reload_config())
@@ -262,8 +266,9 @@ class TestConfigurationIntegration:
         mock_settings = Mock()
         mock_settings.dict.return_value = {"updated": "config"}
         mock_update.return_value = mock_settings
-        from backend.backend import post_update_config
         import asyncio
+
+        from backend.backend import post_update_config
 
         update_data = {"model_backend": "new-model"}
 
@@ -294,7 +299,7 @@ class TestErrorHandlingIntegration:
         try:
             backend.backend.model_manager = None
             backend.backend.emb_manager = None
-            from backend.backend import _ask_impl, AskRequest
+            from backend.backend import AskRequest, _ask_impl
 
             request = AskRequest(question="Test", vault_path="./vault")
 
@@ -315,7 +320,7 @@ class TestErrorHandlingIntegration:
         """Test handling of service failures."""
         # Make model manager fail
         mock_mm.generate.side_effect = Exception("Model service failed")
-        from backend.backend import _ask_impl, AskRequest
+        from backend.backend import AskRequest, _ask_impl
 
         request = AskRequest(question="Test", vault_path="./vault")
 

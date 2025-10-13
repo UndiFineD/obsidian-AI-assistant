@@ -6,21 +6,14 @@ select = ["E", "F", "W", "C", "I"]
 ignore = []
 
 # Exclude test directories from certain checks
-exclude = [
-    ".git",
-    "__pycache__",
-    "build",
-    "dist",
-    "venv",
-    ".venv",
-]
+exclude = [".git", "__pycache__", "build", "dist", "venv", ".venv"]
 
 [tool.ruff.per-file-ignores]
 # No per-file ignores needed; Bandit configuration below handles assert usage in tests.
 
 [tool.bandit]
 # Bandit security linter configuration
-skips = ["B101"]  # Skip assert usage warnings in test files
+skips = ["B101"] # Skip assert usage warnings in test files
 
 [tool.bandit.assert_used]
 # Allow assert statements in test files

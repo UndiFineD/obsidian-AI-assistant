@@ -1,14 +1,15 @@
 # tests/backend/test_security.py
-import pytest
-from unittest.mock import patch
 import sys
 from pathlib import Path
+from unittest.mock import patch
+
+import pytest
 from cryptography.fernet import Fernet
 
 # 🎵 Work it FASTER - use proper package imports! 🎵
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from backend.security import encrypt_data, decrypt_data, fernet, KEY
+from backend.security import KEY, decrypt_data, encrypt_data, fernet
 
 
 class TestSecurity:
@@ -274,7 +275,8 @@ class TestSecurityIntegration:
         original_fernet = fernet
 
         # KEY and fernet should remain the same after import
-        from backend.security import KEY as key_check, fernet as fernet_check
+        from backend.security import KEY as key_check
+        from backend.security import fernet as fernet_check
 
         assert key_check == original_key
         assert fernet_check == original_fernet

@@ -3,9 +3,10 @@
 End-to-End integration tests for complete workflows
 """
 
-import pytest
 import time
 from unittest.mock import patch
+
+import pytest
 
 
 class TestCompleteWorkflows:
@@ -14,8 +15,9 @@ class TestCompleteWorkflows:
     @pytest.fixture
     def test_client_with_real_cache(self):
         """Test client with real caching but mocked AI services"""
-        from backend.backend import app
         from fastapi.testclient import TestClient
+
+        from backend.backend import app
 
         # Use real cache manager but mock AI services
         with patch("backend.backend.init_services"):
@@ -307,8 +309,9 @@ class TestPerformanceBenchmarks:
     @pytest.fixture
     def benchmark_client(self):
         """Client configured for performance testing"""
-        from backend.backend import app
         from fastapi.testclient import TestClient
+
+        from backend.backend import app
 
         with patch("backend.backend.init_services"):
             # Fast mock responses for benchmarking
@@ -407,8 +410,9 @@ class TestPerformanceBenchmarks:
     def test_memory_usage_monitoring(self, benchmark_client):
         """Monitor memory usage during operations"""
         try:
-            import psutil
             import os
+
+            import psutil
         except ImportError:
             pytest.skip("psutil package not available for memory monitoring")
 
@@ -440,6 +444,7 @@ class TestPerformanceBenchmarks:
 
     def test_performance_metrics(self):
         from fastapi.testclient import TestClient
+
         from backend.backend import app
 
         client = TestClient(app)

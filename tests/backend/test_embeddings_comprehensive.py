@@ -1,12 +1,13 @@
 # tests/backend/test_embeddings_comprehensive.py
-import pytest
-import tempfile
-import shutil
+import hashlib
 import os
+import shutil
+import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
-import sys
-import hashlib
+
+import pytest
 
 # Add backend to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))

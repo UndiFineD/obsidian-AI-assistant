@@ -9,14 +9,14 @@ Performance optimization module implementing Phase 1 optimizations:
 
 import asyncio
 import inspect
-import time
-import threading
-from typing import Dict, Optional, Any, Callable, Awaitable
-from dataclasses import dataclass
-from pathlib import Path
 import json
 import logging
+import threading
+import time
+from dataclasses import dataclass
 from functools import wraps
+from pathlib import Path
+from typing import Any, Awaitable, Callable, Dict, Optional
 
 logger = logging.getLogger(__name__)
 

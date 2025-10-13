@@ -1,79 +1,78 @@
 # GitHub Actions CI Configuration for Obsidian AI Assistant
 # This workflow runs tests to prevent regression of the fixes implemented
 permissions:
-  contents: read
+    contents: read
 
 name: Backend Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+    push:
+        branches: [main, develop]
+    pull_request:
+        branches: [main]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx
-        # Install only testing dependencies, ML libs are mocked
-        if [ -f requirements.txt ]; then
-          # Install only non-ML dependencies for testing
-          grep -v "torch\|transformers\|sentence-transformers\|llama-cpp\|vosk\|chromadb" requirements.txt | pip install -r /dev/stdin || true
-        fi
-    - name: Prepare test environment (paths and env)
-      run: |
-        mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
-        echo "# Test Vault" > test_vault/test_note.md
-        echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
-        echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
-        echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
-        echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
-      shell: bash
-    
-    - name: Run backend tests (full suite)
-      run: |
-        # Run the comprehensive test suite
-        python -m pytest tests/ -v -n auto --asyncio-mode=auto --tb=short
-      env:
-        PYTHONPATH: ${{ github.workspace }}
-    
-    - name: Generate coverage report
-      run: |
-        python -m pytest tests/ --cov=backend --cov-report=xml --cov-report=html --cov-report=term
-      continue-on-error: true
-    
-    - name: Upload coverage to artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report-python-${{ matrix.python-version }}
-        path: htmlcov/
-      if: always()
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ['3.10', '3.11', '3.12']
+        steps:
+            - uses: actions/checkout@v4
+            - name: Set up Python ${{ matrix.python-version }}
+              uses: actions/setup-python@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
 
-  test-summary:
-    runs-on: ubuntu-latest
-    needs: test
-    if: always()
-    
-    steps:
-    - name: Test Summary
-      run: |
-        echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ Full test suite executed (backend, plugin, integration, performance)" >> $GITHUB_STEP_SUMMARY
-        echo "📊 Coverage report uploaded as artifact (htmlcov)" >> $GITHUB_STEP_SUMMARY
-        echo "🔧 ML libraries mocked; tests run with --asyncio-mode=auto" >> $GITHUB_STEP_SUMMARY
-        echo "🎯 Goal: 100% pass; failures will block PRs" >> $GITHUB_STEP_SUMMARY
-        
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx
+                  # Install only testing dependencies, ML libs are mocked
+                  if [ -f requirements.txt ]; then
+                    # Install only non-ML dependencies for testing
+                    grep -v "torch\|transformers\|sentence-transformers\|llama-cpp\|vosk\|chromadb" requirements.txt | pip install -r /dev/stdin || true
+                  fi
+            - name: Prepare test environment (paths and env)
+              run: |
+                  mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
+                  echo "# Test Vault" > test_vault/test_note.md
+                  echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+                  echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
+                  echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
+                  echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
+              shell: bash
+
+            - name: Run backend tests (full suite)
+              run: |
+                  # Run the comprehensive test suite
+                  python -m pytest tests/ -v -n auto --asyncio-mode=auto --tb=short
+              env:
+                  PYTHONPATH: ${{ github.workspace }}
+
+            - name: Generate coverage report
+              run: |
+                  python -m pytest tests/ --cov=backend --cov-report=xml --cov-report=html --cov-report=term
+              continue-on-error: true
+
+            - name: Upload coverage to artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: coverage-report-python-${{ matrix.python-version }}
+                  path: htmlcov/
+              if: always()
+
+    test-summary:
+        runs-on: ubuntu-latest
+        needs: test
+        if: always()
+
+        steps:
+            - name: Test Summary
+              run: |
+                  echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "✅ Full test suite executed (backend, plugin, integration, performance)" >> $GITHUB_STEP_SUMMARY
+                  echo "📊 Coverage report uploaded as artifact (htmlcov)" >> $GITHUB_STEP_SUMMARY
+                  echo "🔧 ML libraries mocked; tests run with --asyncio-mode=auto" >> $GITHUB_STEP_SUMMARY
+                  echo "🎯 Goal: 100% pass; failures will block PRs" >> $GITHUB_STEP_SUMMARY

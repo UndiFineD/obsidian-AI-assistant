@@ -1,18 +1,19 @@
 # tests/backend/test_settings.py
-import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch
 import os
 import sys
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from backend.settings import (
     Settings,
+    _load_yaml_config,
+    _merge_env,
     get_settings,
     reload_settings,
     update_settings,
-    _load_yaml_config,
-    _merge_env,
 )
 
 

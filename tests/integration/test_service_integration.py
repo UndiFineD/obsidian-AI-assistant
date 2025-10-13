@@ -3,16 +3,17 @@
 Integration tests for service initialization and configuration.
 Tests how different backend services work together.
 """
-import pytest
-import tempfile
 import sys
+import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
+
+import pytest
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
 
 # Import the app and client for true API testing
 from backend.backend import app
-from httpx import AsyncClient, ASGITransport
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -37,7 +38,7 @@ class TestServiceInitialization:
             yield {
                 "models_dir": temp_path / "backend" / "models",
                 "cache_dir": temp_path / "backend" / "cache",
-                                "vector_db_dir": temp_path / "backend/vector_db",
+                "vector_db_dir": temp_path / "backend/vector_db",
                 "vault_dir": temp_path / "vault",
             }
 

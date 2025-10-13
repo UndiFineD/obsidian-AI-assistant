@@ -1,21 +1,24 @@
+"""
+Enterprise Multi-Tenant Architecture
+Provides tenant isolation, resource management, and billing capabilities
+"""
+
+import logging
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+from fastapi.responses import JSONResponse
+
+logger = logging.getLogger(__name__)
+
+
 # Minimal stub for TenantEndpoints to fix import errors
 class TenantEndpoints:
     def __init__(self):
         pass
-
-
-# Enterprise Multi-Tenant Architecture
-# Provides tenant isolation, resource management, and billing capabilities
-
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
-from enum import Enum
-import logging
-from datetime import datetime
-import uuid
-from fastapi.responses import JSONResponse
-
-logger = logging.getLogger(__name__)
 
 
 class TenantTier(Enum):

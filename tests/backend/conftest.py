@@ -5,6 +5,7 @@ This ensures proper mocking of ML libraries before any imports happen.
 """
 import sys
 from unittest.mock import MagicMock
+
 import pytest
 
 # Mock all ML libraries at module level to prevent import errors
@@ -52,7 +53,7 @@ def setup_test_environment():
 @pytest.fixture
 def mock_all_services():
     """Comprehensive service mocking fixture for reliable test isolation."""
-    from unittest.mock import patch, MagicMock
+    from unittest.mock import MagicMock, patch
 
     # Create comprehensive mocks for all backend services
     mock_model_manager = MagicMock()

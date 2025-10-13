@@ -1,10 +1,11 @@
-import sys
-import threading
 import shutil
+import sys
 import tempfile
-import pytest
+import threading
 from pathlib import Path
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from backend.modelmanager import ModelManager

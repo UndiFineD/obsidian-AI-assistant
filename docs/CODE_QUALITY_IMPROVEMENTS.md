@@ -100,7 +100,7 @@ def test_feature():
 # BEFORE (Problematic)
 class TestVoiceTranscription:
     pytestmark = pytest.mark.asyncio  # Applied to ALL methods
-    
+
     def test_non_async_function(self):  # This caused warning
         pass
 

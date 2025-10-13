@@ -221,7 +221,7 @@ class TestErrorHandling:
 
     def test_invalid_json_request(self, client):
         """Test endpoints with invalid JSON."""
-        response = client.post("/ask", data="invalid json")
+        response = client.post("/ask", content="invalid json")
         assert response.status_code in [400, 422]
 
     def test_unsupported_http_methods(self, client):

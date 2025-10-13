@@ -116,7 +116,7 @@ class TestVaultIndexerInit:
 
         indexer = VaultIndexer()
 
-        assert indexer.cache_dir == Path("cache")
+        assert indexer.cache_dir == Path("backend/cache")
         assert indexer.cache_dir.exists()
 
 

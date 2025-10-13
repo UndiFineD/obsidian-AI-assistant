@@ -3,10 +3,11 @@
 Python-based tests for validating Obsidian Plugin JavaScript files.
 Tests structure, syntax, and key functionality without requiring Node.js.
 """
-import pytest
-import re
 import json
+import re
 from pathlib import Path
+
+import pytest
 
 
 class TestPluginStructure:
@@ -55,7 +56,7 @@ class TestPluginStructure:
 
         assert len(content) > 1000, "main.js should contain substantial code"
         assert (
-            'require("obsidian"' in content or 'from "obsidian"' in content
+            "require('obsidian'" in content or "from 'obsidian'" in content
         ), "main.js should import from obsidian"
         assert "class" in content, "main.js should contain class definitions"
 

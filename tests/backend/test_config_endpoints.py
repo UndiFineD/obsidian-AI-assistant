@@ -1,8 +1,9 @@
 # tests/backend/test_config_endpoints.py
-import pytest
 from unittest.mock import Mock, patch
 
+import pytest
 from fastapi.testclient import TestClient
+
 from backend.backend import app
 
 
@@ -51,7 +52,7 @@ class TestConfigEndpoints:
 
     def test_post_config_endpoint_invalid_json(self):
         """Test POST /api/config with invalid JSON."""
-        response = self.client.post("/api/config", data="invalid json")
+        response = self.client.post("/api/config", content="invalid json")
         assert response.status_code == 422  # Unprocessable Entity
 
     @patch("backend.backend.update_settings")

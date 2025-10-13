@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path
 import shutil
 from datetime import datetime
-
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CHANGES_DIR = REPO_ROOT / "openspec" / "changes"
@@ -43,7 +42,9 @@ def canonical_change_dir_for(rel_path: str) -> Path:
     return CHANGES_DIR / to_change_id_for_path(rel_path)
 
 
-def infer_target_relpath_from_text(text: str, all_rel_paths: set[str], name_map: dict[str, list[str]]) -> str | None:
+def infer_target_relpath_from_text(
+    text: str, all_rel_paths: set[str], name_map: dict[str, list[str]]
+) -> str | None:
     # Try exact backticked file path
     for m in re.findall(r"`([^`]+?\.md)`", text, flags=re.IGNORECASE):
         if m in all_rel_paths:
@@ -75,20 +76,25 @@ def main() -> None:
     target_to_changes: dict[str, list[Path]] = {rel: [] for rel in md_rel_paths}
 
     # Index existing change dirs by their inferred target, to find duplicates
-    for change_dir in sorted(p for p in CHANGES_DIR.iterdir() if p.is_dir() and p.name != "archive"):
+    for change_dir in sorted(
+        p for p in CHANGES_DIR.iterdir() if p.is_dir() and p.name != "archive"
+    ):
         prop = change_dir / "proposal.md"
         spec = change_dir / "specs" / "project-documentation" / "spec.md"
         target: str | None = None
         for file in (prop, spec):
             if file.exists():
                 text = file.read_text(encoding="utf-8", errors="ignore")
-                target = infer_target_relpath_from_text(text, all_rel_paths, name_map) or target
+                target = (
+                    infer_target_relpath_from_text(text, all_rel_paths, name_map)
+                    or target
+                )
         if target and target in target_to_changes:
             target_to_changes[target].append(change_dir)
 
     # Create archive directory
     ARCHIVE_DIR.mkdir(exist_ok=True)
-    
+
     # Create timestamped archive subdirectory
     timestamp = datetime.now().strftime("%Y-%m-%d")
     archive_subdir = ARCHIVE_DIR / f"{timestamp}-duplicate-cleanup"
@@ -104,9 +110,13 @@ def main() -> None:
             if dup.exists():
                 archive_path = archive_subdir / dup.name
                 shutil.move(str(dup), str(archive_path))
-                archived.append(f"{dup.name} -> {archive_path.relative_to(CHANGES_DIR)}")
+                archived.append(
+                    f"{dup.name} -> {archive_path.relative_to(CHANGES_DIR)}"
+                )
 
-    print(f"Archived {len(archived)} duplicate change folders to {archive_subdir.relative_to(CHANGES_DIR)}.")
+    print(
+        f"Archived {len(archived)} duplicate change folders to {archive_subdir.relative_to(CHANGES_DIR)}."
+    )
     if archived:
         print("Archived changes:")
         for a in archived[:10]:

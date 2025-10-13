@@ -20,7 +20,7 @@ Create proposal when you need to:
 
 - Add features or functionality
 - Make breaking changes (API, schema)
-- Change architecture or patterns  
+- Change architecture or patterns
 - Optimize performance (changes behavior)
 - Update security patterns
 
@@ -45,24 +45,24 @@ Skip proposal for:
 - Configuration changes
 - Tests for existing behavior
 
-**Workflow**
+#### Workflow
 
 1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
-2. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
-3. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
-4. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
+1. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
+1. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
+1. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
 
 Track these steps as TODOs and complete them one by one.
 
 1. **Read proposal.md** - Understand what's being built
-2. **Read design.md** (if exists) - Review technical decisions
-3. **Read tasks.md** - Get implementation checklist
-4. **Implement tasks sequentially** - Complete in order
-5. **Confirm completion** - Ensure every item in `tasks.md` is finished before updating statuses
-6. **Update checklist** - After all work is done, set every task to `- [x]` so the list reflects reality
-7. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
+1. **Read design.md** (if exists) - Review technical decisions
+1. **Read tasks.md** - Get implementation checklist
+1. **Implement tasks sequentially** - Complete in order
+1. **Confirm completion** - Ensure every item in `tasks.md` is finished before updating statuses
+1. **Update checklist** - After all work is done, set every task to `- [x]` so the list reflects reality
+1. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
 
@@ -75,7 +75,7 @@ After deployment, create separate PR to:
 
 ## Before Any Task
 
-**Context Checklist:**
+### Context Checklist
 
 - [ ] Read relevant specs in `specs/[capability]/spec.md`
 - [ ] Check pending changes in `changes/` for conflicts
@@ -83,7 +83,7 @@ After deployment, create separate PR to:
 - [ ] Run `openspec list` to see active changes
 - [ ] Run `openspec list --specs` to see existing capabilities
 
-**Before Creating Specs:**
+### Before Creating Specs
 
 - Always check if capability already exists
 - Prefer modifying existing specs over creating duplicates
@@ -95,8 +95,8 @@ After deployment, create separate PR to:
 - Enumerate specs: `openspec spec list --long` (or `--json` for scripts)
 - Enumerate changes: `openspec list` (or `openspec change list --json` - deprecated but available)
 - Show details:
-  - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
-  - Change: `openspec show <change-id> --json --deltas-only`
+    - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
+    - Change: `openspec show <change-id> --json --deltas-only`
 - Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" openspec/specs`
 
 ## Quick Start
@@ -161,7 +161,7 @@ openspec/
 ```text
 New request?
 ├─ Bug fix restoring spec behavior? → Fix directly
-├─ Typo/format/comment? → Fix directly  
+├─ Typo/format/comment? → Fix directly
 ├─ New feature/capability? → Create proposal
 ├─ Breaking change? → Create proposal
 ├─ Architecture change? → Create proposal
@@ -172,55 +172,71 @@ New request?
 
 1. **Create directory:** `changes/[change-id]/` (kebab-case, verb-led, unique)
 
-2. **Write proposal.md:**
+1. **Write proposal.md:**
 
 ```markdown
 ## Why
+
 [1-2 sentences on problem/opportunity]
 
 ## What Changes
+
 - [Bullet list of changes]
 - [Mark breaking changes with **BREAKING**]
 
 ## Impact
+
 - Affected specs: [list capabilities]
 - Affected code: [key files/systems]
 ```
 
-3. **Create spec deltas:** `specs/[capability]/spec.md`
+1. **Create spec deltas:** `specs/[capability]/spec.md`
 
 ```markdown
 ## ADDED Requirements
+
 ### Requirement: New Feature
+
 The system SHALL provide...
 
 #### Scenario: Success case
+
 - **WHEN** user performs action
 - **THEN** expected result
 
 ## MODIFIED Requirements
+
 ### Requirement: Existing Feature
+
 [Complete modified requirement]
 
 ## REMOVED Requirements
+
 ### Requirement: Old Feature
-**Reason**: [Why removing]
-**Migration**: [How to handle]
+
+#### Reason
+
+[Why removing]
+
+#### Migration
+
+[How to handle]
 ```
 
 If multiple capabilities are affected, create multiple delta files under `changes/[change-id]/specs/<capability>/spec.md`—one per capability.
 
-4. **Create tasks.md:**
+1. **Create tasks.md:**
 
 ```markdown
 ## 1. Implementation
+
 - [ ] 1.1 Create database schema
 - [ ] 1.2 Implement API endpoint
 - [ ] 1.3 Add frontend component
 - [ ] 1.4 Write tests
 ```
 
-5. **Create design.md when needed:**
+1. **Create design.md when needed:**
 
 Create `design.md` if any of the following apply; otherwise omit it:
 
@@ -233,23 +249,29 @@ Minimal `design.md` skeleton:
 
 ```markdown
 ## Context
+
 [Background, constraints, stakeholders]
 
 ## Goals / Non-Goals
+
 - Goals: [...]
 - Non-Goals: [...]
 
 ## Decisions
+
 - Decision: [What and why]
 - Alternatives considered: [Options + rationale]
 
 ## Risks / Trade-offs
+
 - [Risk] → Mitigation
 
 ## Migration Plan
+
 [Steps, rollback]
 
 ## Open Questions
+
 - [...]
 ```
 
@@ -257,20 +279,22 @@ Minimal `design.md` skeleton:
 
 ### Critical: Scenario Formatting
 
-**CORRECT** (use #### headers):
+CORRECT (use #### headers):
 
 ```markdown
 #### Scenario: User login success
+
 - **WHEN** valid credentials provided
 - **THEN** return JWT token
 ```
 
-**WRONG** (don't use bullets or bold):
+WRONG (don't use bullets or bold):
 
 ```markdown
-- **Scenario: User login**  ❌
-**Scenario**: User login     ❌
-### Scenario: User login      ❌
+- **Scenario: User login** ❌
+  Scenario (bold-only) example: User login ❌
+
+### Scenario: User login ❌
 ```
 
 Every requirement MUST have at least one scenario.
@@ -290,23 +314,35 @@ Headers matched with `trim(header)` - whitespace ignored.
 
 #### When to use ADDED vs MODIFIED
 
-- ADDED: Introduces a new capability or sub-capability that can stand alone as a requirement. Prefer ADDED when the change is orthogonal (e.g., adding "Slash Command Configuration") rather than altering the semantics of an existing requirement.
-- MODIFIED: Changes the behavior, scope, or acceptance criteria of an existing requirement. Always paste the full, updated requirement content (header + all scenarios). The archiver will replace the entire requirement with what you provide here; partial deltas will drop previous details.
+- ADDED: Introduces a new capability or sub-capability that can stand alone as a
+  requirement. Prefer ADDED when the change is orthogonal (e.g., adding "Slash
+  Command Configuration") rather than altering the semantics of an existing
+  requirement.
+
+- MODIFIED: Changes the behavior, scope, or acceptance criteria of an existing
+  requirement. Always paste the full, updated requirement content (header + all
+  scenarios). The archiver will replace the entire requirement with what you
+  provide here; partial deltas will drop previous details.
+
 - RENAMED: Use when only the name changes. If you also change behavior, use RENAMED (name) plus MODIFIED (content) referencing the new name.
 
-Common pitfall: Using MODIFIED to add a new concern without including the previous text. This causes loss of detail at archive time. If you aren’t explicitly changing the existing requirement, add a new requirement under ADDED instead.
+Common pitfall: Using MODIFIED to add a new concern without including the
+previous text. This causes loss of detail at archive time. If you aren’t
+explicitly changing the existing requirement, add a new requirement under ADDED
+instead.
 
 Authoring a MODIFIED requirement correctly:
 
-1) Locate the existing requirement in `openspec/specs/<capability>/spec.md`.
-2) Copy the entire requirement block (from `### Requirement: ...` through its scenarios).
-3) Paste it under `## MODIFIED Requirements` and edit to reflect the new behavior.
-4) Ensure the header text matches exactly (whitespace-insensitive) and keep at least one `#### Scenario:`.
+1. Locate the existing requirement in `openspec/specs/<capability>/spec.md`.
+2. Copy the entire requirement block (from `### Requirement: ...` through its scenarios).
+3. Paste it under `## MODIFIED Requirements` and edit to reflect the new behavior.
+4. Ensure the header text matches exactly (whitespace-insensitive) and keep at least one `#### Scenario:`.
 
 Example for RENAMED:
 
 ```markdown
 ## RENAMED Requirements
+
 - FROM: `### Requirement: Login`
 - TO: `### Requirement: User Authentication`
 ```
@@ -315,17 +351,17 @@ Example for RENAMED:
 
 ### Common Errors
 
-**"Change must have at least one delta"**
+#### Change must have at least one delta
 
 - Check `changes/[name]/specs/` exists with .md files
 - Verify files have operation prefixes (## ADDED Requirements)
 
-**"Requirement must have at least one scenario"**
+#### Requirement must have at least one scenario
 
 - Check scenarios use `#### Scenario:` format (4 hashtags)
 - Don't use bullet points or bold for scenario headers
 
-**Silent scenario parsing failures**
+#### Silent scenario parsing failures
 
 - Exact format required: `#### Scenario: Name`
 - Debug with: `openspec show [change] --json --deltas-only`
@@ -391,7 +427,9 @@ auth/spec.md
 
 ```markdown
 ## ADDED Requirements
+
 ### Requirement: Two-Factor Authentication
+
 ...
 ```
 
@@ -399,7 +437,9 @@ notifications/spec.md
 
 ```markdown
 ## ADDED Requirements
+
 ### Requirement: OTP Email Notification
+
 ...
 ```
 
@@ -415,6 +455,7 @@ notifications/spec.md
 ### Complexity Triggers
 
 Only add complexity with:
+
 - Performance data showing current solution too slow
 - Concrete scale requirements (>1000 users, >100MB data)
 - Multiple proven use cases requiring abstraction
@@ -440,11 +481,11 @@ Only add complexity with:
 
 ## Tool Selection Guide
 
-| Task | Tool | Why |
-|------|------|-----|
-| Find files by pattern | Glob | Fast pattern matching |
-| Search code content | Grep | Optimized regex search |
-| Read specific files | Read | Direct file access |
+| Task                  | Tool | Why                      |
+| --------------------- | ---- | ------------------------ |
+| Find files by pattern | Glob | Fast pattern matching    |
+| Search code content   | Grep | Optimized regex search   |
+| Read specific files   | Read | Direct file access       |
 | Explore unknown scope | Task | Multi-step investigation |
 
 ## Error Recovery
@@ -452,23 +493,23 @@ Only add complexity with:
 ### Change Conflicts
 
 1. Run `openspec list` to see active changes
-2. Check for overlapping specs
-3. Coordinate with change owners
-4. Consider combining proposals
+1. Check for overlapping specs
+1. Coordinate with change owners
+1. Consider combining proposals
 
 ### Validation Failures
 
 1. Run with `--strict` flag
-2. Check JSON output for details
-3. Verify spec file format
-4. Ensure scenarios properly formatted
+1. Check JSON output for details
+1. Verify spec file format
+1. Ensure scenarios properly formatted
 
 ### Missing Context
 
 1. Read project.md first
-2. Check related specs
-3. Review recent archives
-4. Ask for clarification
+1. Check related specs
+1. Review recent archives
+1. Ask for clarification
 
 ## Quick Reference
 

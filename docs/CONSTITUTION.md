@@ -186,15 +186,15 @@ async def process_query(
 ) -> Dict[str, Any]:
     """
     Process user query with AI model and context.
-    
+
     Args:
         query: User's natural language query
         context: Optional context information
         model_preference: Preferred AI model identifier
-        
+
     Returns:
         Dictionary containing response and metadata
-        
+
     Raises:
         ValidationError: If query is invalid
         ModelError: If AI model fails
@@ -417,10 +417,12 @@ We commit to maintaining the highest standards of software craftsmanship:
 
 ---
 
-*This constitution serves as the foundational document governing all aspects of the Obsidian AI Assistant project. All contributors are expected to understand and adhere to these principles and standards.*
+_This constitution serves as the foundational document governing all aspects of
+the Obsidian AI Assistant project. All contributors are expected to understand
+and adhere to these principles and standards._
 
-**Version**: 1.0  
-**Last Updated**: October 6, 2025  
+**Version**: 1.0
+**Last Updated**: October 6, 2025
 **Next Review**: January 6, 2026
 
 ---
@@ -455,10 +457,13 @@ We commit to maintaining the highest standards of software craftsmanship:
 
 ## 📜 **CONSTITUTIONAL AUTHORITY**
 
-This Constitution serves as the supreme governing document for the Obsidian AI Assistant project. All development practices, architectural decisions, and community interactions must align with the principles and standards established herein.
+This Constitution serves as the supreme governing document for the Obsidian AI
+Assistant project. All development practices, architectural decisions, and
+community interactions must align with the principles and standards established
+herein.
 
-**Ratified**: October 6, 2025  
-**Status**: Active and Binding  
-**Next Review**: January 6, 2026  
+**Ratified**: October 6, 2025
+**Status**: Active and Binding
+**Next Review**: January 6, 2026
 
 > "Excellence is not a skill, it's an attitude. This Constitution embodies our unwavering commitment to that attitude."

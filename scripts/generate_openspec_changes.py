@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -92,9 +91,15 @@ def main() -> None:
         spec_dir = change_dir / "specs" / "project-documentation"
         spec_dir.mkdir(parents=True, exist_ok=True)
 
-        (change_dir / "proposal.md").write_text(proposal_md(change_id, rel_path), encoding="utf-8")
-        (change_dir / "tasks.md").write_text(tasks_md(change_id, rel_path), encoding="utf-8")
-        (spec_dir / "spec.md").write_text(spec_delta_md(change_id, rel_path), encoding="utf-8")
+        (change_dir / "proposal.md").write_text(
+            proposal_md(change_id, rel_path), encoding="utf-8"
+        )
+        (change_dir / "tasks.md").write_text(
+            tasks_md(change_id, rel_path), encoding="utf-8"
+        )
+        (spec_dir / "spec.md").write_text(
+            spec_delta_md(change_id, rel_path), encoding="utf-8"
+        )
 
         generated.append(rel_path)
 

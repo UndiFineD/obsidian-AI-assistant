@@ -1,0 +1,33 @@
+%%{init: { "theme": "default", "securityLevel": "loose" } }%%
+flowchart TD
+
+    subgraph UI[UI/Plugin Layer]
+        A[Obsidian Plugin (UI/Frontend)]
+    end
+
+    subgraph BE[Backend Services]
+        B["FastAPI REST API<br/>Health/Status, Config, Auth"]
+        E[Multi-level Caching (L1-L4)]
+        F[Security (Encryption/Auth)]
+        G[Document Indexing (Markdown, PDF, Web)]
+        H[Voice Processing (Vosk)]
+        I[Enterprise Features (SSO, RBAC, Multi-Tenant, Compliance)]
+    end
+
+    subgraph AI[AI Systems]
+        C["AI Model Manager<br/>LLaMA, GPT4All, Embeddings, Routing"]
+        D[Vector DB (ChromaDB)]
+    end
+
+    A -- API Calls --> B
+    B -- Model Requests --> C
+    B -- Index/Search --> D
+    B -- Cache Ops --> E
+    B -- Security Ops --> F
+    B -- Index Docs --> G
+    B -- Voice Input --> H
+    B -- Enterprise Ops --> I
+    C -- Embeddings --> D
+    G -- Embeddings --> D
+    H -- Transcription --> B
+    I -- Auth/Config --> B

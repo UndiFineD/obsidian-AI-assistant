@@ -4,10 +4,9 @@ Test Enterprise Integration
 Tests the complete enterprise feature integration in the plugin.
 """
 
+import json
 import os
 import sys
-import json
-import requests
 from pathlib import Path
 
 
@@ -29,7 +28,7 @@ def test_plugin_files():
         file_path = plugin_dir / file
         if not file_path.exists():
             print(f"❌ Missing required file: {file}")
-            assert False, f"Missing required file: {file}"
+            raise AssertionError(f"Missing required file: {file}")
         else:
             print(f"✅ Found: {file}")
 
@@ -43,7 +42,7 @@ def test_enterprise_imports():
     main_js = Path(".obsidian/plugins/obsidian-ai-assistant/main.js")
     if not main_js.exists():
         print("❌ main.js not found")
-        assert False, "main.js not found"
+        raise AssertionError("main.js not found")
 
     content = main_js.read_text(encoding="utf-8")
 
@@ -54,7 +53,7 @@ def test_enterprise_imports():
             print(f"✅ Enterprise import found: {import_file}")
         else:
             print(f"❌ Missing enterprise import: {import_file}")
-            assert False, f"Missing enterprise import: {import_file}"
+            raise AssertionError(f"Missing enterprise import: {import_file}")
 
     assert True
 
@@ -64,16 +63,20 @@ def test_enterprise_classes():
     print("\nTesting enterprise class definitions...")
 
     files_to_check = {
-        ".obsidian/plugins/obsidian-ai-assistant/adminDashboard.js": ["EnterpriseAdminDashboard"],
+        ".obsidian/plugins/obsidian-ai-assistant/adminDashboard.js": [
+            "EnterpriseAdminDashboard"
+        ],
         ".obsidian/plugins/obsidian-ai-assistant/enterpriseAuth.js": ["EnterpriseAuth"],
-        ".obsidian/plugins/obsidian-ai-assistant/enterpriseConfig.js": ["EnterpriseConfig"],
+        ".obsidian/plugins/obsidian-ai-assistant/enterpriseConfig.js": [
+            "EnterpriseConfig"
+        ],
     }
 
     for file, classes in files_to_check.items():
         file_path = Path(file)
         if not file_path.exists():
             print(f"❌ File not found: {file}")
-            assert False, f"File not found: {file}"
+            raise AssertionError(f"File not found: {file}")
 
         content = file_path.read_text(encoding="utf-8")
 
@@ -82,7 +85,7 @@ def test_enterprise_classes():
                 print(f"✅ Class found in {file}: {class_name}")
             else:
                 print(f"❌ Missing class in {file}: {class_name}")
-                assert False, f"Missing class in {file}: {class_name}"
+                raise AssertionError(f"Missing class in {file}: {class_name}")
 
     assert True
 
@@ -124,7 +127,7 @@ def test_css_styles():
     styles_path = Path(".obsidian/plugins/obsidian-ai-assistant/styles.css")
     if not styles_path.exists():
         print("❌ styles.css not found")
-        assert False, "styles.css not found"
+        raise AssertionError("styles.css not found")
 
     content = styles_path.read_text(encoding="utf-8")
 
@@ -141,7 +144,7 @@ def test_css_styles():
             print(f"✅ Enterprise style found: {style}")
         else:
             print(f"❌ Missing enterprise style: {style}")
-            assert False, f"Missing enterprise style: {style}"
+            raise AssertionError(f"Missing enterprise style: {style}")
 
     assert True
 
@@ -167,7 +170,7 @@ def test_plugin_integration():
             print(f"✅ Integration point found: {point}")
         else:
             print(f"❌ Missing integration point: {point}")
-            assert False, f"Missing integration point: {point}"
+            raise AssertionError(f"Missing integration point: {point}")
 
     assert True
 
@@ -185,13 +188,13 @@ def test_configuration():
                 print("✅ Plugin manifest is valid")
             else:
                 print("❌ Plugin manifest missing required fields")
-                assert False, "Plugin manifest missing required fields"
-        except json.JSONDecodeError:
+                raise AssertionError("Plugin manifest missing required fields")
+        except json.JSONDecodeError as err:
             print("❌ Plugin manifest is invalid JSON")
-            assert False, "Plugin manifest is invalid JSON"
+            raise AssertionError("Plugin manifest is invalid JSON") from err
     else:
         print("❌ Plugin manifest not found")
-        assert False, "Plugin manifest not found"
+        raise AssertionError("Plugin manifest not found")
 
     # Test backend config template exists
     config_path = Path("backend/config.yaml")

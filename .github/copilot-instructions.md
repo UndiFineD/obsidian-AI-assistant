@@ -12,6 +12,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ## API Endpoint Reference
 
 ### Health & Monitoring
+
 - `GET /health` and `GET /api/health`: Returns full system health, config snapshot, and service status. Target: <100ms.
 - `GET /status`: Lightweight liveness probe. Target: <100ms.
 - `GET /api/performance/metrics`: Real-time performance metrics (cache, pools, queue, timestamp).
@@ -19,11 +20,13 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 - `POST /api/performance/optimize`: Triggers background optimization tasks.
 
 ### Configuration Management
+
 - `GET /api/config`: Returns current runtime config (whitelisted fields only).
 - `POST /api/config`: Updates runtime config (only keys in `_ALLOWED_UPDATE_KEYS`).
 - `POST /api/config/reload`: Reloads config from `backend/config.yaml`.
 
 ### AI Operations
+
 - `POST /ask` and `POST /api/ask`: Main AI question endpoint. Supports context, prompt, model selection, and caching.
 - `POST /reindex` and `POST /api/reindex`: Rebuilds vector DB index for vault documents.
 - `POST /web` and `POST /api/web`: Indexes web content and generates AI responses.
@@ -32,6 +35,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 - `POST /api/index_pdf`: Indexes a PDF for semantic search.
 
 ### Enterprise Endpoints (if enabled)
+
 - `GET /api/enterprise/status`: Returns enterprise feature status.
 - `POST /api/enterprise/auth/sso`: SSO authentication.
 - `GET /api/enterprise/tenants`, `POST /api/enterprise/tenants`: Tenant management.
@@ -41,6 +45,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ## Performance Requirements & Optimization
 
 ### Performance Tiers
+
 - **Tier 1**: <100ms (health, status, config, cache lookup)
 - **Tier 2**: <500ms (cached ask, simple search, voice)
 - **Tier 3**: <2s (AI generation, document search, embedding)
@@ -48,6 +53,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 - **Tier 5**: <60s (vault reindex, model loading)
 
 ### Optimization Strategies
+
 - Multi-level caching: L1 (memory), L2 (disk), L3 (persistent)
 - Connection pooling: DB and model instance pools
 - Async task queue: Background processing for indexing, optimization
@@ -55,6 +61,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 - Resource management: Smart memory allocation, CPU affinity, process priority
 
 ### Monitoring & SLA
+
 - Real-time metrics: `/api/performance/metrics` (cache, pools, queue)
 - SLA targets: <100ms health, <500ms cached, <2s AI, <10s complex, <60s batch
 - Availability: 95% dev, 99% prod, 99.9% mission critical
@@ -62,6 +69,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ## Testing Strategy & Quality Gates
 
 ### Coverage & Test Types
+
 - **Backend**: 85%+ coverage (FastAPI, services, error handling)
 - **Plugin**: 90%+ coverage (JS code quality, UI, enterprise features)
 - **Integration**: 70%+ API coverage (end-to-end workflows)
@@ -69,17 +77,20 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 - **Security**: Input validation, encryption, dependency scanning
 
 ### Patterns
+
 - ML mocking: Patch torch/transformers in `conftest.py` before backend import
 - Service mocking: Mock global instances (`backend.model_manager`), not classes
 - Error testing: Flexible status code assertions ([200, 400, 422, 500])
 - API reality: Test actual endpoints, not assumptions
 
 ### CI/CD Integration
+
 - GitHub Actions: Lint, security scan, unit/integration tests, coverage upload
 - Pre-commit hooks: black, flake8, mypy, bandit
 - Coverage: HTML/XML reports, 70%+ threshold
 
 ### Running Tests
+
 - `pytest tests/ -v` (full suite)
 - `pytest tests/backend/ -v` (backend only)
 - `pytest tests/plugin/ -v` (plugin only)
@@ -89,12 +100,14 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ## Configuration & Deployment
 
 ### Configuration Precedence
+
 1. Environment variables (highest)
 2. `backend/config.yaml` (medium)
 3. Code defaults (lowest)
 
 ### Key Config Options
-- **Core**: `api_port` (8000), `backend_url` (http://localhost:8000), `allow_network` (false)
+
+- **Core**: `api_port` (8000), `backend_url` (<http://localhost:8000>), `allow_network` (false)
 - **Models**: `gpu` (auto-detect), `model_backend` (gpt4all), `model_path`, `embed_model` (all-MiniLM-L6-v2)
 - **Storage**: `vault_path`, `models_dir` (./backend/models), `cache_dir` (./backend/cache)
 - **Vector DB**: `vector_db` (chromadb), `top_k` (5), `chunk_size` (1000), `chunk_overlap` (200), `similarity_threshold` (0.7)
@@ -104,6 +117,7 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 ### Deployment Environments
 
 #### Local Development
+
 ```powershell
 # Windows setup (creates venv, installs dependencies, downloads models)
 ./setup.ps1
@@ -116,6 +130,7 @@ cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reloa
 ```
 
 #### Production Deployment
+
 ```bash
 # Linux/macOS production setup
 ./setup.sh --production
@@ -131,6 +146,7 @@ curl http://localhost:8000/health
 ```
 
 #### Docker Deployment
+
 ```dockerfile
 # Multi-stage build for production
 FROM python:3.10-slim as backend
@@ -143,41 +159,43 @@ CMD ["uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 #### Enterprise Cloud Deployment
+
 ```yaml
 # Kubernetes deployment example
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: obsidian-ai-assistant
+    name: obsidian-ai-assistant
 spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: obsidian-ai-assistant
-  template:
-    spec:
-      containers:
-      - name: backend
-        image: obsidian-ai-assistant:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: GPU
-          value: "true"
-        - name: ENTERPRISE_ENABLED
-          value: "true"
-        resources:
-          requests:
-            memory: "8Gi"
-            cpu: "4"
-          limits:
-            memory: "32Gi"
-            cpu: "16"
+    replicas: 3
+    selector:
+        matchLabels:
+            app: obsidian-ai-assistant
+    template:
+        spec:
+            containers:
+                - name: backend
+                  image: obsidian-ai-assistant:latest
+                  ports:
+                      - containerPort: 8000
+                  env:
+                      - name: GPU
+                        value: 'true'
+                      - name: ENTERPRISE_ENABLED
+                        value: 'true'
+                  resources:
+                      requests:
+                          memory: '8Gi'
+                          cpu: '4'
+                      limits:
+                          memory: '32Gi'
+                          cpu: '16'
 ```
 
 ### Integration Patterns
 
 #### Plugin-Backend Integration
+
 ```javascript
 // Plugin initialization with backend discovery
 class ObsidianAIAssistant extends Plugin {
@@ -186,9 +204,9 @@ class ObsidianAIAssistant extends Plugin {
         this.backendClient = new BackendClient({
             baseUrl: this.settings.backend_url || 'http://localhost:8000',
             timeout: 30000,
-            retryAttempts: 3
+            retryAttempts: 3,
         });
-        
+
         // Health check with fallback
         await this.backendClient.healthCheck();
     }
@@ -196,6 +214,7 @@ class ObsidianAIAssistant extends Plugin {
 ```
 
 #### API Integration Patterns
+
 ```python
 # Backend service integration
 class ServiceIntegration:
@@ -203,7 +222,7 @@ class ServiceIntegration:
         self.embeddings = EmbeddingsManager.from_settings()
         self.vector_db = VectorDBManager.from_settings()
         self.cache = CacheManager.from_settings()
-    
+
     async def process_request(self, request):
         # Multi-service orchestration
         embeddings = await self.embeddings.embed(request.text)
@@ -212,6 +231,7 @@ class ServiceIntegration:
 ```
 
 #### External System Integration
+
 ```python
 # Enterprise SSO integration
 class SSOIntegration:
@@ -221,7 +241,7 @@ class SSOIntegration:
             'google': GoogleOAuthProvider(),
             'okta': OktaSAMLProvider()
         }
-    
+
     async def authenticate(self, provider, credentials):
         return await self.providers[provider].validate(credentials)
 ```
@@ -229,6 +249,7 @@ class SSOIntegration:
 ### Environment Configuration
 
 #### Development Environment Variables
+
 ```bash
 # Core settings
 export API_PORT=8000
@@ -246,6 +267,7 @@ export CACHE_BACKEND=memory
 ```
 
 #### Production Environment Variables
+
 ```bash
 # Performance settings
 export WORKERS=4
@@ -263,6 +285,7 @@ export HEALTH_CHECK_INTERVAL=30
 ```
 
 #### Enterprise Environment Variables
+
 ```bash
 # Enterprise features
 export ENTERPRISE_ENABLED=true
@@ -282,6 +305,7 @@ export TENANT_STORAGE_QUOTA=100GB
 ### System Requirements & Scaling
 
 #### Minimum Requirements
+
 - **CPU**: 2 cores, 2.4GHz
 - **RAM**: 4GB (8GB recommended)
 - **Storage**: 5GB SSD
@@ -289,6 +313,7 @@ export TENANT_STORAGE_QUOTA=100GB
 - **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
 
 #### Production Requirements
+
 - **CPU**: 8+ cores, 3.2GHz+ (Intel Xeon/AMD EPYC)
 - **RAM**: 32GB+ (64GB for enterprise)
 - **Storage**: 100GB+ NVMe SSD, 3000+ IOPS
@@ -296,6 +321,7 @@ export TENANT_STORAGE_QUOTA=100GB
 - **Network**: Gigabit ethernet, <10ms latency
 
 #### Scaling Guidelines
+
 - **Horizontal**: Load balance across 3+ backend instances
 - **Vertical**: Scale RAM for model loading, CPU for concurrent requests
 - **Caching**: Redis cluster for multi-instance cache sharing
@@ -305,6 +331,7 @@ export TENANT_STORAGE_QUOTA=100GB
 ## Troubleshooting & Utility Patterns
 
 ### Common Issues
+
 - Plugin not loading: Check `manifest.json`, all `.js` files present
 - Backend connection: Verify `http://localhost:8000/health`
 - Model loading: Check `backend/models/` for `.gguf` files
@@ -312,12 +339,14 @@ export TENANT_STORAGE_QUOTA=100GB
 - Performance: Check `/api/performance/metrics` for bottlenecks
 
 ### Error-Safe Execution
+
 ```python
 from backend.utils import safe_call
 result = safe_call(risky_function, default=None, error_msg="Custom error message")
 ```
 
 ### Performance Decorators
+
 ```python
 @cached(ttl=3600, key_func=lambda req: f"cache_key:{req.id}")
 def expensive_operation(request):
@@ -325,12 +354,14 @@ def expensive_operation(request):
 ```
 
 ### Factory Patterns
+
 ```python
 embeddings_manager = EmbeddingsManager.from_settings()
 settings = get_settings()  # Cached singleton
 ```
 
 ### Enterprise Feature Detection
+
 ```javascript
 try {
     EnterpriseAuth = require('./enterpriseAuth.js');
@@ -342,7 +373,7 @@ try {
 
 ## File Structure Reference
 
-```
+```text
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
 ├── backend/models/   # AI models (GPT4All, LLaMA)
@@ -401,7 +432,7 @@ POST /api/config
 # Primary setup (creates venv, installs models, tests everything)
 ./setup.ps1
 
-# Plugin-only setup (copies files to Obsidian vault)  
+# Plugin-only setup (copies files to Obsidian vault)
 ./setup-plugin.ps1 -VaultPath "C:\Users\...\Vault"
 
 # Backend-only mode (starts server without plugin install)
@@ -466,7 +497,7 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 ### Performance Architecture
 
 - **Multi-level cache hierarchy**: `performance.py` implements L1-L4 caching strategy
-- **Connection pools**: Database and model instance pools with health checks  
+- **Connection pools**: Database and model instance pools with health checks
 - **Async task queue**: Background processing for indexing and optimization
 - **Performance monitoring**: `PerformanceMonitor.get_system_metrics()` for real-time metrics
 - **SLA targets**: <100ms health checks, <500ms cached ops, <2s AI generation, <10s complex ops
@@ -478,6 +509,7 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 ### JavaScript (Plugin)
 
 #### Style & Formatting
+
 - **4-space indentation**: Consistent with Python backend
 - **No trailing whitespace**: Clean line endings
 - **Double quotes preferred**: For string literals (consistency)
@@ -485,18 +517,21 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 - **Line length**: 100 characters maximum
 
 #### Naming Conventions
+
 - **PascalCase**: Classes (`BackendClient`, `EnterpriseAuth`, `AdminDashboard`)
 - **camelCase**: Functions and variables (`startListening`, `sendRequest`, `currentView`)
 - **UPPER_CASE**: Constants (`ENTERPRISE_AVAILABLE`, `DEFAULT_TIMEOUT`)
 - **Private members**: Prefix with underscore (`_privateMethod`)
 
 #### Code Structure
+
 - **Module exports**: `module.exports = ClassName` for classes
 - **Error handling**: Try-catch blocks with descriptive error messages
 - **Async patterns**: Use async/await for asynchronous operations
 - **Event listeners**: Proper cleanup in destroy() methods
 
-#### Examples
+#### JavaScript Examples
+
 ```javascript
 // Good: Class definition with proper formatting
 class BackendClient {
@@ -530,6 +565,7 @@ try {
 ### Python (Backend)
 
 #### Style & Formatting
+
 - **PEP 8 compliance**: Follow Python style guide
 - **4-space indentation**: Consistent formatting
 - **Line length**: 88 characters (Black formatter)
@@ -537,19 +573,22 @@ try {
 - **Type hints**: Required for all public functions
 
 #### Code Quality Tools
+
 - **Ruff**: Fast Python linter (E, F, W, C, I rules enabled)
 - **Bandit**: Security vulnerability scanning
 - **Black**: Code formatting (optional but recommended)
 - **mypy**: Static type checking
 
 #### Patterns & Architecture
+
 - **Pydantic models**: All request/response models and settings
 - **Dependency injection**: Use `from_settings()` factory methods
 - **Error handling**: HTTPException with appropriate status codes
 - **Async/await**: All I/O operations should be async
 - **Resource management**: Context managers for file/DB operations
 
-#### Examples
+#### Python Examples
+
 ```python
 # Good: Pydantic model with validation
 from pydantic import BaseModel, Field
@@ -566,24 +605,24 @@ class EmbeddingsManager:
     def __init__(self, model_name: str, cache_manager: CacheManager):
         self.model_name = model_name
         self.cache = cache_manager
-        
+
     @classmethod
     def from_settings(cls) -> "EmbeddingsManager":
         settings = get_settings()
         cache_manager = CacheManager.from_settings()
         return cls(settings.embed_model, cache_manager)
-    
+
     async def embed_text(self, text: str) -> List[float]:
         try:
             cache_key = f"embed:{hash(text)}"
             cached_result = await self.cache.get(cache_key)
             if cached_result:
                 return cached_result
-                
+
             embeddings = await self._compute_embeddings(text)
             await self.cache.set(cache_key, embeddings, ttl=3600)
             return embeddings
-            
+
         except Exception as error:
             logger.error(f"Embedding failed: {error}", exc_info=True)
             raise HTTPException(
@@ -595,6 +634,7 @@ class EmbeddingsManager:
 ### Quality Automation
 
 #### Pre-commit Hooks
+
 ```bash
 # Install pre-commit hooks
 pip install pre-commit
@@ -608,6 +648,7 @@ pre-commit install
 ```
 
 #### JavaScript Quality Fixes
+
 ```bash
 # Auto-fix JavaScript quality issues
 python fix_js_quality.py
@@ -617,6 +658,7 @@ node -c plugin/filename.js  # Syntax validation
 ```
 
 #### Python Quality Checks
+
 ```bash
 # Linting and security
 ruff check backend/
@@ -632,39 +674,46 @@ pytest --cov=backend --cov-report=html --cov-report=term
 ## Enterprise Features (Optional)
 
 ### Enterprise Module Architecture
+
 When enterprise modules are available (`enterprise_*.py`, `enterpriseAuth.js`):
 
 #### Authentication & SSO (`enterprise_auth.py`)
+
 - **SSO Providers**: Azure AD, Google Workspace, Okta, SAML, LDAP
 - **JWT Token Management**: Secure token generation and validation
 - **Session Management**: Multi-tenant session isolation
 - **API Key Management**: Enterprise API key authentication
 
 #### Multi-Tenant Management (`enterprise_tenant.py`)
+
 - **Tenant Tiers**: Free, Professional, Enterprise, Custom
 - **Resource Isolation**: Per-tenant data, storage, and compute limits
 - **Usage Tracking**: API calls, storage, user activity monitoring
 - **Billing Integration**: Usage-based billing and cost allocation
 
 #### Role-Based Access Control (`enterprise_rbac.py`)
+
 - **Role Hierarchy**: Admin, Manager, Analyst, User roles
 - **Permission Matrix**: Granular permissions for resources and operations
 - **Resource-Level Security**: Document, model, and feature access control
 - **Audit Logging**: Complete access and permission change tracking
 
 #### Compliance Management
+
 - **GDPR Compliance** (`enterprise_gdpr.py`): Data processing, user rights, consent management
 - **SOC2 Compliance** (`enterprise_soc2.py`): Security controls, monitoring, incident response
 - **Data Retention**: Automated data lifecycle and retention policies
 - **Audit Trails**: Comprehensive logging for compliance reporting
 
 #### Admin Dashboard (`enterprise_admin.py`)
+
 - **User Management**: Bulk operations, role assignments, deactivation
 - **Tenant Management**: Resource allocation, usage monitoring, billing
 - **Security Dashboard**: Incidents, access reviews, vulnerability scanning
 - **Compliance Reporting**: GDPR, SOC2, and custom compliance reports
 
 ### Enterprise Endpoints
+
 ```python
 # Admin Dashboard
 GET  /api/enterprise/dashboard    # Overview metrics and health
@@ -689,7 +738,8 @@ POST /api/enterprise/security/scan # Trigger security scan
 GET  /api/enterprise/audit        # Access audit logs
 ```
 
-### Enterprise Feature Detection
+### Enterprise Feature Detection (Plugin)
+
 ```javascript
 // Plugin enterprise feature loading
 class EnterpriseFeatures {
@@ -697,7 +747,7 @@ class EnterpriseFeatures {
         this.features = {
             auth: this.loadModule('./enterpriseAuth.js'),
             config: this.loadModule('./enterpriseConfig.js'),
-            admin: this.loadModule('./adminDashboard.js')
+            admin: this.loadModule('./adminDashboard.js'),
         };
     }
 
@@ -717,38 +767,39 @@ class EnterpriseFeatures {
 ```
 
 ### Enterprise Configuration
+
 ```yaml
 # backend/config.yaml enterprise settings
 enterprise:
-  enabled: true
-  features:
-    - sso
-    - multi_tenant
-    - rbac
-    - compliance
-    - admin_dashboard
-  
-  sso:
-    providers:
-      - azure_ad
-      - google_workspace
-      - okta
-    default_provider: azure_ad
-  
-  tenants:
-    isolation: strict
-    default_tier: professional
-    storage_quota_gb: 100
-  
-  compliance:
-    gdpr_enabled: true
-    soc2_enabled: true
-    audit_retention_days: 2555  # 7 years
+    enabled: true
+    features:
+        - sso
+        - multi_tenant
+        - rbac
+        - compliance
+        - admin_dashboard
+
+    sso:
+        providers:
+            - azure_ad
+            - google_workspace
+            - okta
+        default_provider: azure_ad
+
+    tenants:
+        isolation: strict
+        default_tier: professional
+        storage_quota_gb: 100
+
+    compliance:
+        gdpr_enabled: true
+        soc2_enabled: true
+        audit_retention_days: 2555 # 7 years
 ```
 
 ## Troubleshooting Patterns
 
-### Common Issues
+### Common Issues (Development)
 
 1. **Plugin not loading**: Check `plugin/manifest.json` and ensure all `.js` files copied
 2. **Backend connection**: Verify `http://localhost:8000/health` responds
@@ -801,7 +852,7 @@ embeddings_manager = EmbeddingsManager.from_settings()
 settings = get_settings()  # Cached singleton
 ```
 
-### Enterprise Feature Detection
+### Enterprise Feature Detection (JavaScript)
 
 ```javascript
 // Plugin enterprise feature loading
@@ -816,13 +867,15 @@ try {
 ## System Requirements & Deployment
 
 ### Development Environment
+
 - **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
 - **CPU**: 2+ cores, 2GHz
 - **RAM**: 4GB minimum
 - **Storage**: 2GB SSD
 - **Python**: 3.10+
 
-### Production Environment  
+### Production Environment
+
 - **CPU**: 8+ cores, 3.5GHz
 - **RAM**: 16GB+ (32GB+ for enterprise)
 - **Storage**: 50GB+ SSD with >1000 IOPS
@@ -830,15 +883,16 @@ try {
 - **Network**: Gigabit connection for high-throughput
 
 ### Performance Targets
+
 - **Tier 1**: <100ms (health checks, status)
 - **Tier 2**: <500ms (cached operations, voice)
 - **Tier 3**: <2s (AI generation, document search)
 - **Tier 4**: <10s (web analysis, complex operations)
 - **Tier 5**: <60s (vault reindexing, model loading)
 
-## File Structure Reference
+## File Structure Reference (Summary)
 
-```
+```text
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
 ├── backend/models/   # AI models (GPT4All, LLaMA)
@@ -849,25 +903,28 @@ try {
 └── Makefile          # Development commands
 ```
 
-
 ## Continuous Improvement & Feedback
 
 ### Contributing to Documentation
+
 This specification is a living document that should evolve with the codebase. Contributors and AI agents are encouraged to:
 
 #### Suggest Improvements
+
 - **Clarity**: Identify unclear instructions or missing context
 - **Completeness**: Point out gaps in architecture, workflows, or patterns
 - **Accuracy**: Report outdated information or incorrect examples
 - **Usability**: Recommend better organization or additional examples
 
 #### Update Process
+
 1. **File Issues**: Report documentation problems via GitHub issues
 2. **Submit PRs**: Contribute improvements directly to `.github/copilot-instructions.md`
 3. **Discuss Changes**: Use discussions for architectural decisions
 4. **Regular Reviews**: Schedule periodic documentation audits
 
 #### Quality Metrics
+
 - **Onboarding Time**: New contributors should be productive within 1 hour
 - **Error Reduction**: Clear instructions should minimize common mistakes
 - **Test Coverage**: Documentation examples should match actual test patterns
@@ -876,12 +933,14 @@ This specification is a living document that should evolve with the codebase. Co
 ### Feedback Channels
 
 #### For AI Agents
+
 - **Performance Issues**: Report slow responses or failed operations
 - **Missing Patterns**: Identify recurring tasks that lack documented patterns
 - **Error Scenarios**: Document common failure modes and solutions
 - **Integration Points**: Highlight complex or confusing integration steps
 
 #### For Human Contributors
+
 - **GitHub Issues**: `documentation` label for spec improvements
 - **Pull Requests**: Direct contributions to copilot instructions
 - **Code Reviews**: Flag documentation updates needed during code changes
@@ -890,12 +949,14 @@ This specification is a living document that should evolve with the codebase. Co
 ### Validation Process
 
 #### Regular Audits
+
 - **Monthly**: Review against latest codebase changes
 - **Release Cycles**: Update for new features and deprecations
 - **Performance Reviews**: Validate SLA targets and benchmarks
 - **Security Audits**: Update threat models and compliance requirements
 
 #### Automated Checks
+
 ```bash
 # Validate documentation against codebase
 # Documentation validation moved to test suite
@@ -909,7 +970,9 @@ python -m pytest tests/integration/ -v
 ```
 
 ### Success Criteria
+
 These instructions are successful when:
+
 - ✅ New AI agents can start contributing within 15 minutes
 - ✅ Common integration issues are documented and resolved quickly
 - ✅ Code quality remains consistently high across all contributions

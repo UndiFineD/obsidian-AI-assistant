@@ -1,11 +1,10 @@
 # backend/embeddings.py
 
-import os
 import hashlib
-from pathlib import Path
-from typing import List, Dict, Optional
-
 import logging
+import os
+from pathlib import Path
+from typing import Dict, List, Optional
 
 try:
     from sentence_transformers import SentenceTransformer  # type: ignore
@@ -18,8 +17,8 @@ try:
 except Exception:
     PersistentClient = None  # type: ignore
     embedding_functions = None  # type: ignore
-from .utils import safe_call
 from .settings import get_settings
+from .utils import safe_call
 
 
 class EmbeddingsManager:

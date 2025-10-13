@@ -1,12 +1,16 @@
 # Enterprise Features Specification - Obsidian AI Assistant
 
-**Version:** 1.0  
-**Date:** October 6, 2025  
-**Status:** Planning Phase  
+**Version:** 1.0
+**Date:** October 6, 2025
+**Status:** Planning Phase
 
 ## 🏢 Executive Summary
 
-This document outlines the enterprise features roadmap for the Obsidian AI Assistant, transforming it from an individual productivity tool into a comprehensive enterprise-grade AI knowledge management platform. The plan addresses scalability, security, compliance, and management requirements for organizations ranging from small teams to large enterprises.
+This document outlines the enterprise features roadmap for the Obsidian AI
+Assistant, transforming it from an individual productivity tool into a
+comprehensive enterprise-grade AI knowledge management platform. The plan
+addresses scalability, security, compliance, and management requirements for
+organizations ranging from small teams to large enterprises.
 
 ## 🎯 Enterprise Vision
 
@@ -28,39 +32,39 @@ This document outlines the enterprise features roadmap for the Obsidian AI Assis
 
 ```yaml
 SSO_Providers:
-  SAML2:
-    - Active Directory Federation Services (ADFS)
-    - Okta
-    - Azure AD
-    - Google Workspace
-    - PingIdentity
-    
-  OAuth2/OIDC:
-    - Microsoft Azure AD
-    - Google Identity Platform
-    - Auth0
-    - Keycloak
-    
-  LDAP/AD:
-    - Active Directory
-    - OpenLDAP
-    - FreeIPA
+    SAML2:
+        - Active Directory Federation Services (ADFS)
+        - Okta
+        - Azure AD
+        - Google Workspace
+        - PingIdentity
+
+    OAuth2/OIDC:
+        - Microsoft Azure AD
+        - Google Identity Platform
+        - Auth0
+        - Keycloak
+
+    LDAP/AD:
+        - Active Directory
+        - OpenLDAP
+        - FreeIPA
 
 Implementation_Approach:
-  FastAPI_Integration:
-    - python-social-auth for OAuth2/OIDC
-    - python3-saml for SAML integration
-    - ldap3 for LDAP authentication
-    
-  Token_Management:
-    - JWT tokens with RS256 signing
-    - Refresh token rotation
-    - Session management with Redis
-    
-  User_Provisioning:
-    - SCIM 2.0 support for automated provisioning
-    - Just-in-time (JIT) user creation
-    - Group membership synchronization
+    FastAPI_Integration:
+        - python-social-auth for OAuth2/OIDC
+        - python3-saml for SAML integration
+        - ldap3 for LDAP authentication
+
+    Token_Management:
+        - JWT tokens with RS256 signing
+        - Refresh token rotation
+        - Session management with Redis
+
+    User_Provisioning:
+        - SCIM 2.0 support for automated provisioning
+        - Just-in-time (JIT) user creation
+        - Group membership synchronization
 ```
 
 #### Multi-Factor Authentication (MFA)
@@ -69,23 +73,23 @@ Implementation_Approach:
 # backend/enterprise/auth_mfa.py
 class MFAManager:
     """Multi-factor authentication management"""
-    
+
     def __init__(self):
         self.totp_manager = TOTPManager()
         self.sms_provider = SMSProvider()
         self.email_provider = EmailProvider()
-    
+
     async def setup_totp(self, user_id: str) -> TOTPSetupResult:
         """Set up TOTP-based MFA"""
         secret = self.totp_manager.generate_secret()
         qr_code = self.totp_manager.generate_qr_code(user_id, secret)
-        
+
         return TOTPSetupResult(
             secret=secret,
             qr_code=qr_code,
             backup_codes=self.generate_backup_codes()
         )
-    
+
     async def verify_mfa(self, user_id: str, token: str, method: str) -> bool:
         """Verify MFA token"""
         if method == "totp":
@@ -94,7 +98,7 @@ class MFAManager:
             return await self.sms_provider.verify_token(user_id, token)
         elif method == "email":
             return await self.email_provider.verify_token(user_id, token)
-        
+
         return False
 ```
 
@@ -110,7 +114,7 @@ from typing import Dict, List, Optional
 
 class TenantTier(Enum):
     BASIC = "basic"          # Small teams (1-10 users)
-    PROFESSIONAL = "pro"     # Medium teams (11-100 users)  
+    PROFESSIONAL = "pro"     # Medium teams (11-100 users)
     ENTERPRISE = "enterprise" # Large orgs (100+ users)
     CUSTOM = "custom"        # Custom enterprise deployments
 
@@ -130,20 +134,20 @@ class TenantConfig:
 
 class TenantManager:
     """Multi-tenant resource management"""
-    
+
     def __init__(self):
         self.tenant_configs: Dict[str, TenantConfig] = {}
         self.resource_monitors: Dict[str, ResourceMonitor] = {}
-    
+
     async def create_tenant(self, tenant_data: TenantCreationRequest) -> Tenant:
         """Create new tenant with isolated resources"""
-        
+
         # Create tenant database schema
         tenant_db = await self.create_tenant_database(tenant_data.tenant_id)
-        
+
         # Set up isolated vector storage
         vector_store = await self.create_tenant_vector_store(tenant_data.tenant_id)
-        
+
         # Configure resource limits
         config = TenantConfig(
             tenant_id=tenant_data.tenant_id,
@@ -157,7 +161,7 @@ class TenantManager:
             priority_support=tenant_data.tier in [TenantTier.ENTERPRISE, TenantTier.CUSTOM],
             sla_response_time_hours=self.get_sla_time(tenant_data.tier)
         )
-        
+
         return Tenant(
             id=tenant_data.tenant_id,
             config=config,
@@ -186,7 +190,7 @@ class TenantManager:
 ### Phase 3: Advanced Features (Months 3-4)
 
 - SOC 2 compliance framework
-- Advanced analytics and reporting  
+- Advanced analytics and reporting
 - API gateway and rate limiting
 - Enterprise integrations
 
@@ -210,48 +214,48 @@ class TenantManager:
 
 ```yaml
 Pricing_Tiers:
-  Basic:
-    price_per_user_month: 29
-    min_users: 1
-    max_users: 10
-    features:
-      - Basic SSO
-      - Standard support
-      - Community forums
-  
-  Professional:
-    price_per_user_month: 49  
-    min_users: 5
-    max_users: 100
-    features:
-      - Advanced SSO (SAML)
-      - MFA support
-      - Business hours support
-      - Advanced analytics
-      - API access
-  
-  Enterprise:
-    price_per_user_month: 99
-    min_users: 25
-    max_users: 1000
-    features:
-      - Full RBAC
-      - GDPR/SOC2 compliance
-      - 24/7 priority support
-      - Custom integrations
-      - Dedicated success manager
-      - SLA guarantees
-  
-  Enterprise_Plus:
-    price: "Contact Sales"
-    min_users: 100
-    max_users: "Unlimited"
-    features:
-      - Custom deployment
-      - On-premises options
-      - White-label solutions
-      - Professional services
-      - Custom development
+    Basic:
+        price_per_user_month: 29
+        min_users: 1
+        max_users: 10
+        features:
+            - Basic SSO
+            - Standard support
+            - Community forums
+
+    Professional:
+        price_per_user_month: 49
+        min_users: 5
+        max_users: 100
+        features:
+            - Advanced SSO (SAML)
+            - MFA support
+            - Business hours support
+            - Advanced analytics
+            - API access
+
+    Enterprise:
+        price_per_user_month: 99
+        min_users: 25
+        max_users: 1000
+        features:
+            - Full RBAC
+            - GDPR/SOC2 compliance
+            - 24/7 priority support
+            - Custom integrations
+            - Dedicated success manager
+            - SLA guarantees
+
+    Enterprise_Plus:
+        price: 'Contact Sales'
+        min_users: 100
+        max_users: 'Unlimited'
+        features:
+            - Custom deployment
+            - On-premises options
+            - White-label solutions
+            - Professional services
+            - Custom development
 ```
 
 ## 📊 Success Metrics

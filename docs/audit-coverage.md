@@ -1,8 +1,8 @@
 # Test Coverage Audit Report
 
-**Date**: 2024-12-19  
-**Test Run**: 458 tests (383 passed, 75 failed)  
-**Overall Backend Coverage**: 58%  
+**Date**: 2024-12-19
+**Test Run**: 458 tests (383 passed, 75 failed)
+**Overall Backend Coverage**: 58%
 
 ## Current Test Status
 
@@ -31,7 +31,7 @@
 - backend/embeddings.py: 86% (121/141 statements)
 - backend/security.py: 79% (23/29 statements)
 - backend/performance.py: 72% (210/293 statements)
-- backend/__init__.py: 71% (15/21 statements)
+- backend/**init**.py: 71% (15/21 statements)
 
 #### Low Coverage (<60%)
 
@@ -48,9 +48,9 @@
 
 #### 1. Authentication/Authorization Problems
 
-Status: URGENT - Blocking all endpoint tests  
-Issue: All API endpoint tests failing with 401 Unauthorized  
-Impact: 75 test failures across all integration tests  
+Status: URGENT - Blocking all endpoint tests
+Issue: All API endpoint tests failing with 401 Unauthorized
+Impact: 75 test failures across all integration tests
 Root Cause: Backend may have authentication/authorization enabled in test environment
 
 Affected Test Categories:
@@ -69,9 +69,9 @@ FAILED tests/integration/test_api_integration.py::TestAPIIntegration::test_ask_e
 
 #### 2. Enterprise Module Coverage Gaps
 
-Status: Medium Priority  
-Issue: Enterprise modules have low coverage (25-40%)  
-Impact: Security, compliance, and multi-tenant features under-tested  
+Status: Medium Priority
+Issue: Enterprise modules have low coverage (25-40%)
+Impact: Security, compliance, and multi-tenant features under-tested
 
 Specific Gaps:
 
@@ -83,9 +83,9 @@ Specific Gaps:
 
 #### 3. Main Backend Module Coverage
 
-Status: High Priority  
-Issue: Core backend.py module only 46% covered  
-Impact: 268 uncovered statements in main API endpoint handlers  
+Status: High Priority
+Issue: Core backend.py module only 46% covered
+Impact: 268 uncovered statements in main API endpoint handlers
 
 Missing Coverage Areas:
 
@@ -97,8 +97,8 @@ Missing Coverage Areas:
 
 #### 4. Missing Test Dependencies
 
-Status: Resolved  
-Issue: Missing psutil module for performance monitoring tests  
+Status: Resolved
+Issue: Missing psutil module for performance monitoring tests
 Solution: Need to add psutil to test dependencies
 
 ### Test Quality Assessment
@@ -145,7 +145,7 @@ Solution: Need to add psutil to test dependencies
 Immediate (Next Sprint)
 
 - [ ] T004: Investigate and fix 401 authentication errors in test environment
-- [ ] T005: Create comprehensive backend.py endpoint tests  
+- [ ] T005: Create comprehensive backend.py endpoint tests
 - [ ] T006: Implement missing error path test coverage
 - [ ] T007: Add security and authentication test scaffolding
 
