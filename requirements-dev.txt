@@ -34,3 +34,9 @@ factory-boy>=3.3.0  # For creating test data
 
 # System monitoring for performance tests
 psutil>=5.9.0
+
+# bandit tests
+bandit>=1.8.0
+
+# safety
+safety>=3.6.0

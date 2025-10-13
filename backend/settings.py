@@ -1,3 +1,61 @@
+import re
+
+def sanitize_prompt_input(prompt: str) -> str:
+    """
+    Sanitize AI prompt input to prevent prompt injection attacks.
+    - Remove dangerous patterns (e.g., code execution, system commands)
+    - Escape special characters
+    - Enforce length and structure limits
+    """
+    if not isinstance(prompt, str):
+        return ""
+    # Remove dangerous patterns
+    dangerous_patterns = [
+        r"(?i)system\s*\.",
+        r"(?i)os\s*\.",
+        r"(?i)exec\s*\(",
+        r"(?i)eval\s*\(",
+        r"(?i)subprocess",
+        r"(?i)open\s*\(",
+        r"(?i)import\s+",
+        r"(?i)\b__\w+__\b",
+        r"(?i)\btoken\b",
+        r"(?i)\bpassword\b",
+        r"(?i)\bapi[_-]?key\b",
+        r"(?i)\bsecret\b",
+        r"(?i)\bdelete\b",
+        r"(?i)\bdrop\b",
+        r"(?i)\bshutdown\b",
+        r"(?i)\bkill\b",
+        r"(?i)\bexit\b",
+        r"(?i)\bquit\b",
+        r"(?i)\bexecfile\b",
+        r"(?i)\binput\b",
+        r"(?i)\bprint\b",
+        r"(?i)\bwrite\b",
+        r"(?i)\bread\b",
+        r"(?i)\bchmod\b",
+        r"(?i)\bchown\b",
+        r"(?i)\bmakefile\b",
+        r"(?i)\bcompile\b",
+        r"(?i)\bassert\b",
+        r"(?i)\bimportlib\b",
+        r"(?i)\bglobals\b",
+        r"(?i)\blocals\b",
+        r"(?i)\b__import__\b",
+    ]
+    for pattern in dangerous_patterns:
+        prompt = re.sub(pattern, "[REDACTED]", prompt)
+    # Escape special characters
+    prompt = prompt.replace("<", "&lt;").replace(">", "&gt;")
+    prompt = prompt.replace("\"", "&quot;").replace("'", "&#39;")
+    # Enforce length limit
+    max_length = 10000
+    if len(prompt) > max_length:
+        prompt = prompt[:max_length]
+    # Remove excessive whitespace
+    prompt = re.sub(r"\s+", " ", prompt).strip()
+    return prompt
 """
 Centralized settings for backend and plugin bridge.
 
@@ -31,6 +89,11 @@ _ALLOWED_UPDATE_KEYS = {
     "chunk_overlap",
     "similarity_threshold",
     "vosk_model_path",
+    "pdf_max_size_mb",
+    "audio_max_size_mb",
+    "text_max_size_mb",
+    "archive_max_size_mb",
+    "file_validation_enabled",
 }
 
 
@@ -62,6 +125,23 @@ class Settings(BaseModel):
 
     # Voice
     vosk_model_path: str = "backend/models/vosk-model-small-en-us-0.15"
+
+    # File Validation & Security
+    pdf_max_size_mb: int = 50
+    audio_max_size_mb: int = 25
+    text_max_size_mb: int = 10
+    archive_max_size_mb: int = 100
+    file_validation_enabled: bool = True
+
+    # HTTPS/SSL
+    ssl_certfile: str = None  # Path to SSL certificate file
+    ssl_keyfile: str = None  # Path to SSL private key file
+    ssl_ca_certs: str = None  # Path to CA bundle (optional)
+
+    # CORS/CSRF
+    cors_allowed_origins: list = ["https://localhost:8080", "https://localhost:8000"]
+    csrf_enabled: bool = True
+    csrf_secret: str = os.getenv("CSRF_SECRET", "change-me")
 
     # Derived
     @property
@@ -145,6 +225,14 @@ def _merge_env(overrides: dict) -> dict:
         "CHUNK_OVERLAP": "chunk_overlap",
         "SIMILARITY_THRESHOLD": "similarity_threshold",
         "VOSK_MODEL_PATH": "vosk_model_path",
+        "PDF_MAX_SIZE_MB": "pdf_max_size_mb",
+        "AUDIO_MAX_SIZE_MB": "audio_max_size_mb",
+        "TEXT_MAX_SIZE_MB": "text_max_size_mb",
+        "ARCHIVE_MAX_SIZE_MB": "archive_max_size_mb",
+        "FILE_VALIDATION_ENABLED": "file_validation_enabled",
+        "SSL_CERTFILE": "ssl_certfile",
+        "SSL_KEYFILE": "ssl_keyfile",
+        "SSL_CA_CERTS": "ssl_ca_certs",
     }
 
     for env_key, field in env_map.items():

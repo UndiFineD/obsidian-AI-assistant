@@ -1,7 +1,7 @@
 # 🔒 **SECURITY SPECIFICATION**
 
 _Obsidian AI Assistant - Security Architecture & Controls_
-_Version: 1.0_
+_Version: 1.1_
 _Date: October 6, 2025_
 _Scope: Authentication, Encryption, Validation, API Security, Privacy, Threat Model_
 
@@ -119,6 +119,9 @@ validation, API security, privacy controls, and compliance requirements.
 - **Insider Threats**: Unauthorized access, privilege escalation
 - **Data Leakage**: Unencrypted storage, insecure transmission
 - **Supply Chain Risks**: Vulnerable dependencies, plugin code
+- **Prompt Injection**: Maliciously crafted inputs to manipulate AI behavior
+- **DoS Attacks**: Denial of Service attacks targeting API availability
+- **Multi-Tenant Risks**: Data or resource leakage between different tenant deployments
 
 ### **Mitigation Strategies**
 
@@ -127,6 +130,10 @@ validation, API security, privacy controls, and compliance requirements.
 - **Continuous Monitoring**: Automated anomaly detection and alerting
 - **Dependency Auditing**: Regular scans for vulnerable packages
 - **Plugin Sandboxing**: Restrict plugin capabilities and validate code
+- **Rate Limiting**: Throttle requests to prevent abuse and DoS attacks
+- **Input Validation**: Strict validation and sanitization of all user inputs
+- **Prompt Sanitization**: Filtering and escaping of AI prompts to prevent injection attacks
+- **Tenant Isolation**: Ensuring data and resource isolation between different tenants
 
 ---
 
@@ -138,6 +145,18 @@ validation, API security, privacy controls, and compliance requirements.
 - **Network Segmentation**: Isolate backend, database, and plugin environments
 - **Access Reviews**: Quarterly review of all access permissions
 - **Security Patch Management**: Automated updates for OS and dependencies
+- **Input Validation**: All API endpoints use Pydantic models for strict type and field validation
+- **Authentication & RBAC**: JWT-based authentication, role-based access control, middleware enforcement
+- **Secrets Management**: All secrets/config read from environment variables, never hardcoded
+- **Dependency Audits**: Automated weekly scans with Safety (Python) and npm audit (JavaScript)
+- **Error Sanitization**: Generic error messages in production, detailed logs server-side
+- **Rate Limiting**: Token bucket algorithm, tiered by user role and endpoint sensitivity
+- **File Upload Validation**: Magic byte checks, size limits, path traversal prevention, filename sanitization
+- **HTTPS Enforcement**: All plugin-backend traffic uses SSL/TLS, HTTP redirected to HTTPS
+- **CORS & CSRF**: Strict CORS headers, CSRF token validation for state-changing operations, SameSite cookies
+- **Tenant Isolation**: Per-tenant resource/data isolation, tenant-aware access controls, audit logging
+- **Prompt Sanitization**: AI prompts filtered for dangerous patterns, escaped, and length-limited
+- **Automated Security Testing**: Test suite covers authentication, RBAC, input validation, rate limiting, file validation, tenant isolation, prompt sanitization
 
 ### **Compliance Requirements**
 
@@ -185,7 +204,7 @@ compliance across all operational scenarios.**
 
 ---
 
-_Security Specification Version: 1.0_
+_Security Specification Version: 1.1_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_

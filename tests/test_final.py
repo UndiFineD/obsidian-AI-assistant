@@ -131,7 +131,7 @@ def test_backend_availability():
 
     except requests.RequestException as e:
         print(f"❌ Backend not available: {e}")
-        print("💡 Start the backend with: python test_server.py")
+        print("💡 Start the backend with: python start_server.py")
         raise AssertionError(f"Backend not available: {e}") from e
 
 

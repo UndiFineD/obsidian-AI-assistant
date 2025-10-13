@@ -170,6 +170,12 @@ class ObsidianAIAssistant extends Plugin {
             await this.saveSettings();
         }
 
+        // Enforce HTTPS for backend URL
+        if (!/^https:/.test(this.settings.backendUrl)) {
+            new Notice('AI Assistant: Backend URL must use HTTPS for security. Please update your settings.');
+            throw new Error('Backend URL must use HTTPS');
+        }
+
         // Initialize enterprise features if available
         if (ENTERPRISE_AVAILABLE && this.settings.enterprise?.enabled) {
             await this.initializeEnterpriseFeatures();
@@ -324,9 +330,13 @@ class AIAssistantSettingTab extends PluginSettingTab {
         containerEl.createEl('h2', { text: 'AI Assistant Settings' });
         new Setting(containerEl)
             .setName('Backend URL')
-            .setDesc('URL of your AI backend server')
+            .setDesc('URL of your AI backend server (must use HTTPS)')
             .addText((text) => {
                 text.setValue(this.plugin.settings.backendUrl).onChange(async (value) => {
+                    if (!/^https:/.test(value)) {
+                        new Notice('Backend URL must use HTTPS for security.');
+                        return;
+                    }
                     this.plugin.settings.backendUrl = value;
                     await this.plugin.saveSettings();
                 });

@@ -154,7 +154,7 @@ class EmbeddingsManager:
                 query_embeddings=[query_vec], n_results=top_k
             )
             hits = []
-            for doc, meta in zip(results["documents"][0], results["metadatas"][0]):
+            for doc, meta in zip(results["documents"][0], results["metadatas"][0], strict=True):
                 hits.append({"text": doc, "source": meta.get("note_path", "")})
             return hits
 

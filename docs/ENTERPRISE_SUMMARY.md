@@ -33,7 +33,7 @@ The Obsidian AI Assistant has been successfully transformed from a basic AI assi
 
 ## 🏗️ Architecture Overview
 
-```
+```text
 Enterprise AI Assistant Architecture
 ├── Individual Users (Basic Mode)
 │   ├── Local AI processing
@@ -59,14 +59,6 @@ Enterprise AI Assistant Architecture
 - **Security Dashboard**: Real-time monitoring of security events and incidents
 - **Compliance Reporting**: Automated GDPR and SOC2 compliance status tracking
 - **System Monitoring**: Performance metrics and health status across all components
-
-### For End Users
-
-- **SSO Login**: Single sign-on with existing organizational credentials
-- **Tenant Isolation**: Secure separation of organizational data and configurations
-- **Role-Based Access**: Appropriate permissions based on organizational role
-- **Enterprise Configuration**: Advanced settings for security and compliance
-- **Seamless Experience**: All enterprise features integrate naturally with existing AI assistant
 
 ### For Organizations
 
@@ -122,9 +114,14 @@ Enterprise AI Assistant Architecture
 
 ### For End Users
 
-1. **Authentication**: Use "Enterprise Sign In" with organizational credentials
-2. **Features**: Access enterprise features based on assigned role
-3. **Settings**: Configure tenant-specific settings through "Enterprise Configuration"
+- **SSO Login**: Single sign-on with existing organizational credentials
+- **Tenant Isolation**: Secure separation of organizational data and configurations
+- **Role-Based Access**: Appropriate permissions based on organizational role
+- **Enterprise Configuration**: Advanced settings for security and compliance
+- **Seamless Experience**: All enterprise features integrate naturally with existing AI assistant
+- **Authentication**: Use "Enterprise Sign In" with organizational credentials
+- **Features**: Access enterprise features based on assigned role
+- **Settings**: Configure tenant-specific settings through "Enterprise Configuration"
 
 ## ✅ Quality Assurance
 

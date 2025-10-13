@@ -268,7 +268,7 @@ Settings can be updated at runtime via the `/api/config` endpoints:
 ## From project root
 
 ```bash
-python test_server.py
+python start_server.py
 ```
 
 ## Get current configuration
@@ -363,7 +363,7 @@ For quick testing without full backend dependencies:
 
 ```bash
 # From project root
-python test_server.py
+python start_server.py
 ```
 
 This lightweight server:

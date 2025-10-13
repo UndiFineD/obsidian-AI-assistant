@@ -285,26 +285,39 @@ class TenantIsolation:
         self.tenant_manager = tenant_manager
 
     def get_tenant_vault_path(self, tenant_id: str) -> str:
-        """Get isolated vault path for tenant"""
+        """Get isolated vault path for tenant. Enforce tenant_id presence."""
+        if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
+            raise ValueError("Invalid or missing tenant_id for vault access")
         return f"./vaults/tenant_{tenant_id}"
 
     def get_tenant_cache_path(self, tenant_id: str) -> str:
-        """Get isolated cache path for tenant"""
+        """Get isolated cache path for tenant. Enforce tenant_id presence."""
+        if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
+            raise ValueError("Invalid or missing tenant_id for cache access")
         return f"./backend/cache/tenant_{tenant_id}"
 
     def get_tenant_models_path(self, tenant_id: str) -> str:
-        """Get isolated models path for tenant"""
+        """Get isolated models path for tenant. Enforce tenant_id presence."""
+        if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
+            raise ValueError("Invalid or missing tenant_id for models access")
         return f"./backend/models/tenant_{tenant_id}"
 
     def get_tenant_logs_path(self, tenant_id: str) -> str:
-        """Get isolated logs path for tenant"""
+        """Get isolated logs path for tenant. Enforce tenant_id presence."""
+        if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
+            raise ValueError("Invalid or missing tenant_id for logs access")
         return f"./logs/tenant_{tenant_id}"
 
     def filter_user_access(self, tenant_id: str, user_id: str, resource: str) -> bool:
-        """Check if user has access to resource within tenant"""
-        # Implement tenant-specific access control
+        """Check if user has access to resource within tenant. Enforce tenant isolation."""
         tenant = self.tenant_manager.get_tenant(tenant_id)
-        return tenant is not None and tenant.status == "active"
+        if not tenant or tenant.status != "active":
+            return False
+        # Only allow access if resource is strictly scoped to tenant
+        # (resource should be a path or identifier containing tenant_id)
+        if tenant_id not in str(resource):
+            return False
+        return True
 
 
 class BillingManager:
@@ -376,38 +389,25 @@ class MultiTenantMiddleware:
 
     async def __call__(self, request, call_next):
         """Enforce tenant isolation and limits"""
-        # Extract tenant ID from JWT token or header
         tenant_id = self._extract_tenant_id(request)
-
-        if not tenant_id:
+        if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
             return JSONResponse(
                 status_code=400,
-                content={"error": "Tenant ID required", "type": "tenant_error"},
+                content={"error": "Valid tenant ID required", "type": "tenant_error"},
             )
-
+        # Strict isolation: ensure all resource access is scoped by tenant_id
+        request.state.tenant_id = tenant_id
         # Check tenant status and limits
-        if not self.tenant_manager.check_resource_limit(
-            tenant_id, "concurrent_requests"
-        ):
+        if not self.tenant_manager.check_resource_limit(tenant_id, "concurrent_requests"):
             return JSONResponse(
                 status_code=429,
-                content={
-                    "error": "Concurrent request limit exceeded",
-                    "type": "rate_limit_error",
-                },
+                content={"error": "Concurrent request limit exceeded", "type": "rate_limit_error"},
             )
-
-        # Add tenant context to request
-        request.state.tenant_id = tenant_id
-
-        # Increment concurrent request counter
         self.tenant_manager.increment_usage(tenant_id, "concurrent_requests")
-
         try:
             response = await call_next(request)
             return response
         finally:
-            # Decrement concurrent request counter
             self.tenant_manager.increment_usage(tenant_id, "concurrent_requests", -1)
 
     def _extract_tenant_id(self, request) -> Optional[str]:

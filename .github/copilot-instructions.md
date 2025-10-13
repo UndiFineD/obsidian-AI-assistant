@@ -508,7 +508,7 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 
 ### JavaScript (Plugin)
 
-#### Style & Formatting
+#### JavaScript Style & Formatting
 
 - **4-space indentation**: Consistent with Python backend
 - **No trailing whitespace**: Clean line endings
@@ -564,7 +564,7 @@ try {
 
 ### Python (Backend)
 
-#### Style & Formatting
+#### Python Style & Formatting
 
 - **PEP 8 compliance**: Follow Python style guide
 - **4-space indentation**: Consistent formatting
@@ -824,45 +824,6 @@ enterprise:
 - **API responses**: Flexible assertions accept multiple valid status codes
 - **Retry logic**: Exponential backoff with `ErrorHandler.withRetry()` pattern
 - **Logging**: Structured logging with `logger.error(..., exc_info=True)`
-
-## Key Utility Patterns
-
-### Error-Safe Execution
-
-```python
-# Use safe_call() for graceful error handling
-from backend.utils import safe_call
-result = safe_call(risky_function, default=None, error_msg="Custom error message")
-```
-
-### Performance Decorators
-
-```python
-# Cache expensive operations
-@cached(ttl=3600, key_func=lambda req: f"cache_key:{req.id}")
-def expensive_operation(request):
-    return process_request(request)
-```
-
-### Factory Patterns
-
-```python
-# Use from_settings() for service initialization
-embeddings_manager = EmbeddingsManager.from_settings()
-settings = get_settings()  # Cached singleton
-```
-
-### Enterprise Feature Detection (JavaScript)
-
-```javascript
-// Plugin enterprise feature loading
-try {
-    EnterpriseAuth = require('./enterpriseAuth.js');
-    ENTERPRISE_AVAILABLE = true;
-} catch (error) {
-    console.log('Enterprise features not available');
-}
-```
 
 ## System Requirements & Deployment
 

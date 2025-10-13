@@ -338,7 +338,8 @@ python .\run_tests_safe.py -v --asyncio-mode=auto
 ### CI Status and Badges
 
 - CI: GitHub Actions runs the full suite on push/PR
-    - Workflows: ci.yml (lint + multi-OS tests + packaging), test-backend.yml (matrix backend runs)
+
+  - Workflows: ci.yml (lint + multi-OS tests + packaging), test-backend.yml (matrix backend runs)
 - Badges are shown at the top of README
 
 To reproduce CI locally, mirror the steps:

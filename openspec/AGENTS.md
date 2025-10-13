@@ -95,8 +95,9 @@ After deployment, create separate PR to:
 - Enumerate specs: `openspec spec list --long` (or `--json` for scripts)
 - Enumerate changes: `openspec list` (or `openspec change list --json` - deprecated but available)
 - Show details:
-    - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
-    - Change: `openspec show <change-id> --json --deltas-only`
+
+  - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
+  - Change: `openspec show <change-id> --json --deltas-only`
 - Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" openspec/specs`
 
 ## Quick Start

@@ -19,7 +19,7 @@ organizations ranging from small teams to large enterprises.
 - Seamless integration with enterprise ecosystems
 - Professional support and service level agreements
 
-#### Single Sign-On (SSO) Integration
+### Single Sign-On (SSO) Integration
 
 ```yaml
 SSO_Providers:
@@ -53,7 +53,7 @@ SSO_Providers:
         - Group membership synchronization
 ```
 
-#### Multi-Factor Authentication (MFA)
+### Multi-Factor Authentication (MFA)
 
 ```python
 # backend/enterprise/auth_mfa.py
@@ -86,9 +86,9 @@ class MFAManager:
         return False
 ```
 
-### 2. Multi-Tenant Architecture
+## 2. Multi-Tenant Architecture
 
-#### Tenant Isolation Strategy
+### Tenant Isolation Strategy
 
 ```python
 # backend/enterprise/tenancy.py
@@ -180,8 +180,9 @@ class TenantManager:
     created_at TIMESTAMP DEFAULT NOW()
 ```
 
-# backend/enterprise/rbac.py
+## backend/enterprise/rbac.py
 
+```python
 from typing import Set, Dict, List
 from dataclasses import dataclass # Admin permissions
 USER_MANAGE = "user:manage"
@@ -275,10 +276,10 @@ class RBACManager:
         )
 
         return True
-
 ````
 
-#### Data Encryption & Privacy
+### Data Encryption & Privacy
+
 ```python
 # backend/enterprise/encryption.py
 from cryptography.fernet import Fernet

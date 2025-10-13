@@ -9,7 +9,29 @@ import time
 from contextlib import asynccontextmanager
 from typing import List, Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, status
+# --- Authentication & RBAC dependencies ---
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+
+security = HTTPBearer()
+
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    # Example: decode JWT and extract user info
+    # In production, validate token, check expiry, etc.
+    token = credentials.credentials
+    # For demo, accept any non-empty token and assign 'user' role
+    if not token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+    # TODO: Replace with real JWT decoding and role extraction
+    user = {"username": "demo", "roles": ["user"]}
+    return user
+
+def require_role(role: str):
+    def role_checker(user=Depends(get_current_user)):
+        if role not in user["roles"]:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Requires role: {role}")
+        return user
+    return role_checker
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -27,6 +49,15 @@ from .performance import (
 )
 from .settings import get_settings, reload_settings, update_settings
 from .utils import redact_data
+from .file_validation import FileValidator, validate_base64_audio, validate_pdf_path, FileValidationError
+
+# Rate limiting middleware
+try:
+    from .rate_limiting import create_rate_limit_middleware
+    RATE_LIMITING_AVAILABLE = True
+except ImportError as e:
+    print(f"Rate limiting not available: {e}")
+    RATE_LIMITING_AVAILABLE = False
 
 
 # --- External env loader (no secrets committed) ---
@@ -151,14 +182,24 @@ try:
 except Exception:
     print("[deps] " + optional_ml_hint())
 
+# Add rate limiting middleware
+if RATE_LIMITING_AVAILABLE:
+    try:
+        rate_limit_middleware = create_rate_limit_middleware()
+        app.middleware("http")(rate_limit_middleware)
+        print("[RateLimit] Rate limiting middleware enabled")
+    except Exception as e:
+        print(f"[RateLimit] Failed to enable rate limiting: {e}")
+
 # Add basic CORS middleware (enterprise middleware will override if available)
+settings = get_settings()
 if not ENTERPRISE_AVAILABLE:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=settings.cors_allowed_origins,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["GET", "POST", "PUT", "DELETE"],
+        allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],
     )
 
 # Include voice transcription router
@@ -226,9 +267,11 @@ def init_services():
         if hasattr(EmbeddingsManager, "from_settings"):
             emb_manager = safe_init(EmbeddingsManager.from_settings)
         else:
-            emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
+            db_path = os.getenv("EMBEDDINGS_DB_PATH", "./vector_db")
+            emb_manager = safe_init(EmbeddingsManager, db_path=db_path)
     except Exception:
-        emb_manager = safe_init(EmbeddingsManager, db_path="./vector_db")
+        db_path = os.getenv("EMBEDDINGS_DB_PATH", "./vector_db")
+        emb_manager = safe_init(EmbeddingsManager, db_path=db_path)
 
     # Use IndexingService.from_settings if available, otherwise use VaultIndexer with settings-based cache
     try:
@@ -240,7 +283,8 @@ def init_services():
     except Exception:
         vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
 
-    cache_manager = safe_init(CacheManager, "./backend/cache")
+    cache_dir = os.getenv("CACHE_DIR", "./backend/cache")
+    cache_manager = safe_init(CacheManager, cache_dir)
 
 
 # --- Utilities ---
@@ -367,7 +411,7 @@ class AskRequest(BaseModel):
 
 
 class ReindexRequest(BaseModel):
-    vault_path: str = "./vault"
+    vault_path: str = os.getenv("VAULT_PATH", "./vault")
 
 
 class WebRequest(BaseModel):
@@ -464,10 +508,11 @@ async def post_reload_config():
         s = reload_settings()
         settings_data = _settings_to_dict(s)
         return {"ok": True, "settings": settings_data}
-    except Exception as e:
+    except Exception:
+        # Generic error message, do not leak details
         raise HTTPException(
-            status_code=500, detail=f"Failed to reload settings: {str(e)}"
-        ) from e
+            status_code=500, detail="Failed to reload settings due to an internal error."
+        )
 
 
 @app.post("/api/config")
@@ -480,7 +525,7 @@ async def post_update_config(partial: dict):
         unknown = [k for k in incoming.keys() if k not in _ALLOWED_UPDATE_KEYS]
         if unknown:
             raise HTTPException(
-                status_code=400, detail=f"Unknown config keys: {unknown}"
+                status_code=400, detail="Unknown config keys provided."
             )
 
         s = update_settings(incoming)
@@ -489,10 +534,10 @@ async def post_update_config(partial: dict):
         if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
             settings_data = redact_data(settings_data)
         return {"ok": True, "settings": settings_data}
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail=f"Failed to update settings: {str(e)}"
-        ) from e
+            status_code=500, detail="Failed to update settings due to an internal error."
+        )
 
 
 def _ask_impl(request: AskRequest):
@@ -553,9 +598,10 @@ def _ask_impl(request: AskRequest):
 
         if not answer or (isinstance(answer, str) and "No model available" in answer):
             raise RuntimeError("Model unavailable or failed to generate an answer.")
-    except Exception as e:
-        print(f"[_ask_impl] Error generating answer: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception:
+        # Do not leak internal error details
+        print("[_ask_impl] Error generating answer: internal error occurred.")
+        raise HTTPException(status_code=500, detail="Failed to generate answer due to an internal error.")
 
     performance_cache.set(cache_key, answer)
 
@@ -567,12 +613,14 @@ def _ask_impl(request: AskRequest):
     }
 
 
-@app.post("/api/ask")
+
+@app.post("/api/ask", dependencies=[Depends(require_role("user"))])
 async def api_ask(request: AskRequest):
     return _ask_impl(request)
 
 
-@app.post("/ask")  # type: ignore
+
+@app.post("/ask", dependencies=[Depends(require_role("user"))])  # type: ignore
 async def ask(request: AskRequest):
     return _ask_impl(request)
 
@@ -580,23 +628,27 @@ async def ask(request: AskRequest):
 # Note editing endpoints removed for test alignment
 
 
-@app.post("/api/scan_vault")
-async def scan_vault(vault_path: str = "vault"):
+
+class ScanVaultRequest(BaseModel):
+    vault_path: str = os.getenv("VAULT_PATH", "vault")
+
+@app.post("/api/scan_vault", dependencies=[Depends(require_role("admin"))])
+async def scan_vault(request: ScanVaultRequest):
     if vault_indexer is None:
         init_services()
     try:
         # Let the indexer decide how to handle path issues; wrap and surface as 500 on failure
-        indexed = vault_indexer.index_vault(vault_path)
+        indexed = vault_indexer.index_vault(request.vault_path)
         return {"indexed_files": indexed}
     except HTTPException:
         # Bubble up explicit HTTP errors unchanged
         raise
-    except Exception as e:
-        # Map unexpected errors (including invalid path) to 500 to satisfy integration tests
-        raise HTTPException(status_code=500, detail=f"Scan failed: {e}") from e
+    except Exception:
+        # Generic error message
+        raise HTTPException(status_code=500, detail="Vault scan failed due to an internal error.")
 
 
-@app.post("/api/web")
+@app.post("/api/web", dependencies=[Depends(require_role("user"))])
 async def api_web(request: WebRequest):
     """Process web content and answer a question about it."""
     if model_manager is None or vault_indexer is None:
@@ -611,23 +663,23 @@ async def api_web(request: WebRequest):
     if not content:
         raise HTTPException(
             status_code=400,
-            detail=f"Failed to fetch or process content from URL: {request.url}",
+            detail="Failed to fetch or process content from the provided URL."
         )
 
     question = (
-        request.question or f"Summarize the following content:\n\n{content[:2000]}"
+        request.question or f"Summarize the following content."
     )
     answer = model_manager.generate(question, context=content)
     return {"answer": answer, "url": request.url}
 
 
-@app.post("/web")
+@app.post("/web", dependencies=[Depends(require_role("user"))])
 async def web(request: WebRequest):
     """Alias for /api/web for backward compatibility."""
     return await api_web(request)
 
 
-@app.post("/api/reindex")
+@app.post("/api/reindex", dependencies=[Depends(require_role("admin"))])
 async def api_reindex(request: ReindexRequest):
     # Return what the indexer reports; tests stub this
     if vault_indexer is None:
@@ -635,23 +687,34 @@ async def api_reindex(request: ReindexRequest):
     return vault_indexer.reindex(request.vault_path)
 
 
-@app.post("/reindex")
+@app.post("/reindex", dependencies=[Depends(require_role("admin"))])
 async def reindex(request: ReindexRequest):
     if vault_indexer is None:
         init_services()
     return vault_indexer.reindex(request.vault_path)
 
 
-@app.post("/transcribe")
+@app.post("/transcribe", dependencies=[Depends(require_role("user"))])
 async def transcribe_audio(request: TranscribeRequest):
     """
     Transcribe audio to text using a speech-to-text service.
     This is a fallback when browser-based speech recognition is not available.
     """
     try:
-        import base64
+        # Validate audio data before processing
+        validation_result = validate_base64_audio(request.audio_data)
+        if not validation_result['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid audio data: {validation_result.get('error', 'Validation failed')}"
+            )
 
-        # Decode base64 audio data
+        # Log validation warnings if any
+        if validation_result.get('warnings'):
+            print(f"Audio validation warnings: {validation_result['warnings']}")
+
+        import base64
+        # Decode base64 audio data (already validated)
         audio_bytes = base64.b64decode(request.audio_data)
         # TODO: Implement actual transcription logic
         _ = audio_bytes  # Acknowledge variable to avoid unused warning
@@ -670,49 +733,74 @@ async def transcribe_audio(request: TranscribeRequest):
             "transcription": transcription,
             "confidence": 0.0,
             "status": "placeholder",
+            "audio_info": {
+                "size_mb": round(validation_result['size_mb'], 2),
+                "type": validation_result['file_type'],
+                "hash": validation_result['hash_sha256'][:16] + "...",
+                "warnings": validation_result.get('warnings', [])
+            }
         }
 
-    except Exception as e:
+    except FileValidationError as e:
+        raise HTTPException(status_code=400, detail=f"Audio validation failed: {str(e)}")
+    except Exception:
         raise HTTPException(
-            status_code=500, detail=f"Transcription failed: {str(e)}"
-        ) from e
+            status_code=500, detail="Transcription failed due to an internal error."
+        )
 
 
-@app.post("/api/search")
+@app.post("/api/search", dependencies=[Depends(require_role("user"))])
 async def search(query: str, top_k: int = 5):
     if emb_manager is None:
         init_services()
     try:
         hits = emb_manager.search(query, top_k=top_k)
         return {"results": hits}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e)) from e
+    except Exception:
+        raise HTTPException(status_code=500, detail="Search failed due to an internal error.")
 
 
-@app.post("/api/index_pdf")
+@app.post("/api/index_pdf", dependencies=[Depends(require_role("admin"))])
 async def index_pdf(pdf_path: str):
     if vault_indexer is None:
         init_services()
-    count = vault_indexer.index_pdf(pdf_path)
-    return {"chunks_indexed": count}
+    try:
+        # Validate PDF file before indexing
+        validation_result = validate_pdf_path(pdf_path)
+        if not validation_result['valid']:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid PDF file: {validation_result.get('error', 'Validation failed')}"
+            )
 
+        # Log validation warnings if any
+        if validation_result.get('warnings'):
+            print(f"PDF validation warnings for {pdf_path}: {validation_result['warnings']}")
+        count = vault_indexer.index_pdf(pdf_path)
+        return {
+            "chunks_indexed": count,
+            "file_info": {
+                "size_mb": round(validation_result['size_mb'], 2),
+                "hash": validation_result['hash_sha256'][:16] + "...",
+                "warnings": validation_result.get('warnings', [])
+            }
+        }
+    except FileValidationError as e:
+        raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}")
+    except Exception:
+        raise HTTPException(status_code=500, detail="PDF indexing failed due to an internal error.")
 
 # ----------------------
 # Performance & Monitoring Endpoints
 # ----------------------
-
-
 @app.get("/api/performance/metrics")
 async def get_performance_metrics():
     """Get comprehensive performance metrics"""
     try:
         metrics = PerformanceMonitor.get_system_metrics()
         return {"status": "success", "metrics": metrics, "timestamp": time.time()}
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get metrics: {str(e)}"
-        ) from e
-
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to get metrics due to an internal error.")
 
 @app.get("/api/performance/cache/stats")
 async def get_cache_stats():
@@ -721,11 +809,8 @@ async def get_cache_stats():
         cache_manager = get_cache_manager()
         stats = cache_manager.get_stats()
         return {"status": "success", "cache_stats": stats}
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to get cache stats: {str(e)}"
-        ) from e
-
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to get cache stats due to an internal error.")
 
 @app.post("/api/performance/cache/clear")
 async def clear_performance_cache():
@@ -739,11 +824,8 @@ async def clear_performance_cache():
         cache_manager._persist_l2_cache()
 
         return {"status": "success", "message": "Performance cache cleared"}
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Failed to clear cache: {str(e)}"
-        ) from e
-
+    except Exception:
+        raise HTTPException(status_code=500, detail="Failed to clear cache due to an internal error.")
 
 @app.post("/api/performance/optimize")
 async def trigger_optimization(background_tasks: BackgroundTasks):
@@ -769,10 +851,9 @@ async def trigger_optimization(background_tasks: BackgroundTasks):
             "message": f"Scheduled {scheduled_count} optimization tasks",
             "queue_stats": task_queue.get_stats(),
         }
-    except Exception as e:
+    except Exception:
         raise HTTPException(
-            status_code=500, detail=f"Failed to trigger optimization: {str(e)}"
-        ) from e
+            status_code=500, detail="Failed to trigger optimization due to an internal error.")
 
 
 # Background optimization tasks
@@ -780,7 +861,6 @@ async def _cleanup_expired_cache():
     """Clean up expired cache entries"""
     try:
         cache_manager = get_cache_manager()
-
         # Clean L1 cache
         expired_keys = [
             key for key, entry in cache_manager.l1_cache.items() if entry.is_expired()
@@ -832,14 +912,13 @@ def _cached_ask_processing(question: str, model_name: str, max_tokens: int) -> s
     # This would be called by the main ask endpoint for cacheable requests
     return f"Cached response for: {question[:50]}..."
 
-
 # ----------------------
 # Enterprise Feature Endpoints (if available)
 # ----------------------
 
 if ENTERPRISE_AVAILABLE:
 
-    @app.get("/api/enterprise/status")
+    @app.get("/api/enterprise/status", dependencies=[Depends(require_role("admin"))])
     async def enterprise_status():
         """Get enterprise features status"""
         return {
@@ -855,7 +934,7 @@ if ENTERPRISE_AVAILABLE:
             "version": "1.0.0",
         }
 
-    @app.get("/api/enterprise/demo")
+    @app.get("/api/enterprise/demo", dependencies=[Depends(require_role("admin"))])
     async def enterprise_demo():
         """Demo endpoint showing enterprise capabilities"""
         return {

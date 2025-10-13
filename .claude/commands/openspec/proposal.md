@@ -4,7 +4,10 @@ description: Scaffold a new OpenSpec change and validate strictly.
 category: OpenSpec
 tags: [openspec, change]
 ---
+
+# OPENSPEC
 <!-- OPENSPEC:START -->
+
 ## **Guardrails**
 
 - Favor straightforward, minimal implementations first and add complexity only when it is requested or clearly required.
