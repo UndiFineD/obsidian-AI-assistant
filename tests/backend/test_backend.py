@@ -16,10 +16,25 @@ class TestBackendAPI:
 
     @pytest.fixture
     def client(self):
-        """Create a test client for the FastAPI app."""
+        """Create a CSRF-enabled test client for the FastAPI app."""
         from backend.backend import app
+        from backend.settings import get_settings
+        import hmac
+        from hashlib import sha256
+        secret = get_settings().csrf_secret.encode()
+        csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
 
-        return TestClient(app)
+        class CSRFTestClient(TestClient):
+                def request(self, method, url, **kwargs):
+                    headers = kwargs.pop("headers", None)
+                    if headers is None:
+                        headers = {}
+                    if method.upper() in ("POST", "PUT", "DELETE"):
+                        headers["X-CSRF-Token"] = csrf_token
+                    kwargs["headers"] = headers
+                    return super().request(method, url, **kwargs)
+
+        return CSRFTestClient(app)
 
     # @pytest.fixture
     # def mock_services(self):

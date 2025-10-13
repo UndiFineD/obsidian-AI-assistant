@@ -1,11 +1,16 @@
----
-name: Security Hardening Proposal
-description: Comprehensive security and robustness improvements for Obsidian AI Assistant backend and plugin.
-category: Security
-status: draft
+# Change Proposal: update-doc-security-hardening
+
 ---
 
-# Security Hardening Proposal
+## Metadata
+
+- **name**: Security Hardening Proposal
+- **change_id**: update-doc-security-hardening
+- **description**: Comprehensive security and robustness improvements for Obsidian AI Assistant backend and plugin.
+- **category**: Security
+- **status**: draft
+
+---
 
 ## Guardrails
 
@@ -25,4 +30,4 @@ Recent review identified areas for improvement in input validation, authenticati
 
 ## Reference
 
-See AGENTS.md and project.md for OpenSpec conventions and integration points.
+This change affects the **project-documentation** capability described in `AGENTS.md`, `project.md`, and `backend/settings.py` for OpenSpec conventions and integration points.

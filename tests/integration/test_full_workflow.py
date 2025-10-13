@@ -144,7 +144,7 @@ class TestFullWorkflowIntegration:
         vault_path = str(temp_workspace["vault_dir"])
         # Execute vault scanning/indexing
         response = await client.post(
-            "/api/scan_vault", params={"vault_path": vault_path}
+            "/api/scan_vault", json={"vault_path": vault_path}
         )
         result = response.json()
         # Verify indexing workflow
@@ -241,7 +241,7 @@ class TestErrorScenarios:
     async def test_indexing_failure_handling(self, client, failing_services):
         """Test handling when indexing fails."""
         # Should handle indexing failure gracefully
-        response = await client.post("/api/scan_vault", params={"vault_path": "vault"})
+        response = await client.post("/api/scan_vault", json={"vault_path": "vault"})
         # Accept either graceful 200 or a 5xx error
         assert response.status_code in [200, 500]
 

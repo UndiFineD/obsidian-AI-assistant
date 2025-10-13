@@ -25,11 +25,12 @@ class TestStatusEndpoint:
         """Test that /status handles OPTIONS (CORS support may not be required)."""
         response = self.client.options("/status")
 
-        # OPTIONS may return 405 if not explicitly supported, which is acceptable
+        # With our generic OPTIONS handler, should return 204
         assert response.status_code in [
             200,
+            204,
             405,
-        ]  # Either supported or method not allowed
+        ]  # Either supported, no content, or method not allowed
 
     def test_status_vs_health_endpoints(self):
         """Test that /status and /health have different response formats."""

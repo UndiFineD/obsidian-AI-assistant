@@ -4,6 +4,7 @@
 # FastAPI and server
 fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
+starlette>=0.27.0
 
 # Machine Learning and AI
 torch>=2.0.0
@@ -36,8 +37,24 @@ pandas>=2.0.0
 # Cryptography for security
 cryptography>=41.0.0
 
+# JWT handling
+PyJWT>=2.8.0
+
 # System monitoring and performance
 psutil>=5.9.0
+
+# Async HTTP client
+aiohttp>=3.8.0
+httpx>=0.25.0
+
+# Async file operations
+aiofiles>=23.2.0
+
+# File type detection
+python-magic>=0.4.27
+
+# Configuration and data formats
+PyYAML>=6.0.1
 
 # Environment and configuration
 python-multipart>=0.0.6  # For file uploads in FastAPI

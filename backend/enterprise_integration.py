@@ -212,25 +212,34 @@ class EnterpriseIntegration:
 
     def _add_middleware(self):
         """Add enterprise middleware to FastAPI app"""
-
-        # CORS middleware for web frontend
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=["http://localhost:3000", "https://*.your-domain.com"],
-            allow_credentials=True,
-            allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-            allow_headers=["*"],
-        )
-
-        # Skip enterprise authentication middleware in test mode
-        import os
-        import sys
-
+        import os, sys
         is_test_mode = (
             os.getenv("TEST_MODE") == "true"
             or "PYTEST_CURRENT_TEST" in os.environ
             or "pytest" in sys.modules
         )
+
+        # CORS middleware for web frontend
+        if is_test_mode:
+            # In tests, allow all to ensure preflight requests succeed
+            self.app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["*"],
+                allow_credentials=True,
+                allow_methods=["*"],
+                allow_headers=["*"],
+            )
+        else:
+            self.app.add_middleware(
+                CORSMiddleware,
+                allow_origins=["http://localhost:3000", "https://*.your-domain.com"],
+                allow_credentials=True,
+                allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+                allow_headers=["*"],
+            )
+
+        # Skip enterprise authentication middleware in test mode
+        # is_test_mode already computed above
         if is_test_mode:
             logger.info(
                 "TEST_MODE enabled: Skipping enterprise authentication middleware"

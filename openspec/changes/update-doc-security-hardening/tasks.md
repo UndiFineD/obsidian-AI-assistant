@@ -1,4 +1,4 @@
-# Security Hardening Tasks
+# Tasks: update-doc-security-hardening
 
 1. Add Pydantic models and input validation to all backend endpoints
 2. Require authentication and RBAC for sensitive/enterprise endpoints
@@ -14,3 +14,6 @@
 12. Audit and update third-party dependencies
 13. Add automated security tests to CI/CD
 14. Document all new security controls and configuration
+
+Validation:
+openspec validate update-doc-security-hardening --strict

@@ -21,7 +21,7 @@ try:
 except ImportError:
     magic = None
     MAGIC_AVAILABLE = False
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple
 import base64
 import hashlib
 import re
@@ -182,7 +182,7 @@ class FileValidator:
         try:
             path = Path(file_path).resolve()
         except Exception as e:
-            raise FileValidationError(f"Invalid file path: {e}")
+            raise FileValidationError(f"Invalid file path: {e}") from e
         
         # Check for path traversal attempts
         import urllib.parse
@@ -408,7 +408,7 @@ def validate_base64_audio(audio_data: str, max_size_mb: float = 25) -> Dict[str,
         # Decode base64
         audio_bytes = base64.b64decode(audio_data)
     except Exception as e:
-        raise FileValidationError(f"Invalid base64 audio data: {e}")
+        raise FileValidationError(f"Invalid base64 audio data: {e}") from e
     
     # Create validator for audio only
     validator = FileValidator(allowed_types=['audio'])
@@ -437,7 +437,7 @@ def validate_pdf_path(pdf_path: str) -> Dict[str, any]:
         with open(pdf_path, 'rb') as f:
             content = f.read()
     except Exception as e:
-        raise FileValidationError(f"Cannot read file {pdf_path}: {e}")
+        raise FileValidationError(f"Cannot read file {pdf_path}: {e}") from e
     
     filename = os.path.basename(pdf_path)
     return validator.validate_file(content, filename, pdf_path)

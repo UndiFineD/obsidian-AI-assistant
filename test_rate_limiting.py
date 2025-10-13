@@ -161,9 +161,9 @@ class RateLimitTester:
             print(f"  Rate limited responses: {result['rate_limited_requests']}")
             
             if result["rate_limited_requests"] > 0:
-                print(f"  ✓ Rate limiting is working")
+                print("  ✓ Rate limiting is working")
             else:
-                print(f"  ? Rate limiting may not be active or limit not reached")
+                print("  ? Rate limiting may not be active or limit not reached")
 
 
 async def main():

@@ -2,7 +2,7 @@
 HTTPS/SSL utilities for FastAPI backend
 """
 import os
-from fastapi import Request, Response
+from fastapi import Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
