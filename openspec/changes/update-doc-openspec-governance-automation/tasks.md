@@ -40,3 +40,9 @@
   - [ ] 1.6.2 Audit logging for all governance actions
   - [ ] 1.6.3 Backup system for critical changes
   - [ ] 1.6.4 Rollback capability for failed applications
+
+## 2. Validation
+
+- [ ] 2.1 Run validation: `openspec validate update-doc-openspec-governance-automation --strict`
+- [ ] 2.2 Ensure all requirements are testable and measurable
+- [ ] 2.3 Verify no conflicts with existing specifications

@@ -1,9 +1,20 @@
 # Spec Delta: project-documentation / update-doc-openspec-governance-automation
 
-This spec delta introduces the capability: project-documentation / update-doc-openspec-governance-automation
+## ADDED Requirements
 
-- Change tracking and validation
-- Automated application and archiving of approved changes
-- Governance dashboard for oversight
+### Requirement: OpenSpec Governance Automation
 
-No breaking changes are introduced. This capability adds documentation processes only.
+#### Scenario: Automated change management and validation
+
+- **WHEN** a user needs to manage multiple OpenSpec changes efficiently
+- **THEN** the system provides automated tools for tracking, validating, applying, and archiving changes
+
+#### Scenario: Governance oversight and audit trails
+
+- **WHEN** administrators need visibility into specification change processes
+- **THEN** the system provides dashboards, metrics, and audit logging for all governance operations
+
+#### Scenario: Bulk operations for change management
+
+- **WHEN** there are many pending changes to process
+- **THEN** the system supports bulk validation, application, and archiving operations
