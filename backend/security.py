@@ -14,7 +14,8 @@ ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", "").encode()
 
 if not ENCRYPTION_KEY:
     logger.warning(
-        "ENCRYPTION_KEY environment variable not set. Using default key for development."
+        "ENCRYPTION_KEY environment variable not set. "
+        "Using default key for development."
     )
     ENCRYPTION_KEY = _DEFAULT_KEY
 
@@ -25,7 +26,9 @@ try:
     fernet: Optional[Fernet] = Fernet(ENCRYPTION_KEY)
 except (ValueError, TypeError) as e:
     logger.critical(
-        f"Invalid ENCRYPTION_KEY. It must be a 32-byte URL-safe base64-encoded string. Error: {e}"
+        "Invalid ENCRYPTION_KEY. It must be a 32-byte URL-safe "
+        "base64-encoded string. Error: %s",
+        e,
     )
     # Fallback to a default, non-functional fernet instance to avoid crashing on import.
     fernet = None
@@ -57,5 +60,7 @@ def decrypt_data(data: bytes) -> Optional[str]:
     try:
         return fernet.decrypt(data).decode()
     except (InvalidToken, TypeError, AttributeError):
-        logger.warning("Decryption failed: Invalid or tampered token provided.")
+        logger.warning(
+            "Decryption failed: Invalid or tampered token provided."
+        )
         return None

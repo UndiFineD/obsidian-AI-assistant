@@ -52,25 +52,69 @@ class UserInfo:
             self.roles = ["user"]
 
 
+class _HandlerRegistry:
+    """Patch-friendly registry that resolves handlers at call time.
+
+    This allows tests to patch instance methods like ``_handle_azure_ad`` and have
+    those patches honored, since resolution happens via ``getattr`` at call time
+    rather than storing bound method references at init.
+    """
+
+    def __init__(self, manager: "SSOManager"):
+        self._manager = manager
+        # Map of provider to handler method name
+        self._map = {
+            SSOProvider.AZURE_AD: "_handle_azure_ad",
+            SSOProvider.GOOGLE_WORKSPACE: "_handle_google_workspace",
+            SSOProvider.OKTA: "_handle_okta",
+            SSOProvider.SAML: "_handle_saml",
+            SSOProvider.LDAP: "_handle_ldap",
+        }
+
+    def get(self, provider):  # type: ignore[override]
+        """Return the current handler callable for the given provider or None."""
+        method_name = self._map.get(provider)
+        if not method_name:
+            return None
+        return getattr(self._manager, method_name, None)
+
+    # Mapping-like helpers for tests/compatibility
+    def __len__(self) -> int:
+        return len(self._map)
+
+    def __contains__(self, key) -> bool:  # pragma: no cover - trivial
+        return key in self._map
+
+    def keys(self):  # pragma: no cover - convenience
+        return self._map.keys()
+
+    def __iter__(self):  # pragma: no cover - convenience
+        return iter(self._map)
+
+
 class SSOManager:
     """Enterprise SSO authentication manager"""
 
     def __init__(self, config: SSOConfig):
         self.config = config
-        self.provider_handlers = {
-            SSOProvider.AZURE_AD: self._handle_azure_ad,
-            SSOProvider.GOOGLE_WORKSPACE: self._handle_google_workspace,
-            SSOProvider.OKTA: self._handle_okta,
-            SSOProvider.SAML: self._handle_saml,
-            SSOProvider.LDAP: self._handle_ldap,
-        }
+        # Use a registry to allow patching both the registry.get and the handler methods
+        self.provider_handlers = _HandlerRegistry(self)
+
+    @property
+    def providers(self):
+        """List of supported providers (for health/diagnostics)."""
+        # Expose keys to maintain compatibility with integrations that expect this
+        return list(self.provider_handlers._map.keys())
 
     async def authenticate(self, auth_code: str) -> Optional[UserInfo]:
         """Authenticate user via SSO provider"""
         try:
             handler = self.provider_handlers.get(self.config.provider)
             if not handler:
-                raise ValueError(f"Unsupported SSO provider: {self.config.provider}")
+                # Maintain previous behavior (log via exception path -> None)
+                raise ValueError(
+                    f"Unsupported SSO provider: {self.config.provider}"
+                )
 
             user_info = await handler(auth_code)
             logger.info(f"SSO authentication successful for user: {user_info.email}")

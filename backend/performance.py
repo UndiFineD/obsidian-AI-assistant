@@ -42,39 +42,71 @@ class CacheEntry:
 
 class MultiLevelCache:
     """
-    High-performance multi-level cache implementation
+    Advanced multi-level cache implementation with intelligent cache warming
 
     Features:
-    - L1: In-memory LRU cache (fastest)
-    - L2: Persistent disk cache (medium)
-    - L3: Compressed archive cache (slowest, highest capacity)
+    - L1: In-memory LRU cache (fastest, ~1ms access)
+    - L2: Persistent disk cache (medium, ~10ms access)
+    - L3: Compressed archive cache (slower, ~100ms access, highest capacity)
+    - L4: Predictive cache warming (background preloading)
     """
 
     def __init__(
         self,
         l1_size: int = 1000,
         l2_size: int = 10000,
+        l3_size: int = 100000,
         cache_dir: str = "./backend/cache/performance",
+        enable_compression: bool = True,
+        enable_prediction: bool = True,
     ):
-        self.l1_cache: Dict[str, CacheEntry] = {}  # In-memory
+        # L1: In-memory cache
+        self.l1_cache: Dict[str, CacheEntry] = {}
         self.l1_max_size = l1_size
+        # L2: Persistent disk cache
         self.cache_dir = Path(cache_dir)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.l2_file = self.cache_dir / "l2_cache.json"
         self.l2_cache: Dict[str, CacheEntry] = {}
         self.l2_max_size = l2_size
-        self._l2_lock = threading.Lock()  # Lock for thread-safe L2 cache operations
+        self._l2_lock = threading.Lock()
+        # L3: Compressed archive cache
+        self.l3_max_size = l3_size
+        self.l3_archive_dir = self.cache_dir / "l3_archive"
+        self.l3_archive_dir.mkdir(exist_ok=True)
+        self.l3_cache: Dict[str, str] = {}  # Maps keys to archive file paths
+        self.enable_compression = enable_compression
+        self._l3_lock = threading.Lock()
+        # L4: Predictive cache warming
+        self.enable_prediction = enable_prediction
+        self.access_patterns: Dict[str, list] = {}  # Track access patterns for prediction
+        self.prediction_queue = []  # Keys predicted to be accessed soon
+        self._prediction_lock = threading.Lock()
+        self._warming_active = False
+        # Initialize caches
         self._load_l2_cache()
+        self._load_l3_cache()
+        # Enhanced statistics
         self._stats = {
             "l1_hits": 0,
             "l2_hits": 0,
+            "l3_hits": 0,
+            "l4_predictions": 0,
             "misses": 0,
             "evictions": 0,
             "writes": 0,
+            "compressions": 0,
+            "decompressions": 0,
         }
+        # Start background cache warming if enabled
+        if self.enable_prediction:
+            self._start_cache_warming()
 
     def get(self, key: str, default: Any = None) -> Any:
         """Get value from multi-level cache with promotion"""
+
+        # Record access for predictive caching
+        self._record_access(key)
 
         # Check L1 first (fastest)
         if key in self.l1_cache:
@@ -85,6 +117,7 @@ class MultiLevelCache:
                 return entry.value
             else:
                 del self.l1_cache[key]
+
         # Check L2 (medium speed)
         with self._l2_lock:
             if key in self.l2_cache:
@@ -97,6 +130,15 @@ class MultiLevelCache:
                     return entry.value
                 else:
                     del self.l2_cache[key]
+        # Check L3 (slower, compressed)
+        if hasattr(self, "l3_cache"):
+            l3_entry = self._decompress_from_l3(key)
+            if l3_entry:
+                # Promote to L2/L1
+                self._promote_to_l2(key, l3_entry)
+                self._promote_to_l1(key, l3_entry)
+                self._stats["l3_hits"] += 1
+                return l3_entry.value
         self._stats["misses"] += 1
         return default
 
@@ -106,6 +148,8 @@ class MultiLevelCache:
         entry = CacheEntry(
             value=value, timestamp=now, ttl=ttl, access_count=0, last_access=now
         )
+        # Record access for predictive caching
+        self._record_access(key)
         # Always start in L1 for hot data
         self._set_l1(key, entry)
         self._stats["writes"] += 1
@@ -164,7 +208,55 @@ class MultiLevelCache:
                 self._persist_l2_cache()
         self._stats["evictions"] += 1
 
-    pass  # placeholder to ensure valid block after eviction logic
+    def _evict_l2_lru(self):
+        """Evict least recently used item from L2 to L3"""
+        if not self.l2_cache:
+            return
+        # Find LRU item
+        lru_key = min(self.l2_cache.keys(), key=lambda k: self.l2_cache[k].last_access)
+        lru_entry = self.l2_cache.pop(lru_key)
+        # Move to L3 if compression enabled and not expired
+        if not lru_entry.is_expired() and hasattr(self, 'enable_compression') and self.enable_compression:
+            if len(self.l3_cache) >= self.l3_max_size:
+                self._evict_l3_lru()
+            self._compress_to_l3(lru_key, lru_entry)
+        self._stats["evictions"] += 1
+
+    def _evict_l3_lru(self):
+        """Evict least recently used item from L3 (permanent deletion)"""
+        if not self.l3_cache:
+            return
+        # Find oldest archive file
+        oldest_key = None
+        oldest_time = float("inf")
+        for key, archive_path in self.l3_cache.items():
+            try:
+                path_obj = Path(archive_path)
+                if path_obj.exists():
+                    mtime = path_obj.stat().st_mtime
+                    if mtime < oldest_time:
+                        oldest_time = mtime
+                        oldest_key = key
+            except (OSError, ValueError):
+                continue
+        if oldest_key:
+            # Remove archive file and index entry
+            try:
+                archive_path = Path(self.l3_cache[oldest_key])
+                archive_path.unlink(missing_ok=True)
+                with self._l3_lock:
+                    del self.l3_cache[oldest_key]
+                    self._save_l3_index()
+            except Exception as e:
+                logger.warning(f"Failed to evict L3 entry: {e}")
+
+    def _promote_to_l1(self, key: str, entry: CacheEntry):
+        """Promote entry to L1 cache"""
+        if len(self.l1_cache) >= self.l1_max_size:
+            self._evict_l1_lru()
+        self.l1_cache[key] = entry
+
+    # no-op placeholder removed; method above now concludes the block correctly
 
     def _persist_l2_cache(self):
         """Persist L2 cache to disk (async in background)"""
@@ -192,21 +284,214 @@ class MultiLevelCache:
         # Run in background thread
         threading.Thread(target=save_cache, daemon=True).start()
 
+    def _load_l3_cache(self):
+        """Load L3 archive cache index."""
+        l3_index_file = self.l3_archive_dir / "index.json"
+        if l3_index_file.exists():
+            try:
+                with open(l3_index_file, "r") as f:
+                    self.l3_cache = json.load(f)
+                # Verify archive files exist
+                valid_entries = {}
+                for key, archive_path in self.l3_cache.items():
+                    if Path(archive_path).exists():
+                        valid_entries[key] = archive_path
+                self.l3_cache = valid_entries
+            except Exception as e:
+                logger.warning(f"Failed to load L3 cache index: {e}")
+                self.l3_cache = {}
+
+    def _save_l3_index(self):
+        """Save L3 cache index."""
+        try:
+            l3_index_file = self.l3_archive_dir / "index.json"
+            with open(l3_index_file, "w") as f:
+                json.dump(self.l3_cache, f)
+        except Exception as e:
+            logger.warning(f"Failed to save L3 cache index: {e}")
+
+    def _compress_to_l3(self, key: str, entry: CacheEntry) -> bool:
+        """Compress and store entry in L3 archive."""
+        if not self.enable_compression:
+            return False
+
+        try:
+            import gzip
+            import pickle
+
+            # Create unique archive file
+            archive_filename = f"{hash(key) % 10000:04d}_{int(time.time())}.gz"
+            archive_path = self.l3_archive_dir / archive_filename
+            # Compress and store entry
+            with gzip.open(archive_path, "wb") as f:
+                payload = {
+                    "value": entry.value,
+                    "timestamp": entry.timestamp,
+                    "ttl": entry.ttl,
+                    "access_count": entry.access_count,
+                    "last_access": entry.last_access,
+                }
+                pickle.dump(payload, f)
+            # Update L3 index
+            with self._l3_lock:
+                self.l3_cache[key] = str(archive_path)
+                self._save_l3_index()
+            self._stats["compressions"] += 1
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to compress entry to L3: {e}")
+            return False
+
+    def _decompress_from_l3(self, key: str) -> Optional[CacheEntry]:
+        """Decompress and retrieve entry from L3 archive."""
+        if key not in self.l3_cache:
+            return None
+        try:
+            import gzip
+            import pickle
+            archive_path = Path(self.l3_cache[key])
+            if not archive_path.exists():
+                # Remove stale entry
+                with self._l3_lock:
+                    del self.l3_cache[key]
+                    self._save_l3_index()
+                return None
+            # Decompress entry
+            with gzip.open(archive_path, "rb") as f:
+                data = pickle.load(f)
+            entry = CacheEntry(
+                value=data["value"],
+                timestamp=data['timestamp'],
+                ttl=data.get('ttl'),
+                access_count=data.get('access_count', 0),
+                last_access=data.get('last_access', data['timestamp'])
+            )
+            if entry.is_expired():
+                # Clean up expired entry
+                archive_path.unlink(missing_ok=True)
+                with self._l3_lock:
+                    del self.l3_cache[key]
+                    self._save_l3_index()
+                return None
+            self._stats["decompressions"] += 1
+            return entry
+        except Exception as e:
+            logger.warning(f"Failed to decompress entry from L3: {e}")
+            return None
+
+    def _start_cache_warming(self):
+        """Start background cache warming thread."""
+        def warming_worker():
+            while self.enable_prediction:
+                try:
+                    self._perform_cache_warming()
+                    time.sleep(60)  # Check for warming opportunities every minute
+                except Exception as e:
+                    logger.warning(f"Cache warming error: {e}")
+                    time.sleep(60)
+        warming_thread = threading.Thread(target=warming_worker, daemon=True)
+        warming_thread.start()
+
+    def _perform_cache_warming(self):
+        """Perform predictive cache warming based on access patterns."""
+        if self._warming_active:
+            return
+        self._warming_active = True
+        try:
+            current_time = time.time()
+            # Analyze access patterns to predict next accesses
+            predictions = []
+            with self._prediction_lock:
+                for key, access_times in self.access_patterns.items():
+                    if len(access_times) < 2:
+                        continue
+                    # Calculate access frequency and predict next access
+                    recent_accesses = [
+                        t for t in access_times if current_time - t < 3600
+                    ]  # Last hour
+                    if len(recent_accesses) >= 2:
+                        avg_interval = (
+                            sum(
+                                recent_accesses[i] - recent_accesses[i - 1]
+                                for i in range(1, len(recent_accesses))
+                            )
+                            / (len(recent_accesses) - 1)
+                        )
+                        # Predict if key will be accessed soon
+                        last_access = recent_accesses[-1]
+                        predicted_next = last_access + avg_interval
+                        # Predict within 5 minutes
+                        if predicted_next - current_time <= 300:
+                            predictions.append(
+                                (key, predicted_next - current_time)
+                            )
+                # Sort by urgency (sooner predictions first)
+                predictions.sort(key=lambda x: x[1])
+                # Top 10 predictions
+                self.prediction_queue = [key for key, _ in predictions[:10]]
+            # Warm cache for predicted keys
+            # Limit concurrent warming
+            for key in self.prediction_queue[:5]:
+                if key not in self.l1_cache and key not in self.l2_cache:
+                    # Try to promote from L3 to L2/L1
+                    l3_entry = self._decompress_from_l3(key)
+                    if l3_entry:
+                        self._promote_to_l2(key, l3_entry)
+                        self._stats["l4_predictions"] += 1
+        finally:
+            self._warming_active = False
+
+    def _promote_to_l2(self, key: str, entry: CacheEntry):
+        """Promote entry from L3 to L2."""
+        with self._l2_lock:
+            if len(self.l2_cache) >= self.l2_max_size:
+                self._evict_l2_lru()
+            self.l2_cache[key] = entry
+            self._persist_l2_cache()
+
+    def _record_access(self, key: str):
+        """Record access pattern for predictive caching."""
+        if not self.enable_prediction:
+            return
+        current_time = time.time()
+        with self._prediction_lock:
+            if key not in self.access_patterns:
+                self.access_patterns[key] = []
+            self.access_patterns[key].append(current_time)
+            # Keep only recent access history (last 24 hours, max 100 entries)
+            cutoff_time = current_time - 86400  # 24 hours
+            self.access_patterns[key] = [
+                t for t in self.access_patterns[key][-100:]
+                if t >= cutoff_time
+            ]
+
     def get_stats(self) -> Dict[str, Any]:
         """Get cache performance statistics"""
         total_requests = (
-            self._stats["l1_hits"] + self._stats["l2_hits"] + self._stats["misses"]
+            self._stats["l1_hits"]
+            + self._stats["l2_hits"]
+            + self._stats["l3_hits"]
+            + self._stats["misses"]
         )
-        hit_rate = (self._stats["l1_hits"] + self._stats["l2_hits"]) / max(
-            total_requests, 1
-        )
+        hit_rate = (
+            self._stats["l1_hits"]
+            + self._stats["l2_hits"]
+            + self._stats["l3_hits"]
+        ) / max(total_requests, 1)
         return {
             **self._stats,
             "hit_rate": hit_rate,
             "l1_size": len(self.l1_cache),
             "l2_size": len(self.l2_cache),
+            "l3_size": len(self.l3_cache),
+            "l4_prediction_queue": len(getattr(self, "prediction_queue", [])),
             "memory_efficiency": len(self.l1_cache) / self.l1_max_size,
             "disk_efficiency": len(self.l2_cache) / self.l2_max_size,
+            "archive_efficiency": (
+                len(self.l3_cache) / self.l3_max_size
+                if hasattr(self, "l3_max_size")
+                else 0
+            ),
         }
 
 

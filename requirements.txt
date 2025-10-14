@@ -6,15 +6,15 @@ fastapi>=0.104.1
 uvicorn[standard]>=0.24.0
 starlette>=0.27.0
 
-# Machine Learning and AI
-torch>=2.0.0
+# Machine Learning and AI (install with pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu)
+# torch>=2.0.0  # Install separately with CPU or CUDA support as needed
 sentence-transformers>=2.2.2
 chromadb>=0.4.15
 llama-cpp-python>=0.2.11
 gpt4all>=2.0.2
 transformers>=4.35.0
 accelerate>=0.24.0
-bitsandbytes>=0.41.0
+# bitsandbytes>=0.41.0  # Optional - for quantization support
 
 # Hugging Face Hub
 huggingface-hub>=0.17.0
@@ -58,3 +58,19 @@ PyYAML>=6.0.1
 
 # Environment and configuration
 python-multipart>=0.0.6  # For file uploads in FastAPI
+
+# Additional core dependencies
+Jinja2>=3.1.0  # Template engine (used by FastAPI and some ML libraries)
+click>=8.1.0  # Command line interface utilities
+tqdm>=4.65.0  # Progress bars for long-running operations
+Pillow>=10.0.0  # Image processing support
+
+# Additional utility packages for robust operation
+chardet>=5.2.0  # Character encoding detection
+lxml>=6.0.0  # XML/HTML parsing (used by BeautifulSoup)
+certifi>=2023.0.0  # SSL certificate validation
+urllib3>=2.0.0  # HTTP client library
+
+# Note: PyTorch is intentionally excluded from automatic installs.
+# Install CPU-only wheels explicitly if needed:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu

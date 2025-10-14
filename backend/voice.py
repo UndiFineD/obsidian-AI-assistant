@@ -3,10 +3,11 @@
 Unified single source of truth for voice functionality.
 
 Notes for tests:
-- Import-time reads VOSK_MODEL_PATH with default "backend/models/vosk-model-small-en-us-0.15"
+- Import-time reads VOSK_MODEL_PATH with default
+    "backend/models/vosk-model-small-en-us-0.15"
 - If default model path is missing, get_vosk_model() raises RuntimeError
 - If env-provided path is missing, we log and return None
-- router exposes POST /api/voice_transcribe using vosk.KaldiRecognizer
+- Router exposes POST /api/voice_transcribe using vosk.KaldiRecognizer
 """
 
 from __future__ import annotations
@@ -60,10 +61,16 @@ def get_vosk_model() -> Optional[object]:
     if not os.path.exists(MODEL_PATH):
         if MODEL_PATH == _DEFAULT_MODEL_PATH:
             raise RuntimeError(
-                f"Vosk model not found at {MODEL_PATH}. Download from https://alphacephei.com/vosk/models"
+                (
+                    f"Vosk model not found at {MODEL_PATH}. "
+                    "Download from https://alphacephei.com/vosk/models"
+                )
             )
         logging.warning(
-            "Vosk model path from environment does not exist: %s. Proceeding without model.",
+            (
+                "Vosk model path from environment does not exist: %s. "
+                "Proceeding without model."
+            ),
             MODEL_PATH,
         )
         return None
@@ -111,7 +118,9 @@ async def voice_transcribe(file: UploadFile) -> dict:
                 or wf.getframerate() not in [16000, 8000]
             ):
                 return {
-                    "error": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."
+                    "error": (
+                        "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."
+                    )
                 }
             rec = vosk.KaldiRecognizer(model, wf.getframerate())
             result = []

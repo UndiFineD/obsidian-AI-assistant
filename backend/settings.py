@@ -16,6 +16,7 @@ from pydantic import BaseModel  # type: ignore[import-untyped]
 def sanitize_prompt_input(prompt: str) -> str:
     """
     Sanitize AI prompt input to prevent prompt injection attacks.
+
     - Remove dangerous patterns (e.g., code execution, system commands)
     - Escape special characters
     - Enforce length and structure limits
@@ -58,15 +59,23 @@ def sanitize_prompt_input(prompt: str) -> str:
         r"(?i)\b__import__\b",
     ]
     # Special handling for specific patterns first (before general pattern matching and escaping)
-    if re.search(r"import\s+os;\s*os\.system\(['\"]rm -rf /['\"]\)", prompt, flags=re.IGNORECASE):
+    if re.search(
+        r"import\s+os;\s*os\.system\(['\"]rm -rf /['\"]\)",
+        prompt,
+        flags=re.IGNORECASE,
+    ):
         return "[REDACTED]; [REDACTED]('[REDACTED] /')"
-    elif re.search(r"run\s*system\.shutdown\(\)", prompt, flags=re.IGNORECASE):
+    elif re.search(
+        r"run\s*system\.shutdown\(\)", prompt, flags=re.IGNORECASE
+    ):
         return "run [REDACTED]()"
     elif re.search(r"DROP TABLE users;", prompt, flags=re.IGNORECASE):
         return "[REDACTED] TABLE users;"
     elif re.search(r'password=([^\s]+)', prompt, flags=re.IGNORECASE):
         # Handle password case but still apply escaping
-        prompt = re.sub(r'password=([^\s]+)', r'[REDACTED]=\1', prompt, flags=re.IGNORECASE)
+        prompt = re.sub(
+            r'password=([^\s]+)', r'[REDACTED]=\1', prompt, flags=re.IGNORECASE
+        )
     else:
         # Replace dangerous patterns with [REDACTED] for other cases
         for pattern in dangerous_patterns:
@@ -157,7 +166,10 @@ class Settings(BaseModel):
     ssl_ca_certs: str = None  # Path to CA bundle (optional)
 
     # CORS/CSRF
-    cors_allowed_origins: list = ["https://localhost:8080", "https://localhost:8000"]
+    cors_allowed_origins: list = [
+        "https://localhost:8080",
+        "https://localhost:8000",
+    ]
     csrf_enabled: bool = True
     csrf_secret: str = os.getenv("CSRF_SECRET", "change-me")
 

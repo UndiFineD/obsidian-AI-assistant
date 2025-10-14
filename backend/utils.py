@@ -22,16 +22,25 @@ def safe_call(
 # --- Privacy & PII Redaction Utilities ---
 _EMAIL_RE = re.compile(r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9.-]+")
 _PHONE_RE = re.compile(
-    r"\b(?:\+?\d{1,3}[\s-]?)?(?:\(\d{2,4}\)|\d{2,4})[\s-]?\d{3,4}[\s-]?\d{3,4}\b"
+    (
+        r"\b(?:\+?\d{1,3}[\s-]?)?"
+        r"(?:\(\d{2,4}\)|\d{2,4})[\s-]?\d{3,4}[\s-]?\d{3,4}\b"
+    )
 )
 _IPV4_RE = re.compile(
-    r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
+    (
+        r"\b(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}"
+        r"(?:25[0-5]|2[0-4]\d|1?\d?\d)\b"
+    )
 )
 _TOKEN_RE = re.compile(
-    r"\b(?:sk|hf|ghp|gho|pat|token)[-_][A-Za-z0-9]{10,}\b", re.IGNORECASE
+    r"\b(?:sk|hf|ghp|gho|pat|token)[-_][A-Za-z0-9]{10,}\b",
+    re.IGNORECASE,
 )
 _SSN_RE = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
-_WIN_PATH_RE = re.compile(r"[A-Za-z]:\\(?:[^\\/:*?\"<>|\r\n]+\\)*[^\\/:*?\"<>|\r\n]*")
+_WIN_PATH_RE = re.compile(
+    r"[A-Za-z]:\\(?:[^\\/:*?\"<>|\r\n]+\\)*[^\\/:*?\"<>|\r\n]*"
+)
 _NIX_PATH_RE = re.compile(r"(?:/[^\s/:*?\"'<>|]+)+")
 
 

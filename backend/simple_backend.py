@@ -32,7 +32,12 @@ async def status():
     return {
         "status": "online",
         "backend_url": "http://127.0.0.1:8000",
-        "features": {"basic": True, "ml": False, "embeddings": False, "voice": False},
+        "features": {
+            "basic": True,
+            "ml": False,
+            "embeddings": False,
+            "voice": False,
+        },
     }
 
 
@@ -45,7 +50,10 @@ async def reload_config():
 @app.post("/api/ask")
 async def ask_question(question: dict):
     return {
-        "response": "This is a placeholder response. ML features are not available in simple mode.",
+        "response": (
+            "This is a placeholder response. ML features are not available in "
+            "simple mode."
+        ),
         "status": "success",
     }
 

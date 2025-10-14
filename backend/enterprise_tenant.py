@@ -130,9 +130,13 @@ class TenantManager:
     def create_tenant(
         self,
         name: str,
-        tier: TenantTier,
         admin_email: str,
+        tier: TenantTier,
         custom_limits: Optional[TenantLimits] = None,
+        *,
+        custom_domain: Optional[str] = None,
+        sso_config: Optional[Dict[str, Any]] = None,
+        billing_config: Optional[Dict[str, Any]] = None,
     ) -> TenantConfig:
         """Create a new tenant"""
         if not name or not isinstance(name, str):
@@ -156,6 +160,9 @@ class TenantManager:
             limits=limits,
             created_at=datetime.utcnow(),
             admin_email=admin_email,
+            custom_domain=custom_domain,
+            sso_config=sso_config,
+            billing_config=billing_config,
         )
 
         self.tenants[tenant_id] = tenant
@@ -181,6 +188,69 @@ class TenantManager:
     def get_tenant_usage(self, tenant_id: str) -> Optional[TenantUsage]:
         """Get tenant usage metrics"""
         return self.usage_metrics.get(tenant_id)
+
+    def update_tenant_status(self, tenant_id: str, new_status: str) -> bool:
+        """Update the status for a tenant (active, suspended, terminated)."""
+        tenant = self.get_tenant(tenant_id)
+        if not tenant:
+            return False
+        if new_status not in {"active", "suspended", "terminated"}:
+            return False
+        tenant.status = new_status
+        return True
+
+    def update_tenant_usage(
+        self,
+        tenant_id: str,
+        *,
+        current_users: Optional[int] = None,
+        current_documents: Optional[int] = None,
+        storage_used_gb: Optional[float] = None,
+        api_calls_this_hour: Optional[int] = None,
+        concurrent_requests: Optional[int] = None,
+    ) -> bool:
+        """Update usage metrics for a tenant."""
+        usage = self.get_tenant_usage(tenant_id)
+        if not usage:
+            return False
+        if current_users is not None:
+            usage.current_users = int(current_users)
+        if current_documents is not None:
+            usage.current_documents = int(current_documents)
+        if storage_used_gb is not None:
+            usage.storage_used_gb = float(storage_used_gb)
+        if api_calls_this_hour is not None:
+            usage.api_calls_this_hour = int(api_calls_this_hour)
+        if concurrent_requests is not None:
+            usage.concurrent_requests = int(concurrent_requests)
+        usage.last_updated = datetime.utcnow()
+        return True
+
+    def check_tenant_limits(self, tenant_id: str) -> tuple[bool, List[str]]:
+        """Check current usage against limits and return violations if any."""
+        tenant = self.get_tenant(tenant_id)
+        usage = self.get_tenant_usage(tenant_id)
+        if not tenant or not usage:
+            return False, ["Tenant not found"]
+        limits = tenant.limits
+        violations: List[str] = []
+        if usage.current_users > limits.max_users:
+            violations.append(
+                f"Users {usage.current_users} exceeds limit {limits.max_users}"
+            )
+        if usage.current_documents > limits.max_documents:
+            violations.append(
+                f"Documents {usage.current_documents} exceeds limit {limits.max_documents}"
+            )
+        if usage.api_calls_this_hour > limits.max_api_calls_per_hour:
+            violations.append(
+                "API calls per hour exceed limit"
+            )
+        if usage.concurrent_requests > limits.max_concurrent_requests:
+            violations.append(
+                "Concurrent requests exceed limit"
+            )
+        return len(violations) == 0, violations
 
     def check_resource_limit(
         self, tenant_id: str, resource_type: str, requested_amount: int = 1
@@ -271,11 +341,26 @@ class TenantManager:
             tenant.status = "suspended"
             logger.warning(f"Suspended tenant {tenant_id}: {reason}")
 
-    def list_tenants(self, status: Optional[str] = None) -> List[TenantConfig]:
-        """List all tenants, optionally filtered by status"""
-        if status:
-            return [t for t in self.tenants.values() if t.status == status]
-        return list(self.tenants.values())
+    def list_tenants(
+        self,
+        *,
+        status_filter: Optional[str] = None,
+        tier_filter: Optional[TenantTier] = None,
+    ) -> List[TenantConfig]:
+        """List tenants filtered by status and/or tier."""
+        tenants = list(self.tenants.values())
+        if status_filter:
+            tenants = [t for t in tenants if t.status == status_filter]
+        if tier_filter is not None:
+            tenants = [t for t in tenants if t.tier == tier_filter]
+        return tenants
+
+    def delete_tenant(self, tenant_id: str) -> bool:
+        """Delete a tenant and its usage metrics."""
+        existed = tenant_id in self.tenants
+        self.tenants.pop(tenant_id, None)
+        self.usage_metrics.pop(tenant_id, None)
+        return existed
 
 
 class TenantIsolation:

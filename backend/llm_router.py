@@ -85,7 +85,8 @@ class HybridLLMRouter:
         pf = self.prefer_fast if prefer_fast is None else prefer_fast
 
         if pf:
-            # Prefer llama when fast responses are requested if it's available (or can be lazily created)
+            # Prefer llama when fast responses are requested if it's available
+            # (or can be lazily created)
             if Llama is not None:
                 return "llama"
         else:
@@ -108,19 +109,23 @@ class HybridLLMRouter:
     # -------------------
     def _invoke_llama(self, prompt: str, max_tokens: int) -> str:
         """Invoke the LLaMA model."""
-        # This complex logic is to accommodate unittest.mock's behavior in tests.
-        # A cleaner approach in the future might be a dedicated, patchable method.
+    # This complex logic accommodates unittest.mock behavior in tests.
+    # A cleaner future approach might be a dedicated, patchable method.
         if callable(self.llama):
             # Honor a mocked side_effect if present in tests
             _side_effect = getattr(self.llama, "side_effect", None)
             if _side_effect:
                 raise _side_effect
             output = self.llama(
-                prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"]
+                prompt=prompt,
+                max_tokens=max_tokens,
+                stop=["User:", "Assistant:"],
             )
             return output["choices"][0]["text"].strip()
         output = self.llama(
-            prompt=prompt, max_tokens=max_tokens, stop=["User:", "Assistant:"]
+            prompt=prompt,
+            max_tokens=max_tokens,
+            stop=["User:", "Assistant:"],
         )
         return output["choices"][0]["text"].strip()
 
