@@ -45,17 +45,17 @@ class EnhancedTaskQueueView extends ItemView {
         statusFilter.createEl('option', { value: 'processing', text: '⚡ Processing' });
         statusFilter.createEl('option', { value: 'completed', text: '✅ Completed' });
         statusFilter.createEl('option', { value: 'failed', text: '❌ Failed' });
-        statusFilter.createEl('option', { value: 'waiting', text: '⏸️ Waiting' });
-        
-        const priorityFilter = filterDiv.createEl('select', { cls: 'priority-filter' });
-        priorityFilter.createEl('option', { value: '', text: 'All Priorities' });
-        priorityFilter.createEl('option', { value: '1', text: '🔵 Low (1)' });
-        priorityFilter.createEl('option', { value: '2', text: '🟡 Medium (2)' });
-        priorityFilter.createEl('option', { value: '3', text: '🟠 High (3)' });
-        priorityFilter.createEl('option', { value: '4', text: '🔴 Critical (4)' });
-        
-        statusFilter.addEventListener('change', () => this.renderTasks());
-        priorityFilter.addEventListener('change', () => this.renderTasks());
+    statusFilter.createEl('option', { value: 'waiting', text: '⏸️ Waiting' });
+
+    const priorityFilter = filterDiv.createEl('select', { cls: 'priority-filter' });
+    priorityFilter.createEl('option', { value: '', text: 'All Priorities' });
+    priorityFilter.createEl('option', { value: '1', text: '🔵 Low (1)' });
+    priorityFilter.createEl('option', { value: '2', text: '🟡 Medium (2)' });
+    priorityFilter.createEl('option', { value: '3', text: '🟠 High (3)' });
+    priorityFilter.createEl('option', { value: '4', text: '🔴 Critical (4)' });
+
+    statusFilter.addEventListener('change', () => this.renderTasks());
+    priorityFilter.addEventListener('change', () => this.renderTasks());
 
         // --- Control Buttons ---
     const controlDiv = container.createEl('div', { cls: 'task-queue-controls' });
@@ -116,8 +116,7 @@ class EnhancedTaskQueueView extends ItemView {
             text: '📥 Import',
             cls: 'bulk-btn'
         });
-        importBtn.addEventListener('click', () => this.showImportDialog());
-        
+    importBtn.addEventListener('click', () => this.showImportDialog());
         const exportBtn = bulkDiv.createEl('button', {
             text: '📤 Export',
             cls: 'bulk-btn'
@@ -139,10 +138,10 @@ class EnhancedTaskQueueView extends ItemView {
         });
 
         // --- Task List Container ---
-        this.taskContainer = container.createEl('div', { cls: 'task-queue-list' });
+    this.taskContainer = container.createEl('div', { cls: 'task-queue-list' });
 
-        // Initial render
-        this.renderTasks();
+    // Initial render
+    this.renderTasks();
     }
 
     async onClose() {
@@ -171,7 +170,7 @@ class EnhancedTaskQueueView extends ItemView {
         const keyword = this.searchInput?.value || '';
         const statusFilter = this.containerEl.querySelector('.status-filter')?.value || '';
         const priorityFilter = this.containerEl.querySelector('.priority-filter')?.value || '';
-        
+
         this.taskQueue.filterQueue(keyword, statusFilter, priorityFilter ? parseInt(priorityFilter) : null);
 
         const tasks = this.taskQueue.getTasks();
@@ -207,33 +206,33 @@ class EnhancedTaskQueueView extends ItemView {
         `;
 
         if (tasks.length === 0) {
-            this.taskContainer.createEl('div', { 
-                text: 'No tasks match current filters.', 
-                cls: 'task-queue-empty' 
+            this.taskContainer.createEl('div', {
+                text: 'No tasks match current filters.',
+                cls: 'task-queue-empty'
             });
             return;
         }
 
         // --- Task List ---
         tasks.forEach((task) => {
-            const taskEl = this.taskContainer.createEl('div', { 
-                cls: `task-queue-item task-${task.status || 'pending'}` 
+            const taskEl = this.taskContainer.createEl('div', {
+                cls: `task-queue-item task-${task.status || 'pending'}`
             });
 
             // Task header with status indicator
             const headerEl = taskEl.createEl('div', { cls: 'task-header' });
-            
-            const statusIndicator = headerEl.createEl('span', { 
+
+            const statusIndicator = headerEl.createEl('span', {
                 cls: `task-status-indicator status-${task.status || 'pending'}`,
                 text: this.getStatusIcon(task.status)
             });
-            
-            const typeEl = headerEl.createEl('strong', { 
+
+            const typeEl = headerEl.createEl('strong', {
                 text: `[${task.type.toUpperCase()}]`,
                 cls: 'task-type'
             });
-            
-            const priorityEl = headerEl.createEl('span', { 
+
+            const priorityEl = headerEl.createEl('span', {
                 text: this.getPriorityIcon(task.priority || 1),
                 cls: `task-priority priority-${task.priority || 1}`
             });
@@ -253,9 +252,9 @@ class EnhancedTaskQueueView extends ItemView {
             if (task.tags && task.tags.length > 0) {
                 const tagsEl = taskEl.createEl('div', { cls: 'task-tags' });
                 task.tags.forEach(tag => {
-                    tagsEl.createEl('span', { 
-                        text: `🏷️ ${tag}`, 
-                        cls: 'task-tag' 
+                    tagsEl.createEl('span', {
+                        text: `🏷️ ${tag}`,
+                        cls: 'task-tag'
                     });
                 });
             }
@@ -264,19 +263,19 @@ class EnhancedTaskQueueView extends ItemView {
             if (task.createdAt || task.duration) {
                 const timingEl = taskEl.createEl('div', { cls: 'task-timing' });
                 if (task.createdAt) {
-                    timingEl.createEl('span', { 
+                    timingEl.createEl('span', {
                         text: `🕐 Created: ${new Date(task.createdAt).toLocaleString()}`,
                         cls: 'task-created'
                     });
                 }
                 if (task.duration) {
-                    timingEl.createEl('span', { 
+                    timingEl.createEl('span', {
                         text: `⏱️ Duration: ${task.duration}ms`,
                         cls: 'task-duration'
                     });
                 }
                 if (task.retryCount && task.retryCount > 0) {
-                    timingEl.createEl('span', { 
+                    timingEl.createEl('span', {
                         text: `🔄 Retries: ${task.retryCount}/${task.maxRetries || 3}`,
                         cls: 'task-retries'
                     });
@@ -285,7 +284,7 @@ class EnhancedTaskQueueView extends ItemView {
 
             // Error display
             if (task.error) {
-                const errorEl = taskEl.createEl('div', { 
+                const errorEl = taskEl.createEl('div', {
                     cls: 'task-error',
                     text: `❌ Error: ${task.error}`
                 });
@@ -293,7 +292,7 @@ class EnhancedTaskQueueView extends ItemView {
 
             // Dependencies display
             if (task.dependencies && task.dependencies.length > 0) {
-                const depsEl = taskEl.createEl('div', { 
+                const depsEl = taskEl.createEl('div', {
                     cls: 'task-dependencies',
                     text: `🔗 Dependencies: ${task.dependencies.length}`
                 });
@@ -301,10 +300,10 @@ class EnhancedTaskQueueView extends ItemView {
 
             // Task actions
             const actionsEl = taskEl.createEl('div', { cls: 'task-actions' });
-            
+
             if (task.status === 'failed') {
-                const retryBtn = actionsEl.createEl('button', { 
-                    text: '🔄 Retry', 
+                const retryBtn = actionsEl.createEl('button', {
+                    text: '🔄 Retry',
                     cls: 'task-action-btn retry-btn'
                 });
                 retryBtn.addEventListener('click', () => {
@@ -314,8 +313,8 @@ class EnhancedTaskQueueView extends ItemView {
                 });
             }
 
-            const removeBtn = actionsEl.createEl('button', { 
-                text: '🗑️', 
+            const removeBtn = actionsEl.createEl('button', {
+                text: '🗑️',
                 cls: 'task-action-btn remove-btn',
                 attr: { title: 'Remove task' }
             });
@@ -324,8 +323,8 @@ class EnhancedTaskQueueView extends ItemView {
             });
 
             if (task.result) {
-                const showResultBtn = actionsEl.createEl('button', { 
-                    text: '👁️', 
+                const showResultBtn = actionsEl.createEl('button', {
+                    text: '👁️',
                     cls: 'task-action-btn result-btn',
                     attr: { title: 'View result' }
                 });
@@ -334,8 +333,8 @@ class EnhancedTaskQueueView extends ItemView {
                 });
             }
 
-            const editBtn = actionsEl.createEl('button', { 
-                text: '✏️', 
+            const editBtn = actionsEl.createEl('button', {
+                text: '✏️',
                 cls: 'task-action-btn edit-btn',
                 attr: { title: 'Edit task' }
             });
@@ -359,7 +358,7 @@ class EnhancedTaskQueueView extends ItemView {
     getPriorityIcon(priority) {
         const icons = {
             1: '🔵 P1',
-            2: '🟡 P2', 
+            2: '🟡 P2',
             3: '🟠 P3',
             4: '🔴 P4'
         };
@@ -378,7 +377,7 @@ class EnhancedTaskQueueView extends ItemView {
         modal.titleEl.setText('Add New Task');
 
         const contentEl = modal.contentEl;
-        
+
         // Task type
         contentEl.createEl('label', { text: 'Task Type:' });
         const typeSelect = contentEl.createEl('select', { cls: 'task-type-select' });
@@ -397,9 +396,9 @@ class EnhancedTaskQueueView extends ItemView {
         contentEl.createEl('label', { text: 'Priority:' });
         const prioritySelect = contentEl.createEl('select', { cls: 'task-priority-select' });
         [1, 2, 3, 4].forEach(p => {
-            prioritySelect.createEl('option', { 
-                value: p.toString(), 
-                text: `${this.getPriorityIcon(p)}` 
+            prioritySelect.createEl('option', {
+                value: p.toString(),
+                text: `${this.getPriorityIcon(p)}`
             });
         });
 
@@ -413,10 +412,10 @@ class EnhancedTaskQueueView extends ItemView {
 
         // Buttons
         const buttonDiv = contentEl.createEl('div', { cls: 'modal-button-container' });
-        
-        const addBtn = buttonDiv.createEl('button', { 
-            text: 'Add Task', 
-            cls: 'mod-cta' 
+
+        const addBtn = buttonDiv.createEl('button', {
+            text: 'Add Task',
+            cls: 'mod-cta'
         });
         addBtn.addEventListener('click', () => {
             const taskData = {
@@ -445,7 +444,7 @@ class EnhancedTaskQueueView extends ItemView {
         modal.titleEl.setText('Edit Task');
 
         const contentEl = modal.contentEl;
-        
+
         // Content
         contentEl.createEl('label', { text: 'Content:' });
         const contentInput = contentEl.createEl('textarea', {
@@ -458,9 +457,9 @@ class EnhancedTaskQueueView extends ItemView {
         contentEl.createEl('label', { text: 'Priority:' });
         const prioritySelect = contentEl.createEl('select', { cls: 'task-priority-select' });
         [1, 2, 3, 4].forEach(p => {
-            const option = prioritySelect.createEl('option', { 
-                value: p.toString(), 
-                text: `${this.getPriorityIcon(p)}` 
+            const option = prioritySelect.createEl('option', {
+                value: p.toString(),
+                text: `${this.getPriorityIcon(p)}`
             });
             if (p === (task.priority || 1)) {
                 option.selected = true;
@@ -477,10 +476,10 @@ class EnhancedTaskQueueView extends ItemView {
 
         // Buttons
         const buttonDiv = contentEl.createEl('div', { cls: 'modal-button-container' });
-        
-        const saveBtn = buttonDiv.createEl('button', { 
-            text: 'Save Changes', 
-            cls: 'mod-cta' 
+
+        const saveBtn = buttonDiv.createEl('button', {
+            text: 'Save Changes',
+            cls: 'mod-cta'
         });
         saveBtn.addEventListener('click', () => {
             const updates = {
@@ -511,18 +510,18 @@ class EnhancedTaskQueueView extends ItemView {
 
         const textArea = contentEl.createEl('textarea', {
             cls: 'import-textarea',
-            attr: { 
-                rows: '10', 
+            attr: {
+                rows: '10',
                 cols: '50',
-                placeholder: 'Paste JSON data here...' 
+                placeholder: 'Paste JSON data here...'
             }
         });
 
         const buttonDiv = contentEl.createEl('div', { cls: 'modal-button-container' });
-        
-        const importBtn = buttonDiv.createEl('button', { 
-            text: 'Import', 
-            cls: 'mod-cta' 
+
+        const importBtn = buttonDiv.createEl('button', {
+            text: 'Import',
+            cls: 'mod-cta'
         });
         importBtn.addEventListener('click', () => {
             const jsonData = textArea.value.trim();
@@ -545,7 +544,7 @@ class EnhancedTaskQueueView extends ItemView {
         const jsonData = this.taskQueue.exportTasks();
         const blob = new Blob([jsonData], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = `tasks-export-${new Date().toISOString().split('T')[0]}.json`;
@@ -553,7 +552,7 @@ class EnhancedTaskQueueView extends ItemView {
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         new Notice('Tasks exported successfully');
     }
 
@@ -563,7 +562,7 @@ class EnhancedTaskQueueView extends ItemView {
 
         const contentEl = modal.contentEl;
         contentEl.createEl('h4', { text: 'Task Details' });
-        
+
         const detailsEl = contentEl.createEl('div', { cls: 'task-result-details' });
         detailsEl.innerHTML = `
             <p><strong>Type:</strong> ${task.type}</p>
@@ -577,17 +576,17 @@ class EnhancedTaskQueueView extends ItemView {
 
         if (task.result) {
             contentEl.createEl('h4', { text: 'Result' });
-            const resultEl = contentEl.createEl('pre', { 
+            const resultEl = contentEl.createEl('pre', {
                 cls: 'task-result-content',
-                text: typeof task.result === 'string' 
-                    ? task.result 
+                text: typeof task.result === 'string'
+                    ? task.result
                     : JSON.stringify(task.result, null, 2)
             });
         }
 
-        const closeBtn = contentEl.createEl('button', { 
-            text: 'Close', 
-            cls: 'mod-cta' 
+        const closeBtn = contentEl.createEl('button', {
+            text: 'Close',
+            cls: 'mod-cta'
         });
         closeBtn.addEventListener('click', () => modal.close());
 

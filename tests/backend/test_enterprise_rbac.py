@@ -42,8 +42,8 @@ class TestPermissionEnum:
     def test_permission_enum_consistency(self):
         """Test that permission enum values are consistent with names."""
         for permission in Permission:
-            # Check that enum name matches value pattern
-            assert permission.name.lower() == permission.value.upper().replace("_", "_")
+            # Check that enum name matches value pattern (both lowercase)
+            assert permission.name.lower() == permission.value.lower()
 
 
 class TestUserRoleEnum:
@@ -82,7 +82,7 @@ class TestRoleDataClass:
 
     def test_role_creation_basic(self):
         """Test basic role creation."""
-        permissions = {Permission.READ_CONFIG, Permission.ASK_QUESTIONS}
+        permissions = {Permission.read_config, Permission.ask_questions}
         role = Role(
             name=UserRole.USER,
             display_name="Standard User",
@@ -98,7 +98,7 @@ class TestRoleDataClass:
 
     def test_role_creation_with_inheritance(self):
         """Test role creation with inheritance."""
-        permissions = {Permission.MANAGE_USERS}
+        permissions = {Permission.manage_users}
         role = Role(
             name=UserRole.TEAM_ADMIN,
             display_name="Team Administrator",
@@ -111,7 +111,7 @@ class TestRoleDataClass:
 
     def test_role_permissions_immutable(self):
         """Test that role permissions should be a set (immutable after creation)."""
-        permissions = {Permission.READ_CONFIG}
+        permissions = {Permission.read_config}
         role = Role(
             name=UserRole.READONLY,
             display_name="Read Only",
@@ -128,7 +128,7 @@ class TestUserPermissionsDataClass:
 
     def test_user_permissions_creation(self):
         """Test basic UserPermissions creation."""
-        effective_permissions = {Permission.READ_CONFIG, Permission.ASK_QUESTIONS}
+        effective_permissions = {Permission.read_config, Permission.ask_questions}
         granted_time = datetime.utcnow()
         
         user_perms = UserPermissions(
@@ -157,7 +157,7 @@ class TestUserPermissionsDataClass:
             user_id="temp_user",
             tenant_id="tenant_123",
             roles=[UserRole.USER],
-            effective_permissions={Permission.READ_CONFIG},
+            effective_permissions={Permission.read_config},
             granted_by="admin",
             granted_at=granted_time,
             expires_at=expiry_time
@@ -173,7 +173,7 @@ class TestUserPermissionsDataClass:
             user_id="multi_role_user",
             tenant_id="tenant_789",
             roles=multiple_roles,
-            effective_permissions={Permission.READ_CONFIG, Permission.VIEW_ANALYTICS},
+            effective_permissions={Permission.read_config, Permission.view_analytics},
             granted_by="system",
             granted_at=datetime.utcnow()
         )
@@ -208,7 +208,7 @@ class TestRBACManager:
         assert readonly_role.name == UserRole.READONLY
         assert readonly_role.display_name == "Read-Only User"
         assert isinstance(readonly_role.permissions, set)
-        assert Permission.READ_CONFIG in readonly_role.permissions
+        assert Permission.read_config in readonly_role.permissions
 
     def test_get_role_permissions_basic(self):
         """Test getting permissions for a basic role."""
@@ -217,16 +217,16 @@ class TestRBACManager:
         assert isinstance(permissions, set)
         assert len(permissions) > 0
         # User should have at least basic permissions
-        assert Permission.ASK_QUESTIONS in permissions
-        assert Permission.READ_DOCUMENTS in permissions
+        assert Permission.ask_questions in permissions
+        assert Permission.read_documents in permissions
 
     def test_get_role_permissions_admin(self):
         """Test getting permissions for admin roles."""
         admin_permissions = self.rbac_manager.get_role_permissions(UserRole.SYSTEM_ADMIN)
         
         assert isinstance(admin_permissions, set)
-        assert Permission.SYSTEM_ADMIN in admin_permissions
-        assert Permission.MANAGE_USERS in admin_permissions
+        assert Permission.system_admin in admin_permissions
+        assert Permission.manage_users in admin_permissions
 
     def test_get_role_permissions_invalid_role(self):
         """Test getting permissions for invalid role."""
@@ -319,7 +319,7 @@ class TestRBACManager:
         
         # Check a permission that should be granted
         has_permission = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.ASK_QUESTIONS
+            user_id, tenant_id, Permission.ask_questions
         )
         
         assert has_permission is True
@@ -336,7 +336,7 @@ class TestRBACManager:
         
         # Check a permission that should be denied
         has_permission = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.MANAGE_USERS
+            user_id, tenant_id, Permission.manage_users
         )
         
         assert has_permission is False
@@ -344,7 +344,7 @@ class TestRBACManager:
     def test_check_user_permission_nonexistent_user(self):
         """Test checking permission for nonexistent user."""
         has_permission = self.rbac_manager.check_user_permission(
-            "nonexistent", "tenant", Permission.READ_CONFIG
+            "nonexistent", "tenant", Permission.read_config
         )
         
         assert has_permission is False
@@ -375,7 +375,7 @@ class TestRBACManager:
 
     def test_create_custom_role(self):
         """Test creating a custom role."""
-        custom_permissions = {Permission.READ_CONFIG, Permission.VIEW_ANALYTICS}
+        custom_permissions = {Permission.read_config, Permission.view_analytics}
         role_name = "custom_analyst"
         
         success = self.rbac_manager.create_custom_role(
@@ -395,7 +395,7 @@ class TestRBACManager:
     def test_create_custom_role_duplicate_name(self):
         """Test creating a custom role with duplicate name."""
         role_name = "duplicate_role"
-        permissions = {Permission.READ_CONFIG}
+        permissions = {Permission.read_config}
         
         # Create first role
         success1 = self.rbac_manager.create_custom_role(
@@ -432,7 +432,7 @@ class TestRBACManager:
         
         # User should not have admin permissions
         has_admin_perm = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.SYSTEM_ADMIN
+            user_id, tenant_id, Permission.system_admin
         )
         
         assert has_admin_perm is False
@@ -447,7 +447,7 @@ class TestRBACDecorators:
 
     def test_require_permission_decorator_success(self):
         """Test require_permission decorator with sufficient permissions."""
-        @require_permission(Permission.READ_CONFIG)
+        @require_permission(Permission.read_config)
         def protected_function(user_id, tenant_id):
             return "success"
         
@@ -459,7 +459,7 @@ class TestRBACDecorators:
 
     def test_require_permission_decorator_failure(self):
         """Test require_permission decorator with insufficient permissions."""
-        @require_permission(Permission.SYSTEM_ADMIN)
+        @require_permission(Permission.system_admin)
         def admin_function(user_id, tenant_id):
             return "admin_success"
         
@@ -510,7 +510,7 @@ class TestAuditLogger:
         
         audit_logger.log_permission_check(
             user_id="audit_user",
-            permission=Permission.READ_CONFIG,
+            permission=Permission.read_config,
             granted=True,
             context="API access"
         )
@@ -519,7 +519,7 @@ class TestAuditLogger:
         log_entry = audit_logger.audit_log[0]
         
         assert log_entry["user_id"] == "audit_user"
-        assert log_entry["permission"] == Permission.READ_CONFIG.value
+        assert log_entry["permission"] == Permission.read_config.value
         assert log_entry["granted"] is True
         assert log_entry["context"] == "API access"
         assert "timestamp" in log_entry
@@ -548,7 +548,7 @@ class TestAuditLogger:
         audit_logger = AuditLogger("audit_tenant")
         
         # Add some test entries
-        audit_logger.log_permission_check("user1", Permission.READ_CONFIG, True)
+        audit_logger.log_permission_check("user1", Permission.read_config, True)
         audit_logger.log_role_assignment("user2", UserRole.USER, "admin", "ASSIGN")
         
         logs = audit_logger.get_audit_logs()
@@ -561,9 +561,9 @@ class TestAuditLogger:
         audit_logger = AuditLogger("audit_tenant")
         
         # Add entries for different users
-        audit_logger.log_permission_check("user1", Permission.READ_CONFIG, True)
-        audit_logger.log_permission_check("user2", Permission.WRITE_CONFIG, False)
-        audit_logger.log_permission_check("user1", Permission.ASK_QUESTIONS, True)
+        audit_logger.log_permission_check("user1", Permission.read_config, True)
+        audit_logger.log_permission_check("user2", Permission.write_config, False)
+        audit_logger.log_permission_check("user1", Permission.ask_questions, True)
         
         user1_logs = audit_logger.get_audit_logs(user_id="user1")
         
@@ -592,12 +592,12 @@ class TestRBACIntegration:
         
         # Step 2: Check permissions
         can_ask = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.ASK_QUESTIONS
+            user_id, tenant_id, Permission.ask_questions
         )
         assert can_ask is True
         
         cannot_admin = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.SYSTEM_ADMIN
+            user_id, tenant_id, Permission.system_admin
         )
         assert cannot_admin is False
         
@@ -609,7 +609,7 @@ class TestRBACIntegration:
         
         # Step 4: Check new permissions
         can_view_analytics = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.VIEW_ANALYTICS
+            user_id, tenant_id, Permission.view_analytics
         )
         assert can_view_analytics is True
         
@@ -621,7 +621,7 @@ class TestRBACIntegration:
         
         # Step 6: Verify permission removed
         can_view_analytics_after = self.rbac_manager.check_user_permission(
-            user_id, tenant_id, Permission.VIEW_ANALYTICS
+            user_id, tenant_id, Permission.view_analytics
         )
         # USER role includes VIEW_ANALYTICS, so permission should still be True
         assert can_view_analytics_after is True
@@ -639,13 +639,13 @@ class TestRBACIntegration:
         
         # Check permissions in tenant 1 (should have)
         has_perm_t1 = self.rbac_manager.check_user_permission(
-            user_id, tenant1, Permission.VIEW_ANALYTICS
+            user_id, tenant1, Permission.view_analytics
         )
         assert has_perm_t1 is True
         
         # Check permissions in tenant 2 (should not have)
         has_perm_t2 = self.rbac_manager.check_user_permission(
-            user_id, tenant2, Permission.VIEW_ANALYTICS
+            user_id, tenant2, Permission.view_analytics
         )
         assert has_perm_t2 is False
 

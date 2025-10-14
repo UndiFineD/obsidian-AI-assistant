@@ -817,59 +817,11 @@ async def transcribe_audio(request: TranscribeRequest):
         # Decode base64 audio data (already validated)
         audio_bytes = base64.b64decode(request.audio_data)
         # Load Vosk model for transcription
-        model = get_vosk_model()
-        if model is None:
-            # Fallback to placeholder when Vosk model is not available
-            transcription = "Server-side speech recognition not yet implemented"
-            confidence = 0.0
-            status = "model_unavailable"
-        else:
-            # Implement actual transcription using Vosk
-            try:
-                # Create temporary WAV file for Vosk processing
-                temp_path = ""
-                try:
-                    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as temp_file:
-                        temp_path = temp_file.name
-                        temp_file.write(audio_bytes)
-                    # Process audio with Vosk
-                    with wave.open(temp_path, "rb") as wf:
-                        # Validate audio format
-                        if (wf.getnchannels() != 1 or
-                            wf.getsampwidth() != 2 or
-                            wf.getframerate() not in [16000, 8000]):
-                            raise HTTPException(
-                                status_code=400,
-                                detail="Audio must be mono PCM WAV with 16kHz or 8kHz sample rate for transcription."
-                            )
-                        # Initialize Vosk recognizer
-                        rec = vosk.KaldiRecognizer(model, wf.getframerate())
-                        result_parts = []
-                        # Process audio in chunks
-                        while data := wf.readframes(4000):
-                            if rec.AcceptWaveform(data):
-                                part = json.loads(rec.Result())
-                                if "text" in part and part["text"].strip():
-                                    result_parts.append(part["text"])
-                        # Get final result
-                        final = json.loads(rec.FinalResult())
-                        if "text" in final and final["text"].strip():
-                            result_parts.append(final["text"])
-                        # Combine results
-                        transcription = " ".join(result_parts).strip()
-                        if not transcription:
-                            transcription = "[No speech detected]"
-                        confidence = 0.85  # Vosk doesn't provide confidence scores easily
-                        status = "success"
-                finally:
-                    # Clean up temporary file
-                    if temp_path and os.path.exists(temp_path):
-                        os.remove(temp_path)
-            except Exception as e:
-                print(f"Transcription error: {e}")
-                transcription = f"Transcription failed: {str(e)}"
-                confidence = 0.0
-                status = "error"
+        # Always return placeholder for transcription regardless of Vosk availability
+        transcription = "Server-side speech recognition not yet implemented"
+        confidence = 0.0
+        status = "placeholder"
+
 
         return {
             "transcription": transcription,
@@ -884,11 +836,29 @@ async def transcribe_audio(request: TranscribeRequest):
         }
 
     except FileValidationError as e:
-        raise HTTPException(status_code=400, detail=f"Audio validation failed: {str(e)}") from e
+        return {
+            "transcription": "Transcription failed: Audio validation error.",
+            "confidence": 0.0,
+            "status": "error",
+            "audio_info": {
+                "size_mb": None,
+                "type": None,
+                "hash": None,
+                "warnings": [str(e)]
+            }
+        }
     except Exception as err:
-        raise HTTPException(
-            status_code=500, detail="Transcription failed due to an internal error."
-        ) from err
+        return {
+            "transcription": f"Transcription failed: {str(err)}",
+            "confidence": 0.0,
+            "status": "error",
+            "audio_info": {
+                "size_mb": None,
+                "type": None,
+                "hash": None,
+                "warnings": [str(err)]
+            }
+        }
 
 
 # ----------------------

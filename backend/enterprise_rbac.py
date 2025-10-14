@@ -13,37 +13,37 @@ logger = logging.getLogger(__name__)
 
 class Permission(Enum):
     # Configuration permissions
-    READ_CONFIG = "read_config"
-    WRITE_CONFIG = "write_config"
-    RELOAD_CONFIG = "reload_config"
+    read_config = "read_config"
+    write_config = "write_config"
+    reload_config = "reload_config"
 
     # AI operations
-    ASK_QUESTIONS = "ask_questions"
-    VOICE_PROCESSING = "voice_processing"
-    CUSTOM_MODELS = "custom_models"
+    ask_questions = "ask_questions"
+    voice_processing = "voice_processing"
+    custom_models = "custom_models"
 
     # Document management
-    READ_DOCUMENTS = "read_documents"
-    WRITE_DOCUMENTS = "write_documents"
-    DELETE_DOCUMENTS = "delete_documents"
-    MANAGE_VAULT = "manage_vault"
-    REINDEX_VAULT = "reindex_vault"
+    read_documents = "read_documents"
+    write_documents = "write_documents"
+    delete_documents = "delete_documents"
+    manage_vault = "manage_vault"
+    reindex_vault = "reindex_vault"
 
     # User management
-    VIEW_USERS = "view_users"
-    MANAGE_USERS = "manage_users"
-    ASSIGN_ROLES = "assign_roles"
+    view_users = "view_users"
+    manage_users = "manage_users"
+    assign_roles = "assign_roles"
 
     # Analytics and monitoring
-    VIEW_ANALYTICS = "view_analytics"
-    VIEW_LOGS = "view_logs"
-    VIEW_AUDIT_LOGS = "view_audit_logs"
-    EXPORT_DATA = "export_data"
+    view_analytics = "view_analytics"
+    view_logs = "view_logs"
+    view_audit_logs = "view_audit_logs"
+    export_data = "export_data"
 
     # System administration
-    SYSTEM_ADMIN = "system_admin"
-    TENANT_ADMIN = "tenant_admin"
-    BILLING_ACCESS = "billing_access"
+    system_admin = "system_admin"
+    tenant_admin = "tenant_admin"
+    billing_access = "billing_access"
 
 
 class UserRole(Enum):
@@ -98,10 +98,10 @@ class RBACManager:
                 display_name="Read-Only User",
                 description="Can read documents and use basic AI features",
                 permissions={
-                    Permission.READ_CONFIG,
-                    Permission.ASK_QUESTIONS,
-                    Permission.READ_DOCUMENTS,
-                    Permission.VIEW_ANALYTICS,
+                    Permission.read_config,
+                    Permission.ask_questions,
+                    Permission.read_documents,
+                    Permission.view_analytics,
                 },
             ),
             UserRole.USER: Role(
@@ -109,13 +109,13 @@ class RBACManager:
                 display_name="Standard User",
                 description="Can manage documents and use AI features",
                 permissions={
-                    Permission.READ_CONFIG,
-                    Permission.ASK_QUESTIONS,
-                    Permission.VOICE_PROCESSING,
-                    Permission.READ_DOCUMENTS,
-                    Permission.WRITE_DOCUMENTS,
-                    Permission.MANAGE_VAULT,
-                    Permission.VIEW_ANALYTICS,
+                    Permission.read_config,
+                    Permission.ask_questions,
+                    Permission.voice_processing,
+                    Permission.read_documents,
+                    Permission.write_documents,
+                    Permission.manage_vault,
+                    Permission.view_analytics,
                 },
             ),
             UserRole.POWER_USER: Role(
@@ -123,18 +123,18 @@ class RBACManager:
                 display_name="Power User",
                 description="Advanced AI features and analytics access",
                 permissions={
-                    Permission.READ_CONFIG,
-                    Permission.ASK_QUESTIONS,
-                    Permission.VOICE_PROCESSING,
-                    Permission.CUSTOM_MODELS,
-                    Permission.READ_DOCUMENTS,
-                    Permission.WRITE_DOCUMENTS,
-                    Permission.DELETE_DOCUMENTS,
-                    Permission.MANAGE_VAULT,
-                    Permission.REINDEX_VAULT,
-                    Permission.VIEW_ANALYTICS,
-                    Permission.VIEW_LOGS,
-                    Permission.EXPORT_DATA,
+                    Permission.read_config,
+                    Permission.ask_questions,
+                    Permission.voice_processing,
+                    Permission.custom_models,
+                    Permission.read_documents,
+                    Permission.write_documents,
+                    Permission.delete_documents,
+                    Permission.manage_vault,
+                    Permission.reindex_vault,
+                    Permission.view_analytics,
+                    Permission.view_logs,
+                    Permission.export_data,
                 },
             ),
             UserRole.TEAM_ADMIN: Role(
@@ -142,22 +142,22 @@ class RBACManager:
                 display_name="Team Administrator",
                 description="Can manage team users and configuration",
                 permissions={
-                    Permission.READ_CONFIG,
-                    Permission.WRITE_CONFIG,
-                    Permission.RELOAD_CONFIG,
-                    Permission.ASK_QUESTIONS,
-                    Permission.VOICE_PROCESSING,
-                    Permission.CUSTOM_MODELS,
-                    Permission.READ_DOCUMENTS,
-                    Permission.WRITE_DOCUMENTS,
-                    Permission.DELETE_DOCUMENTS,
-                    Permission.MANAGE_VAULT,
-                    Permission.REINDEX_VAULT,
-                    Permission.VIEW_USERS,
-                    Permission.MANAGE_USERS,
-                    Permission.VIEW_ANALYTICS,
-                    Permission.VIEW_LOGS,
-                    Permission.EXPORT_DATA,
+                    Permission.read_config,
+                    Permission.write_config,
+                    Permission.reload_config,
+                    Permission.ask_questions,
+                    Permission.voice_processing,
+                    Permission.custom_models,
+                    Permission.read_documents,
+                    Permission.write_documents,
+                    Permission.delete_documents,
+                    Permission.manage_vault,
+                    Permission.reindex_vault,
+                    Permission.view_users,
+                    Permission.manage_users,
+                    Permission.view_analytics,
+                    Permission.view_logs,
+                    Permission.export_data,
                 },
             ),
             UserRole.TENANT_ADMIN: Role(
@@ -165,26 +165,26 @@ class RBACManager:
                 display_name="Tenant Administrator",
                 description="Full tenant management capabilities",
                 permissions={
-                    Permission.READ_CONFIG,
-                    Permission.WRITE_CONFIG,
-                    Permission.RELOAD_CONFIG,
-                    Permission.ASK_QUESTIONS,
-                    Permission.VOICE_PROCESSING,
-                    Permission.CUSTOM_MODELS,
-                    Permission.READ_DOCUMENTS,
-                    Permission.WRITE_DOCUMENTS,
-                    Permission.DELETE_DOCUMENTS,
-                    Permission.MANAGE_VAULT,
-                    Permission.REINDEX_VAULT,
-                    Permission.VIEW_USERS,
-                    Permission.MANAGE_USERS,
-                    Permission.ASSIGN_ROLES,
-                    Permission.VIEW_ANALYTICS,
-                    Permission.VIEW_LOGS,
-                    Permission.VIEW_AUDIT_LOGS,
-                    Permission.EXPORT_DATA,
-                    Permission.TENANT_ADMIN,
-                    Permission.BILLING_ACCESS,
+                    Permission.read_config,
+                    Permission.write_config,
+                    Permission.reload_config,
+                    Permission.ask_questions,
+                    Permission.voice_processing,
+                    Permission.custom_models,
+                    Permission.read_documents,
+                    Permission.write_documents,
+                    Permission.delete_documents,
+                    Permission.manage_vault,
+                    Permission.reindex_vault,
+                    Permission.view_users,
+                    Permission.manage_users,
+                    Permission.assign_roles,
+                    Permission.view_analytics,
+                    Permission.view_logs,
+                    Permission.view_audit_logs,
+                    Permission.export_data,
+                    Permission.tenant_admin,
+                    Permission.billing_access,
                 },
             ),
             UserRole.SYSTEM_ADMIN: Role(
@@ -391,7 +391,8 @@ on it using simple (user_id, tenant_id) arguments.
 """
 
 # Module-level RBAC manager (tests patch this via monkeypatch/patch.object)
-rbac_manager: "RBACManager" | None = None  # initialized after class definition
+from typing import Optional
+rabc_manager: Optional[RBACManager] = None  # initialized after class definition
 
 
 def require_permission(permission: Permission):
@@ -542,13 +543,13 @@ class RBACEndpoints:
         """Register RBAC endpoints with FastAPI"""
 
         @self.app.get("/admin/roles")
-        @require_permission(Permission.VIEW_USERS)
+        @require_permission(Permission.view_users)
         async def list_roles():
             """List all available roles"""
             return {"roles": self.rbac_manager.list_available_roles()}
 
         @self.app.post("/admin/users/{user_id}/roles")
-        @require_permission(Permission.ASSIGN_ROLES)
+        @require_permission(Permission.assign_roles)
         async def assign_user_role(user_id: str, request_data: Dict[str, Any], request):
             """Assign role to user"""
             role_name = request_data.get("role")
@@ -576,7 +577,7 @@ class RBACEndpoints:
                 return {"error": f"Invalid role: {role_name}", "status_code": 400}
 
         @self.app.get("/admin/users/{user_id}/permissions")
-        @require_permission(Permission.VIEW_USERS)
+        @require_permission(Permission.view_users)
         async def get_user_permissions(user_id: str, request):
             """Get user's permissions"""
             tenant_id = request.state.user.get("tenant_id")
@@ -601,7 +602,7 @@ class RBACEndpoints:
                 return {"error": "User permissions not found", "status_code": 404}
 
         @self.app.get("/admin/audit-log")
-        @require_permission(Permission.VIEW_AUDIT_LOGS)
+        @require_permission(Permission.view_audit_logs)
         async def get_audit_log(
             start_date: Optional[str] = None, end_date: Optional[str] = None
         ):

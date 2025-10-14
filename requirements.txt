@@ -7,7 +7,8 @@ uvicorn[standard]>=0.24.0
 starlette>=0.27.0
 
 # Machine Learning and AI (install with pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu)
-# torch>=2.0.0  # Install separately with CPU or CUDA support as needed
+torch>=2.0.0  # For Windows, use CPU-only wheels: pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.23.0
 sentence-transformers>=2.2.2
 chromadb>=0.4.15
 llama-cpp-python>=0.2.11
@@ -31,11 +32,13 @@ vosk>=0.3.44
 # Data processing and utilities
 python-dotenv>=1.0.0
 pydantic>=2.0.0
-numpy>=1.24.0
+pydantic-core>=2.16.3
+numpy==1.26.4
 pandas>=2.0.0
 
 # Cryptography for security
 cryptography>=41.0.0
+cffi>=1.16.0
 
 # JWT handling
 PyJWT>=2.8.0
