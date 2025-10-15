@@ -1,69 +1,69 @@
 #!/usr/bin/env python3
 """Repair and validate OpenSpec change directories."""
-import sys
 import re
 import shutil
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # Repository root detection
 REPO_ROOT = Path(__file__).parent.parent
 
 # Paths to exclude from OpenSpec change generation
 EXCLUDED_PARTS = {
-    '.git',
-    '.venv',
-    'node_modules',
-    '__pycache__',
-    '.pytest_cache',
-    'htmlcov',
-    'dist',
-    'build',
-    '.mypy_cache',
-    '.ruff_cache',
-    '/openspec/changes/',
-    '/.git/',
-    '/node_modules/',
-    '/.venv/',
-    '/.pytest_cache/',
+    ".git",
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    "htmlcov",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".ruff_cache",
+    "/openspec/changes/",
+    "/.git/",
+    "/node_modules/",
+    "/.venv/",
+    "/.pytest_cache/",
 }
 
 
 def to_change_id_for_path(file_path):
     """Convert a file path to an OpenSpec change ID (alias for compatibility).
-    
+
     Args:
         file_path: Path object or string representing the file
-        
+
     Returns:
         String change ID in format: update-doc-{path-parts}
     """
     if isinstance(file_path, str):
         file_path = Path(file_path)
-    
+
     # Get relative path from repo root
     try:
         rel_path = file_path.relative_to(REPO_ROOT)
     except ValueError:
         # If not relative to REPO_ROOT, use as-is
         rel_path = file_path
-    
+
     # Convert to parts and clean up
     parts = []
     for part in rel_path.parts:
         # Remove .md extension only
-        if part.endswith('.md'):
+        if part.endswith(".md"):
             part = part[:-3]
         # Handle dotfiles/dotdirs (like .github) - keep the name without the dot
-        if part.startswith('.') and len(part) > 1:
+        if part.startswith(".") and len(part) > 1:
             part = part[1:]  # Remove leading dot
         # Replace remaining dots and underscores with hyphens
-        part = part.replace('.', '-').replace('_', '-')
+        part = part.replace(".", "-").replace("_", "-")
         # Lowercase
         part = part.lower()
         if part:  # Only add non-empty parts
             parts.append(part)
-    
+
     # Join with hyphens and prefix with update-doc-
     change_id = "update-doc-" + "-".join(parts)
     return change_id
@@ -71,12 +71,12 @@ def to_change_id_for_path(file_path):
 
 def infer_target_relpath_from_text(text, existing_files=None, file_map=None):
     """Infer the target file path from proposal or tasks text.
-    
+
     Args:
         text: Content of proposal.md or tasks.md
         existing_files: Optional set of existing files (for compatibility)
         file_map: Optional file mapping dict (for compatibility)
-        
+
     Returns:
         Inferred relative path or None
     """
@@ -84,29 +84,29 @@ def infer_target_relpath_from_text(text, existing_files=None, file_map=None):
     # - `README.md`
     # - Revise `path/to/file.md`
     # - Update `file.yaml`
-    
+
     # Pattern 1: Backtick-quoted paths
-    backtick_pattern = r'`([^`]+\.(md|yaml|py|txt))`'
+    backtick_pattern = r"`([^`]+\.(md|yaml|py|txt))`"
     matches = re.findall(backtick_pattern, text)
     if matches:
         # Return the first match (just the path, not the extension group)
         return matches[0][0]
-    
+
     # Pattern 2: Look for "Update <path>" or "Revise <path>"
-    update_pattern = r'(?:Update|Revise|Modify)\s+([^\s]+\.(md|yaml|py|txt))'
+    update_pattern = r"(?:Update|Revise|Modify)\s+([^\s]+\.(md|yaml|py|txt))"
     matches = re.findall(update_pattern, text, re.IGNORECASE)
     if matches:
         return matches[0][0]
-    
+
     return None
 
 
 def canonical_change_dir_for(file_path):
     """Get the canonical change directory for a given file path.
-    
+
     Args:
         file_path: Path to the file
-        
+
     Returns:
         Path to the canonical change directory
     """
@@ -116,11 +116,11 @@ def canonical_change_dir_for(file_path):
 
 def proposal_md(change_id, rel_path):
     """Generate proposal.md content for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the proposal markdown
     """
@@ -164,11 +164,11 @@ Improves clarity, governance, and auditability of project documentation. Enables
 
 def tasks_md(change_id, rel_path):
     """Generate tasks.md content for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the tasks markdown
     """
@@ -193,11 +193,11 @@ def tasks_md(change_id, rel_path):
 
 def spec_delta_md(change_id, rel_path):
     """Generate spec delta markdown for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the spec delta markdown
     """
@@ -225,39 +225,39 @@ This change updates `{rel_path}` to comply with OpenSpec documentation governanc
 
 def find_duplicate_changes(changes_dir):
     """Find duplicate change directories that reference the same file.
-    
+
     Args:
         changes_dir: Path to openspec/changes directory
-        
+
     Returns:
         Dict mapping file paths to lists of change IDs
     """
     duplicates = {}
-    
+
     for change_path in changes_dir.iterdir():
         if not change_path.is_dir():
             continue
-        
+
         change_id = change_path.name
-        
+
         # Read proposal to infer target file
         proposal_path = change_path / "proposal.md"
         if proposal_path.exists():
             content = proposal_path.read_text()
             target = infer_target_relpath_from_text(content)
-            
+
             if target:
                 if target not in duplicates:
                     duplicates[target] = []
                 duplicates[target].append(change_id)
-    
+
     # Filter to only actual duplicates (>1 change for same file)
     return {k: v for k, v in duplicates.items() if len(v) > 1}
 
 
 def archive_change(change_path, archive_dir):
     """Archive a change directory.
-    
+
     Args:
         change_path: Path to the change directory
         archive_dir: Path to the archive directory
@@ -265,53 +265,53 @@ def archive_change(change_path, archive_dir):
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
     archived_name = f"{change_path.name}-{timestamp}"
     dest = archive_dir / archived_name
-    
+
     shutil.move(str(change_path), str(dest))
     print(f"Archived: {change_path.name} -> {archived_name}")
 
 
 def repair_change(change_path):
     """Repair a change directory by regenerating missing files.
-    
+
     Args:
         change_path: Path to the change directory
-        
+
     Returns:
         bool: True if repairs were made
     """
     change_id = change_path.name
     repaired = False
-    
+
     # Check for proposal.md
     proposal_path = change_path / "proposal.md"
     if not proposal_path.exists():
         print(f"Warning: {change_id} missing proposal.md")
         return False
-    
+
     # Infer target file from proposal
     content = proposal_path.read_text()
     target = infer_target_relpath_from_text(content)
-    
+
     if not target:
         print(f"Warning: Cannot infer target file for {change_id}")
         return False
-    
+
     # Check and repair tasks.md
     tasks_path = change_path / "tasks.md"
     if not tasks_path.exists():
         print(f"Repairing: Creating tasks.md for {change_id}")
-        tasks_path.write_text(tasks_md(change_id, target), encoding='utf-8')
+        tasks_path.write_text(tasks_md(change_id, target), encoding="utf-8")
         repaired = True
-    
+
     # Check and repair spec delta
     specs_dir = change_path / "specs" / "project-documentation"
     spec_path = specs_dir / "spec.md"
     if not spec_path.exists():
         print(f"Repairing: Creating spec.md for {change_id}")
         specs_dir.mkdir(parents=True, exist_ok=True)
-        spec_path.write_text(spec_delta_md(change_id, target), encoding='utf-8')
+        spec_path.write_text(spec_delta_md(change_id, target), encoding="utf-8")
         repaired = True
-    
+
     return repaired
 
 
@@ -319,14 +319,14 @@ def main():
     """Main entry point for repair script."""
     changes_dir = REPO_ROOT / "openspec" / "changes"
     archive_dir = changes_dir / "archive"
-    
+
     if not changes_dir.exists():
         print("Error: openspec/changes directory not found")
         return 1
-    
+
     # Create archive directory if needed
     archive_dir.mkdir(exist_ok=True)
-    
+
     # Find and report duplicates
     duplicates = find_duplicate_changes(changes_dir)
     if duplicates:
@@ -335,21 +335,21 @@ def main():
             print(f"\n{target}:")
             for change_id in change_ids:
                 print(f"  - {change_id}")
-    
+
     # Repair all changes
     print("\n=== Repairing Changes ===")
     repair_count = 0
     for change_path in changes_dir.iterdir():
         if not change_path.is_dir() or change_path.name == "archive":
             continue
-        
+
         if repair_change(change_path):
             repair_count += 1
-    
-    print(f"\n=== Summary ===")
+
+    print("\n=== Summary ===")
     print(f"Repaired {repair_count} changes")
     print(f"Found {len(duplicates)} files with duplicate changes")
-    
+
     return 0
 
 

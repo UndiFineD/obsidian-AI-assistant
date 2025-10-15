@@ -1,4 +1,21 @@
 # OpenSpec Instructions
+# Backend as Modular AI Agent
+
+The backend is designed as a modular AI agent with the following capabilities:
+- Exposes a REST API for answering questions, indexing, and searching notes
+- Uses local compute AI models for offline/private answers
+- Can use web hooks and internet access (if enabled) for external research
+- Supports routing requests to other AI agents or models for multi-agent workflows
+- Integrates enterprise features (SSO, RBAC, compliance) and extensible orchestration
+
+### Architecture Modes
+- **Offline/local**: Answers and research are performed using only local models and data
+- **Connected/internet-enabled**: Backend can fetch, summarize, and analyze external content via web hooks or remote models
+- **Multi-agent orchestration**: Requests can be delegated or routed to other agents/models for broader research or specialized tasks
+
+### Contributor Guidance
+- When extending backend agent capabilities, update AGENTS.md and project-documentation/spec.md to reflect new orchestration, model routing, or research features
+- Ensure documentation covers both offline and connected modes
 
 Instructions for AI coding assistants using OpenSpec for spec-driven development.
 

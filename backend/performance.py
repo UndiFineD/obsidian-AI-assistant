@@ -79,7 +79,9 @@ class MultiLevelCache:
         self._l3_lock = threading.Lock()
         # L4: Predictive cache warming
         self.enable_prediction = enable_prediction
-        self.access_patterns: Dict[str, list] = {}  # Track access patterns for prediction
+        self.access_patterns: Dict[str, list] = (
+            {}
+        )  # Track access patterns for prediction
         self.prediction_queue = []  # Keys predicted to be accessed soon
         self._prediction_lock = threading.Lock()
         self._warming_active = False
@@ -216,7 +218,11 @@ class MultiLevelCache:
         lru_key = min(self.l2_cache.keys(), key=lambda k: self.l2_cache[k].last_access)
         lru_entry = self.l2_cache.pop(lru_key)
         # Move to L3 if compression enabled and not expired
-        if not lru_entry.is_expired() and hasattr(self, 'enable_compression') and self.enable_compression:
+        if (
+            not lru_entry.is_expired()
+            and hasattr(self, "enable_compression")
+            and self.enable_compression
+        ):
             if len(self.l3_cache) >= self.l3_max_size:
                 self._evict_l3_lru()
             self._compress_to_l3(lru_key, lru_entry)
@@ -349,6 +355,7 @@ class MultiLevelCache:
         try:
             import gzip
             import pickle
+
             archive_path = Path(self.l3_cache[key])
             if not archive_path.exists():
                 # Remove stale entry
@@ -361,10 +368,10 @@ class MultiLevelCache:
                 data = pickle.load(f)
             entry = CacheEntry(
                 value=data["value"],
-                timestamp=data['timestamp'],
-                ttl=data.get('ttl'),
-                access_count=data.get('access_count', 0),
-                last_access=data.get('last_access', data['timestamp'])
+                timestamp=data["timestamp"],
+                ttl=data.get("ttl"),
+                access_count=data.get("access_count", 0),
+                last_access=data.get("last_access", data["timestamp"]),
             )
             if entry.is_expired():
                 # Clean up expired entry
@@ -381,6 +388,7 @@ class MultiLevelCache:
 
     def _start_cache_warming(self):
         """Start background cache warming thread."""
+
         def warming_worker():
             while self.enable_prediction:
                 try:
@@ -389,6 +397,7 @@ class MultiLevelCache:
                 except Exception as e:
                     logger.warning(f"Cache warming error: {e}")
                     time.sleep(60)
+
         warming_thread = threading.Thread(target=warming_worker, daemon=True)
         warming_thread.start()
 
@@ -410,21 +419,16 @@ class MultiLevelCache:
                         t for t in access_times if current_time - t < 3600
                     ]  # Last hour
                     if len(recent_accesses) >= 2:
-                        avg_interval = (
-                            sum(
-                                recent_accesses[i] - recent_accesses[i - 1]
-                                for i in range(1, len(recent_accesses))
-                            )
-                            / (len(recent_accesses) - 1)
-                        )
+                        avg_interval = sum(
+                            recent_accesses[i] - recent_accesses[i - 1]
+                            for i in range(1, len(recent_accesses))
+                        ) / (len(recent_accesses) - 1)
                         # Predict if key will be accessed soon
                         last_access = recent_accesses[-1]
                         predicted_next = last_access + avg_interval
                         # Predict within 5 minutes
                         if predicted_next - current_time <= 300:
-                            predictions.append(
-                                (key, predicted_next - current_time)
-                            )
+                            predictions.append((key, predicted_next - current_time))
                 # Sort by urgency (sooner predictions first)
                 predictions.sort(key=lambda x: x[1])
                 # Top 10 predictions
@@ -461,8 +465,7 @@ class MultiLevelCache:
             # Keep only recent access history (last 24 hours, max 100 entries)
             cutoff_time = current_time - 86400  # 24 hours
             self.access_patterns[key] = [
-                t for t in self.access_patterns[key][-100:]
-                if t >= cutoff_time
+                t for t in self.access_patterns[key][-100:] if t >= cutoff_time
             ]
 
     def get_stats(self) -> Dict[str, Any]:
@@ -474,9 +477,7 @@ class MultiLevelCache:
             + self._stats["misses"]
         )
         hit_rate = (
-            self._stats["l1_hits"]
-            + self._stats["l2_hits"]
-            + self._stats["l3_hits"]
+            self._stats["l1_hits"] + self._stats["l2_hits"] + self._stats["l3_hits"]
         ) / max(total_requests, 1)
         return {
             **self._stats,

@@ -5,11 +5,19 @@
       "reason": "exception while scanning file"
     },
     {
+      "filename": "backend/advanced_security.py",
+      "reason": "exception while scanning file"
+    },
+    {
       "filename": "backend/backend.py",
       "reason": "exception while scanning file"
     },
     {
       "filename": "backend/caching.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/csrf_middleware.py",
       "reason": "exception while scanning file"
     },
     {
@@ -49,6 +57,14 @@
       "reason": "exception while scanning file"
     },
     {
+      "filename": "backend/file_validation.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/https_utils.py",
+      "reason": "exception while scanning file"
+    },
+    {
       "filename": "backend/indexing.py",
       "reason": "exception while scanning file"
     },
@@ -61,7 +77,15 @@
       "reason": "exception while scanning file"
     },
     {
+      "filename": "backend/openspec_governance.py",
+      "reason": "exception while scanning file"
+    },
+    {
       "filename": "backend/performance.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/rate_limiting.py",
       "reason": "exception while scanning file"
     },
     {
@@ -85,7 +109,7 @@
       "reason": "exception while scanning file"
     }
   ],
-  "generated_at": "2025-10-13T12:01:06Z",
+  "generated_at": "2025-10-15T11:26:46Z",
   "metrics": {
     "_totals": {
       "CONFIDENCE.HIGH": 0,
@@ -96,7 +120,7 @@
       "SEVERITY.LOW": 0,
       "SEVERITY.MEDIUM": 0,
       "SEVERITY.UNDEFINED": 0,
-      "loc": 5744,
+      "loc": 8834,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -105,13 +129,23 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "backend/advanced_security.py": {
+      "loc": 494,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "backend/backend.py": {
-      "loc": 734,
+      "loc": 1634,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/caching.py": {
       "loc": 119,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/csrf_middleware.py": {
+      "loc": 49,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -121,7 +155,7 @@
       "skipped_tests": 0
     },
     "backend/embeddings.py": {
-      "loc": 244,
+      "loc": 246,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -131,7 +165,7 @@
       "skipped_tests": 0
     },
     "backend/enterprise_auth.py": {
-      "loc": 225,
+      "loc": 252,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -141,12 +175,12 @@
       "skipped_tests": 0
     },
     "backend/enterprise_integration.py": {
-      "loc": 327,
+      "loc": 336,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/enterprise_rbac.py": {
-      "loc": 449,
+      "loc": 497,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -156,7 +190,17 @@
       "skipped_tests": 0
     },
     "backend/enterprise_tenant.py": {
-      "loc": 330,
+      "loc": 419,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/file_validation.py": {
+      "loc": 453,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/https_utils.py": {
+      "loc": 26,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -166,7 +210,7 @@
       "skipped_tests": 0
     },
     "backend/llm_router.py": {
-      "loc": 130,
+      "loc": 134,
       "nosec": 0,
       "skipped_tests": 0
     },
@@ -175,33 +219,43 @@
       "nosec": 0,
       "skipped_tests": 0
     },
+    "backend/openspec_governance.py": {
+      "loc": 373,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
     "backend/performance.py": {
-      "loc": 437,
+      "loc": 672,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/rate_limiting.py": {
+      "loc": 261,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/security.py": {
-      "loc": 44,
+      "loc": 47,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/settings.py": {
-      "loc": 167,
+      "loc": 266,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/simple_backend.py": {
-      "loc": 38,
+      "loc": 46,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/utils.py": {
-      "loc": 62,
+      "loc": 63,
       "nosec": 0,
       "skipped_tests": 0
     },
     "backend/voice.py": {
-      "loc": 102,
+      "loc": 111,
       "nosec": 0,
       "skipped_tests": 0
     }

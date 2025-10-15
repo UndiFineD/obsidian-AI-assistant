@@ -243,13 +243,9 @@ class TenantManager:
                 f"Documents {usage.current_documents} exceeds limit {limits.max_documents}"
             )
         if usage.api_calls_this_hour > limits.max_api_calls_per_hour:
-            violations.append(
-                "API calls per hour exceed limit"
-            )
+            violations.append("API calls per hour exceed limit")
         if usage.concurrent_requests > limits.max_concurrent_requests:
-            violations.append(
-                "Concurrent requests exceed limit"
-            )
+            violations.append("Concurrent requests exceed limit")
         return len(violations) == 0, violations
 
     def check_resource_limit(
@@ -483,10 +479,15 @@ class MultiTenantMiddleware:
         # Strict isolation: ensure all resource access is scoped by tenant_id
         request.state.tenant_id = tenant_id
         # Check tenant status and limits
-        if not self.tenant_manager.check_resource_limit(tenant_id, "concurrent_requests"):
+        if not self.tenant_manager.check_resource_limit(
+            tenant_id, "concurrent_requests"
+        ):
             return JSONResponse(
                 status_code=429,
-                content={"error": "Concurrent request limit exceeded", "type": "rate_limit_error"},
+                content={
+                    "error": "Concurrent request limit exceeded",
+                    "type": "rate_limit_error",
+                },
             )
         self.tenant_manager.increment_usage(tenant_id, "concurrent_requests")
         try:

@@ -16,25 +16,32 @@ class TestBackendAPI:
 
     @pytest.fixture
     def client(self):
+if __name__ == "__main__":
+    pytest.main([__file__])
+
         """Create a CSRF-enabled test client for the FastAPI app."""
-        from backend.backend import app
-        from backend.settings import get_settings
         import hmac
         from hashlib import sha256
+
+        from backend.backend import app
+        from backend.settings import get_settings
+
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
 
         class CSRFTestClient(TestClient):
-                def request(self, method, url, **kwargs):
-                    headers = kwargs.pop("headers", None)
-                    if headers is None:
-                        headers = {}
-                    if method.upper() in ("POST", "PUT", "DELETE"):
-                        headers["X-CSRF-Token"] = csrf_token
-                    kwargs["headers"] = headers
-                    return super().request(method, url, **kwargs)
+            def request(self, method, url, **kwargs):
+                headers = kwargs.pop("headers", None)
+                if headers is None:
+                    headers = {}
+                if method.upper() in ("POST", "PUT", "DELETE"):
+                    headers["X-CSRF-Token"] = csrf_token
+                kwargs["headers"] = headers
+                return super().request(method, url, **kwargs)
 
-        return CSRFTestClient(app)
+        # Use context manager to ensure proper lifespan handling and avoid CancelledError
+        with CSRFTestClient(app) as test_client:
+            yield test_client
 
     # @pytest.fixture
     # def mock_services(self):
@@ -48,6 +55,8 @@ class TestBackendAPI:
     #         mock_performance_cache.return_value.get.return_value = None  # Default to no cache hit
     #         yield {
     #             'model': mock_model,
+
+
     #             'embeddings': mock_emb,
     #             'vault': mock_vault,
     #             'cache': mock_cache,
@@ -62,36 +71,33 @@ class TestBackendAPI:
         assert data["status"] == "ok"
         assert "timestamp" in data
 
-    # def test_ask_endpoint_success(self, client, mock_services):
-    #     """Test successful ask endpoint."""
-    #     # Setup mocks
-    #     mock_services['cache'].get_cached_answer.return_value = None
-    #     mock_services['model'].generate.return_value = "Test response"
-    #     mock_services['cache'].cache_answer.return_value = None
-    #     request_data = {
-    #         "question": "What is the capital of France?",
-    #         "prefer_fast": True,
-    #         "max_tokens": 100
-    #     }
-    #     response = client.post("/ask", json=request_data)
-    #     assert response.status_code == 200
-    #     data = response.json()
-    #     assert data["answer"] == "Test response"
-    #     assert "cached" in data
 
-    # def test_ask_endpoint_cached_response(self, client, mock_services):
-    #     """Test ask endpoint with cached response."""
-    #     # Setup performance cache hit
-    #     mock_services['performance_cache'].return_value.get.return_value = "Cached response"
-    #     request_data = {
-    #         "question": "What is the capital of France?",
-    #         "prefer_fast": True
-    #     }
-    #     response = client.post("/ask", json=request_data)
-    #     assert response.status_code == 200
-    #     data = response.json()
-    #     assert data["answer"] == "Cached response"
-    #     assert data["cached"] is True
+    def test_ask_endpoint_success(self, client):
+        """Test successful ask endpoint."""
+        request_data = {
+            "question": "What is the capital of France?",
+            "prefer_fast": True,
+            "max_tokens": 100
+        }
+        response = client.post("/ask", json=request_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert "answer" in data
+        assert "cached" in data
+
+    def test_ask_endpoint_cached_response(self, client):
+        """Test ask endpoint with cached response."""
+        request_data = {
+            "question": "What is the capital of France?",
+            "prefer_fast": True
+        }
+        # Simulate two requests to trigger cache
+        client.post("/ask", json=request_data)
+        response2 = client.post("/ask", json=request_data)
+        assert response2.status_code == 200
+        data = response2.json()
+        assert "answer" in data
+        assert data["cached"] is True
 
     def test_ask_endpoint_invalid_request(self, client):
         """Test ask endpoint with invalid request data."""
@@ -101,28 +107,34 @@ class TestBackendAPI:
         response = client.post("/ask", json=request_data)
         assert response.status_code == 422  # Validation error
 
-    # def test_reindex_endpoint(self, client, mock_services):
-    #     """Test the reindex endpoint."""
-    #     mock_services['vault'].reindex.return_value = {"files": 5, "chunks": 25}
-    #     request_data = {"vault_path": "./vault"}
-    #     response = client.post("/reindex", json=request_data)
-    #     assert response.status_code == 200
-    #     data = response.json()
-    #     assert "files" in data
-    #     assert "chunks" in data
 
-    # def test_web_search_endpoint(self, client, mock_services):
-    #     """Test the web search endpoint."""
-    #     mock_services['cache'].get_cached_answer.return_value = None
-    #     mock_services['model'].generate.return_value = "Web search result"
-    #     request_data = {
-    #         "url": "https://example.com",
-    #         "question": "What is this about?"
-    #     }
-    #     response = client.post("/web", json=request_data)
-    #     assert response.status_code == 200
-    #     data = response.json()
-    #     assert data["answer"] == "Web search result"
+    def test_reindex_endpoint(self, client):
+        """Test the reindex endpoint."""
+        request_data = {"vault_path": "./vault"}
+        response = client.post("/reindex", json=request_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert "files" in data or "chunks" in data or "status" in data
+
+    @pytest.fixture
+    def mock_web_services(self):
+        with patch("backend.backend.vault_indexer") as mock_vault, patch(
+            "backend.backend.model_manager"
+        ) as mock_model:
+            mock_vault.fetch_web_page.return_value = "Some content"
+            mock_model.generate.return_value = "Web search result"
+            yield
+
+    def test_web_search_endpoint(self, client, mock_web_services):
+        """Test the web search endpoint."""
+        request_data = {
+            "url": "https://example.com",
+            "question": "What is this about?"
+        }
+        response = client.post("/web", json=request_data)
+        assert response.status_code == 200
+        data = response.json()
+        assert "answer" in data and data["answer"] == "Web search result"
 
 
 class TestRequestModels:
@@ -153,6 +165,164 @@ class TestRequestModels:
         request = WebRequest(url="https://example.com", question="Test question")
         assert request.url == "https://example.com"
         assert request.question == "Test question"
+
+
+class TestConfigAndPerformanceEndpoints:
+    """Tests for config and performance-related endpoints."""
+
+    @pytest.fixture
+    def client(self):
+        import hmac
+        from hashlib import sha256
+        from backend.backend import app
+        from backend.settings import get_settings
+        secret = get_settings().csrf_secret.encode()
+        csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+        class CSRFTestClient(TestClient):
+            def request(self, method, url, **kwargs):
+                headers = kwargs.pop("headers", None)
+                if headers is None:
+                    headers = {}
+                if method.upper() in ("POST", "PUT", "DELETE"):
+                    headers["X-CSRF-Token"] = csrf_token
+                kwargs["headers"] = headers
+                return super().request(method, url, **kwargs)
+        with CSRFTestClient(app) as c:
+            yield c
+
+    def test_status_and_api_health(self, client):
+        assert client.get("/status").status_code == 200
+        assert client.get("/api/health").status_code == 200
+
+    def test_get_config_contains_expected_fields(self, client):
+        resp = client.get("/api/config")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "backend/vector_db" in data
+
+    def test_post_reload_config_success(self, client):
+        with patch("backend.backend.reload_settings") as mock_reload, patch(
+            "backend.backend._settings_to_dict", return_value={"api_port": 8000}
+        ):
+            mock_reload.return_value = {}
+            r = client.post("/api/config/reload", json={})
+            assert r.status_code == 200
+            assert r.json()["ok"] is True
+
+    def test_post_reload_config_failure(self, client):
+        with patch("backend.backend.reload_settings", side_effect=RuntimeError("boom")):
+            r = client.post("/api/config/reload", json={})
+            assert r.status_code == 500
+
+    def test_post_update_config_rejects_unknown(self, client):
+        r = client.post("/api/config", json={"not_allowed": True})
+        assert r.status_code == 400
+
+    def test_post_update_config_success(self, client):
+        with patch("backend.backend.update_settings") as mock_update, patch(
+            "backend.backend._settings_to_dict", return_value={"api_port": 8001}
+        ):
+            mock_update.return_value = {}
+            r = client.post("/api/config", json={"api_port": 8001})
+            assert r.status_code == 200
+            assert r.json()["ok"] is True
+
+    def test_performance_metrics_success(self, client):
+        with patch(
+            "backend.backend.PerformanceMonitor.get_system_metrics", return_value={"cpu": 10}
+        ):
+            r = client.get("/api/performance/metrics")
+            assert r.status_code == 200
+            assert r.json()["status"] == "success"
+
+    def test_cache_stats_and_clear(self, client):
+        class DummyCache:
+            def __init__(self):
+                self.l1_cache = {}
+                self.l2_cache = {}
+            def _persist_l2_cache(self):
+                return None
+            def get_stats(self):
+                return {"hits": 0, "misses": 0}
+        with patch("backend.backend.get_cache_manager", return_value=DummyCache()):
+            r1 = client.get("/api/performance/cache/stats")
+            assert r1.status_code == 200
+            r2 = client.post("/api/performance/cache/clear", json={})
+            assert r2.status_code == 200
+            assert r2.json()["status"] == "success"
+
+    def test_performance_optimize_success(self, client):
+        class DummyQueue:
+            def __init__(self):
+                self._count = 0
+            async def submit_task(self, coro, priority=1):
+                self._count += 1
+                return True
+            def get_stats(self):
+                return {"queued": self._count}
+        async def fake_get_task_queue():
+            return DummyQueue()
+        with patch("backend.backend.get_task_queue", side_effect=fake_get_task_queue):
+            r = client.post("/api/performance/optimize", json={})
+            assert r.status_code == 200
+            assert "Scheduled" in r.json().get("message", "")
+
+
+class TestSearchAndIndexingEndpoints:
+    """Tests for search, transcribe and PDF indexing endpoints."""
+
+    @pytest.fixture
+    def client(self):
+        import hmac
+        from hashlib import sha256
+        from backend.backend import app
+        from backend.settings import get_settings
+        secret = get_settings().csrf_secret.encode()
+        csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+        class CSRFTestClient(TestClient):
+            def request(self, method, url, **kwargs):
+                headers = kwargs.pop("headers", None)
+                if headers is None:
+                    headers = {}
+                if method.upper() in ("POST", "PUT", "DELETE"):
+                    headers["X-CSRF-Token"] = csrf_token
+                kwargs["headers"] = headers
+                return super().request(method, url, **kwargs)
+        with CSRFTestClient(app) as c:
+            yield c
+
+    def test_search_success(self, client):
+        with patch("backend.backend.emb_manager") as mock_emb:
+            mock_emb.search.return_value = [{"text": "hello", "score": 0.9}]
+            r = client.post("/api/search", params={"query": "hello", "top_k": 3})
+            assert r.status_code == 200
+            assert "results" in r.json()
+
+    def test_transcribe_invalid_audio(self, client):
+        with patch("backend.backend.validate_base64_audio", return_value={"valid": False, "error": "bad"}):
+            r = client.post("/transcribe", json={"audio_data": "xxxx", "format": "webm", "language": "en"})
+            assert r.status_code == 400
+
+    def test_index_pdf_invalid_validation(self, client):
+        with patch("backend.backend.validate_pdf_path", return_value={"valid": False, "error": "bad"}):
+            r = client.post("/api/index_pdf", params={"pdf_path": "C:/tmp/a.pdf"})
+            assert r.status_code == 400
+
+    def test_index_pdf_success(self, client):
+        valid = {
+            "valid": True,
+            "size_mb": 1.23,
+            "hash_sha256": "abcd" * 16,
+            "warnings": []
+        }
+        with patch("backend.backend.validate_pdf_path", return_value=valid), patch(
+            "backend.backend.vault_indexer"
+        ) as mock_vault:
+            mock_vault.index_pdf.return_value = 5
+            r = client.post("/api/index_pdf", params={"pdf_path": "C:/tmp/a.pdf"})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["chunks_indexed"] == 5
 
 
 class TestServiceIntegration:

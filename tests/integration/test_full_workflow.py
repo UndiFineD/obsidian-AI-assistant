@@ -143,9 +143,7 @@ class TestFullWorkflowIntegration:
         """Test vault indexing workflow: Files → Parse → Embed → Store."""
         vault_path = str(temp_workspace["vault_dir"])
         # Execute vault scanning/indexing
-        response = await client.post(
-            "/api/scan_vault", json={"vault_path": vault_path}
-        )
+        response = await client.post("/api/scan_vault", json={"vault_path": vault_path})
         result = response.json()
         # Verify indexing workflow
         # 1. Vault indexer was called
@@ -273,7 +271,7 @@ class TestRealWorldScenarios:
             mock_mm.generate.return_value = """Based on your notes about machine learning, here are the key concepts:
 
 1. **Supervised Learning**: Uses labeled data to train models
-2. **Unsupervised Learning**: Finds patterns in unlabeled data  
+2. **Unsupervised Learning**: Finds patterns in unlabeled data
 3. **Neural Networks**: Inspired by biological neural networks
 
 Your research notes mention these applications effectively."""

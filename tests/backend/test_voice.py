@@ -426,5 +426,176 @@ class TestVoiceErrorHandling:
             await voice_transcribe(mock_file)
 
 
+class TestVoskImportFallback:
+    """Test vosk import fallback mechanisms."""
+
+    def test_vosk_stub_class_structure(self):
+        """Test that VoskStub provides required interface when vosk unavailable."""
+        # Simulate vosk import failure by patching the import
+        import sys
+        from unittest.mock import patch
+
+        # Save original modules
+        original_modules = sys.modules.copy()
+
+        try:
+            # Remove vosk from sys.modules if it exists
+            if "vosk" in sys.modules:
+                del sys.modules["vosk"]
+
+            # Patch the import to fail
+            with patch.dict("sys.modules", {"vosk": None}):
+                # Force re-import of voice module to trigger fallback
+                if "backend.voice" in sys.modules:
+                    del sys.modules["backend.voice"]
+
+                # This should trigger the VoskStub fallback
+                import importlib
+
+                import backend.voice as voice_module
+
+                voice_reloaded = importlib.reload(voice_module)
+
+                # Verify vosk attribute exists (either real or stub)
+                assert hasattr(voice_reloaded, "vosk")
+                vosk_obj = voice_reloaded.vosk
+
+                # Check that stub classes exist
+                assert hasattr(vosk_obj, "Model")
+                assert hasattr(vosk_obj, "KaldiRecognizer")
+
+                # Test that stub classes can be instantiated
+                try:
+                    recognizer = vosk_obj.KaldiRecognizer()
+                    assert recognizer is not None
+                except Exception:
+                    # If real vosk is imported, this might fail differently
+                    pass
+
+        finally:
+            # Restore original modules
+            sys.modules.update(original_modules)
+
+    def test_vosk_model_with_missing_import(self):
+        """Test get_vosk_model behavior when vosk is not available."""
+        import sys
+        from unittest.mock import patch
+
+        # Test with vosk module completely missing
+        with patch("backend.voice.vosk.Model", side_effect=AttributeError("No Model")):
+            with patch("backend.voice.os.path.exists", return_value=True):
+                from backend.voice import get_vosk_model
+
+                # Should return None due to safe_call error handling
+                result = get_vosk_model()
+                assert result is None
+
+
+class TestBuiltinsModelSetup:
+    """Test builtins.model setup and error handling."""
+
+    def test_builtins_model_assignment_failure(self):
+        """Test graceful handling when builtins.model assignment fails."""
+        import builtins
+        import sys
+        from unittest.mock import PropertyMock, patch
+
+        # Save original state
+        original_builtins_model = getattr(builtins, "model", None)
+
+        try:
+            # Create a mock that raises on assignment
+            with patch.object(
+                builtins,
+                "model",
+                new_callable=PropertyMock,
+                side_effect=Exception("Cannot set attribute"),
+            ):
+                # Re-import voice module to trigger builtins assignment
+                if "backend.voice" in sys.modules:
+                    del sys.modules["backend.voice"]
+
+                import importlib
+
+                import backend.voice
+
+                # Should complete without crashing despite exception
+                voice_reloaded = importlib.reload(backend.voice)
+                assert voice_reloaded is not None
+
+        finally:
+            # Restore original state
+            if original_builtins_model is not None:
+                builtins.model = original_builtins_model
+            elif hasattr(builtins, "model"):
+                delattr(builtins, "model")
+
+    def test_builtins_model_set_successfully(self):
+        """Test that builtins.model is set when possible."""
+        import builtins
+        import sys
+
+        # Save original state
+        original_builtins_model = getattr(builtins, "model", None)
+
+        try:
+            # Re-import to test model assignment
+            if "backend.voice" in sys.modules:
+                del sys.modules["backend.voice"]
+
+            import importlib
+
+            import backend.voice
+
+            importlib.reload(backend.voice)
+
+            # Check if builtins.model was set (it may be None if no model loaded)
+            assert hasattr(builtins, "model")
+
+        finally:
+            # Restore original state
+            if original_builtins_model is not None:
+                builtins.model = original_builtins_model
+            elif hasattr(builtins, "model"):
+                delattr(builtins, "model")
+
+
+class TestVoiceModuleEdgeCases:
+    """Test edge cases in voice module initialization."""
+
+    def test_get_vosk_model_with_env_path_missing(self):
+        """Test get_vosk_model when environment path doesn't exist."""
+        from unittest.mock import patch
+
+        with patch("backend.voice.MODEL_PATH", "custom/path/to/model"):
+            with patch("backend.voice.os.path.exists", return_value=False):
+                from backend.voice import get_vosk_model
+
+                # Should return None and log warning (not raise exception)
+                result = get_vosk_model()
+                assert result is None
+
+    def test_get_vosk_model_with_default_path_missing(self):
+        """Test get_vosk_model raises RuntimeError for missing default path."""
+        from unittest.mock import patch
+
+        with patch(
+            "backend.voice.MODEL_PATH", "backend/models/vosk-model-small-en-us-0.15"
+        ):
+            with patch(
+                "backend.voice._DEFAULT_MODEL_PATH",
+                "backend/models/vosk-model-small-en-us-0.15",
+            ):
+                with patch("backend.voice.os.path.exists", return_value=False):
+                    from backend.voice import get_vosk_model
+
+                    # Should raise RuntimeError for missing default path
+                    with pytest.raises(RuntimeError) as exc_info:
+                        get_vosk_model()
+
+                    assert "Vosk model not found" in str(exc_info.value)
+                    assert "alphacephei.com/vosk/models" in str(exc_info.value)
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

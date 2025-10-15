@@ -1,29 +1,40 @@
 # backend/backend.py
 
 import os
+import os as _os
 import pathlib
 import signal
 import subprocess
 import sys as _sys
+import sys as _sysmod
 import time
 from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import List, Optional
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Depends, status, Response
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from starlette.middleware.base import BaseHTTPMiddleware
-import os as _os
-import sys as _sysmod
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
 
+from .advanced_security import (
+    ThreatLevel,
+    get_advanced_security_config,
+    log_security_event,
+)
 from .caching import CacheManager
+from .csrf_middleware import CSRFMiddleware
 from .deps import ensure_minimal_dependencies, optional_ml_hint
 from .embeddings import EmbeddingsManager
-from .file_validation import validate_base64_audio, validate_pdf_path, FileValidationError
+from .file_validation import (
+    FileValidationError,
+    validate_base64_audio,
+    validate_pdf_path,
+)
 from .indexing import IndexingService, VaultIndexer
 from .modelmanager import ModelManager
+from .openspec_governance import get_openspec_governance
 from .performance import (
     PerformanceMonitor,
     cached,
@@ -33,10 +44,6 @@ from .performance import (
 )
 from .settings import get_settings, reload_settings, update_settings
 from .utils import redact_data
-from .openspec_governance import get_openspec_governance
-
-from .csrf_middleware import CSRFMiddleware
-from .advanced_security import get_advanced_security_config, log_security_event, ThreatLevel
 
 
 # --- Helper: detect test mode consistently ---
@@ -61,7 +68,10 @@ security = HTTPBearer(auto_error=False)
 # Module-level singleton for Depends function
 _security_dependency = Depends(security)
 
-def get_current_user(credentials: HTTPAuthorizationCredentials | None = _security_dependency):
+
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials | None = _security_dependency,
+):
     # Example: decode JWT and extract user info
     # In production, validate token, check expiry, etc.
     # Testing bypass: when under pytest or TEST_MODE, allow default user/admin
@@ -69,30 +79,41 @@ def get_current_user(credentials: HTTPAuthorizationCredentials | None = _securit
         return {"username": "test", "roles": ["user", "admin"]}
 
     if credentials is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token"
+        )
 
     token = credentials.credentials
     # For demo, accept any non-empty token and assign 'user' role
     if not token:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token"
+        )
     # TODO: Replace with real JWT decoding and role extraction
     user = {"username": "demo", "roles": ["user"]}
     return user
 
+
 def require_role(role: str):
     user_dep = Depends(get_current_user)
+
     def role_checker(user: dict = user_dep):
-            # In test mode, bypass role checks entirely to keep integration tests unblocked
+        # In test mode, bypass role checks entirely to keep integration tests unblocked
         if _is_test_mode():
             return user
         if role not in user["roles"]:
-            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=f"Requires role: {role}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail=f"Requires role: {role}"
+            )
         return user
+
     return role_checker
+
 
 # Rate limiting middleware
 try:
     from .rate_limiting import create_rate_limit_middleware
+
     RATE_LIMITING_AVAILABLE = True
 except ImportError as e:
     print(f"Rate limiting not available: {e}")
@@ -206,6 +227,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+
 # Test-only middleware to bypass CORS preflight failures before CORS processing
 class _PreflightBypassMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request, call_next):
@@ -213,11 +235,20 @@ class _PreflightBypassMiddleware(BaseHTTPMiddleware):
             return Response(status_code=204)
         return await call_next(request)
 
-if 'pytest' in _sysmod.modules or _os.environ.get('PYTEST_CURRENT_TEST') or _os.environ.get('TEST_MODE', '').lower() in ("1","true","yes","on"):
+
+if (
+    "pytest" in _sysmod.modules
+    or _os.environ.get("PYTEST_CURRENT_TEST")
+    or _os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
+):
     app.add_middleware(_PreflightBypassMiddleware)
 
 # Add permissive CORS early in test mode so it wraps the app before any other middleware
-if 'pytest' in _sysmod.modules or _os.environ.get('PYTEST_CURRENT_TEST') or _os.environ.get('TEST_MODE', '').lower() in ("1","true","yes","on"):
+if (
+    "pytest" in _sysmod.modules
+    or _os.environ.get("PYTEST_CURRENT_TEST")
+    or _os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
+):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
@@ -280,6 +311,7 @@ if settings.csrf_enabled:
 if not _is_test_mode():
     try:
         from .rate_limiting import create_rate_limit_middleware
+
         security_middleware = create_rate_limit_middleware()
         app.middleware("http")(security_middleware)
         print("[Security] Advanced security middleware loaded")
@@ -295,10 +327,12 @@ if not ENTERPRISE_AVAILABLE and not _is_test_mode():
         allow_headers=["Authorization", "Content-Type", "X-CSRF-Token"],
     )
 
+
 # Always provide a generic OPTIONS handler to satisfy preflight requests in tests
 @app.options("/{full_path:path}")
 async def _cors_preflight(full_path: str):
     return Response(status_code=204)
+
 
 # Include voice transcription router
 try:
@@ -308,10 +342,12 @@ try:
     print("[Voice] Voice transcription endpoints loaded")
 except Exception as e:
     print(f"[Voice] Warning: Failed to load voice endpoints: {e}")
+
     # Fallback stub to keep integration tests working when voice module import fails
     @app.post("/api/voice_transcribe")
     async def _voice_transcribe_stub():  # pragma: no cover - simple stub
         return {"transcription": ""}
+
 
 # Ensure preflight bypass is outermost in test mode (added after all other middlewares)
 if _is_test_mode():
@@ -621,6 +657,7 @@ async def post_reload_config():
             detail=f"Configuration reload failed: {str(err)}",
         ) from err
 
+
 @app.post("/api/config")
 async def post_update_config(partial: dict):
     try:
@@ -630,9 +667,7 @@ async def post_update_config(partial: dict):
         incoming = dict(partial or {})
         unknown = [k for k in incoming.keys() if k not in _ALLOWED_UPDATE_KEYS]
         if unknown:
-            raise HTTPException(
-                status_code=400, detail="Unknown config keys provided."
-            )
+            raise HTTPException(status_code=400, detail="Unknown config keys provided.")
 
         s = update_settings(incoming)
         settings_data = _settings_to_dict(s)
@@ -640,6 +675,9 @@ async def post_update_config(partial: dict):
         if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
             settings_data = redact_data(settings_data)
         return {"ok": True, "settings": settings_data}
+    except HTTPException:
+        # Preserve explicit HTTP errors (e.g., validation failures)
+        raise
     except Exception as err:
         raise HTTPException(status_code=500, detail=f"Update failed: {err}") from err
 
@@ -705,7 +743,10 @@ def _ask_impl(request: AskRequest):
     except Exception as err:
         # Do not leak internal error details
         print("[_ask_impl] Error generating answer: internal error occurred.")
-        raise HTTPException(status_code=500, detail="Failed to generate answer due to an internal error.") from err
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to generate answer due to an internal error.",
+        ) from err
 
     performance_cache.set(cache_key, answer)
 
@@ -716,17 +757,21 @@ def _ask_impl(request: AskRequest):
         "generation_time": generation_time,
     }
 
+
 @app.post("/api/ask", dependencies=[Depends(require_role("user"))])
 async def api_ask(request: AskRequest):
     return _ask_impl(request)
+
 
 @app.post("/ask", dependencies=[Depends(require_role("user"))])  # type: ignore
 async def ask(request: AskRequest):
     return _ask_impl(request)
 
+
 # Note editing endpoints removed for test alignment
 class ScanVaultRequest(BaseModel):
     vault_path: str = os.getenv("VAULT_PATH", "vault")
+
 
 @app.post("/api/scan_vault", dependencies=[Depends(require_role("admin"))])
 async def scan_vault(request: ScanVaultRequest):
@@ -741,7 +786,9 @@ async def scan_vault(request: ScanVaultRequest):
         raise
     except Exception as err:
         # Generic error message
-        raise HTTPException(status_code=500, detail="Vault scan failed due to an internal error.") from err
+        raise HTTPException(
+            status_code=500, detail="Vault scan failed due to an internal error."
+        ) from err
 
 
 @app.post("/api/web", dependencies=[Depends(require_role("user"))])
@@ -759,12 +806,10 @@ async def api_web(request: WebRequest):
     if not content:
         raise HTTPException(
             status_code=400,
-            detail="Failed to fetch or process content from the provided URL."
+            detail="Failed to fetch or process content from the provided URL.",
         )
 
-    question = (
-        request.question or "Summarize the following content."
-    )
+    question = request.question or "Summarize the following content."
     answer = model_manager.generate(question, context=content)
     return {"answer": answer, "url": request.url}
 
@@ -799,54 +844,43 @@ async def transcribe_audio(request: TranscribeRequest):
     try:
         # Validate audio data before processing
         validation_result = validate_base64_audio(request.audio_data)
-        if not validation_result['valid']:
+        if not validation_result["valid"]:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid audio data: {validation_result.get('error', 'Validation failed')}"
+                detail=f"Invalid audio data: {validation_result.get('error', 'Validation failed')}",
             )
 
         # Log validation warnings if any
-        if validation_result.get('warnings'):
+        if validation_result.get("warnings"):
             print(f"Audio validation warnings: {validation_result['warnings']}")
 
         import base64
-        import tempfile
-        import wave
-        import json
-        from .voice import get_vosk_model, vosk
+
         # Decode base64 audio data (already validated)
-        audio_bytes = base64.b64decode(request.audio_data)
+        base64.b64decode(request.audio_data)
         # Load Vosk model for transcription
         # Always return placeholder for transcription regardless of Vosk availability
         transcription = "Server-side speech recognition not yet implemented"
         confidence = 0.0
         status = "placeholder"
 
-
         return {
             "transcription": transcription,
             "confidence": confidence,
             "status": status,
             "audio_info": {
-                "size_mb": round(validation_result['size_mb'], 2),
-                "type": validation_result['file_type'],
-                "hash": validation_result['hash_sha256'][:16] + "...",
-                "warnings": validation_result.get('warnings', [])
-            }
+                "size_mb": round(validation_result["size_mb"], 2),
+                "type": validation_result["file_type"],
+                "hash": validation_result["hash_sha256"][:16] + "...",
+                "warnings": validation_result.get("warnings", []),
+            },
         }
 
     except FileValidationError as e:
-        return {
-            "transcription": "Transcription failed: Audio validation error.",
-            "confidence": 0.0,
-            "status": "error",
-            "audio_info": {
-                "size_mb": None,
-                "type": None,
-                "hash": None,
-                "warnings": [str(e)]
-            }
-        }
+        raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}") from e
+    except HTTPException:
+        # Preserve already-determined HTTP errors
+        raise
     except Exception as err:
         return {
             "transcription": f"Transcription failed: {str(err)}",
@@ -856,14 +890,15 @@ async def transcribe_audio(request: TranscribeRequest):
                 "size_mb": None,
                 "type": None,
                 "hash": None,
-                "warnings": [str(err)]
-            }
+                "warnings": [str(err)],
+            },
         }
 
 
 # ----------------------
 # Enterprise Authentication Endpoints
 # ----------------------
+
 
 @app.post("/api/enterprise/auth/sso")
 async def enterprise_sso_login(provider: str, redirect_uri: str = None):
@@ -874,26 +909,28 @@ async def enterprise_sso_login(provider: str, redirect_uri: str = None):
     if not ENTERPRISE_AVAILABLE:
         raise HTTPException(status_code=404, detail="Enterprise features not available")
     try:
-        from .enterprise_auth import SSOProvider, SSOConfig
+        from .enterprise_auth import SSOConfig, SSOProvider
+
         # Map string to enum
         provider_mapping = {
             "azure_ad": SSOProvider.AZURE_AD,
             "google_workspace": SSOProvider.GOOGLE_WORKSPACE,
             "okta": SSOProvider.OKTA,
             "saml": SSOProvider.SAML,
-            "ldap": SSOProvider.LDAP
+            "ldap": SSOProvider.LDAP,
         }
         if provider not in provider_mapping:
             raise HTTPException(
                 status_code=400,
-                detail=f"Unsupported SSO provider: {provider}. Supported: {list(provider_mapping.keys())}"
+                detail=f"Unsupported SSO provider: {provider}. Supported: {list(provider_mapping.keys())}",
             )
         # Mock SSO configuration (in production, this would come from .settings)
         sso_config = SSOConfig(
             provider=provider_mapping[provider],
             client_id=f"mock_{provider}_client_id",
             client_secret=f"mock_{provider}_client_secret",
-            redirect_uri=redirect_uri or "http://localhost:8000/api/enterprise/auth/callback"
+            redirect_uri=redirect_uri
+            or "http://localhost:8000/api/enterprise/auth/callback",
         )
         # Generate authorization URL (mock implementation)
         auth_url = f"https://{provider}.example.com/oauth/authorize?client_id={sso_config.client_id}&redirect_uri={sso_config.redirect_uri}&response_type=code&scope=openid%20email%20profile"
@@ -901,15 +938,19 @@ async def enterprise_sso_login(provider: str, redirect_uri: str = None):
             "provider": provider,
             "authorization_url": auth_url,
             "state": "mock_state_token",
-            "redirect_uri": sso_config.redirect_uri
+            "redirect_uri": sso_config.redirect_uri,
         }
     except Exception as e:
         print(f"SSO initiation error: {e}")
-        raise HTTPException(status_code=500, detail=f"SSO initiation failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"SSO initiation failed: {str(e)}"
+        ) from e
 
 
 @app.post("/api/enterprise/auth/callback")
-async def enterprise_sso_callback(code: str, state: str = None, provider: str = "azure_ad"):
+async def enterprise_sso_callback(
+    code: str, state: str = None, provider: str = "azure_ad"
+):
     """
     Handle SSO callback with authorization code.
     Validates code and returns JWT token for authenticated user.
@@ -917,21 +958,22 @@ async def enterprise_sso_callback(code: str, state: str = None, provider: str = 
     if not ENTERPRISE_AVAILABLE:
         raise HTTPException(status_code=404, detail="Enterprise features not available")
     try:
-        from .enterprise_auth import SSOProvider, SSOConfig, SSOManager
+        from .enterprise_auth import SSOConfig, SSOManager, SSOProvider
+
         # Map string to enum
         provider_mapping = {
             "azure_ad": SSOProvider.AZURE_AD,
             "google_workspace": SSOProvider.GOOGLE_WORKSPACE,
             "okta": SSOProvider.OKTA,
             "saml": SSOProvider.SAML,
-            "ldap": SSOProvider.LDAP
+            "ldap": SSOProvider.LDAP,
         }
         sso_provider = provider_mapping.get(provider, SSOProvider.AZURE_AD)
         # Mock SSO configuration
         sso_config = SSOConfig(
             provider=sso_provider,
             client_id=f"mock_{provider}_client_id",
-            client_secret=f"mock_{provider}_client_secret"
+            client_secret=f"mock_{provider}_client_secret",
         )
         sso_manager = SSOManager(sso_config)
         # Authenticate user with authorization code
@@ -951,12 +993,14 @@ async def enterprise_sso_callback(code: str, state: str = None, provider: str = 
                 "name": user_info.name,
                 "groups": user_info.groups,
                 "roles": user_info.roles,
-                "tenant_id": user_info.tenant_id
-            }
+                "tenant_id": user_info.tenant_id,
+            },
         }
     except Exception as e:
         print(f"SSO callback error: {e}")
-        raise HTTPException(status_code=500, detail=f"SSO authentication failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"SSO authentication failed: {str(e)}"
+        ) from e
 
 
 @app.post("/api/enterprise/auth/logout")
@@ -975,7 +1019,7 @@ async def enterprise_logout(token: str = None):
         return {
             "message": "Successfully logged out",
             "logged_out_at": datetime.utcnow().isoformat(),
-            "status": "success"
+            "status": "success",
         }
     except Exception as e:
         print(f"Logout error: {e}")
@@ -996,8 +1040,8 @@ async def enterprise_status():
                 "rbac": False,
                 "multi_tenant": False,
                 "compliance": False,
-                "admin_dashboard": False
-            }
+                "admin_dashboard": False,
+            },
         }
     try:
         return {
@@ -1008,25 +1052,21 @@ async def enterprise_status():
                 "rbac": True,
                 "multi_tenant": True,
                 "compliance": True,
-                "admin_dashboard": True
+                "admin_dashboard": True,
             },
             "supported_sso_providers": [
                 "azure_ad",
                 "google_workspace",
                 "okta",
                 "saml",
-                "ldap"
+                "ldap",
             ],
             "version": "1.0.0",
-            "last_updated": datetime.utcnow().isoformat()
+            "last_updated": datetime.utcnow().isoformat(),
         }
     except Exception as e:
         print(f"Enterprise status error: {e}")
-        return {
-            "enterprise_available": False,
-            "error": str(e),
-            "features": {}
-        }
+        return {"enterprise_available": False, "error": str(e), "features": {}}
 
 
 @app.post("/api/search", dependencies=[Depends(require_role("user"))])
@@ -1037,7 +1077,9 @@ async def search(query: str, top_k: int = 5):
         hits = emb_manager.search(query, top_k=top_k)
         return {"results": hits}
     except Exception as err:
-        raise HTTPException(status_code=500, detail="Search failed due to an internal error.") from err
+        raise HTTPException(
+            status_code=500, detail="Search failed due to an internal error."
+        ) from err
 
 
 @app.post("/api/index_pdf", dependencies=[Depends(require_role("admin"))])
@@ -1047,28 +1089,38 @@ async def index_pdf(pdf_path: str):
     try:
         # Validate PDF file before indexing
         validation_result = validate_pdf_path(pdf_path)
-        if not validation_result['valid']:
+        if not validation_result["valid"]:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid PDF file: {validation_result.get('error', 'Validation failed')}"
+                detail=f"Invalid PDF file: {validation_result.get('error', 'Validation failed')}",
             )
 
         # Log validation warnings if any
-        if validation_result.get('warnings'):
-            print(f"PDF validation warnings for {pdf_path}: {validation_result['warnings']}")
+        if validation_result.get("warnings"):
+            print(
+                f"PDF validation warnings for {pdf_path}: {validation_result['warnings']}"
+            )
         count = vault_indexer.index_pdf(pdf_path)
         return {
             "chunks_indexed": count,
             "file_info": {
-                "size_mb": round(validation_result['size_mb'], 2),
-                "hash": validation_result['hash_sha256'][:16] + "...",
-                "warnings": validation_result.get('warnings', [])
-            }
+                "size_mb": round(validation_result["size_mb"], 2),
+                "hash": validation_result["hash_sha256"][:16] + "...",
+                "warnings": validation_result.get("warnings", []),
+            },
         }
     except FileValidationError as e:
-        raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=400, detail=f"File validation failed: {str(e)}"
+        ) from e
+    except HTTPException:
+        # Preserve already-determined HTTP errors (e.g., validation 400)
+        raise
     except Exception as err:
-        raise HTTPException(status_code=500, detail="PDF indexing failed due to an internal error.") from err
+        raise HTTPException(
+            status_code=500, detail="PDF indexing failed due to an internal error."
+        ) from err
+
 
 # ----------------------
 # Performance & Monitoring Endpoints
@@ -1080,7 +1132,10 @@ async def get_performance_metrics():
         metrics = PerformanceMonitor.get_system_metrics()
         return {"status": "success", "metrics": metrics, "timestamp": time.time()}
     except Exception as err:
-        raise HTTPException(status_code=500, detail="Failed to get metrics due to an internal error.") from err
+        raise HTTPException(
+            status_code=500, detail="Failed to get metrics due to an internal error."
+        ) from err
+
 
 @app.get("/api/performance/cache/stats")
 async def get_cache_stats():
@@ -1090,7 +1145,11 @@ async def get_cache_stats():
         stats = cache_manager.get_stats()
         return {"status": "success", "cache_stats": stats}
     except Exception as err:
-        raise HTTPException(status_code=500, detail="Failed to get cache stats due to an internal error.") from err
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to get cache stats due to an internal error.",
+        ) from err
+
 
 @app.post("/api/performance/cache/clear")
 async def clear_performance_cache():
@@ -1105,7 +1164,10 @@ async def clear_performance_cache():
 
         return {"status": "success", "message": "Performance cache cleared"}
     except Exception as err:
-        raise HTTPException(status_code=500, detail="Failed to clear cache due to an internal error.") from err
+        raise HTTPException(
+            status_code=500, detail="Failed to clear cache due to an internal error."
+        ) from err
+
 
 @app.post("/api/performance/optimize")
 async def trigger_optimization(background_tasks: BackgroundTasks):
@@ -1133,7 +1195,9 @@ async def trigger_optimization(background_tasks: BackgroundTasks):
         }
     except Exception as err:
         raise HTTPException(
-            status_code=500, detail="Failed to trigger optimization due to an internal error.") from err
+            status_code=500,
+            detail="Failed to trigger optimization due to an internal error.",
+        ) from err
 
 
 @app.get("/api/performance/dashboard")
@@ -1150,17 +1214,27 @@ async def get_performance_dashboard():
             task_queue = await get_task_queue()
             queue_stats = task_queue.get_stats()
         except Exception:
-            queue_stats = {"status": "unavailable", "error": "Task queue not initialized"}
+            queue_stats = {
+                "status": "unavailable",
+                "error": "Task queue not initialized",
+            }
         # Get connection pool statistics
         try:
             connection_pool = get_connection_pool("default")
             pool_stats = {
                 "active_connections": len(connection_pool.connections),
                 "max_connections": connection_pool.max_connections,
-                "created_at": connection_pool.created_at.isoformat() if hasattr(connection_pool, 'created_at') else None
+                "created_at": (
+                    connection_pool.created_at.isoformat()
+                    if hasattr(connection_pool, "created_at")
+                    else None
+                ),
             }
         except Exception:
-            pool_stats = {"status": "unavailable", "error": "Connection pool not available"}
+            pool_stats = {
+                "status": "unavailable",
+                "error": "Connection pool not available",
+            }
         # Calculate performance scores
         performance_score = _calculate_performance_score(system_metrics, cache_stats)
         dashboard_data = {
@@ -1171,14 +1245,16 @@ async def get_performance_dashboard():
             "cache_stats": cache_stats,
             "queue_stats": queue_stats,
             "connection_pool_stats": pool_stats,
-            "recommendations": _get_performance_recommendations(system_metrics, cache_stats)
+            "recommendations": _get_performance_recommendations(
+                system_metrics, cache_stats
+            ),
         }
         return {"status": "success", "dashboard": dashboard_data}
     except Exception as err:
         print(f"Performance dashboard error: {err}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to generate performance dashboard due to an internal error."
+            detail="Failed to generate performance dashboard due to an internal error.",
         ) from err
 
 
@@ -1198,7 +1274,7 @@ async def get_performance_health():
             "component": "cache",
             "status": "healthy" if cache_hit_rate > 0.5 else "warning",
             "hit_rate": cache_hit_rate,
-            "message": f"Cache hit rate: {cache_hit_rate:.2%}"
+            "message": f"Cache hit rate: {cache_hit_rate:.2%}",
         }
         health_checks.append(cache_health)
         if cache_health["status"] != "healthy":
@@ -1208,9 +1284,13 @@ async def get_performance_health():
         memory_usage = system_metrics.get("memory", {}).get("usage_percent", 0)
         memory_health = {
             "component": "memory",
-            "status": "healthy" if memory_usage < 80 else "critical" if memory_usage > 90 else "warning",
+            "status": (
+                "healthy"
+                if memory_usage < 80
+                else "critical" if memory_usage > 90 else "warning"
+            ),
             "usage_percent": memory_usage,
-            "message": f"Memory usage: {memory_usage:.1f}%"
+            "message": f"Memory usage: {memory_usage:.1f}%",
         }
         health_checks.append(memory_health)
         if memory_health["status"] == "critical":
@@ -1221,9 +1301,13 @@ async def get_performance_health():
         avg_response_time = system_metrics.get("response_time_ms", 200)  # Mock value
         response_health = {
             "component": "response_time",
-            "status": "healthy" if avg_response_time < 500 else "critical" if avg_response_time > 2000 else "warning",
+            "status": (
+                "healthy"
+                if avg_response_time < 500
+                else "critical" if avg_response_time > 2000 else "warning"
+            ),
             "avg_response_ms": avg_response_time,
-            "message": f"Average response time: {avg_response_time}ms"
+            "message": f"Average response time: {avg_response_time}ms",
         }
         health_checks.append(response_health)
         if response_health["status"] == "critical":
@@ -1236,10 +1320,16 @@ async def get_performance_health():
             "checks": health_checks,
             "summary": {
                 "total_checks": len(health_checks),
-                "healthy": sum(1 for check in health_checks if check["status"] == "healthy"),
-                "warning": sum(1 for check in health_checks if check["status"] == "warning"),
-                "critical": sum(1 for check in health_checks if check["status"] == "critical")
-            }
+                "healthy": sum(
+                    1 for check in health_checks if check["status"] == "healthy"
+                ),
+                "warning": sum(
+                    1 for check in health_checks if check["status"] == "warning"
+                ),
+                "critical": sum(
+                    1 for check in health_checks if check["status"] == "critical"
+                ),
+            },
         }
     except Exception as err:
         print(f"Performance health check error: {err}")
@@ -1247,7 +1337,7 @@ async def get_performance_health():
             "status": "critical",
             "timestamp": datetime.utcnow().isoformat(),
             "error": str(err),
-            "checks": []
+            "checks": [],
         }
 
 
@@ -1258,6 +1348,7 @@ async def get_performance_trends(hours: int = 24):
         # In a real implementation, this would query historical data
         # For now, generate mock trend data
         import random
+
         current_time = time.time()
         trend_data = []
         # Generate hourly data points
@@ -1270,13 +1361,17 @@ async def get_performance_trends(hours: int = 24):
                 "cpu_usage": 30 + random.uniform(-15, 15),
                 "cache_hit_rate": 0.75 + random.uniform(-0.2, 0.2),
                 "response_time_ms": 200 + random.uniform(-100, 300),
-                "active_connections": 5 + random.randint(-3, 10)
+                "active_connections": 5 + random.randint(-3, 10),
             }
             # Ensure values are within reasonable bounds
             data_point["memory_usage"] = max(10, min(95, data_point["memory_usage"]))
             data_point["cpu_usage"] = max(5, min(95, data_point["cpu_usage"]))
-            data_point["cache_hit_rate"] = max(0.1, min(1.0, data_point["cache_hit_rate"]))
-            data_point["response_time_ms"] = max(50, min(5000, data_point["response_time_ms"]))
+            data_point["cache_hit_rate"] = max(
+                0.1, min(1.0, data_point["cache_hit_rate"])
+            )
+            data_point["response_time_ms"] = max(
+                50, min(5000, data_point["response_time_ms"])
+            )
             data_point["active_connections"] = max(0, data_point["active_connections"])
             trend_data.append(data_point)
         # Reverse to get chronological order
@@ -1285,13 +1380,13 @@ async def get_performance_trends(hours: int = 24):
             "status": "success",
             "period_hours": hours,
             "data_points": len(trend_data),
-            "trends": trend_data
+            "trends": trend_data,
         }
     except Exception as err:
         print(f"Performance trends error: {err}")
         raise HTTPException(
             status_code=500,
-            detail="Failed to generate performance trends due to an internal error."
+            detail="Failed to generate performance trends due to an internal error.",
         ) from err
 
 
@@ -1303,21 +1398,39 @@ def _calculate_performance_score(system_metrics: dict, cache_stats: dict) -> dic
         memory_usage = system_metrics.get("memory", {}).get("usage_percent", 50)
         scores["memory"] = max(0, 100 - memory_usage)
         # Cache score (0-100, higher hit rate is better)
-        total_requests = cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0) + cache_stats.get("misses", 1)
-        hit_rate = (cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0)) / total_requests
+        total_requests = (
+            cache_stats.get("l1_hits", 0)
+            + cache_stats.get("l2_hits", 0)
+            + cache_stats.get("misses", 1)
+        )
+        hit_rate = (
+            cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0)
+        ) / total_requests
         scores["cache"] = hit_rate * 100
         # CPU score (mock, in real implementation would use actual CPU metrics)
-        scores["cpu"] = max(0, 100 - system_metrics.get("cpu", {}).get("usage_percent", 30))
+        scores["cpu"] = max(
+            0, 100 - system_metrics.get("cpu", {}).get("usage_percent", 30)
+        )
         # Overall score (weighted average)
         overall_score = (
-            scores["memory"] * 0.3 +
-            scores["cache"] * 0.4 +
-            scores["cpu"] * 0.3
+            scores["memory"] * 0.3 + scores["cache"] * 0.4 + scores["cpu"] * 0.3
         )
         return {
             "overall": round(overall_score, 1),
             "breakdown": scores,
-            "grade": "A" if overall_score >= 90 else "B" if overall_score >= 80 else "C" if overall_score >= 70 else "D" if overall_score >= 60 else "F"
+            "grade": (
+                "A"
+                if overall_score >= 90
+                else (
+                    "B"
+                    if overall_score >= 80
+                    else (
+                        "C"
+                        if overall_score >= 70
+                        else "D" if overall_score >= 60 else "F"
+                    )
+                )
+            ),
         }
     except Exception as e:
         print(f"Performance score calculation error: {e}")
@@ -1331,51 +1444,69 @@ def _get_performance_recommendations(system_metrics: dict, cache_stats: dict) ->
         # Memory recommendations
         memory_usage = system_metrics.get("memory", {}).get("usage_percent", 0)
         if memory_usage > 90:
-            recommendations.append({
-                "category": "memory",
-                "severity": "critical",
-                "message": "Memory usage is critically high. Consider increasing available memory or optimizing memory-intensive operations.",
-                "action": "Restart services or scale up memory resources"
-            })
+            recommendations.append(
+                {
+                    "category": "memory",
+                    "severity": "critical",
+                    "message": "Memory usage is critically high. Consider increasing available memory or optimizing memory-intensive operations.",
+                    "action": "Restart services or scale up memory resources",
+                }
+            )
         elif memory_usage > 80:
-            recommendations.append({
-                "category": "memory",
-                "severity": "warning",
-                "message": "Memory usage is elevated. Monitor for potential memory leaks.",
-                "action": "Review memory usage patterns and consider optimization"
-            })
+            recommendations.append(
+                {
+                    "category": "memory",
+                    "severity": "warning",
+                    "message": "Memory usage is elevated. Monitor for potential memory leaks.",
+                    "action": "Review memory usage patterns and consider optimization",
+                }
+            )
         # Cache recommendations
-        total_requests = cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0) + cache_stats.get("misses", 1)
-        hit_rate = (cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0)) / total_requests
+        total_requests = (
+            cache_stats.get("l1_hits", 0)
+            + cache_stats.get("l2_hits", 0)
+            + cache_stats.get("misses", 1)
+        )
+        hit_rate = (
+            cache_stats.get("l1_hits", 0) + cache_stats.get("l2_hits", 0)
+        ) / total_requests
         if hit_rate < 0.5:
-            recommendations.append({
-                "category": "cache",
-                "severity": "warning",
-                "message": f"Cache hit rate is low ({hit_rate:.1%}). Consider optimizing caching strategy.",
-                "action": "Review cache keys, TTL settings, and caching patterns"
-            })
+            recommendations.append(
+                {
+                    "category": "cache",
+                    "severity": "warning",
+                    "message": f"Cache hit rate is low ({hit_rate:.1%}). Consider optimizing caching strategy.",
+                    "action": "Review cache keys, TTL settings, and caching patterns",
+                }
+            )
         elif hit_rate > 0.9:
-            recommendations.append({
-                "category": "cache",
-                "severity": "info",
-                "message": f"Excellent cache performance ({hit_rate:.1%}). Cache is working effectively.",
-                "action": "No action needed - maintain current caching strategy"
-            })
+            recommendations.append(
+                {
+                    "category": "cache",
+                    "severity": "info",
+                    "message": f"Excellent cache performance ({hit_rate:.1%}). Cache is working effectively.",
+                    "action": "No action needed - maintain current caching strategy",
+                }
+            )
         # General recommendations
         if len(recommendations) == 0:
-            recommendations.append({
-                "category": "general",
-                "severity": "info",
-                "message": "System performance is within normal parameters.",
-                "action": "Continue monitoring performance metrics"
-            })
+            recommendations.append(
+                {
+                    "category": "general",
+                    "severity": "info",
+                    "message": "System performance is within normal parameters.",
+                    "action": "Continue monitoring performance metrics",
+                }
+            )
     except Exception as e:
-        recommendations.append({
-            "category": "error",
-            "severity": "warning",
-            "message": f"Failed to generate some recommendations: {str(e)}",
-            "action": "Check system logs for more details"
-        })
+        recommendations.append(
+            {
+                "category": "error",
+                "severity": "warning",
+                "message": f"Failed to generate some recommendations: {str(e)}",
+                "action": "Check system logs for more details",
+            }
+        )
     return recommendations
 
 
@@ -1434,6 +1565,7 @@ def _cached_ask_processing(question: str, model_name: str, max_tokens: int) -> s
     """Cached version of AI processing for identical requests"""
     # This would be called by the main ask endpoint for cacheable requests
     return f"Cached response for: {question[:50]}..."
+
 
 # ----------------------
 # Enterprise Feature Endpoints (if available)
@@ -1624,19 +1756,19 @@ except Exception as e:
 # OpenSpec Governance Endpoints
 # ===================================
 
+
 @app.get("/api/openspec/changes")
 async def list_openspec_changes(include_archived: bool = False):
     """List all OpenSpec changes with their status"""
     try:
         governance = get_openspec_governance()
         changes = governance.list_changes(include_archived=include_archived)
-        return {
-            "success": True,
-            "changes": changes,
-            "total": len(changes)
-        }
+        return {"success": True, "changes": changes, "total": len(changes)}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list changes: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to list changes: {str(e)}"
+        ) from e
+
 
 @app.get("/api/openspec/changes/{change_id}")
 async def get_openspec_change_details(change_id: str):
@@ -1646,14 +1778,14 @@ async def get_openspec_change_details(change_id: str):
         details = governance.get_change_details(change_id)
         if "error" in details:
             raise HTTPException(status_code=404, detail=details["error"])
-        return {
-            "success": True,
-            "change": details
-        }
+        return {"success": True, "change": details}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get change details: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to get change details: {str(e)}"
+        ) from e
+
 
 @app.post("/api/openspec/changes/{change_id}/validate")
 async def validate_openspec_change(change_id: str):
@@ -1663,14 +1795,14 @@ async def validate_openspec_change(change_id: str):
         validation = governance.validate_change(change_id)
         if "error" in validation:
             raise HTTPException(status_code=404, detail=validation["error"])
-        return {
-            "success": True,
-            "validation": validation
-        }
+        return {"success": True, "validation": validation}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to validate change: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to validate change: {str(e)}"
+        ) from e
+
 
 @app.post("/api/openspec/changes/{change_id}/apply")
 async def apply_openspec_change(change_id: str, dry_run: bool = True):
@@ -1680,14 +1812,14 @@ async def apply_openspec_change(change_id: str, dry_run: bool = True):
         result = governance.apply_change(change_id, dry_run=dry_run)
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to apply change: {str(e)}") from e
+        raise HTTPException(
+            status_code=500, detail=f"Failed to apply change: {str(e)}"
+        ) from e
+
 
 @app.post("/api/openspec/changes/{change_id}/archive")
 async def archive_openspec_change(change_id: str, create_timestamp: bool = True):
@@ -1697,10 +1829,7 @@ async def archive_openspec_change(change_id: str, create_timestamp: bool = True)
         result = governance.archive_change(change_id, create_timestamp=create_timestamp)
         if "error" in result:
             raise HTTPException(status_code=400, detail=result["error"])
-        return {
-            "success": True,
-            "result": result
-        }
+        return {"success": True, "result": result}
     except HTTPException:
         raise
     except Exception as e:
@@ -1709,21 +1838,20 @@ async def archive_openspec_change(change_id: str, create_timestamp: bool = True)
             detail=f"Failed to archive change: {str(e)}",
         ) from e
 
+
 @app.post("/api/openspec/validate-bulk")
 async def bulk_validate_openspec_changes(change_ids: Optional[List[str]] = None):
     """Validate multiple OpenSpec changes in bulk"""
     try:
         governance = get_openspec_governance()
         results = governance.bulk_validate(change_ids)
-        return {
-            "success": True,
-            "validation_results": results
-        }
+        return {"success": True, "validation_results": results}
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to bulk validate: {str(e)}",
         ) from e
+
 
 @app.get("/api/openspec/metrics")
 async def get_openspec_governance_metrics():
@@ -1731,15 +1859,13 @@ async def get_openspec_governance_metrics():
     try:
         governance = get_openspec_governance()
         metrics = governance.get_governance_metrics()
-        return {
-            "success": True,
-            "metrics": metrics
-        }
+        return {"success": True, "metrics": metrics}
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get metrics: {str(e)}",
         ) from e
+
 
 @app.get("/api/openspec/dashboard")
 async def get_openspec_dashboard():
@@ -1760,8 +1886,8 @@ async def get_openspec_dashboard():
                 "active_changes": changes,
                 "metrics": metrics,
                 "validation_summary": validation_summary,
-                "last_updated": datetime.now().isoformat()
-            }
+                "last_updated": datetime.now().isoformat(),
+            },
         }
     except Exception as e:
         raise HTTPException(
@@ -1769,9 +1895,11 @@ async def get_openspec_dashboard():
             detail=f"Failed to get dashboard data: {str(e)}",
         ) from e
 
+
 # ========================================
 # Security Monitoring & Audit Endpoints
 # ========================================
+
 
 @app.get("/api/security/status")
 async def get_security_status():
@@ -1782,6 +1910,7 @@ async def get_security_status():
         # Add rate limiting status if available
         try:
             from .rate_limiting import get_security_status
+
             rate_limit_status = get_security_status()
             status["rate_limiting"] = rate_limit_status
         except ImportError:
@@ -1789,7 +1918,7 @@ async def get_security_status():
         return {
             "success": True,
             "security_status": status,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         raise HTTPException(
@@ -1797,11 +1926,10 @@ async def get_security_status():
             detail=f"Failed to get security status: {str(e)}",
         ) from e
 
+
 @app.get("/api/security/events")
 async def get_security_events(
-    severity: Optional[str] = None,
-    event_type: Optional[str] = None,
-    limit: int = 100
+    severity: Optional[str] = None, event_type: Optional[str] = None, limit: int = 100
 ):
     """Get recent security events with optional filtering"""
     try:
@@ -1810,7 +1938,7 @@ async def get_security_events(
             return {
                 "success": False,
                 "error": "Audit logging not enabled",
-                "events": []
+                "events": [],
             }
         # Convert severity string to enum if provided
         severity_enum = None
@@ -1825,23 +1953,20 @@ async def get_security_events(
         events = security_config.audit_logger.get_recent_events(
             severity=severity_enum,
             event_type=event_type,
-            limit=min(limit, 1000)  # Cap at 1000 events
+            limit=min(limit, 1000),  # Cap at 1000 events
         )
         return {
             "success": True,
             "events": events,
             "total_returned": len(events),
-            "filters": {
-                "severity": severity,
-                "event_type": event_type,
-                "limit": limit
-            }
+            "filters": {"severity": severity, "event_type": event_type, "limit": limit},
         }
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get security events: {str(e)}",
         ) from e
+
 
 @app.post("/api/security/clear-cache")
 async def clear_security_cache():
@@ -1856,12 +1981,12 @@ async def clear_security_cache():
             severity=ThreatLevel.LOW,
             source="admin",
             description="Security caches cleared via API",
-            details={"action": "clear_cache", "method": "api"}
+            details={"action": "clear_cache", "method": "api"},
         )
         return {
             "success": True,
             "message": "Security caches cleared successfully",
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         raise HTTPException(
@@ -1869,29 +1994,28 @@ async def clear_security_cache():
             detail=f"Failed to clear security cache: {str(e)}",
         ) from e
 
+
 @app.get("/api/security/compliance")
 async def get_compliance_status():
     """Get GDPR and SOC2 compliance status"""
     try:
         security_config = get_advanced_security_config()
         if not security_config.compliance_manager:
-            return {
-                "success": False,
-                "error": "Compliance monitoring not enabled"
-            }
+            return {"success": False, "error": "Compliance monitoring not enabled"}
         compliance_report = (
             security_config.compliance_manager.generate_compliance_report()
         )
         return {
             "success": True,
             "compliance_status": compliance_report,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get compliance status: {str(e)}",
         ) from e
+
 
 @app.post("/api/security/gdpr/deletion-request")
 async def handle_gdpr_deletion_request(user_id: str):
@@ -1906,13 +2030,14 @@ async def handle_gdpr_deletion_request(user_id: str):
         return {
             "success": True,
             "deletion_request": result,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to process deletion request: {str(e)}",
         ) from e
+
 
 @app.get("/api/security/dashboard")
 async def get_security_dashboard():
@@ -1925,13 +2050,13 @@ async def get_security_dashboard():
         high_severity_events = []
         if security_config.audit_logger:
             high_severity_events = security_config.audit_logger.get_recent_events(
-                severity=ThreatLevel.HIGH,
-                limit=20
+                severity=ThreatLevel.HIGH, limit=20
             )
         # Get rate limiting status
         rate_limit_status = {}
         try:
             from .rate_limiting import get_security_status
+
             rate_limit_status = get_security_status()
         except ImportError:
             rate_limit_status = {"enabled": False}
@@ -1940,15 +2065,14 @@ async def get_security_dashboard():
             "rate_limiting": rate_limit_status,
             "recent_threats": high_severity_events,
             "monitoring_active": True,
-            "last_updated": datetime.now().isoformat()
+            "last_updated": datetime.now().isoformat(),
         }
-        return {
-            "success": True,
-            "dashboard": dashboard_data
-        }
+        return {"success": True, "dashboard": dashboard_data}
     except Exception as e:
         raise HTTPException(
             status_code=500,
             detail=f"Failed to get security dashboard: {str(e)}",
         ) from e
+
+
 # Do not initialize services at import time to keep startup fast for the server

@@ -1,4 +1,12 @@
 from __future__ import annotations
+
+import argparse
+import datetime as dt
+import json
+import re
+import subprocess
+from pathlib import Path
+
 # Update test metrics in README.md and docs, and (optionally) scaffold an OpenSpec change.
 # Usage (PowerShell):
 #   python scripts/update_test_metrics.py            # runs pytest, updates files, dry-run by default
@@ -9,11 +17,6 @@ from __future__ import annotations
 #   - When --apply is omitted, changes are printed (dry-run)
 #   - When --scaffold-openspec is provided, creates a compliant OpenSpec change directory
 
-import argparse
-import datetime as dt
-import re
-import subprocess
-from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 README = REPO_ROOT / "README.md"
@@ -27,27 +30,48 @@ def make_benchmark_table(bench: dict) -> str:
         return "No benchmark metrics available."
     table = [
         "| Benchmark | Min | Max | Mean | Stddev | Rounds |",
-        "|-----------|-----|-----|------|--------|--------|"
+        "|-----------|-----|-----|------|--------|--------|",
     ]
-    table.append(f"| {bench.get('name', 'N/A')} | {bench.get('min', 'N/A')} | {bench.get('max', 'N/A')} | {bench.get('mean', 'N/A')} | {bench.get('stddev', 'N/A')} | {bench.get('rounds', 'N/A')} |")
+    table.append(
+        f"| {bench.get('name', 'N/A')} | {bench.get('min', 'N/A')} | {bench.get('max', 'N/A')} | {bench.get('mean', 'N/A')} | {bench.get('stddev', 'N/A')} | {bench.get('rounds', 'N/A')} |"
+    )
     return "\n".join(table)
+
 
 def insert_benchmark_table(text, bench_table):
     # Remove any existing Benchmark Metrics section to prevent duplicates
-    text = re.sub(r"### Benchmark Metrics\n\|.*?\n\|.*?\n(?:\|.*?\n)*\n*", "", text, flags=re.MULTILINE)
+    text = re.sub(
+        r"### Benchmark Metrics\n\|.*?\n\|.*?\n(?:\|.*?\n)*\n*",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
     # Prefer to insert after Summary Statistics if present
-    summary_match = re.search(r"(### Summary Statistics \(Last 10 Runs\)[\s\S]*?)(?=\n##|\Z)", text)
+    summary_match = re.search(
+        r"(### Summary Statistics \(Last 10 Runs\)[\s\S]*?)(?=\n##|\Z)", text
+    )
     if summary_match:
         insert_pos = summary_match.end(1)
-        return text[:insert_pos] + "\n\n### Benchmark Metrics\n" + bench_table + "\n\n" + text[insert_pos:]
+        return (
+            text[:insert_pos]
+            + "\n\n### Benchmark Metrics\n"
+            + bench_table
+            + "\n\n"
+            + text[insert_pos:]
+        )
     # Fallback: insert after Recent Test Runs
     recent_runs_match = re.search(r"(### Recent Test Runs\n(?:.*?\n)+)\n", text)
     if recent_runs_match:
         insert_pos = recent_runs_match.end(1)
-        return text[:insert_pos] + "\n### Benchmark Metrics\n" + bench_table + "\n\n" + text[insert_pos:]
+        return (
+            text[:insert_pos]
+            + "\n### Benchmark Metrics\n"
+            + bench_table
+            + "\n\n"
+            + text[insert_pos:]
+        )
     # Last fallback: append at end
     return text + "\n### Benchmark Metrics\n" + bench_table + "\n"
-
 
 
 def run_pytest() -> tuple[int, int, int, str]:
@@ -56,9 +80,11 @@ def run_pytest() -> tuple[int, int, int, str]:
         ["python", "-m", "pytest", "-q"], capture_output=True, text=True, cwd=REPO_ROOT
     )
     out = proc.stdout + "\n" + proc.stderr
-    
+
     # Look for summary with failures: "684 passed, 2 failed, 1 skipped in 141.90s"
-    m = re.search(r"(\d+) passed(?:,\s*(\d+) failed)?(?:,\s*(\d+) skipped)?.*? in ([0-9.]+s)", out)
+    m = re.search(
+        r"(\d+) passed(?:,\s*(\d+) failed)?(?:,\s*(\d+) skipped)?.*? in ([0-9.]+s)", out
+    )
     if not m:
         # Fallback: handle case with only passed tests
         m = re.search(r"(\d+) passed.*? in ([0-9.]+s)", out)
@@ -73,7 +99,7 @@ def run_pytest() -> tuple[int, int, int, str]:
         failed = int(m.group(2)) if m.group(2) else 0
         skipped = int(m.group(3)) if m.group(3) else 0
         duration = m.group(4)
-    
+
     return passed, skipped, failed, duration
 
 
@@ -89,15 +115,17 @@ def get_coverage() -> str:
     if m:
         return m.group(1) + "%"
     # Try alternative pattern
-    m = re.search(r'(\d+)%\s+coverage', text, re.IGNORECASE)
+    m = re.search(r"(\d+)%\s+coverage", text, re.IGNORECASE)
     if m:
         return m.group(1) + "%"
     print("[Warning] Could not parse coverage percentage from HTML")
     return "N/A"
 
+
 def get_benchmark_metrics() -> dict:
     # Extract benchmark metrics from pytest-benchmark results if available.
     import json
+
     bench_dir = REPO_ROOT / ".benchmarks" / "latest"
     results_file = bench_dir / "results.json"
     if not results_file.exists():
@@ -109,10 +137,26 @@ def get_benchmark_metrics() -> dict:
             bm = data["benchmarks"][0]
             stats = bm.get("stats", {})
             return {
-                "min": f"{stats.get('min', 0.0):.4f}s" if isinstance(stats.get('min'), (int, float)) else "N/A",
-                "max": f"{stats.get('max', 0.0):.4f}s" if isinstance(stats.get('max'), (int, float)) else "N/A",
-                "mean": f"{stats.get('mean', 0.0):.4f}s" if isinstance(stats.get('mean'), (int, float)) else "N/A",
-                "stddev": f"{stats.get('stddev', 0.0):.4f}s" if isinstance(stats.get('stddev'), (int, float)) else "N/A",
+                "min": (
+                    f"{stats.get('min', 0.0):.4f}s"
+                    if isinstance(stats.get("min"), (int, float))
+                    else "N/A"
+                ),
+                "max": (
+                    f"{stats.get('max', 0.0):.4f}s"
+                    if isinstance(stats.get("max"), (int, float))
+                    else "N/A"
+                ),
+                "mean": (
+                    f"{stats.get('mean', 0.0):.4f}s"
+                    if isinstance(stats.get("mean"), (int, float))
+                    else "N/A"
+                ),
+                "stddev": (
+                    f"{stats.get('stddev', 0.0):.4f}s"
+                    if isinstance(stats.get("stddev"), (int, float))
+                    else "N/A"
+                ),
                 "rounds": bm.get("rounds", "N/A"),
                 "name": bm.get("fullname", bm.get("name", "N/A")),
             }
@@ -121,7 +165,16 @@ def get_benchmark_metrics() -> dict:
         return {}
     return {}
 
-def replace_readme_metrics(text: str, passed: int, skipped: int, failed: int, date_str: str, duration: str, coverage: str) -> str:
+
+def replace_readme_metrics(
+    text: str,
+    passed: int,
+    skipped: int,
+    failed: int,
+    date_str: str,
+    duration: str,
+    coverage: str,
+) -> str:
     # ...existing code...
     text = re.sub(
         r"\[!\[Tests\]\(https://img.shields.io/badge/tests-[^)]+\)\]",
@@ -177,7 +230,9 @@ def replace_readme_metrics(text: str, passed: int, skipped: int, failed: int, da
     )
     # Add or update coverage line
     if "**Coverage**:" in text:
-        text = re.sub(r"\*\*Coverage\*\*:[^\n]+", f"**Coverage**: {coverage}", text, count=1)
+        text = re.sub(
+            r"\*\*Coverage\*\*:[^\n]+", f"**Coverage**: {coverage}", text, count=1
+        )
     else:
         exec_time_match = re.search(r"(\*\*Execution Time\*\*:[^\n]+\n)", text)
         if exec_time_match:
@@ -186,7 +241,15 @@ def replace_readme_metrics(text: str, passed: int, skipped: int, failed: int, da
     return text
 
 
-def replace_test_results_doc(text: str, date_str: str, passed: int, skipped: int, failed: int, duration: str, coverage: str) -> str:
+def replace_test_results_doc(
+    text: str,
+    date_str: str,
+    passed: int,
+    skipped: int,
+    failed: int,
+    duration: str,
+    coverage: str,
+) -> str:
     text = re.sub(
         r"# 🏆 Comprehensive Test Results - .*",
         f"# 🏆 Comprehensive Test Results - {date_str}",
@@ -209,7 +272,9 @@ def replace_test_results_doc(text: str, date_str: str, passed: int, skipped: int
     )
     # Add or update coverage line
     if "**Coverage**:" in text:
-        text = re.sub(r"\*\*Coverage\*\*:[^\n]+", f"**Coverage**: {coverage}", text, count=1)
+        text = re.sub(
+            r"\*\*Coverage\*\*:[^\n]+", f"**Coverage**: {coverage}", text, count=1
+        )
     else:
         exec_time_match = re.search(r"(\*\*Execution Time\*\*:.*\n)", text)
         if exec_time_match:
@@ -218,7 +283,9 @@ def replace_test_results_doc(text: str, date_str: str, passed: int, skipped: int
     return text
 
 
-def replace_system_status_doc(text: str, date_str: str, passed: int, skipped: int, failed: int) -> str:
+def replace_system_status_doc(
+    text: str, date_str: str, passed: int, skipped: int, failed: int
+) -> str:
     text = re.sub(
         r"\*\*Test Results\*\*: .*",
         (
@@ -237,7 +304,9 @@ def replace_system_status_doc(text: str, date_str: str, passed: int, skipped: in
     return text
 
 
-def scaffold_openspec_change(date_str: str, passed: int, skipped: int, duration: str) -> None:
+def scaffold_openspec_change(
+    date_str: str, passed: int, skipped: int, duration: str
+) -> None:
     change_id = f"update-doc-docs-test-results-auto-{date_str.lower()}"
     change_dir = OPEN_SPEC_CHANGES / change_id
     change_dir.mkdir(parents=True, exist_ok=True)
@@ -302,12 +371,10 @@ def scaffold_openspec_change(date_str: str, passed: int, skipped: int, duration:
     (spec_dir / "spec.md").write_text(spec, encoding="utf-8")
 
 
-
-
 # --- Execution Time Trend & History Logic ---
 PREV_METRICS_FILE = REPO_ROOT / "docs" / ".test_metrics_prev.json"
 HISTORY_FILE = REPO_ROOT / "docs" / ".test_metrics_history.json"
-import json
+
 
 def load_prev_metrics():
     if PREV_METRICS_FILE.exists():
@@ -318,9 +385,11 @@ def load_prev_metrics():
             return None, None, None
     return None, None, None
 
+
 def save_current_metrics(duration, date_str, coverage):
     data = {"duration": duration, "date": date_str, "coverage": coverage}
     PREV_METRICS_FILE.write_text(json.dumps(data), encoding="utf-8")
+
 
 def get_duration_seconds(duration_str):
     # Converts "148.15s" to float seconds
@@ -329,11 +398,12 @@ def get_duration_seconds(duration_str):
     except Exception:
         return None
 
+
 def make_trend_summary(prev_duration, prev_date, curr_duration, curr_date):
     prev_sec = get_duration_seconds(prev_duration) if prev_duration else None
     curr_sec = get_duration_seconds(curr_duration)
     if prev_sec is None or curr_sec is None:
-        return f"No previous run data available."
+        return "No previous run data available."
     delta = curr_sec - prev_sec
     pct = (delta / prev_sec) * 100 if prev_sec else 0
     if abs(delta) < 0.01:
@@ -344,6 +414,7 @@ def make_trend_summary(prev_duration, prev_date, curr_duration, curr_date):
         trend = f"Regressed by {delta:.2f}s (+{pct:.1f}%) since {prev_date}."
     return f"**Execution Time Trend**: {trend}"
 
+
 def make_coverage_trend(prev_coverage, prev_date, curr_coverage, curr_date):
     # Parse coverage percentages
     def parse_coverage(cov_str):
@@ -353,13 +424,13 @@ def make_coverage_trend(prev_coverage, prev_date, curr_coverage, curr_date):
             return int(cov_str.rstrip("%"))
         except (ValueError, AttributeError):
             return None
-    
+
     prev_pct = parse_coverage(prev_coverage) if prev_coverage else None
     curr_pct = parse_coverage(curr_coverage)
-    
+
     if prev_pct is None or curr_pct is None:
         return None
-    
+
     delta = curr_pct - prev_pct
     if delta == 0:
         trend = "No change in coverage."
@@ -369,11 +440,12 @@ def make_coverage_trend(prev_coverage, prev_date, curr_coverage, curr_date):
         trend = f"Decreased by {-delta}% since {prev_date}. 📉"
     return f"**Coverage Trend**: {trend}"
 
+
 def insert_trend_summary(text, trend_summary):
     # Remove any existing trend summaries to prevent duplicates
     text = re.sub(r"\*\*Execution Time Trend\*\*:.*?\n", "", text)
     text = re.sub(r"\*\*Coverage Trend\*\*:.*?\n", "", text)
-    
+
     # Insert after Execution Time line (or Coverage line if adding coverage trend)
     if "Coverage Trend" in trend_summary:
         # Insert after Coverage line
@@ -387,8 +459,9 @@ def insert_trend_summary(text, trend_summary):
         if exec_time_match:
             insert_pos = exec_time_match.end(1)
             return text[:insert_pos] + trend_summary + "\n" + text[insert_pos:]
-    
+
     return text + "\n" + trend_summary
+
 
 def load_history():
     if HISTORY_FILE.exists():
@@ -398,10 +471,14 @@ def load_history():
             return []
     return []
 
+
 def save_history(history):
     HISTORY_FILE.write_text(json.dumps(history, indent=2), encoding="utf-8")
 
-def append_run_to_history(date_str, passed, skipped, failed, duration, coverage, max_entries=10):
+
+def append_run_to_history(
+    date_str, passed, skipped, failed, duration, coverage, max_entries=10
+):
     history = load_history()
     entry = {
         "date": date_str,
@@ -409,7 +486,7 @@ def append_run_to_history(date_str, passed, skipped, failed, duration, coverage,
         "skipped": skipped,
         "failed": failed,
         "duration": duration,
-        "coverage": coverage
+        "coverage": coverage,
     }
     # Remove duplicate date if present
     history = [h for h in history if h["date"] != date_str]
@@ -419,91 +496,142 @@ def append_run_to_history(date_str, passed, skipped, failed, duration, coverage,
     save_history(history)
     return history
 
+
 def make_history_table(history):
     if not history:
         return "No recent test run history available."
     table = [
         "| Date | Passed | Skipped | Failed | Duration | Coverage |",
-        "|------|--------|---------|--------|----------|----------|"
+        "|------|--------|---------|--------|----------|----------|",
     ]
     for h in reversed(history):
-        failed = h.get('failed', 0)
+        failed = h.get("failed", 0)
         status_emoji = "✅" if failed == 0 else "❌"
-        table.append(f"| {h['date']} {status_emoji} | {h['passed']} | {h['skipped']} | {failed} | {h['duration']} | {h['coverage']} |")
+        table.append(
+            f"| {h['date']} {status_emoji} | {h['passed']} | {h['skipped']} | {failed} | {h['duration']} | {h['coverage']} |"
+        )
     return "\n".join(table)
+
 
 def make_summary_stats(history):
     """Generate summary statistics from test history."""
     if not history or len(history) < 2:
         return None
-    
+
     # Extract numeric values
     durations = []
     coverages = []
     for h in history:
-        dur_sec = get_duration_seconds(h.get('duration', ''))
+        dur_sec = get_duration_seconds(h.get("duration", ""))
         if dur_sec:
             durations.append(dur_sec)
-        cov_str = h.get('coverage', 'N/A')
-        if cov_str and cov_str != 'N/A':
+        cov_str = h.get("coverage", "N/A")
+        if cov_str and cov_str != "N/A":
             try:
-                coverages.append(int(cov_str.rstrip('%')))
+                coverages.append(int(cov_str.rstrip("%")))
             except (ValueError, AttributeError):
                 pass
-    
+
     stats = []
     if durations:
         avg_duration = sum(durations) / len(durations)
         min_duration = min(durations)
         max_duration = max(durations)
-        stats.append(f"**Average Execution Time**: {avg_duration:.2f}s (min: {min_duration:.2f}s, max: {max_duration:.2f}s)")
-    
+        stats.append(
+            f"**Average Execution Time**: {avg_duration:.2f}s (min: {min_duration:.2f}s, max: {max_duration:.2f}s)"
+        )
+
     if coverages:
         avg_coverage = sum(coverages) / len(coverages)
         min_coverage = min(coverages)
         max_coverage = max(coverages)
-        stats.append(f"**Average Coverage**: {avg_coverage:.1f}% (min: {min_coverage}%, max: {max_coverage}%)")
-    
+        stats.append(
+            f"**Average Coverage**: {avg_coverage:.1f}% (min: {min_coverage}%, max: {max_coverage}%)"
+        )
+
     if stats:
         return "\n".join(["### Summary Statistics (Last 10 Runs)"] + [""] + stats)
     return None
 
+
 def insert_history_table(text, history_table):
     # Remove any existing "Recent Test Runs" sections to prevent duplicates
-    text = re.sub(r"### Recent Test Runs\n\|.*?\n\|.*?\n(?:\|.*?\n)*\n*", "", text, flags=re.MULTILINE)
-    text = re.sub(r"### Summary Statistics \(Last 10 Runs\)\n(?:.*?\n)*?(?=\n##|\Z)", "", text, flags=re.MULTILINE)
-    
+    text = re.sub(
+        r"### Recent Test Runs\n\|.*?\n\|.*?\n(?:\|.*?\n)*\n*",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
+    text = re.sub(
+        r"### Summary Statistics \(Last 10 Runs\)\n(?:.*?\n)*?(?=\n##|\Z)",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
+
     # Insert after Executive Summary
     summary_match = re.search(r"(## 📊 Executive Summary\n.*?\n---\n)", text, re.DOTALL)
     if summary_match:
         insert_pos = summary_match.end(1)
-        return text[:insert_pos] + "\n### Recent Test Runs\n" + history_table + "\n\n" + text[insert_pos:]
+        return (
+            text[:insert_pos]
+            + "\n### Recent Test Runs\n"
+            + history_table
+            + "\n\n"
+            + text[insert_pos:]
+        )
     return text + "\n### Recent Test Runs\n" + history_table + "\n"
+
 
 def insert_summary_stats(text, summary_stats_section):
     if not summary_stats_section:
         return text
     # Remove existing summary stats to prevent duplicates
-    text = re.sub(r"### Summary Statistics \(Last 10 Runs\)\n(?:.*?\n)*?(?=\n##|\Z)", "", text, flags=re.MULTILINE)
+    text = re.sub(
+        r"### Summary Statistics \(Last 10 Runs\)\n(?:.*?\n)*?(?=\n##|\Z)",
+        "",
+        text,
+        flags=re.MULTILINE,
+    )
     # Insert after Recent Test Runs section
-    recent_match = re.search(r"(### Recent Test Runs\n\|.*?\n\|.*?\n(?:\|.*?\n)+)", text, re.DOTALL)
+    recent_match = re.search(
+        r"(### Recent Test Runs\n\|.*?\n\|.*?\n(?:\|.*?\n)+)", text, re.DOTALL
+    )
     if recent_match:
         insert_pos = recent_match.end(1)
-        return text[:insert_pos] + "\n\n" + summary_stats_section + "\n\n" + text[insert_pos:]
+        return (
+            text[:insert_pos]
+            + "\n\n"
+            + summary_stats_section
+            + "\n\n"
+            + text[insert_pos:]
+        )
     return text + "\n" + summary_stats_section + "\n"
 
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--apply", action="store_true", help="Apply changes to files")
-    parser.add_argument("--skip-pytest", action="store_true", help="Do not run pytest; use provided counts")
+    parser.add_argument(
+        "--skip-pytest",
+        action="store_true",
+        help="Do not run pytest; use provided counts",
+    )
     parser.add_argument("--passed", type=int, default=None)
     parser.add_argument("--skipped", type=int, default=None)
     parser.add_argument("--failed", type=int, default=0, help="Number of failed tests")
     parser.add_argument("--duration", type=str, default=None)
-    parser.add_argument("--date", type=str, default=None, help="YYYY-MM-DD (defaults to today)")
-    parser.add_argument("--scaffold-openspec", action="store_true", help="Create an OpenSpec change directory for this update")
-    parser.add_argument("--coverage", type=str, default=None, help="Coverage percentage (optional)")
+    parser.add_argument(
+        "--date", type=str, default=None, help="YYYY-MM-DD (defaults to today)"
+    )
+    parser.add_argument(
+        "--scaffold-openspec",
+        action="store_true",
+        help="Create an OpenSpec change directory for this update",
+    )
+    parser.add_argument(
+        "--coverage", type=str, default=None, help="Coverage percentage (optional)"
+    )
 
     args = parser.parse_args()
 
@@ -528,17 +656,23 @@ def main():
     coverage_trend = make_coverage_trend(prev_coverage, prev_date, coverage, date_str)
 
     # --- Update history and create table ---
-    history = append_run_to_history(date_str, passed, skipped, failed, duration, coverage)
+    history = append_run_to_history(
+        date_str, passed, skipped, failed, duration, coverage
+    )
     history_table = make_history_table(history)
     summary_stats = make_summary_stats(history)
 
     # Update README
     readme_text = README.read_text(encoding="utf-8")
-    new_readme = replace_readme_metrics(readme_text, passed, skipped, failed, date_str, duration, coverage)
+    new_readme = replace_readme_metrics(
+        readme_text, passed, skipped, failed, date_str, duration, coverage
+    )
 
     # Update test results doc
     test_results_text = DOC_TEST_RESULTS.read_text(encoding="utf-8")
-    new_test_results = replace_test_results_doc(test_results_text, date_str, passed, skipped, failed, duration, coverage)
+    new_test_results = replace_test_results_doc(
+        test_results_text, date_str, passed, skipped, failed, duration, coverage
+    )
     new_test_results = insert_trend_summary(new_test_results, trend_summary)
     if coverage_trend:
         new_test_results = insert_trend_summary(new_test_results, coverage_trend)
@@ -552,8 +686,9 @@ def main():
 
     # Update system status doc
     sys_status_text = DOC_SYSTEM_STATUS.read_text(encoding="utf-8")
-    new_sys_status = replace_system_status_doc(sys_status_text, date_str, passed, skipped, failed)
-
+    new_sys_status = replace_system_status_doc(
+        sys_status_text, date_str, passed, skipped, failed
+    )
 
     if args.apply:
         README.write_text(new_readme, encoding="utf-8")
@@ -565,7 +700,9 @@ def main():
         # Post-update: Validate OpenSpec compliance
         validate_cmd = f"openspec validate update-doc-docs-test-results-auto-{date_str.lower()} --strict"
         try:
-            result = subprocess.run(validate_cmd, shell=True, cwd=REPO_ROOT, capture_output=True, text=True)
+            result = subprocess.run(
+                validate_cmd, shell=True, cwd=REPO_ROOT, capture_output=True, text=True
+            )
             print(result.stdout)
             if result.returncode != 0:
                 print("[OpenSpec Validation] FAILED:")
@@ -574,7 +711,9 @@ def main():
                 print("[OpenSpec Validation] PASSED.")
         except Exception as e:
             print(f"[OpenSpec Validation] Error: {e}")
-        print(f"Updated docs with {passed} passed, {skipped} skipped, {failed} failed in {duration} on {date_str}.")
+        print(
+            f"Updated docs with {passed} passed, {skipped} skipped, {failed} failed in {duration} on {date_str}."
+        )
     else:
         print("--- README preview (first 5 lines) ---")
         print("\n".join(new_readme.splitlines()[:5]))

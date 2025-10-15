@@ -1,4 +1,4 @@
-# Tasks: add-feat-test-metrics-automation
+# Tasks: update-doc-test-metrics-automation
 
 ## 1. Implementation
 
@@ -32,7 +32,7 @@
 
 ```bash
 # Validate OpenSpec compliance
-python -m pytest tests/test_openspec_changes.py -v
+openspec validate update-doc-test-metrics-automation --strict
 
 # Test automation script
 python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s"

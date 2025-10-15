@@ -14,8 +14,8 @@ The system SHALL maintain current and accurate test result summaries across gove
 #### Scenario: Documentation reflects latest test suite execution
 
 - GIVEN the full test suite has been run
-- WHEN counts or timing change (e.g., 686 passed, 0 skipped on 2025-10-15)
-- THEN docs/TEST_RESULTS_OCTOBER_2025.md MUST reflect the latest results within 24 hours
+- **WHEN** counts or timing change (e.g., 686 passed, 0 skipped on 2025-10-15)
+- **THEN** docs/TEST_RESULTS_OCTOBER_2025.md MUST reflect the latest results within 24 hours
 
 ### Requirement: Consistency across status pages
 
@@ -27,5 +27,5 @@ All listed artifacts SHALL remain consistent with respect to the latest test met
 #### Scenario: Cross-document consistency
 
 - GIVEN README, system status, and test results pages
-- WHEN one document is updated with new test metrics
-- THEN the other documents MUST be updated to ensure aligned counts and dates
+- **WHEN** one document is updated with new test metrics
+- **THEN** the other documents MUST be updated to ensure aligned counts and dates

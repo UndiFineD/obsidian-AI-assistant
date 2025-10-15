@@ -1,6 +1,3 @@
-
-
-
 import os
 import subprocess
 import sys
@@ -10,7 +7,6 @@ import sys
 Test runner script that ensures proper environment setup for Obsidian AI Assistant tests.
 Sets TEST_MODE=true to disable enterprise authentication middleware during testing.
 """
-
 
 
 def run_tests():
@@ -41,7 +37,6 @@ def run_tests():
 
     # Run pytest with the arguments
     cmd = ["python", "-m", "pytest"] + pytest_args
-
 
     # Execute pytest
     result = subprocess.run(cmd, env=os.environ)

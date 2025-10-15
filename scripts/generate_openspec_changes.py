@@ -2,61 +2,60 @@
 """Generate OpenSpec change directories for documentation governance."""
 import sys
 from pathlib import Path
-from datetime import datetime
 
 # Repository root detection
 REPO_ROOT = Path(__file__).parent.parent
 
 # Paths to exclude from OpenSpec change generation
 EXCLUDED_PATHS = {
-    '__pycache__',
-    '.git',
-    'node_modules',
-    '.venv',
-    '.pytest_cache',
-    'htmlcov',
-    'dist',
-    'build',
-    '.mypy_cache',
-    '.ruff_cache',
+    "__pycache__",
+    ".git",
+    "node_modules",
+    ".venv",
+    ".pytest_cache",
+    "htmlcov",
+    "dist",
+    "build",
+    ".mypy_cache",
+    ".ruff_cache",
 }
 
 
 def to_change_id(file_path):
     """Convert a file path to an OpenSpec change ID.
-    
+
     Args:
         file_path: Path object or string representing the file
-        
+
     Returns:
         String change ID in format: update-doc-{path-parts}
     """
     if isinstance(file_path, str):
         file_path = Path(file_path)
-    
+
     # Get relative path from repo root
     try:
         rel_path = file_path.relative_to(REPO_ROOT)
     except ValueError:
         # If not relative to REPO_ROOT, use as-is
         rel_path = file_path
-    
+
     # Convert to parts and clean up
     parts = []
     for part in rel_path.parts:
         # Remove .md extension only
-        if part.endswith('.md'):
+        if part.endswith(".md"):
             part = part[:-3]
         # Handle dotfiles/dotdirs (like .github) - keep the name without the dot
-        if part.startswith('.') and len(part) > 1:
+        if part.startswith(".") and len(part) > 1:
             part = part[1:]  # Remove leading dot
         # Replace remaining dots and underscores with hyphens
-        part = part.replace('.', '-').replace('_', '-')
+        part = part.replace(".", "-").replace("_", "-")
         # Lowercase
         part = part.lower()
         if part:  # Only add non-empty parts
             parts.append(part)
-    
+
     # Join with hyphens and prefix with update-doc-
     change_id = "update-doc-" + "-".join(parts)
     return change_id
@@ -64,11 +63,11 @@ def to_change_id(file_path):
 
 def proposal_md(change_id, rel_path):
     """Generate proposal.md content for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the proposal markdown
     """
@@ -112,11 +111,11 @@ Improves clarity, governance, and auditability of project documentation. Enables
 
 def tasks_md(change_id, rel_path):
     """Generate tasks.md content for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the tasks markdown
     """
@@ -141,11 +140,11 @@ def tasks_md(change_id, rel_path):
 
 def spec_delta_md(change_id, rel_path):
     """Generate spec delta markdown for a change.
-    
+
     Args:
         change_id: The change ID
         rel_path: Relative path to the file being changed
-        
+
     Returns:
         String containing the spec delta markdown
     """
@@ -176,44 +175,46 @@ def main():
     if len(sys.argv) < 2:
         print("Usage: generate_openspec_changes.py <file_path>")
         return 1
-    
+
     file_path = Path(sys.argv[1])
     change_id = to_change_id(file_path)
-    
+
     # Get relative path
     try:
         rel_path = file_path.relative_to(REPO_ROOT)
     except ValueError:
         rel_path = file_path
-    
+
     # Create change directory
     changes_dir = REPO_ROOT / "openspec" / "changes" / change_id
     changes_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Create specs directory
     specs_dir = changes_dir / "specs" / "project-documentation"
     specs_dir.mkdir(parents=True, exist_ok=True)
-    
+
     # Write proposal.md (check if exists first)
     proposal_path = changes_dir / "proposal.md"
     if not proposal_path.exists():
-        proposal_path.write_text(proposal_md(change_id, str(rel_path)), encoding='utf-8')
-    
+        proposal_path.write_text(
+            proposal_md(change_id, str(rel_path)), encoding="utf-8"
+        )
+
     # Write tasks.md
     tasks_path = changes_dir / "tasks.md"
     if not tasks_path.exists():
-        tasks_path.write_text(tasks_md(change_id, str(rel_path)), encoding='utf-8')
-    
+        tasks_path.write_text(tasks_md(change_id, str(rel_path)), encoding="utf-8")
+
     # Write spec.md
     spec_path = specs_dir / "spec.md"
     if not spec_path.exists():
-        spec_path.write_text(spec_delta_md(change_id, str(rel_path)), encoding='utf-8')
-    
+        spec_path.write_text(spec_delta_md(change_id, str(rel_path)), encoding="utf-8")
+
     print(f"Created OpenSpec change: {change_id}")
     print(f"  - {proposal_path}")
     print(f"  - {tasks_path}")
     print(f"  - {spec_path}")
-    
+
     return 0
 
 

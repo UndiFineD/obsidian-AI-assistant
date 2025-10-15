@@ -60,7 +60,5 @@ def decrypt_data(data: bytes) -> Optional[str]:
     try:
         return fernet.decrypt(data).decode()
     except (InvalidToken, TypeError, AttributeError):
-        logger.warning(
-            "Decryption failed: Invalid or tampered token provided."
-        )
+        logger.warning("Decryption failed: Invalid or tampered token provided.")
         return None

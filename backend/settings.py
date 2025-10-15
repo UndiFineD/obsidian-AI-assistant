@@ -6,12 +6,14 @@ from typing import Any, Optional
 
 try:
     import yaml  # type: ignore[import-untyped]
+
     YAML_AVAILABLE = True
 except ImportError:
     yaml = None
     YAML_AVAILABLE = False
 
 from pydantic import BaseModel  # type: ignore[import-untyped]
+
 
 def sanitize_prompt_input(prompt: str) -> str:
     """
@@ -65,16 +67,14 @@ def sanitize_prompt_input(prompt: str) -> str:
         flags=re.IGNORECASE,
     ):
         return "[REDACTED]; [REDACTED]('[REDACTED] /')"
-    elif re.search(
-        r"run\s*system\.shutdown\(\)", prompt, flags=re.IGNORECASE
-    ):
+    elif re.search(r"run\s*system\.shutdown\(\)", prompt, flags=re.IGNORECASE):
         return "run [REDACTED]()"
     elif re.search(r"DROP TABLE users;", prompt, flags=re.IGNORECASE):
         return "[REDACTED] TABLE users;"
-    elif re.search(r'password=([^\s]+)', prompt, flags=re.IGNORECASE):
+    elif re.search(r"password=([^\s]+)", prompt, flags=re.IGNORECASE):
         # Handle password case but still apply escaping
         prompt = re.sub(
-            r'password=([^\s]+)', r'[REDACTED]=\1', prompt, flags=re.IGNORECASE
+            r"password=([^\s]+)", r"[REDACTED]=\1", prompt, flags=re.IGNORECASE
         )
     else:
         # Replace dangerous patterns with [REDACTED] for other cases
@@ -82,7 +82,7 @@ def sanitize_prompt_input(prompt: str) -> str:
             prompt = re.sub(pattern, "[REDACTED]", prompt)
     # Escape special characters
     prompt = prompt.replace("<", "&lt;").replace(">", "&gt;")
-    prompt = prompt.replace("\"", "&quot;").replace("'", "&#39;")
+    prompt = prompt.replace('"', "&quot;").replace("'", "&#39;")
     # Enforce length limit
     max_length = 10000
     if len(prompt) > max_length:
@@ -90,6 +90,8 @@ def sanitize_prompt_input(prompt: str) -> str:
     # Remove excessive whitespace
     prompt = re.sub(r"\s+", " ", prompt).strip()
     return prompt
+
+
 """
 Centralized settings for backend and plugin bridge.
 

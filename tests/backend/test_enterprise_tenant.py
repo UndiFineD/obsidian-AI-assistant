@@ -47,7 +47,7 @@ class TestTenantLimitsDataClass:
             max_documents=10000,
             max_storage_gb=100,
             max_api_calls_per_hour=1000,
-            max_concurrent_requests=10
+            max_concurrent_requests=10,
         )
 
         assert limits.max_users == 50
@@ -67,7 +67,7 @@ class TestTenantLimitsDataClass:
             max_storage_gb=500,
             max_api_calls_per_hour=5000,
             max_concurrent_requests=25,
-            features_enabled=features
+            features_enabled=features,
         )
 
         assert limits.features_enabled == features
@@ -81,7 +81,7 @@ class TestTenantLimitsDataClass:
             max_documents=1000,
             max_storage_gb=10,
             max_api_calls_per_hour=100,
-            max_concurrent_requests=5
+            max_concurrent_requests=5,
         )
 
         # Should be able to access all fields
@@ -107,7 +107,7 @@ class TestTenantConfigDataClass:
             tier=TenantTier.BASIC,
             limits=limits,
             created_at=created_time,
-            admin_email="admin@testcompany.com"
+            admin_email="admin@testcompany.com",
         )
 
         assert config.tenant_id == "tenant_123"
@@ -137,7 +137,7 @@ class TestTenantConfigDataClass:
             status="active",
             custom_domain="ai.enterprise.com",
             sso_config=sso_config,
-            billing_config=billing_config
+            billing_config=billing_config,
         )
 
         assert config.custom_domain == "ai.enterprise.com"
@@ -157,7 +157,7 @@ class TestTenantConfigDataClass:
                 limits=limits,
                 created_at=datetime.utcnow(),
                 admin_email=f"admin@{status}.com",
-                status=status
+                status=status,
             )
 
             assert config.status == status
@@ -177,7 +177,7 @@ class TestTenantUsageDataClass:
             storage_used_gb=75.5,
             api_calls_this_hour=250,
             concurrent_requests=3,
-            last_updated=last_updated
+            last_updated=last_updated,
         )
 
         assert usage.tenant_id == "usage_tenant"
@@ -197,7 +197,7 @@ class TestTenantUsageDataClass:
             storage_used_gb=0.0,
             api_calls_this_hour=0,
             concurrent_requests=0,
-            last_updated=datetime.utcnow()
+            last_updated=datetime.utcnow(),
         )
 
         assert usage.current_users == 0
@@ -215,7 +215,7 @@ class TestTenantUsageDataClass:
             storage_used_gb=9999.99,
             api_calls_this_hour=50000,
             concurrent_requests=500,
-            last_updated=datetime.utcnow()
+            last_updated=datetime.utcnow(),
         )
 
         assert usage.current_users == 10000
@@ -261,9 +261,7 @@ class TestTenantManager:
     def test_create_tenant_basic(self):
         """Test creating a basic tenant."""
         tenant_config = self.tenant_manager.create_tenant(
-            name="Basic Company",
-            admin_email="admin@basic.com",
-            tier=TenantTier.BASIC
+            name="Basic Company", admin_email="admin@basic.com", tier=TenantTier.BASIC
         )
 
         assert tenant_config is not None
@@ -285,7 +283,7 @@ class TestTenantManager:
             admin_email="admin@custom.com",
             tier=TenantTier.ENTERPRISE,
             custom_domain=custom_domain,
-            sso_config=sso_config
+            sso_config=sso_config,
         )
 
         assert tenant_config.custom_domain == custom_domain
@@ -386,7 +384,7 @@ class TestTenantManager:
             current_documents=25000,
             storage_used_gb=250.5,
             api_calls_this_hour=1500,
-            concurrent_requests=8
+            concurrent_requests=8,
         )
 
         assert success is True
@@ -422,7 +420,7 @@ class TestTenantManager:
             current_documents=basic_limits.max_documents - 1,
             storage_used_gb=basic_limits.max_storage_gb - 1,
             api_calls_this_hour=basic_limits.max_api_calls_per_hour - 1,
-            concurrent_requests=basic_limits.max_concurrent_requests - 1
+            concurrent_requests=basic_limits.max_concurrent_requests - 1,
         )
 
         # Check limits
@@ -445,7 +443,7 @@ class TestTenantManager:
         self.tenant_manager.update_tenant_usage(
             tenant.tenant_id,
             current_users=basic_limits.max_users + 1,  # Exceed limit
-            current_documents=basic_limits.max_documents + 1000
+            current_documents=basic_limits.max_documents + 1000,
         )
 
         # Check limits
@@ -606,9 +604,7 @@ class TestTenantIntegration:
         """Test complete tenant lifecycle."""
         # Create tenant
         tenant = self.tenant_manager.create_tenant(
-            "Lifecycle Test Corp",
-            "admin@lifecycle.com",
-            TenantTier.PROFESSIONAL
+            "Lifecycle Test Corp", "admin@lifecycle.com", TenantTier.PROFESSIONAL
         )
 
         assert tenant is not None
@@ -619,7 +615,7 @@ class TestTenantIntegration:
             tenant.tenant_id,
             current_users=25,
             current_documents=5000,
-            storage_used_gb=100.0
+            storage_used_gb=100.0,
         )
         assert success is True
 
@@ -664,16 +660,12 @@ class TestTenantIntegration:
 
         # Update usage for tenant1
         self.tenant_manager.update_tenant_usage(
-            tenant1.tenant_id,
-            current_users=5,
-            current_documents=1000
+            tenant1.tenant_id, current_users=5, current_documents=1000
         )
 
         # Update usage for tenant2
         self.tenant_manager.update_tenant_usage(
-            tenant2.tenant_id,
-            current_users=50,
-            current_documents=25000
+            tenant2.tenant_id, current_users=50, current_documents=25000
         )
 
         # Verify isolation - tenant1 usage shouldn't affect tenant2
@@ -706,7 +698,7 @@ class TestTenantIntegration:
         # Exceed basic limits
         self.tenant_manager.update_tenant_usage(
             basic_tenant.tenant_id,
-            current_users=basic_limits.max_users + 5  # Exceed user limit
+            current_users=basic_limits.max_users + 5,  # Exceed user limit
         )
 
         # Check limits - should be exceeded
@@ -719,15 +711,12 @@ class TestTenantIntegration:
         # Simulate tier upgrade by creating new config with professional tier
         # (In real implementation, there would be an upgrade_tenant_tier method)
         professional_tenant = self.tenant_manager.create_tenant(
-            "Upgrade Test (Upgraded)",
-            "admin@upgrade.com",
-            TenantTier.PROFESSIONAL
+            "Upgrade Test (Upgraded)", "admin@upgrade.com", TenantTier.PROFESSIONAL
         )
 
         # Update usage to same levels
         self.tenant_manager.update_tenant_usage(
-            professional_tenant.tenant_id,
-            current_users=basic_limits.max_users + 5
+            professional_tenant.tenant_id, current_users=basic_limits.max_users + 5
         )
 
         # Should now be within professional limits

@@ -3,26 +3,34 @@ Automated Dependency Audit Script
 Runs Safety (Python) and npm audit (JavaScript), logs results for weekly review.
 """
 
-
-
-
+import os
 import subprocess
 import sys
-import os
 from datetime import datetime
+
 
 def run_safety():
     pass
-    result = subprocess.run([
-        sys.executable, "-m", "safety", "check", "--full-report", "--file", "../requirements.txt"
-    ], capture_output=True, text=True)
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "safety",
+            "check",
+            "--full-report",
+            "--file",
+            "../requirements.txt",
+        ],
+        capture_output=True,
+        text=True,
+    )
     return result.stdout
 
+
 def run_npm_audit():
-    result = subprocess.run([
-        "npm", "audit", "--json"
-    ], capture_output=True, text=True)
+    result = subprocess.run(["npm", "audit", "--json"], capture_output=True, text=True)
     return result.stdout
+
 
 def main():
     timestamp = datetime.utcnow().isoformat()
@@ -35,6 +43,7 @@ def main():
         log.write("\n--- npm audit (JavaScript) ---\n")
         log.write(run_npm_audit())
         log.write("\n=== End Audit ===\n")
+
 
 if __name__ == "__main__":
     pass

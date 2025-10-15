@@ -21,69 +21,123 @@ from typing import Dict, List, Optional, Tuple
 # Optional import for python-magic
 try:
     import magic
+
     MAGIC_AVAILABLE = True
 except ImportError:
     magic = None
     MAGIC_AVAILABLE = False
 
+
 class FileValidationError(Exception):
     """Custom exception for file validation errors"""
+
     pass
+
 
 class FileValidator:
     """Comprehensive file upload validator"""
 
     # Allowed file types with MIME types and magic bytes
     ALLOWED_TYPES = {
-        'pdf': {
-            'mime_types': ['application/pdf'],
-            'magic_bytes': [b'%PDF-'],
-            'max_size_mb': 50,
-            'extensions': ['.pdf']
+        "pdf": {
+            "mime_types": ["application/pdf"],
+            "magic_bytes": [b"%PDF-"],
+            "max_size_mb": 50,
+            "extensions": [".pdf"],
         },
-        'audio': {
-            'mime_types': [
-                'audio/wav', 'audio/wave', 'audio/x-wav',
-                'audio/webm', 'audio/ogg', 'audio/mp3',
-                'audio/mpeg', 'audio/mp4', 'audio/aac'
+        "audio": {
+            "mime_types": [
+                "audio/wav",
+                "audio/wave",
+                "audio/x-wav",
+                "audio/webm",
+                "audio/ogg",
+                "audio/mp3",
+                "audio/mpeg",
+                "audio/mp4",
+                "audio/aac",
             ],
-            'magic_bytes': [
-                b'RIFF', b'OggS', b'ID3', b'\xff\xfb',  # WAV, OGG, MP3
-                b'\x1a\x45\xdf\xa3'  # WebM/Matroska
+            "magic_bytes": [
+                b"RIFF",
+                b"OggS",
+                b"ID3",
+                b"\xff\xfb",  # WAV, OGG, MP3
+                b"\x1a\x45\xdf\xa3",  # WebM/Matroska
             ],
-            'max_size_mb': 25,
-            'extensions': ['.wav', '.webm', '.ogg', '.mp3', '.mp4', '.aac']
+            "max_size_mb": 25,
+            "extensions": [".wav", ".webm", ".ogg", ".mp3", ".mp4", ".aac"],
         },
-        'text': {
-            'mime_types': [
-                'text/plain', 'text/markdown', 'text/x-markdown',
-                'application/json', 'text/csv'
+        "text": {
+            "mime_types": [
+                "text/plain",
+                "text/markdown",
+                "text/x-markdown",
+                "application/json",
+                "text/csv",
             ],
-            'magic_bytes': [],  # Text files don't have reliable magic bytes
-            'max_size_mb': 10,
-            'extensions': ['.txt', '.md', '.json', '.csv']
+            "magic_bytes": [],  # Text files don't have reliable magic bytes
+            "max_size_mb": 10,
+            "extensions": [".txt", ".md", ".json", ".csv"],
         },
-        'archive': {
-            'mime_types': [
-                'application/zip', 'application/x-zip-compressed',
-                'application/gzip', 'application/x-gzip'
+        "archive": {
+            "mime_types": [
+                "application/zip",
+                "application/x-zip-compressed",
+                "application/gzip",
+                "application/x-gzip",
             ],
-            'magic_bytes': [
-                b'PK\x03\x04', b'PK\x05\x06', b'PK\x07\x08',  # ZIP variants
-                b'\x1f\x8b'  # GZIP
+            "magic_bytes": [
+                b"PK\x03\x04",
+                b"PK\x05\x06",
+                b"PK\x07\x08",  # ZIP variants
+                b"\x1f\x8b",  # GZIP
             ],
-            'max_size_mb': 100,
-            'extensions': ['.zip', '.gz']
-        }
+            "max_size_mb": 100,
+            "extensions": [".zip", ".gz"],
+        },
     }
 
     # Dangerous file extensions that should never be allowed
     DANGEROUS_EXTENSIONS = {
-        '.exe', '.bat', '.cmd', '.com', '.pif', '.scr', '.vbs', '.vbe',
-        '.js', '.jse', '.wsf', '.wsh', '.ps1', '.ps1xml', '.ps2', '.ps2xml',
-        '.psc1', '.psc2', '.msh', '.msh1', '.msh2', '.mshxml', '.msh1xml',
-        '.msh2xml', '.scf', '.lnk', '.inf', '.reg', '.app', '.deb', '.pkg',
-        '.dmg', '.iso', '.img', '.bin', '.run', '.action', '.apk', '.jar'
+        ".exe",
+        ".bat",
+        ".cmd",
+        ".com",
+        ".pif",
+        ".scr",
+        ".vbs",
+        ".vbe",
+        ".js",
+        ".jse",
+        ".wsf",
+        ".wsh",
+        ".ps1",
+        ".ps1xml",
+        ".ps2",
+        ".ps2xml",
+        ".psc1",
+        ".psc2",
+        ".msh",
+        ".msh1",
+        ".msh2",
+        ".mshxml",
+        ".msh1xml",
+        ".msh2xml",
+        ".scf",
+        ".lnk",
+        ".inf",
+        ".reg",
+        ".app",
+        ".deb",
+        ".pkg",
+        ".dmg",
+        ".iso",
+        ".img",
+        ".bin",
+        ".run",
+        ".action",
+        ".apk",
+        ".jar",
     }
 
     # Maximum path length to prevent path traversal
@@ -92,9 +146,28 @@ class FileValidator:
 
     # Windows reserved names
     WINDOWS_RESERVED_NAMES = {
-        'CON', 'PRN', 'AUX', 'NUL', 'COM1', 'COM2', 'COM3', 'COM4', 'COM5',
-        'COM6', 'COM7', 'COM8', 'COM9', 'LPT1', 'LPT2', 'LPT3', 'LPT4',
-        'LPT5', 'LPT6', 'LPT7', 'LPT8', 'LPT9'
+        "CON",
+        "PRN",
+        "AUX",
+        "NUL",
+        "COM1",
+        "COM2",
+        "COM3",
+        "COM4",
+        "COM5",
+        "COM6",
+        "COM7",
+        "COM8",
+        "COM9",
+        "LPT1",
+        "LPT2",
+        "LPT3",
+        "LPT4",
+        "LPT5",
+        "LPT6",
+        "LPT7",
+        "LPT8",
+        "LPT9",
     }
 
     def __init__(self, allowed_types: Optional[List[str]] = None):
@@ -142,11 +215,11 @@ class FileValidator:
 
         # Remove or replace dangerous characters
         # Allow only alphanumeric, dots, hyphens, underscores, and spaces
-        sanitized = re.sub(r'[^\w\s\-_\.]', '', filename)
+        sanitized = re.sub(r"[^\w\s\-_\.]", "", filename)
 
         # Replace multiple spaces/dots with single ones
-        sanitized = re.sub(r'\s+', ' ', sanitized)
-        sanitized = re.sub(r'\.+', '.', sanitized)
+        sanitized = re.sub(r"\s+", " ", sanitized)
+        sanitized = re.sub(r"\.+", ".", sanitized)
 
         # Trim whitespace
         sanitized = sanitized.strip()
@@ -195,20 +268,20 @@ class FileValidator:
 
         # Decode URL encoding and normalize
         decoded_path = urllib.parse.unquote(file_path)
-        normalized_path = str(path).replace('\\', '/')
+        normalized_path = str(path).replace("\\", "/")
 
         # Multiple traversal patterns to check
         traversal_indicators = [
-            '..' in decoded_path,
-            '..' in file_path,
-            '..' in str(path),
-            '/..' in decoded_path,
-            '/..' in normalized_path,
-            '\\..\\' in decoded_path,
-            '\\..\\' in str(path),
-            normalized_path.startswith('/'),  # Absolute path
-            '%2e%2e' in file_path.lower(),  # URL encoded ..
-            '....' in file_path,  # Alternative traversal attempts
+            ".." in decoded_path,
+            ".." in file_path,
+            ".." in str(path),
+            "/.." in decoded_path,
+            "/.." in normalized_path,
+            "\\..\\" in decoded_path,
+            "\\..\\" in str(path),
+            normalized_path.startswith("/"),  # Absolute path
+            "%2e%2e" in file_path.lower(),  # URL encoded ..
+            "...." in file_path,  # Alternative traversal attempts
         ]
 
         if any(traversal_indicators):
@@ -306,7 +379,7 @@ class FileValidator:
             FileValidationError: If file is too large
         """
         size_mb = len(file_content) / (1024 * 1024)
-        max_size = self.ALLOWED_TYPES[file_type]['max_size_mb']
+        max_size = self.ALLOWED_TYPES[file_type]["max_size_mb"]
 
         if size_mb > max_size:
             raise FileValidationError(
@@ -331,10 +404,15 @@ class FileValidator:
             raise FileValidationError(f"Dangerous file extension: {extension}")
 
         # Check for embedded executables in PDFs
-        if filename.lower().endswith('.pdf'):
+        if filename.lower().endswith(".pdf"):
             dangerous_pdf_content = [
-                b'/JavaScript', b'/JS', b'/AcroForm', b'/XFA',
-                b'/EmbeddedFile', b'/Launch', b'/SubmitForm'
+                b"/JavaScript",
+                b"/JS",
+                b"/AcroForm",
+                b"/XFA",
+                b"/EmbeddedFile",
+                b"/Launch",
+                b"/SubmitForm",
             ]
             for dangerous in dangerous_pdf_content:
                 if dangerous in file_content:
@@ -343,10 +421,10 @@ class FileValidator:
                     )
 
         # Check for null bytes (can indicate binary injection)
-        if b'\x00' in file_content[:1024] and not any(
+        if b"\x00" in file_content[:1024] and not any(
             file_content.startswith(magic)
             for config in self.ALLOWED_TYPES.values()
-            for magic in config['magic_bytes']
+            for magic in config["magic_bytes"]
             if magic
         ):
             raise FileValidationError(
@@ -374,29 +452,29 @@ class FileValidator:
             FileValidationError: If validation fails
         """
         result = {
-            'valid': False,
-            'sanitized_filename': None,
-            'sanitized_path': None,
-            'file_type': None,
-            'mime_type': None,
-            'size_bytes': len(file_content),
-            'size_mb': len(file_content) / (1024 * 1024),
-            'hash_sha256': hashlib.sha256(file_content).hexdigest(),
-            'warnings': []
+            "valid": False,
+            "sanitized_filename": None,
+            "sanitized_path": None,
+            "file_type": None,
+            "mime_type": None,
+            "size_bytes": len(file_content),
+            "size_mb": len(file_content) / (1024 * 1024),
+            "hash_sha256": hashlib.sha256(file_content).hexdigest(),
+            "warnings": [],
         }
 
         try:
             # 1. Sanitize filename
-            result['sanitized_filename'] = self.sanitize_filename(filename)
+            result["sanitized_filename"] = self.sanitize_filename(filename)
 
             # 2. Validate path if provided
             if file_path:
-                result['sanitized_path'] = self.validate_path(file_path)
+                result["sanitized_path"] = self.validate_path(file_path)
 
             # 3. Detect file type
             file_type, mime_type = self.detect_file_type(file_content, filename)
-            result['file_type'] = file_type
-            result['mime_type'] = mime_type
+            result["file_type"] = file_type
+            result["mime_type"] = mime_type
 
             # 4. Check if file type is allowed
             if file_type not in self.allowed_types:
@@ -409,40 +487,41 @@ class FileValidator:
             self.check_dangerous_content(file_content, filename)
 
             # 7. Additional type-specific validation
-            if file_type == 'pdf':
+            if file_type == "pdf":
                 self._validate_pdf_content(file_content, result)
-            elif file_type == 'audio':
+            elif file_type == "audio":
                 self._validate_audio_content(file_content, result)
 
-            result['valid'] = True
+            result["valid"] = True
 
         except FileValidationError as e:
-            result['error'] = str(e)
+            result["error"] = str(e)
             raise
 
         return result
 
     def _validate_pdf_content(self, content: bytes, result: Dict) -> None:
         """Additional PDF-specific validation"""
-        if not content.startswith(b'%PDF-'):
-            result['warnings'].append("PDF header not found at beginning of file")
+        if not content.startswith(b"%PDF-"):
+            result["warnings"].append("PDF header not found at beginning of file")
 
         # Check PDF version
         if len(content) > 8:
-            version_line = content[:20].decode('ascii', errors='ignore')
-            if '%PDF-1.4' in version_line or '%PDF-1.3' in version_line:
-                result['warnings'].append(
+            version_line = content[:20].decode("ascii", errors="ignore")
+            if "%PDF-1.4" in version_line or "%PDF-1.3" in version_line:
+                result["warnings"].append(
                     "Old PDF version detected (may have security issues)"
                 )
 
     def _validate_audio_content(self, content: bytes, result: Dict) -> None:
         """Additional audio-specific validation"""
         # Basic audio format validation
-        if content.startswith(b'RIFF') and b'WAVE' not in content[:20]:
-            result['warnings'].append("RIFF file that may not be valid audio")
+        if content.startswith(b"RIFF") and b"WAVE" not in content[:20]:
+            result["warnings"].append("RIFF file that may not be valid audio")
 
 
 # Helper functions for common validation scenarios
+
 
 def validate_base64_audio(audio_data: str, max_size_mb: float = 25) -> Dict[str, any]:
     """
@@ -462,13 +541,13 @@ def validate_base64_audio(audio_data: str, max_size_mb: float = 25) -> Dict[str,
         raise FileValidationError(f"Invalid base64 audio data: {e}") from e
 
     # Create validator for audio only
-    validator = FileValidator(allowed_types=['audio'])
+    validator = FileValidator(allowed_types=["audio"])
 
     # Override size limit if specified
     if max_size_mb != 25:
-        validator.ALLOWED_TYPES['audio']['max_size_mb'] = max_size_mb
+        validator.ALLOWED_TYPES["audio"]["max_size_mb"] = max_size_mb
 
-    return validator.validate_file(audio_bytes, 'audio.webm')
+    return validator.validate_file(audio_bytes, "audio.webm")
 
 
 def validate_pdf_path(pdf_path: str) -> Dict[str, any]:
@@ -481,11 +560,11 @@ def validate_pdf_path(pdf_path: str) -> Dict[str, any]:
     Returns:
         Validation result dict
     """
-    validator = FileValidator(allowed_types=['pdf'])
+    validator = FileValidator(allowed_types=["pdf"])
 
     # Read file content
     try:
-        with open(pdf_path, 'rb') as f:
+        with open(pdf_path, "rb") as f:
             content = f.read()
     except Exception as e:
         raise FileValidationError(f"Cannot read file {pdf_path}: {e}") from e
@@ -498,8 +577,8 @@ def validate_pdf_path(pdf_path: str) -> Dict[str, any]:
 def get_file_size_limits() -> Dict[str, int]:
     """Get file size limits from environment variables"""
     return {
-        'pdf_max_mb': int(os.getenv('PDF_MAX_SIZE_MB', '50')),
-        'audio_max_mb': int(os.getenv('AUDIO_MAX_SIZE_MB', '25')),
-        'text_max_mb': int(os.getenv('TEXT_MAX_SIZE_MB', '10')),
-        'archive_max_mb': int(os.getenv('ARCHIVE_MAX_SIZE_MB', '100'))
+        "pdf_max_mb": int(os.getenv("PDF_MAX_SIZE_MB", "50")),
+        "audio_max_mb": int(os.getenv("AUDIO_MAX_SIZE_MB", "25")),
+        "text_max_mb": int(os.getenv("TEXT_MAX_SIZE_MB", "10")),
+        "archive_max_mb": int(os.getenv("ARCHIVE_MAX_SIZE_MB", "100")),
     }

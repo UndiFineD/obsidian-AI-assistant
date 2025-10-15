@@ -384,14 +384,12 @@ class RBACManager:
         except Exception:
             return set()
 
-"""Test-friendly decorators and module-level manager.
 
-The tests expect a module-level `rbac_manager` and decorators that call methods
-on it using simple (user_id, tenant_id) arguments.
-"""
+# Test-friendly decorators and module-level manager.
+# The tests expect a module-level `rbac_manager` and decorators that call methods
+# on it using simple (user_id, tenant_id) arguments.
 
 # Module-level RBAC manager (tests patch this via monkeypatch/patch.object)
-from typing import Optional
 rabc_manager: Optional[RBACManager] = None  # initialized after class definition
 
 
@@ -487,9 +485,7 @@ class AuditLogger:
         }
 
         self.audit_log.append(audit_entry)
-        logger.info(
-            f"Role {action}: {user_id} -> {role.value} by {assigned_by}"
-        )
+        logger.info(f"Role {action}: {user_id} -> {role.value} by {assigned_by}")
 
     def get_audit_log(
         self,
@@ -522,11 +518,8 @@ class AuditLogger:
         return filtered_log
 
     # Backwards/compat method name expected by tests
-    def get_audit_logs(
-        self, user_id: Optional[str] = None
-    ) -> List[Dict[str, Any]]:
+    def get_audit_logs(self, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
         return self.get_audit_log(user_id=user_id)
-
 
 
 # FastAPI endpoints for RBAC management

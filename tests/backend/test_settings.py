@@ -150,6 +150,16 @@ class TestSettingsPrecedence:
                 assert s.chunk_size == 800  # Invalid int ignored, falls back to default
                 assert s.gpu is False  # Invalid boolean parsed as False
 
+    def test_env_empty_string_and_missing(self):
+        """Test that empty string and missing env vars are ignored."""
+        env_vars = {"API_PORT": "", "VAULT_PATH": ""}
+        with patch("backend.settings._load_yaml_config", return_value={}):
+            with patch.dict(os.environ, env_vars, clear=True):
+                s = get_settings()
+                # Should fall back to defaults
+                assert s.api_port == 8000
+                assert s.vault_path == "vault"
+
 
 class TestSettingsHelpers:
     """Test helper functions for settings management."""
@@ -181,13 +191,30 @@ class TestSettingsHelpers:
         config_path.write_text("invalid: yaml: content: :[")
         with patch("backend.settings.Path") as mock_path_cls:
             mock_path = Mock()
+            mock_path.exists.return_value = True
             mock_path.parent = tmp_path
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
             with patch("backend.settings.open", create=True) as mock_open:
-                mock_open.side_effect = Exception("YAML parse error")
+                mock_open.return_value.__enter__.return_value = config_path.open()
                 result = _load_yaml_config()
                 assert result == {}
+
+    def test_load_yaml_config_unknown_keys(self, tmp_path):
+        """Test loading YAML with unknown keys."""
+        config_path = tmp_path / "config.yaml"
+        config_path.write_text("known: 1\nunknown: 2")
+        with patch("backend.settings.Path") as mock_path_cls:
+            mock_path = Mock()
+            mock_path.exists.return_value = True
+            mock_path.parent = tmp_path
+            mock_path_cls.return_value = mock_path
+            mock_path_cls.__file__ = str(tmp_path / "settings.py")
+            with patch("backend.settings.open", create=True) as mock_open:
+                mock_open.return_value.__enter__.return_value = config_path.open()
+                result = _load_yaml_config()
+                # Only known keys (Settings fields) should remain
+                assert "unknown" not in result
 
     @patch.dict(
         os.environ,
@@ -406,6 +433,107 @@ class TestUpdateSettings:
             assert "similarity_threshold" not in mock_config_data
             # Valid updates should remain
             assert "vault_path" in mock_config_data
+
+    def test_update_settings_skips_invalid_write(self, tmp_path):
+        """Test update_settings skips invalid type coercion and continues."""
+        mock_config_data = {}
+
+        def mock_open_func(path, mode="r", **kwargs):
+            from io import StringIO
+
+            if "w" in mode:
+                # Use StringIO to properly accumulate YAML content
+                buffer = StringIO()
+
+                def write_wrapper(content):
+                    buffer.write(content)
+
+                def mock_exit(exc_type, exc_val, exc_tb):
+                    # On file close, parse the complete YAML content
+                    import yaml
+
+                    full_content = buffer.getvalue()
+                    if full_content.strip():
+                        try:
+                            loaded_data = yaml.safe_load(full_content)
+                            if isinstance(loaded_data, dict):
+                                mock_config_data.clear()
+                                mock_config_data.update(loaded_data)
+                        except yaml.YAMLError:
+                            pass
+
+                mock_file = Mock()
+                mock_file.write = write_wrapper
+                mock_file.__enter__ = Mock(return_value=mock_file)
+                mock_file.__exit__ = Mock(side_effect=mock_exit)
+                return mock_file
+            else:
+                import yaml
+
+                content = yaml.safe_dump(mock_config_data) if mock_config_data else ""
+                mock_file = StringIO(content)
+                return mock_file
+
+        with patch("backend.settings.open", mock_open_func), patch(
+            "backend.settings.reload_settings", return_value=Settings()
+        ):
+            updates = {
+                "chunk_size": "not_a_number",
+                "gpu": "not_a_bool",
+                "vault_path": "valid_path",
+            }
+            update_settings(updates)
+            # Only valid updates should remain
+            assert "chunk_size" not in mock_config_data
+            assert mock_config_data["gpu"] is False
+            assert mock_config_data["vault_path"] == "valid_path"
+
+    def test_coerce_value_for_field_errors(self):
+        from backend.settings import _coerce_value_for_field
+        # Invalid int
+        assert _coerce_value_for_field("chunk_size", "not_an_int") is None
+        # Invalid float
+        assert _coerce_value_for_field("similarity_threshold", "not_a_float") is None
+        # Invalid bool
+        assert _coerce_value_for_field("gpu", "not_a_bool") is False  # fallback is False
+        # Unknown field
+        assert _coerce_value_for_field("not_a_field", "value") is None
+
+    def test_load_yaml_config_file_read_error(self, tmp_path):
+        """Test _load_yaml_config handles file read errors gracefully."""
+        config_path = tmp_path / "config.yaml"
+        config_path.write_text("api_port: 8000")
+        with patch("backend.settings.Path") as mock_path_cls:
+            mock_path = Mock()
+            mock_path.exists.return_value = True
+            mock_path.parent = tmp_path
+            mock_path_cls.return_value = mock_path
+            mock_path_cls.__file__ = str(tmp_path / "settings.py")
+            with patch("backend.settings.open", create=True) as mock_open:
+                mock_open.side_effect = IOError("Read error")
+                result = _load_yaml_config()
+                assert result == {}
+
+    def test_update_settings_file_write_error(self, tmp_path):
+        """Test update_settings handles file write errors gracefully."""
+        mock_config_data = {"vault_path": "vault"}
+        def mock_open_func(path, mode="r", **kwargs):
+            from io import StringIO
+            if "w" in mode:
+                raise IOError("Write error")
+            else:
+                import yaml
+                content = yaml.safe_dump(mock_config_data)
+                mock_file = StringIO(content)
+                return mock_file
+        with patch("backend.settings.open", mock_open_func), patch(
+            "backend.settings.reload_settings", return_value=Settings()
+        ):
+            updates = {"vault_path": "new_vault"}
+            try:
+                update_settings(updates)
+            except Exception as e:
+                assert isinstance(e, IOError)
 
 
 if __name__ == "__main__":

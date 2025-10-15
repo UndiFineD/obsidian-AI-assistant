@@ -1,4 +1,4 @@
-# Change Proposal: add-feat-test-metrics-automation
+# Change Proposal: update-doc-test-metrics-automation
 
 ## Why
 

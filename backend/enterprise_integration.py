@@ -214,6 +214,7 @@ class EnterpriseIntegration:
         """Add enterprise middleware to FastAPI app"""
         import os
         import sys
+
         is_test_mode = (
             os.getenv("TEST_MODE") == "true"
             or "PYTEST_CURRENT_TEST" in os.environ

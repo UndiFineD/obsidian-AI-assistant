@@ -12,6 +12,7 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
+
 class OpenSpecChange:
     """Represents a single OpenSpec change proposal"""
 
@@ -75,9 +76,7 @@ class OpenSpecChange:
             validation_results["valid"] = False
         else:
             if not proposal.get("why"):
-                validation_results["warnings"].append(
-                    "Proposal missing 'Why' section"
-                )
+                validation_results["warnings"].append("Proposal missing 'Why' section")
             if not proposal.get("what_changes"):
                 validation_results["warnings"].append(
                     "Proposal missing 'What Changes' section"
@@ -221,7 +220,7 @@ class OpenSpecChange:
                 task = {
                     "text": line_stripped[5:].strip(),
                     "completed": line_stripped.startswith("- [x]"),
-                    "indent_level": (len(line) - len(line.lstrip())) // 2
+                    "indent_level": (len(line) - len(line.lstrip())) // 2,
                 }
                 current_tasks.append(task)
                 result["all_tasks"].append(task)

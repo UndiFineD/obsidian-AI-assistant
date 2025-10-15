@@ -8,8 +8,10 @@ from fastapi import Request
 from fastapi.responses import RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
     """Middleware to redirect HTTP requests to HTTPS"""
+
     async def dispatch(self, request: Request, call_next):
         if request.url.scheme == "http":
             url = request.url.replace(scheme="https")

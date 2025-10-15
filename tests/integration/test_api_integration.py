@@ -23,8 +23,8 @@ async def client():
     # Use HTTPX AsyncClient with transport for FastAPI
     transport = httpx.ASGITransport(app=app)
     csrf_token = (
-        app.extra.get('csrf_token')
-        if hasattr(app, 'extra') and 'csrf_token' in app.extra
+        app.extra.get("csrf_token")
+        if hasattr(app, "extra") and "csrf_token" in app.extra
         else None
     )
     if not csrf_token:
@@ -33,8 +33,10 @@ async def client():
         from hashlib import sha256
 
         from backend.settings import get_settings
+
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+
     class CSRFClient(httpx.AsyncClient):
         async def request(self, method, url, **kwargs):
             headers = kwargs.pop("headers", None)
@@ -44,8 +46,10 @@ async def client():
                 headers["X-CSRF-Token"] = csrf_token
             kwargs["headers"] = headers
             return await super().request(method, url, **kwargs)
+
     async with CSRFClient(transport=transport, base_url="http://testserver") as client:
         yield client
+
 
 @pytest_asyncio.fixture(scope="session")
 async def backend_available():
@@ -58,6 +62,7 @@ async def backend_available():
     except Exception:
         pass
     pytest.skip("Backend server is not running or /health is unreachable.")
+
 
 class TestAPIIntegration:
     """Test API endpoints with full HTTP request/response cycle."""

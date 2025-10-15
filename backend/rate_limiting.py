@@ -18,12 +18,14 @@ from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
+
 def _is_test_mode():
     return (
         "pytest" in sys.modules
         or os.environ.get("PYTEST_CURRENT_TEST")
         or os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
     )
+
 
 class RateLimitStore:
     """In-memory store for rate limiting data"""
@@ -73,7 +75,7 @@ class RateLimitStore:
             "timestamp": datetime.now().isoformat(),
             "type": event_type,
             "client_id": client_id,
-            "details": details
+            "details": details,
         }
         self.security_events.append(event)
 
@@ -84,14 +86,17 @@ class RateLimitStore:
         # Auto-block clients with too many suspicious events
         if self.suspicious_patterns[pattern_key] >= 10:
             self.block_client(client_id, duration=1800)  # 30 minute block
-            logger.warning(f"Auto-blocked client {client_id} due to suspicious activity: {event_type}")
+            logger.warning(
+                f"Auto-blocked client {client_id} due to suspicious activity: {event_type}"
+            )
 
     def get_security_summary(self) -> Dict:
         """Get security event summary"""
         recent_events = [
             e
             for e in self.security_events
-            if datetime.fromisoformat(e["timestamp"]) > datetime.now() - timedelta(hours=1)
+            if datetime.fromisoformat(e["timestamp"])
+            > datetime.now() - timedelta(hours=1)
         ]
 
         event_types = defaultdict(int)
@@ -106,6 +111,7 @@ class RateLimitStore:
                 [p for p in self.suspicious_patterns.values() if p >= 5]
             ),
         }
+
 
 class AdvancedRateLimitMiddleware:
     """Advanced rate limiting with security monitoring"""
@@ -139,7 +145,7 @@ class AdvancedRateLimitMiddleware:
                 "/etc/passwd",
                 "\\windows\\system32",
             ],
-            "command_injection": ["|", "&&", ";", "`", "$()"]
+            "command_injection": ["|", "&&", ";", "`", "$()"],
         }
 
     def _get_client_id(self, request: Request) -> str:
@@ -202,9 +208,11 @@ class AdvancedRateLimitMiddleware:
                         self.store.record_security_event(
                             pattern_type,
                             client_id,
-                            f"Detected pattern '{pattern}' in {request.method} {request.url.path}"
+                            f"Detected pattern '{pattern}' in {request.method} {request.url.path}",
                         )
-                        logger.warning(f"Security pattern detected: {pattern_type} from {client_id}")
+                        logger.warning(
+                            f"Security pattern detected: {pattern_type} from {client_id}"
+                        )
 
                         # Block immediately for high-risk patterns
                         if pattern_type in ["sql_injection", "command_injection"]:
@@ -212,7 +220,7 @@ class AdvancedRateLimitMiddleware:
                             self.store.block_client(client_id, duration=3600)
                             raise HTTPException(
                                 status_code=403,
-                                detail="Request blocked due to suspicious content"
+                                detail="Request blocked due to suspicious content",
                             )
 
         except HTTPException:
@@ -220,22 +228,33 @@ class AdvancedRateLimitMiddleware:
         except Exception as e:
             logger.error(f"Error in security pattern check: {e}")
 
-    def _check_rate_limits(self, client_id: str, timestamp: float) -> Optional[Tuple[int, str]]:
+    def _check_rate_limits(
+        self, client_id: str, timestamp: float
+    ) -> Optional[Tuple[int, str]]:
         """Check if client has exceeded rate limits"""
         # Check burst limit (10 seconds)
         burst_requests = self.store.get_recent_requests(client_id, 10)
         if burst_requests >= self.limits["burst_limit"]:
-            return 429, f"Burst limit exceeded: {burst_requests}/{self.limits['burst_limit']} requests in 10s"
+            return (
+                429,
+                f"Burst limit exceeded: {burst_requests}/{self.limits['burst_limit']} requests in 10s",
+            )
 
         # Check per-minute limit
         minute_requests = self.store.get_recent_requests(client_id, 60)
         if minute_requests >= self.limits["requests_per_minute"]:
-            return 429, f"Rate limit exceeded: {minute_requests}/{self.limits['requests_per_minute']} requests per minute"
+            return (
+                429,
+                f"Rate limit exceeded: {minute_requests}/{self.limits['requests_per_minute']} requests per minute",
+            )
 
         # Check per-hour limit
         hour_requests = self.store.get_recent_requests(client_id, 3600)
         if hour_requests >= self.limits["requests_per_hour"]:
-            return 429, f"Rate limit exceeded: {hour_requests}/{self.limits['requests_per_hour']} requests per hour"
+            return (
+                429,
+                f"Rate limit exceeded: {hour_requests}/{self.limits['requests_per_hour']} requests per hour",
+            )
 
         return None
 
@@ -254,7 +273,9 @@ class AdvancedRateLimitMiddleware:
             )
             return JSONResponse(
                 status_code=403,
-                content={"error": "Client temporarily blocked due to suspicious activity"}
+                content={
+                    "error": "Client temporarily blocked due to suspicious activity"
+                },
             )
 
         # Check request size
@@ -262,19 +283,13 @@ class AdvancedRateLimitMiddleware:
             self.store.record_security_event(
                 "oversized_request", client_id, "Request size exceeds limit"
             )
-            return JSONResponse(
-                status_code=413,
-                content={"error": "Request too large"}
-            )
+            return JSONResponse(status_code=413, content={"error": "Request too large"})
 
         # Check security patterns
         try:
             await self._check_security_patterns(request, client_id)
         except HTTPException as e:
-            return JSONResponse(
-                status_code=e.status_code,
-                content={"error": e.detail}
-            )
+            return JSONResponse(status_code=e.status_code, content={"error": e.detail})
 
         # Check rate limits
         rate_limit_result = self._check_rate_limits(client_id, timestamp)
@@ -291,8 +306,7 @@ class AdvancedRateLimitMiddleware:
                 self.store.block_client(client_id, duration=600)
 
             return JSONResponse(
-                status_code=status_code,
-                content={"error": message, "retry_after": 60}
+                status_code=status_code, content={"error": message, "retry_after": 60}
             )
 
         # Record successful request
@@ -316,11 +330,13 @@ class AdvancedRateLimitMiddleware:
             "rate_limits": self.limits,
             "security_summary": self.store.get_security_summary(),
             "active_blocks": len(self.store.blocked_ips),
-            "monitoring_active": True
+            "monitoring_active": True,
         }
+
 
 # Global instance
 _rate_limit_middleware = None
+
 
 def create_rate_limit_middleware():
     """Create rate limiting middleware instance"""
@@ -328,6 +344,7 @@ def create_rate_limit_middleware():
     if _rate_limit_middleware is None:
         _rate_limit_middleware = AdvancedRateLimitMiddleware()
     return _rate_limit_middleware
+
 
 def get_security_status():
     """Get security monitoring status"""

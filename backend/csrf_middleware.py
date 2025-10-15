@@ -62,4 +62,3 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     def _validate_token(self, token: str) -> bool:
         expected = self._generate_token()
         return hmac.compare_digest(token, expected)
-

@@ -1,5 +1,5 @@
-
 from __future__ import annotations
+
 import argparse
 import re
 import sys
@@ -34,11 +34,21 @@ ROOT = Path(__file__).resolve().parents[1]
 PYTHON_PAT = re.compile(r"^.+\.py$")
 MARKDOWN_PAT = re.compile(r"^.+\.(?:md|MD)$")
 MAX_SIZE = 1_000_000  # 1 MB safety limit
-SKIP_DIRS = {"__pycache__", ".git", ".venv", "venv", "node_modules", "backend/models", "backend/cache", "htmlcov"}
+SKIP_DIRS = {
+    "__pycache__",
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "backend/models",
+    "backend/cache",
+    "htmlcov",
+}
 
 
 MD_HEADING_RE = re.compile(r"^(#{1,6})\s+\S")
 MD_LIST_RE = re.compile(r"^\s*([*-]|\d+\.)\s+")
+
 
 @dataclass
 class FileChange:
@@ -62,8 +72,9 @@ class FileChange:
             preview.append(f"@@ length changed: {len(o_lines)} -> {len(u_lines)} @@")
         return "\n".join(preview)
 
+
 def iter_files(pattern: re.Pattern) -> Iterable[Path]:
-    for p in ROOT.rglob('*'):
+    for p in ROOT.rglob("*"):
         if not pattern.match(p.name):
             continue
         if any(skip in p.parts for skip in SKIP_DIRS):
@@ -86,7 +97,9 @@ def fix_python(content: str) -> str:
     new_content = "".join(c for c in new_content if c >= " " or c in "\t\n\r")
     return new_content if new_content != original else original
 
+
 # --- Markdown fixers ---
+
 
 def fix_markdown(content: str) -> str:
     original = content
@@ -99,9 +112,9 @@ def fix_markdown(content: str) -> str:
         # Remove trailing whitespace (MD009)
         line = line.rstrip()
         # Remove tabs for indentation (MD010)
-        if '\t' in line:
-            line = line.replace('\t', '    ')
-        if line.strip() == '':
+        if "\t" in line:
+            line = line.replace("\t", "    ")
+        if line.strip() == "":
             blank_run += 1
             if blank_run > 1:
                 continue
@@ -118,12 +131,12 @@ def fix_markdown(content: str) -> str:
         line = lines[i]
         if MD_HEADING_RE.match(line):
             # ensure previous line blank (unless start)
-            if out and out[-1].strip() != '':
-                out.append('')
+            if out and out[-1].strip() != "":
+                out.append("")
             out.append(line)
             # ensure next line blank (unless already or end)
-            if i + 1 < len(lines) and lines[i + 1].strip() != '':
-                out.append('')
+            if i + 1 < len(lines) and lines[i + 1].strip() != "":
+                out.append("")
         else:
             out.append(line)
         i += 1
@@ -132,17 +145,17 @@ def fix_markdown(content: str) -> str:
     final: List[str] = []
     for idx, line in enumerate(out):
         if re.match(r"^\s*([-*]|\d+\.)\s+", line):
-            if final and final[-1].strip() != '':
-                final.append('')
+            if final and final[-1].strip() != "":
+                final.append("")
             final.append(line)
         else:
             final.append(line)
 
     # 4. Remove trailing spaces from headings (MD018)
-    final = [re.sub(r'(#+\s+\S.*?)\s+$', r'\1', l) for l in final]
+    final = [re.sub(r"(#+\s+\S.*?)\s+$", r"\1", l) for l in final]
 
     # 5. Remove spaces before list markers (MD030)
-    final = [re.sub(r'^ +([-*]|\d+\.)', r'\1', l) for l in final]
+    final = [re.sub(r"^ +([-*]|\d+\.)", r"\1", l) for l in final]
 
     # 6. Remove consecutive heading levels (MD025)
     prev_heading = 0
@@ -152,13 +165,13 @@ def fix_markdown(content: str) -> str:
             level = len(m.group(1))
             if prev_heading and abs(level - prev_heading) > 1:
                 # Demote heading to previous level + 1
-                final[idx] = '#' * (prev_heading + 1) + line[level:]
+                final[idx] = "#" * (prev_heading + 1) + line[level:]
             prev_heading = level
         elif line.strip():
             prev_heading = 0
 
     # 7. Normalize EOF newline (MD047)
-    new_content = '\n'.join(final).rstrip() + '\n'
+    new_content = "\n".join(final).rstrip() + "\n"
 
     return new_content if new_content != original else original
 
@@ -174,7 +187,7 @@ def process_files(apply: bool, target_file: str = None) -> List[FileChange]:
             return changes
 
         try:
-            text = target_path.read_text(encoding='utf-8')
+            text = target_path.read_text(encoding="utf-8")
         except Exception as e:
             print(f"Error reading {target_file}: {e}")
             return changes
@@ -192,20 +205,20 @@ def process_files(apply: bool, target_file: str = None) -> List[FileChange]:
             changes.append(FileChange(target_path, text, updated))
 
         if apply and changes:
-            backup_path = target_path.with_suffix(target_path.suffix + '.bak')
+            backup_path = target_path.with_suffix(target_path.suffix + ".bak")
             try:
-                backup_path.write_text(text, encoding='utf-8')
+                backup_path.write_text(text, encoding="utf-8")
                 print(f"Backup saved to: {backup_path}")
             except Exception as e:
                 print(f"Warning: could not create backup for {target_path}: {e}")
-            target_path.write_text(updated, encoding='utf-8')
+            target_path.write_text(updated, encoding="utf-8")
 
         return changes
 
     # Otherwise, process all files
     for path in iter_files(PYTHON_PAT):
         try:
-            text = path.read_text(encoding='utf-8')
+            text = path.read_text(encoding="utf-8")
         except Exception:
             continue
         updated = fix_python(text)
@@ -214,7 +227,7 @@ def process_files(apply: bool, target_file: str = None) -> List[FileChange]:
 
     for path in iter_files(MARKDOWN_PAT):
         try:
-            text = path.read_text(encoding='utf-8')
+            text = path.read_text(encoding="utf-8")
         except Exception:
             continue
         updated = fix_markdown(text)
@@ -224,19 +237,21 @@ def process_files(apply: bool, target_file: str = None) -> List[FileChange]:
     if apply:
         for ch in changes:
             # Make .bak backup before applying changes
-            backup_path = ch.path.with_suffix(ch.path.suffix + '.bak')
+            backup_path = ch.path.with_suffix(ch.path.suffix + ".bak")
             try:
-                backup_path.write_text(ch.original, encoding='utf-8')
+                backup_path.write_text(ch.original, encoding="utf-8")
             except Exception as e:
                 print(f"Warning: could not create backup for {ch.path}: {e}")
-            ch.path.write_text(ch.updated, encoding='utf-8')
+            ch.path.write_text(ch.updated, encoding="utf-8")
     return changes
 
 
 def main(argv: List[str]) -> int:
     parser = argparse.ArgumentParser(description="Auto-fix common lint issues")
-    parser.add_argument('--apply', action='store_true', help='Apply changes instead of dry-run')
-    parser.add_argument('--file', type=str, help='Apply fixes to a specific file only')
+    parser.add_argument(
+        "--apply", action="store_true", help="Apply changes instead of dry-run"
+    )
+    parser.add_argument("--file", type=str, help="Apply fixes to a specific file only")
     args = parser.parse_args(argv)
 
     changes = process_files(apply=args.apply, target_file=args.file)
@@ -251,13 +266,15 @@ def main(argv: List[str]) -> int:
             print(f"Applied changes to: {ch.path}")
         if len(changes) > 20:
             print(f"...and {len(changes) - 20} more files.")
-        print(f"\n✓ Successfully applied changes to {len(changes)} files (backups saved as .bak)")
+        print(
+            f"\n✓ Successfully applied changes to {len(changes)} files (backups saved as .bak)"
+        )
     else:
         # Dry-run mode: show diffs
         for idx, ch in enumerate(changes[:5], 1):
             print(f"\n{'='*70}")
             print(f"[{idx}] {ch.path}")
-            print('='*70)
+            print("=" * 70)
             print(ch.diff_preview(lines=10))
         if len(changes) > 5:
             print(f"\n...and {len(changes) - 5} more files would be changed.")
@@ -265,5 +282,6 @@ def main(argv: List[str]) -> int:
         print("Run with --apply to apply these changes.")
     return 0
 
-if __name__ == '__main__':  # pragma: no cover
+
+if __name__ == "__main__":  # pragma: no cover
     raise SystemExit(main(sys.argv[1:]))

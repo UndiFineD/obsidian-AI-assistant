@@ -1,8 +1,5 @@
-
-
-
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 #!/usr/bin/env python3
@@ -20,9 +17,9 @@ def main():
         pass
         return 1
 
-
     cmd = [sys.executable, str(test_runner)] + sys.argv[1:]
     return subprocess.call(cmd)
+
 
 if __name__ == "__main__":
     pass

@@ -2,7 +2,7 @@ allow_network: true
 api_port: 8001
 cache_dir: backend/cache
 chunk_overlap: 200
-chunk_size: 1000
+chunk_size: 1500
 continuous_mode: false
 embed_model: sentence-transformers/all-MiniLM-L6-v2
 gpu: true

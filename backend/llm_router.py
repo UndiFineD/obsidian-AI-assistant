@@ -109,8 +109,8 @@ class HybridLLMRouter:
     # -------------------
     def _invoke_llama(self, prompt: str, max_tokens: int) -> str:
         """Invoke the LLaMA model."""
-    # This complex logic accommodates unittest.mock behavior in tests.
-    # A cleaner future approach might be a dedicated, patchable method.
+        # This complex logic accommodates unittest.mock behavior in tests.
+        # A cleaner future approach might be a dedicated, patchable method.
         if callable(self.llama):
             # Honor a mocked side_effect if present in tests
             _side_effect = getattr(self.llama, "side_effect", None)

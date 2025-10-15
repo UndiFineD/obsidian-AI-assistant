@@ -33,9 +33,11 @@ def backend_app():
 @pytest.fixture
 def client(backend_app):
     """Test client for FastAPI app."""
-    from backend.settings import get_settings
     import hmac
     from hashlib import sha256
+
+    from backend.settings import get_settings
+
     secret = get_settings().csrf_secret.encode()
     csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
 
@@ -48,6 +50,7 @@ def client(backend_app):
                 headers["X-CSRF-Token"] = csrf_token
             kwargs["headers"] = headers
             return super().request(method, url, **kwargs)
+
     return CSRFTestClient(backend_app)
 
 

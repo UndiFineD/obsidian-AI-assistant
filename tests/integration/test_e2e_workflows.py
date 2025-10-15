@@ -375,7 +375,9 @@ class TestPerformanceBenchmarks:
         # Most requests should succeed (allow for some model unavailability issues)
         successful_requests = [r for r in results if r["status_code"] == 200]
         # Expect at least 4 successful requests in concurrent scenario
-        assert len(successful_requests) >= 4, f"Only {len(successful_requests)} requests succeeded, expected at least 4"
+        assert (
+            len(successful_requests) >= 4
+        ), f"Only {len(successful_requests)} requests succeeded, expected at least 4"
         # Calculate performance metrics
         response_times = [r["response_time"] for r in results]
         avg_response_time = sum(response_times) / len(response_times)

@@ -27,6 +27,7 @@ def test_advanced_security_config():
     assert not config.is_allowed_file_type("malware.exe")
     assert not config.is_allowed_file_type("script.bat")
 
+
 def test_input_validator():
     """Test advanced input validation"""
     from backend.advanced_security import AdvancedInputValidator
@@ -57,6 +58,7 @@ def test_input_validator():
     safe_threats = validator.detect_threats("This is a normal text input")
     assert len(safe_threats) == 0
 
+
 def test_input_sanitization():
     """Test input sanitization"""
     from backend.advanced_security import AdvancedInputValidator
@@ -83,6 +85,7 @@ def test_input_sanitization():
     assert "\x01" not in sanitized
     assert "\x02" not in sanitized
 
+
 def test_audit_logger():
     """Test audit logging functionality"""
     from backend.advanced_security import AuditLogger, SecurityEvent, ThreatLevel
@@ -95,7 +98,7 @@ def test_audit_logger():
         severity=ThreatLevel.MEDIUM,
         source="test",
         description="Test security event",
-        details={"test": "data"}
+        details={"test": "data"},
     )
 
     # Log the event
@@ -110,6 +113,7 @@ def test_audit_logger():
     events = logger.get_recent_events(severity=ThreatLevel.MEDIUM)
     assert len(events) > 0
     assert all(e["severity"] == "medium" for e in events)
+
 
 def test_rate_limiting_store():
     """Test rate limiting store functionality"""
@@ -136,6 +140,7 @@ def test_rate_limiting_store():
     store.record_security_event("test_threat", "bad_client", "Test threat detected")
     assert len(store.security_events) > 0
 
+
 def test_json_validation():
     """Test JSON input validation"""
     from backend.advanced_security import AdvancedInputValidator
@@ -161,10 +166,12 @@ def test_json_validation():
     assert not is_valid  # Should be blocked due to XSS content
 
     # Test overly complex JSON
-    complex_json = '{"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": ' \
-                   '{"i": {"j": {}}}}}}}}}}'
+    complex_json = (
+        '{"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": ' '{"i": {"j": {}}}}}}}}}}'
+    )
     is_valid, data = validator.validate_json_input(complex_json, max_depth=5)
     assert not is_valid  # Should be blocked due to depth
+
 
 def test_compliance_manager():
     """Test GDPR/SOC2 compliance management"""
@@ -186,6 +193,7 @@ def test_compliance_manager():
     assert "gdpr_compliance" in report
     assert "soc2_compliance" in report
     assert "report_generated" in report
+
 
 @pytest.mark.asyncio
 async def test_security_integration():
@@ -211,6 +219,7 @@ async def test_security_integration():
     # Should be sanitized even if not completely blocked
     assert "&lt;" in sanitized or not is_safe
 
+
 def test_security_configuration_env_vars():
     """Test security configuration with environment variables"""
     import os
@@ -218,17 +227,21 @@ def test_security_configuration_env_vars():
     from backend.advanced_security import SecurityConfig
 
     # Mock environment variables
-    with patch.dict(os.environ, {
-        'MAX_REQUEST_SIZE': '5242880',  # 5MB
-        'MAX_FILE_SIZE': '26214400',    # 25MB
-        'ENABLE_AUDIT_LOGGING': 'false',
-        'ENABLE_THREAT_DETECTION': 'false'
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "MAX_REQUEST_SIZE": "5242880",  # 5MB
+            "MAX_FILE_SIZE": "26214400",  # 25MB
+            "ENABLE_AUDIT_LOGGING": "false",
+            "ENABLE_THREAT_DETECTION": "false",
+        },
+    ):
         config = SecurityConfig()
         assert config.max_request_size == 5242880
         assert config.max_file_size == 26214400
         assert not config.enable_audit_logging
         assert not config.enable_threat_detection
+
 
 def test_security_status_endpoint():
     """Test security status reporting"""
@@ -248,6 +261,7 @@ def test_security_status_endpoint():
     # Check security summary if audit logging is enabled
     if config.audit_logger:
         assert "security_summary" in status
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

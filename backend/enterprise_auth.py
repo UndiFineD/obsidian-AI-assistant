@@ -112,9 +112,7 @@ class SSOManager:
             handler = self.provider_handlers.get(self.config.provider)
             if not handler:
                 # Maintain previous behavior (log via exception path -> None)
-                raise ValueError(
-                    f"Unsupported SSO provider: {self.config.provider}"
-                )
+                raise ValueError(f"Unsupported SSO provider: {self.config.provider}")
 
             user_info = await handler(auth_code)
             logger.info(f"SSO authentication successful for user: {user_info.email}")

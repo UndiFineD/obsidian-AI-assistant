@@ -1,4 +1,4 @@
-# Spec Delta: project-documentation / add-feat-test-metrics-automation
+# Spec Delta: project-documentation / update-doc-test-metrics-automation
 
 This change enhances project documentation infrastructure under OpenSpec governance. Material changes to documentation tooling require proposals and validation in `openspec/changes`.
 

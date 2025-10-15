@@ -28,7 +28,7 @@ class TestSSOConfig:
             provider=SSOProvider.AZURE_AD,
             client_id="test_client_id",
             client_secret="test_client_secret",
-            tenant_id="test_tenant_id"
+            tenant_id="test_tenant_id",
         )
 
         assert config.provider == SSOProvider.AZURE_AD
@@ -45,7 +45,7 @@ class TestSSOConfig:
             provider=SSOProvider.GOOGLE_WORKSPACE,
             client_id="google_client",
             client_secret="google_secret",
-            redirect_uri=custom_uri
+            redirect_uri=custom_uri,
         )
 
         assert config.redirect_uri == custom_uri
@@ -57,7 +57,7 @@ class TestSSOConfig:
             provider=SSOProvider.OKTA,
             client_id="okta_client",
             client_secret="okta_secret",
-            scopes=custom_scopes
+            scopes=custom_scopes,
         )
 
         assert config.scopes == custom_scopes
@@ -68,7 +68,7 @@ class TestSSOConfig:
             provider=SSOProvider.SAML,
             client_id="saml_client",
             client_secret="saml_secret",
-            scopes=None  # Explicitly set to None
+            scopes=None,  # Explicitly set to None
         )
 
         assert config.scopes == ["openid", "email", "profile"]
@@ -83,7 +83,7 @@ class TestUserInfo:
             user_id="test_user_123",
             email="test@example.com",
             name="Test User",
-            groups=["Engineering", "AI-Users"]
+            groups=["Engineering", "AI-Users"],
         )
 
         assert user.user_id == "test_user_123"
@@ -101,7 +101,7 @@ class TestUserInfo:
             email="admin@example.com",
             name="Admin User",
             groups=["Admins"],
-            roles=custom_roles
+            roles=custom_roles,
         )
 
         assert user.roles == custom_roles
@@ -113,7 +113,7 @@ class TestUserInfo:
             email="user@tenant.com",
             name="Tenant User",
             groups=["Tenant-A"],
-            tenant_id="tenant_123"
+            tenant_id="tenant_123",
         )
 
         assert user.tenant_id == "tenant_123"
@@ -125,7 +125,7 @@ class TestUserInfo:
             email="default@example.com",
             name="Default User",
             groups=["Users"],
-            roles=None  # Explicitly set to None
+            roles=None,  # Explicitly set to None
         )
 
         assert user.roles == ["user"]
@@ -140,7 +140,7 @@ class TestSSOManager:
             provider=SSOProvider.AZURE_AD,
             client_id="test_client",
             client_secret="test_secret",
-            tenant_id="test_tenant"
+            tenant_id="test_tenant",
         )
         self.sso_manager = SSOManager(self.config)
 
@@ -156,12 +156,12 @@ class TestSSOManager:
         """Test successful Azure AD authentication."""
         auth_code = "test_auth_code_123"
 
-        with patch.object(self.sso_manager, '_handle_azure_ad') as mock_handler:
+        with patch.object(self.sso_manager, "_handle_azure_ad") as mock_handler:
             mock_user = UserInfo(
                 user_id="azure_123",
                 email="user@azure.com",
                 name="Azure User",
-                groups=["Engineers"]
+                groups=["Engineers"],
             )
             mock_handler.return_value = mock_user
 
@@ -176,7 +176,7 @@ class TestSSOManager:
         config = SSOConfig(
             provider=SSOProvider.GOOGLE_WORKSPACE,
             client_id="google_client",
-            client_secret="google_secret"
+            client_secret="google_secret",
         )
         sso_manager = SSOManager(config)
         auth_code = "google_auth_code"
@@ -194,7 +194,7 @@ class TestSSOManager:
         config = SSOConfig(
             provider=SSOProvider.OKTA,
             client_id="okta_client",
-            client_secret="okta_secret"
+            client_secret="okta_secret",
         )
         sso_manager = SSOManager(config)
         auth_code = "okta_auth_code"
@@ -212,7 +212,7 @@ class TestSSOManager:
         config = SSOConfig(
             provider=SSOProvider.SAML,
             client_id="saml_client",
-            client_secret="saml_secret"
+            client_secret="saml_secret",
         )
         sso_manager = SSOManager(config)
         auth_code = "saml_auth_code"
@@ -229,7 +229,7 @@ class TestSSOManager:
         config = SSOConfig(
             provider=SSOProvider.LDAP,
             client_id="ldap_client",
-            client_secret="ldap_secret"
+            client_secret="ldap_secret",
         )
         sso_manager = SSOManager(config)
         auth_code = "ldap_auth_code"
@@ -244,9 +244,9 @@ class TestSSOManager:
     async def test_authenticate_unsupported_provider(self):
         """Test authentication with unsupported provider."""
         # Create a config with an invalid provider (mock it)
-        with patch.object(self.sso_manager.config, 'provider', 'invalid_provider'):
+        with patch.object(self.sso_manager.config, "provider", "invalid_provider"):
             with patch.object(
-                self.sso_manager.provider_handlers, 'get', return_value=None
+                self.sso_manager.provider_handlers, "get", return_value=None
             ):
                 result = await self.sso_manager.authenticate("auth_code")
                 assert result is None
@@ -256,7 +256,7 @@ class TestSSOManager:
         """Test authentication when handler raises exception."""
         auth_code = "test_code"
 
-        with patch.object(self.sso_manager, '_handle_azure_ad') as mock_handler:
+        with patch.object(self.sso_manager, "_handle_azure_ad") as mock_handler:
             mock_handler.side_effect = Exception("Handler error")
 
             result = await self.sso_manager.authenticate(auth_code)
@@ -271,7 +271,7 @@ class TestSSOManager:
             name="JWT User",
             groups=["JWT-Group"],
             roles=["jwt_role"],
-            tenant_id="jwt_tenant"
+            tenant_id="jwt_tenant",
         )
         secret_key = "test_secret_key_123"
 
@@ -296,7 +296,7 @@ class TestSSOManager:
             user_id="exp_user",
             email="exp@example.com",
             name="Expiry User",
-            groups=["Expiry"]
+            groups=["Expiry"],
         )
         secret_key = "expiry_secret"
         custom_expiry = 48  # 48 hours
@@ -320,7 +320,7 @@ class TestSSOManager:
             user_id="valid_user",
             email="valid@example.com",
             name="Valid User",
-            groups=["Valid"]
+            groups=["Valid"],
         )
         secret_key = "validation_secret"
 
@@ -337,7 +337,7 @@ class TestSSOManager:
             user_id="invalid_secret_user",
             email="invalid@example.com",
             name="Invalid Secret User",
-            groups=["Invalid"]
+            groups=["Invalid"],
         )
         correct_secret = "correct_secret"
         wrong_secret = "wrong_secret"
@@ -353,7 +353,7 @@ class TestSSOManager:
             user_id="expired_user",
             email="expired@example.com",
             name="Expired User",
-            groups=["Expired"]
+            groups=["Expired"],
         )
         secret_key = "expired_secret"
 
@@ -383,7 +383,7 @@ class TestEnterpriseAuthMiddleware:
         config = SSOConfig(
             provider=SSOProvider.AZURE_AD,
             client_id="middleware_client",
-            client_secret="middleware_secret"
+            client_secret="middleware_secret",
         )
         sso_manager = SSOManager(config)
         self.secret_key = "middleware_secret_key"
@@ -446,7 +446,7 @@ class TestEnterpriseAuthMiddleware:
             SSOProvider.GOOGLE_WORKSPACE,
             SSOProvider.OKTA,
             SSOProvider.SAML,
-            SSOProvider.LDAP
+            SSOProvider.LDAP,
         }
 
         available_providers = set(SSOProvider)
@@ -463,7 +463,7 @@ class TestSSOProviderHandlers:
             provider=SSOProvider.AZURE_AD,
             client_id="handler_client",
             client_secret="handler_secret",
-            tenant_id="handler_tenant"
+            tenant_id="handler_tenant",
         )
         self.sso_manager = SSOManager(self.config)
 

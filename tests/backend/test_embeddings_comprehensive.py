@@ -958,5 +958,247 @@ class TestIndexingMethods:
         assert results == {"file1.md": 5, "file2.md": 3}
 
 
+class TestImportFailures:
+    """Test handling of import failures for optional dependencies."""
+
+    def test_sentence_transformer_none_handling(self, temp_db_path):
+        """Test initialization when SentenceTransformer is None."""
+        with patch("backend.embeddings.SentenceTransformer", None):
+            from backend.embeddings import EmbeddingsManager
+
+            manager = EmbeddingsManager(db_path=temp_db_path)
+
+            # Model should be None when SentenceTransformer is None
+            assert manager.model is None
+            assert manager.chroma_client is None
+            assert manager.collection is None
+
+    def test_persistent_client_none_handling(self, temp_db_path):
+        """Test initialization when PersistentClient is None."""
+        with patch("backend.embeddings.PersistentClient", None):
+            with patch("backend.embeddings.SentenceTransformer") as mock_st:
+                mock_st.return_value = Mock()
+
+                from backend.embeddings import EmbeddingsManager
+
+                manager = EmbeddingsManager(db_path=temp_db_path)
+
+                # chroma_client should be None when PersistentClient unavailable (line 65)
+                assert manager.chroma_client is None
+                assert manager.collection is None
+
+    def test_embedding_functions_import_failure(self):
+        """Test when embedding_functions is not available."""
+        with patch("backend.embeddings.embedding_functions", None):
+            with patch("backend.embeddings.SentenceTransformer") as mock_st:
+                with patch("backend.embeddings.PersistentClient") as mock_pc:
+                    mock_st.return_value = Mock()
+                    mock_pc.return_value = Mock()
+
+                    from backend.embeddings import EmbeddingsManager
+
+                    manager = EmbeddingsManager(db_path="./test_db")
+
+                    # Collection should be None when embedding_functions unavailable
+                    assert manager.collection is None
+
+
+class TestGetEmbeddingById:
+    """Test the get_embedding_by_id method."""
+
+    @patch("backend.embeddings.PersistentClient")
+    @patch("backend.embeddings.SentenceTransformer")
+    @patch(
+        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+    )
+    def test_get_embedding_by_id_success(
+        self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
+    ):
+        """Test retrieving an embedding by ID."""
+        # Setup mocks
+        mock_st.return_value = mock_sentence_transformer
+        mock_collection = Mock()
+        mock_collection.count.return_value = 1
+        mock_collection.get.return_value = {
+            "embeddings": [[0.1, 0.2, 0.3, 0.4, 0.5]],
+            "ids": ["test_note.md"],
+        }
+        mock_pc.return_value.get_or_create_collection.return_value = mock_collection
+
+        from backend.embeddings import EmbeddingsManager
+
+        manager = EmbeddingsManager(db_path=temp_db_path)
+
+        # Get embedding by ID
+        result = manager.get_embedding_by_id("test_note.md")
+
+        assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
+        mock_collection.get.assert_called_once_with(
+            ids=["test_note.md"], include=["embeddings"]
+        )
+
+    @patch("backend.embeddings.PersistentClient")
+    @patch("backend.embeddings.SentenceTransformer")
+    @patch(
+        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+    )
+    def test_get_embedding_by_id_not_found(
+        self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
+    ):
+        """Test retrieving an embedding when ID doesn't exist."""
+        # Setup mocks
+        mock_st.return_value = mock_sentence_transformer
+        mock_collection = Mock()
+        mock_collection.count.return_value = 1
+        mock_collection.get.return_value = {"embeddings": [], "ids": []}
+        mock_pc.return_value.get_or_create_collection.return_value = mock_collection
+
+        from backend.embeddings import EmbeddingsManager
+
+        manager = EmbeddingsManager(db_path=temp_db_path)
+
+        # Get embedding for non-existent ID
+        result = manager.get_embedding_by_id("nonexistent.md")
+
+        assert result == []
+
+    def test_get_embedding_by_id_no_collection(self, temp_db_path):
+        """Test get_embedding_by_id when collection is None."""
+        with patch("backend.embeddings.SentenceTransformer", None):
+            from backend.embeddings import EmbeddingsManager
+
+            manager = EmbeddingsManager(db_path=temp_db_path)
+            manager.collection = None
+
+            result = manager.get_embedding_by_id("test.md")
+
+            assert result == []
+
+    @patch("backend.embeddings.PersistentClient")
+    @patch("backend.embeddings.SentenceTransformer")
+    @patch(
+        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+    )
+    def test_get_embedding_by_id_exception_handling(
+        self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
+    ):
+        """Test exception handling in get_embedding_by_id."""
+        # Setup mocks
+        mock_st.return_value = mock_sentence_transformer
+        mock_collection = Mock()
+        mock_collection.count.return_value = 1
+        mock_collection.get.side_effect = Exception("Database error")
+        mock_pc.return_value.get_or_create_collection.return_value = mock_collection
+
+        from backend.embeddings import EmbeddingsManager
+
+        manager = EmbeddingsManager(db_path=temp_db_path)
+
+        # Should return empty list on exception
+        result = manager.get_embedding_by_id("test.md")
+
+        assert result == []
+
+
+class TestIndexFilePersist:
+    """Test the index_file method with persist calls."""
+
+    @patch("backend.embeddings.PersistentClient")
+    @patch("backend.embeddings.SentenceTransformer")
+    @patch(
+        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+    )
+    def test_index_file_with_persist(
+        self,
+        mock_ef,
+        mock_st,
+        mock_pc,
+        temp_db_path,
+        mock_sentence_transformer,
+        temp_vault_path,
+    ):
+        """Test index_file calls persist on chroma client."""
+        # Setup mocks
+        mock_st.return_value = mock_sentence_transformer
+        mock_collection = Mock()
+        mock_collection.count.return_value = 0
+        mock_collection.add.return_value = None
+        mock_client = Mock()
+        mock_client.get_or_create_collection.return_value = mock_collection
+        mock_client.persist.return_value = None
+        mock_pc.return_value = mock_client
+
+        from backend.embeddings import EmbeddingsManager
+
+        manager = EmbeddingsManager(db_path=temp_db_path)
+
+        # Index a file
+        test_file = Path(temp_vault_path) / "note1.md"
+        chunks_indexed = manager.index_file(str(test_file))
+
+        # Verify persist was called
+        mock_client.persist.assert_called_once()
+        assert chunks_indexed > 0
+
+    @patch("backend.embeddings.PersistentClient")
+    @patch("backend.embeddings.SentenceTransformer")
+    @patch(
+        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+    )
+    def test_index_file_nonexistent(
+        self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
+    ):
+        """Test index_file returns 0 for non-existent file."""
+        # Setup mocks
+        mock_st.return_value = mock_sentence_transformer
+        mock_collection = Mock()
+        mock_pc.return_value.get_or_create_collection.return_value = mock_collection
+
+        from backend.embeddings import EmbeddingsManager
+
+        manager = EmbeddingsManager(db_path=temp_db_path)
+
+        # Try to index non-existent file
+        result = manager.index_file("/nonexistent/file.md")
+
+        assert result == 0
+
+
+class TestPersistentClientNone:
+    """Test scenarios where PersistentClient is None."""
+
+    def test_initialization_with_persistent_client_none(self, temp_db_path):
+        """Test that chroma_client is set to None when PersistentClient unavailable."""
+        with patch("backend.embeddings.PersistentClient", None):
+            with patch("backend.embeddings.SentenceTransformer") as mock_st:
+                mock_st.return_value = Mock()
+
+                from backend.embeddings import EmbeddingsManager
+
+                manager = EmbeddingsManager(db_path=temp_db_path)
+
+                # Should set chroma_client to None (line 65)
+                assert manager.chroma_client is None
+                assert manager.collection is None
+
+
+class TestSentenceTransformerNoneWarning:
+    """Test warning logging when SentenceTransformer is None."""
+
+    def test_sentence_transformer_none_logs_warning(self, temp_db_path):
+        """Test that warning is logged when SentenceTransformer is None."""
+        with patch("backend.embeddings.SentenceTransformer", None):
+            with patch("backend.embeddings.logging") as mock_logging:
+                from backend.embeddings import EmbeddingsManager
+
+                manager = EmbeddingsManager(db_path=temp_db_path)
+
+                # Verify warning was logged (lines 45-48)
+                mock_logging.warning.assert_called_once()
+                warning_call = mock_logging.warning.call_args[0][0]
+                assert "sentence_transformers not available" in warning_call
+                assert manager.model is None
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
