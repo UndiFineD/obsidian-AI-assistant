@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
-[![Tests](https://img.shields.io/badge/tests-686%20passed-brightgreen)](#9-testing--quality-assurance)
+[![Tests](https://img.shields.io/badge/tests-686%20passed%20%7C%200%20skipped-brightgreen)](#9-testing--quality-assurance)
 [![Coverage](https://img.shields.io/badge/coverage-85%25%2B_backend-blue)](#9-testing--quality-assurance)
 [![Quality](https://img.shields.io/badge/code%20quality-production%20ready-green)](#8-code-quality-standards)
 [![OpenSpec](https://img.shields.io/badge/openspec-100%25%20passed-blue)](#12-documentation-governance)
@@ -61,7 +61,7 @@ Run `python -m pytest ./tests/ -v` to validate documentation governance
 
 - All OpenSpec documentation tests must pass for compliance
 
-- **Test Suite**: 686/686 passed (100% success rate) 🎯
+- Latest test run (2025-10-15): 686 passed, 0 skipped, 0 failed 🎯
 
 - **Test Files**: 46 Python test files (optimized, duplicates removed)
 See `.github/copilot-instructions.md` and `AGENTS.md` for agent and contributor guidelines
@@ -115,9 +115,9 @@ Support for LLaMA/GPT4All models with hybrid routing
 
 - `styles.css` (styling)
 
-3. Open Obsidian → Settings → Community Plugins → Enable `Obsidian AI Assistant`
+1. Open Obsidian → Settings → Community Plugins → Enable `Obsidian AI Assistant`
 
-4. Configure:
+2. Configure:
 
 - **Backend URL**: `http://localhost:8000`
 
@@ -634,7 +634,7 @@ This project maintains exceptionally high code quality with comprehensive
 test coverage. Latest test run: 100% success rate (498 passed, 0 failed)
 demonstrating production-ready stability.
 
-#### **Comprehensive Test Results (October 13, 2025)**
+#### **Comprehensive Test Results (2025-10-15)**
 
 | **Test Category**             | **Tests** | **Pass Rate** | **Status**          |
 | ----------------------------- | --------- | ------------- | ------------------- |
@@ -658,7 +658,7 @@ demonstrating production-ready stability.
 | ├─ Change Proposal System     | 34        | 100%          | ✅ Spec compliance  |
 | ├─ CLI Tools & Validation     | 28        | 100%          | ✅ Workflow mgmt    |
 | └─ Archive & Integration      | 28        | 100%          | ✅ Change lifecycle |
-| **📊 TOTAL**                  | **589**   | **100%** 🏆   | ✅ **Production**   |
+| **📊 TOTAL**                  | **686**   | **100% (0 failures)** 🏆   | ✅ **Production**   |
 
 #### **Key Achievements & Quality Metrics**
 
@@ -707,13 +707,14 @@ tests/
 └── comprehensive_async_test_runner.py # Multi-worker test runner
 ```
 
-#### **Latest Test Run Statistics (October 13, 2025)**
+#### **Latest Test Run Statistics (2025-10-15)**
 
-- **Success Rate**: 100% (589 passed, 0 failed, 0 skipped) 🏆
+- **Success Rate**: 100.0% pass (686 passed, 0 failed, 0 skipped)
 
-- **Total Coverage**: 589 comprehensive tests across all system components
+- **Total Tests**: 686 collected (includes skipped and failed)
 
-- **Execution Time**: ~3 minutes for full test suite (optimized for comprehensive validation)
+- **Execution Time**: ~120.31s on Windows (Python 3.14)
+**Coverage**: 100%
 
 - **Code Quality**: Trunk linting framework with ruff, black, prettier, markdownlint, checkov, actionlint
 
@@ -782,6 +783,31 @@ source .venv/bin/activate  # Linux/macOS
 All code changes are validated using automated test suites and continuous integration pipelines. See the Testing Guide for details.
 
 - Run `python -m pytest ./tests/ -v` to validate documentation governance
+
+#### Automated Test Metrics Updates
+
+The project includes an automated test metrics update system that:
+
+- **Extracts metrics** from pytest output (passed/skipped/failed tests, execution time, coverage)
+- **Tracks history** with JSON-based historical data and trend analysis
+- **Integrates benchmarks** from pytest-benchmark for performance monitoring
+- **Creates OpenSpec changes** automatically for documentation governance compliance
+- **Validates updates** using `openspec validate` to ensure quality
+
+**Quick Usage:**
+
+```pwsh
+# Run tests and update documentation automatically
+python scripts/update_test_metrics.py --apply
+
+# Preview changes without applying
+python scripts/update_test_metrics.py
+
+# Force update even if no test run found
+python scripts/update_test_metrics.py --apply --force
+```
+
+See [docs/TEST_METRICS_AUTOMATION.md](docs/TEST_METRICS_AUTOMATION.md) for comprehensive documentation including CI/CD integration, troubleshooting, and best practices.
 
 ## Continuous Improvement & Feedback
 

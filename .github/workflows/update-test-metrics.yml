@@ -1,0 +1,158 @@
+# GitHub Actions Workflow for Automated Test Metrics Updates
+# This workflow runs the full test suite and updates documentation with latest metrics
+permissions:
+    contents: write
+    pull-requests: write
+
+name: Update Test Metrics
+
+on:
+    # Run on schedule (weekly on Sundays at 00:00 UTC)
+    schedule:
+        - cron: '0 0 * * 0'
+    
+    # Allow manual triggering with optional parameters
+    workflow_dispatch:
+        inputs:
+            scaffold-openspec:
+                description: 'Create OpenSpec change directory for this update'
+                required: false
+                type: boolean
+                default: false
+            create-pr:
+                description: 'Create pull request with changes'
+                required: false
+                type: boolean
+                default: true
+
+jobs:
+    update-metrics:
+        runs-on: ubuntu-latest
+        
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+            
+            - name: Set up Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.10'
+            
+            - name: Install dependencies
+              run: |
+                  python -m pip install --upgrade pip
+                  pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx
+                  # Install only testing dependencies, ML libs are mocked
+                  if [ -f requirements.txt ]; then
+                    grep -v "torch\|transformers\|sentence-transformers\|llama-cpp\|vosk\|chromadb" requirements.txt | pip install -r /dev/stdin || true
+                  fi
+            
+            - name: Prepare test environment
+              run: |
+                  mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
+                  echo "# Test Vault" > test_vault/test_note.md
+                  echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+                  echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
+                  echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
+                  echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
+              shell: bash
+            
+            - name: Run full test suite
+              id: pytest
+              run: |
+                  # Run tests and capture output
+                  python -m pytest tests/ -v -n auto --asyncio-mode=auto --tb=short 2>&1 | tee pytest_output.txt
+                  
+                  # Parse test results
+                  PASSED=$(grep -oP '\d+(?= passed)' pytest_output.txt | tail -1)
+                  SKIPPED=$(grep -oP '\d+(?= skipped)' pytest_output.txt | tail -1 || echo "0")
+                  DURATION=$(grep -oP 'in \K[0-9.]+s' pytest_output.txt | tail -1)
+                  
+                  echo "passed=$PASSED" >> "$GITHUB_OUTPUT"
+                  echo "skipped=$SKIPPED" >> "$GITHUB_OUTPUT"
+                  echo "duration=$DURATION" >> "$GITHUB_OUTPUT"
+              env:
+                  PYTHONPATH: ${{ github.workspace }}
+            
+            - name: Update documentation
+              id: update-docs
+              run: |
+                  DATE=$(date +%Y-%m-%d)
+                  
+                  # Build command with optional OpenSpec scaffolding
+                  CMD="python scripts/update_test_metrics.py --skip-pytest --passed ${{ steps.pytest.outputs.passed }} --skipped ${{ steps.pytest.outputs.skipped }} --duration '${{ steps.pytest.outputs.duration }}' --date $DATE --apply"
+                  
+                  if [ "${{ inputs.scaffold-openspec }}" = "true" ]; then
+                    CMD="$CMD --scaffold-openspec"
+                  fi
+                  
+                  echo "Running: $CMD"
+                  eval $CMD
+                  
+                  # Check for changes
+                  if git diff --quiet; then
+                    echo "has-changes=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "has-changes=true" >> "$GITHUB_OUTPUT"
+                  fi
+            
+            - name: Create Pull Request
+              if: steps.update-docs.outputs.has-changes == 'true' && (inputs.create-pr == true || inputs.create-pr == '')
+              uses: peter-evans/create-pull-request@v6
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  commit-message: 'docs: update test metrics (${{ steps.pytest.outputs.passed }} passed, ${{ steps.pytest.outputs.skipped }} skipped)'
+                  title: 'docs: Update test metrics to latest run'
+                  body: |
+                      ## Automated Test Metrics Update
+                      
+                      This PR updates documentation with the latest test suite results:
+                      
+                      - **Tests Passed**: ${{ steps.pytest.outputs.passed }}
+                      - **Tests Skipped**: ${{ steps.pytest.outputs.skipped }}
+                      - **Duration**: ${{ steps.pytest.outputs.duration }}
+                      - **Date**: $(date +%Y-%m-%d)
+                      
+                      ### Files Updated
+                      - `README.md` - Test badge and statistics
+                      - `docs/TEST_RESULTS_OCTOBER_2025.md` - Comprehensive test results
+                      - `docs/SYSTEM_STATUS_OCTOBER_2025.md` - System status summary
+                      
+                      ${{ inputs.scaffold-openspec == true && '### OpenSpec Changes\n\nAn OpenSpec change directory has been created for governance compliance.' || '' }}
+                      
+                      ---
+                      
+                      *Generated automatically by [update-test-metrics workflow](.github/workflows/update-test-metrics.yml)*
+                  branch: update-test-metrics-${{ github.run_id }}
+                  delete-branch: true
+                  labels: |
+                      documentation
+                      automated
+            
+            - name: Commit directly (if no PR requested)
+              if: steps.update-docs.outputs.has-changes == 'true' && inputs.create-pr == false
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add README.md docs/TEST_RESULTS_OCTOBER_2025.md docs/SYSTEM_STATUS_OCTOBER_2025.md
+                  if [ "${{ inputs.scaffold-openspec }}" = "true" ]; then
+                    git add openspec/changes/
+                  fi
+                  git commit -m "docs: update test metrics (${{ steps.pytest.outputs.passed }} passed, ${{ steps.pytest.outputs.skipped }} skipped)"
+                  git push
+            
+            - name: Summary
+              if: always()
+              run: |
+                  echo "## Test Metrics Update Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "📊 **Test Results**" >> $GITHUB_STEP_SUMMARY
+                  echo "- Passed: ${{ steps.pytest.outputs.passed }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Skipped: ${{ steps.pytest.outputs.skipped }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- Duration: ${{ steps.pytest.outputs.duration }}" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "📝 **Documentation Updates**" >> $GITHUB_STEP_SUMMARY
+                  echo "- Changes detected: ${{ steps.update-docs.outputs.has-changes }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- OpenSpec scaffolding: ${{ inputs.scaffold-openspec }}" >> $GITHUB_STEP_SUMMARY
+                  echo "- PR created: ${{ inputs.create-pr }}" >> $GITHUB_STEP_SUMMARY

@@ -491,6 +491,167 @@ jobs:
 
 ---
 
+## 🤖 **Test Metrics Automation**
+
+### **Overview**
+
+The project includes comprehensive automation for updating test metrics across documentation files. This ensures consistency and reduces manual effort when test results change.
+
+### **Local Usage**
+
+#### **Basic Dry-Run (Preview Changes)**
+
+```powershell
+# Run tests and preview documentation updates (no changes applied)
+python scripts/update_test_metrics.py
+
+# Preview with explicit metrics (skip test execution)
+python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15
+```
+
+#### **Apply Changes to Documentation**
+
+```powershell
+# Run tests and apply updates to README.md and docs/
+python scripts/update_test_metrics.py --apply
+
+# Apply with explicit metrics
+python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15 --apply
+```
+
+#### **Create OpenSpec Change Directory**
+
+```powershell
+# Update docs AND scaffold OpenSpec governance change
+python scripts/update_test_metrics.py --apply --scaffold-openspec
+```
+
+This creates a compliant OpenSpec change directory at:
+
+```text
+openspec/changes/update-doc-docs-test-results-auto-{date}/
+├── proposal.md           # Why/What/Impact with capability declaration
+├── tasks.md              # Implementation and validation checklist
+└── specs/project-documentation/
+    └── spec.md           # Requirements with scenarios and governance language
+```
+
+### **Automation Script Features**
+
+**Files Updated:**
+
+- `README.md` - Test badge, statistics sections, test count table
+- `docs/TEST_RESULTS_OCTOBER_2025.md` - Comprehensive test results
+- `docs/SYSTEM_STATUS_OCTOBER_2025.md` - System health status
+
+**Command-Line Options:**
+
+| **Flag**                | **Description**                                                  | **Default** |
+| ----------------------- | ---------------------------------------------------------------- | ----------- |
+| `--apply`               | Apply changes to files (omit for dry-run preview)                | false       |
+| `--skip-pytest`         | Skip test execution, use provided metrics                        | false       |
+| `--passed <count>`      | Number of passed tests (required with `--skip-pytest`)           | -           |
+| `--skipped <count>`     | Number of skipped tests                                          | 0           |
+| `--duration <time>`     | Test execution duration (e.g., "3m19s", "141.90s")               | -           |
+| `--date <YYYY-MM-DD>`   | Date for documentation headers                                   | today       |
+| `--scaffold-openspec`   | Create OpenSpec change directory for governance                  | false       |
+
+### **CI/CD Integration**
+
+#### **GitHub Actions Workflow**
+
+The project includes `.github/workflows/update-test-metrics.yml` for automated test metrics updates.
+
+**Triggers:**
+
+- **Scheduled**: Weekly on Sundays at 00:00 UTC
+- **Manual**: Via GitHub Actions UI with optional parameters
+
+**Manual Workflow Dispatch Parameters:**
+
+| **Parameter**       | **Description**                                 | **Default** |
+| ------------------- | ----------------------------------------------- | ----------- |
+| `scaffold-openspec` | Create OpenSpec change directory                | false       |
+| `create-pr`         | Create pull request with changes                | true        |
+
+**Workflow Steps:**
+
+1. Checkout repository
+2. Set up Python 3.10 environment
+3. Install test dependencies (ML libraries mocked)
+4. Prepare test environment (directories, vault)
+5. Run full test suite with `pytest`
+6. Parse test results (passed, skipped, duration)
+7. Update documentation files via `update_test_metrics.py`
+8. Create pull request OR commit directly
+
+**Example: Manual Trigger with OpenSpec**
+
+```yaml
+# Via GitHub UI or gh CLI
+gh workflow run update-test-metrics.yml \
+  -f scaffold-openspec=true \
+  -f create-pr=true
+```
+
+**Example: Direct Commit (No PR)**
+
+```yaml
+gh workflow run update-test-metrics.yml \
+  -f create-pr=false
+```
+
+#### **Pull Request Content**
+
+When `create-pr=true`, the workflow generates a PR with:
+
+- Automated commit message: `docs: update test metrics (691 passed, 2 skipped)`
+- PR title: `docs: Update test metrics to latest run`
+- PR body with test statistics and updated file list
+- Labels: `documentation`, `automated`
+
+### **Validation & Quality Checks**
+
+After running automation (locally or in CI):
+
+```powershell
+# Validate OpenSpec compliance
+pytest tests/backend/test_openspec_governance.py -v
+
+# Check markdown lint compliance
+# (Automation script handles MD022/MD029/MD032 formatting)
+
+# Run full test suite to ensure no regressions
+python -m pytest tests/ -v
+```
+
+### **Best Practices**
+
+1. **Dry-Run First**: Always preview changes with default (no `--apply`) before applying
+2. **Date Consistency**: Use explicit `--date` in scripts/CI to match test execution date
+3. **OpenSpec Governance**: Use `--scaffold-openspec` for significant metric changes
+4. **Validate Changes**: Run OpenSpec tests after applying updates
+5. **Version Control**: Review diffs before committing automation-generated changes
+
+### **Troubleshooting**
+
+**Issue: "SyntaxError: (unicode error) 'unicodeescape'"**
+
+- **Cause**: Backslashes in PowerShell paths in docstrings
+- **Fix**: Use raw strings (`r"""..."""`) or forward slashes in examples
+
+**Issue: "Could not parse pytest summary"**
+
+- **Cause**: pytest output format changed or test execution failed
+- **Fix**: Check pytest output directly, ensure tests pass before automation
+
+**Issue: OpenSpec tests failing after automation**
+
+- **Cause**: Missing capability declaration or governance keywords in generated files
+- **Fix**: Ensure `--scaffold-openspec` generates compliant proposal/spec files
+
+---
+
 ## ✨ **Success Factors**
 
 The key factors that made this testing strategy successful:

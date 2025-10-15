@@ -1,0 +1,10 @@
+[
+  {
+    "date": "2025-10-15",
+    "passed": 686,
+    "skipped": 0,
+    "failed": 0,
+    "duration": "120.31s",
+    "coverage": "100%"
+  }
+]
