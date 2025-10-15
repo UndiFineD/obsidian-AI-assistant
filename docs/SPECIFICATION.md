@@ -3,9 +3,13 @@
 ## 📌 Document Overview
 
 - **Version**: 1.0.0
+
 - **Last Updated**: October 6, 2025
+
 - **Author**: Keimpe de Jong
+
 - **Project**: Obsidian AI Assistant
+
 - **Repository**: obsidian-AI-assistant
 
 ---
@@ -116,10 +120,15 @@ validation, and type safety. The API follows RESTful principles with
 comprehensive error handling and standardized response formats.
 
 - **Automatic Documentation**: OpenAPI/Swagger UI at `/docs` and ReDoc at `/redoc`
+
 - **Type Safety**: Pydantic models for request/response validation
+
 - **Async Operations**: Full asynchronous support for concurrent requests
+
 - **CORS Enabled**: Cross-origin requests supported for web integration
+
 - **Service Injection**: Dependency injection for database and model management
+
 - **Caching Layer**: Integrated response caching for performance optimization
 
 ### Server Configuration
@@ -127,10 +136,15 @@ comprehensive error handling and standardized response formats.
 #### Base Configuration
 
 - **Protocol**: HTTP/HTTPS
+
 - **Default Host**: `127.0.0.1` (localhost)
+
 - **Default Port**: `8000` (configurable via `API_PORT` environment variable)
+
 - **Framework**: FastAPI 0.104+
+
 - **Base URL**: `http://127.0.0.1:8000`
+
 - **Documentation URL**: `http://127.0.0.1:8000/docs`
 
 #### CORS Configuration
@@ -223,6 +237,7 @@ interface HealthResponse {
 **Status Codes**:
 
 - `200 OK`: System healthy and operational
+
 - `503 Service Unavailable`: System degraded or services unavailable
 
 #### GET /status
@@ -250,6 +265,7 @@ interface StatusResponse {
 **Status Codes**:
 
 - `200 OK`: Service is alive and responding
+
 - `503 Service Unavailable`: Service is not ready
 
 #### GET /api/health
@@ -398,15 +414,21 @@ interface ConfigUpdateResponse {
 **Status Codes**:
 
 - `200 OK`: Configuration updated successfully
+
 - `400 Bad Request`: Invalid configuration parameters
+
 - `500 Internal Server Error`: Failed to persist configuration
 
 **Validation Rules**:
 
 - `top_k`: Integer between 1 and 100
+
 - `chunk_size`: Integer between 100 and 10000
+
 - `chunk_overlap`: Integer between 0 and chunk_size/2
+
 - `similarity_threshold`: Float between 0.0 and 1.0
+
 - Path fields: Must be valid directory/file paths
 
 #### POST /api/config/reload
@@ -445,6 +467,7 @@ interface ConfigReloadResponse {
 **Status Codes**:
 
 - `200 OK`: Configuration reloaded successfully
+
 - `500 Internal Server Error`: Failed to reload configuration file
 
 ---
@@ -554,8 +577,11 @@ Steps**: Focus on UI components while resolving the API integration\n4.
 **Status Codes**:
 
 - `200 OK`: Question processed successfully
+
 - `422 Unprocessable Entity`: Invalid request format or missing required fields
+
 - `500 Internal Server Error`: AI model error, service unavailable, or processing failure
+
 - `503 Service Unavailable`: Models not loaded or backend services unavailable
 
 **Error Response Schema**:
@@ -604,15 +630,21 @@ Model error:
 **Caching Behavior**:
 
 - Questions are cached based on exact text match
+
 - Cache TTL is configurable (default: 1 hour)
+
 - Context paths and custom prompts affect cache key
+
 - Cached responses return immediately with `cached: true`
 
 **Performance Considerations**:
 
 - Use `prefer_fast: true` for real-time interactions
+
 - Set `max_tokens` appropriately to control response length and processing time
+
 - Limit `context_paths` to relevant files to reduce processing overhead
+
 - Consider caching for frequently asked questions
 
 ---
@@ -686,7 +718,9 @@ interface ReindexResponse {
 **Status Codes**:
 
 - `200 OK`: Reindexing completed successfully or with partial success
+
 - `400 Bad Request`: Invalid vault path or configuration
+
 - `500 Internal Server Error`: Indexing service failure
 
 #### POST /web & POST /api/web
@@ -764,15 +798,21 @@ Successful web indexing:
 **Status Codes**:
 
 - `200 OK`: Web content processed successfully
+
 - `400 Bad Request`: Invalid URL format or network features disabled
+
 - `403 Forbidden`: Network access not allowed in configuration
+
 - `404 Not Found`: URL not accessible or content not found
+
 - `500 Internal Server Error`: Processing or indexing failure
 
 **Error Handling**:
 
 - Invalid URLs return 400 with error details
+
 - Network timeouts return 500 with timeout information
+
 - Restricted content types are logged but may return partial results
 
 #### POST /api/scan_vault
@@ -822,7 +862,9 @@ interface ScanVaultResponse {
 **Status Codes**:
 
 - `200 OK`: Vault scan completed successfully
+
 - `400 Bad Request`: Invalid vault path
+
 - `500 Internal Server Error`: Scanning or indexing failure
 
 #### POST /api/index_pdf
@@ -871,8 +913,11 @@ interface IndexPdfResponse {
 **Status Codes**:
 
 - `200 OK`: PDF indexed successfully
+
 - `400 Bad Request`: Invalid file path or unsupported PDF format
+
 - `404 Not Found`: PDF file not found
+
 - `500 Internal Server Error`: PDF processing or indexing failure
 
 ### Search Operations
@@ -886,6 +931,7 @@ interface IndexPdfResponse {
 **Query Parameters**:
 
 - `query` (string, required): Search query text
+
 - `top_k` (int, optional): Maximum number of results (default: 5, max: 100)
 
 **Response Schema**:
@@ -954,7 +1000,9 @@ POST /api/search?query=machine%20learning&top_k=3
 **Status Codes**:
 
 - `200 OK`: Search completed successfully (even if no results found)
+
 - `400 Bad Request`: Missing or invalid query parameter
+
 - `500 Internal Server Error`: Search service failure or index unavailable
 
 ---
@@ -1026,23 +1074,33 @@ interface TranscribeResponse {
 **Status Codes**:
 
 - `200 OK`: Transcription completed successfully
+
 - `400 Bad Request`: Invalid audio data or unsupported format
+
 - `415 Unsupported Media Type`: Audio format not supported
+
 - `500 Internal Server Error`: Transcription service failure
 
 **Supported Audio Formats**:
 
 - WAV (recommended)
+
 - WebM
+
 - MP3 (converted to WAV internally)
+
 - OGG
 
 **Voice Processing Pipeline**:
 
 1. Base64 decode audio data
+
 2. Format validation and conversion
+
 3. Speech recognition using Vosk or configured engine
+
 4. Post-processing and confidence scoring
+
 5. Response formatting and return
 
 ---
@@ -1165,7 +1223,9 @@ class AskResponse(StandardResponse):
 FastAPI automatically generates OpenAPI 3.0 specifications accessible at:
 
 - **Interactive API Docs (Swagger UI)**: `GET /docs`
+
 - **Alternative Docs (ReDoc)**: `GET /redoc`
+
 - **OpenAPI JSON Schema**: `GET /openapi.json`
 
 #### Authentication & Rate Limiting
@@ -1181,7 +1241,9 @@ FastAPI automatically generates OpenAPI 3.0 specifications accessible at:
 ### Configuration Precedence
 
 1. **Environment Variables** (highest priority)
+
 2. **backend/config.yaml** (medium priority)
+
 3. **Code Defaults** (lowest priority)
 
 ### Settings Model
@@ -1220,29 +1282,35 @@ class Settings(BaseModel):
 ### Environment Variables
 
 ```bash
+
 # Core Settings
+
 API_PORT=8000
 BACKEND_URL=http://127.0.0.1:8000
 ALLOW_NETWORK=false
 
 # Paths
+
 VAULT_PATH=./vault
 MODELS_DIR=./backend/models
 CACHE_DIR=./backend/cache
 
 # LLM Configuration
+
 MODEL_BACKEND=llama_cpp
 MODEL_PATH=backend/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 GPU=true
 
 # Processing
+
 CHUNK_SIZE=2000
 CHUNK_OVERLAP=200
 TOP_K=10
 SIMILARITY_THRESHOLD=0.75
 
 # Voice
+
 VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 ```
 
@@ -1253,8 +1321,11 @@ VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 ### Coverage Requirements
 
 - **Target**: 70%+ overall coverage
+
 - **Critical Modules**: 90%+ (settings, caching, security)
+
 - **API Endpoints**: 65%+ coverage
+
 - **Integration Tests**: End-to-end scenarios
 
 ### Test Architecture
@@ -1279,7 +1350,9 @@ tests/
 ### PyTorch Conflict Resolution
 
 ```python
+
 # Module-level mocking strategy
+
 @patch.dict(sys.modules, {
     'torch': Mock(),
     'transformers': Mock(),
@@ -1296,14 +1369,19 @@ tests/
 **Requirements**:
 
 - **Coverage**: 80%+ for critical modules (settings, security, caching)
+
 - **Isolation**: Mock external dependencies
+
 - **Speed**: < 100ms per test
+
 - **Frameworks**: pytest, unittest.mock, pytest-asyncio
 
 **Test Patterns**:
 
 ```python
+
 # Example unit test structure
+
 @pytest.mark.asyncio
 async def test_embedding_generation():
     with patch('backend.embeddings.SentenceTransformer'):
@@ -1320,14 +1398,19 @@ async def test_embedding_generation():
 **Requirements**:
 
 - **Coverage**: 70%+ for API endpoints
+
 - **Database**: Test with actual ChromaDB instance
+
 - **Network**: Mock external HTTP calls
+
 - **Performance**: < 5s per test scenario
 
 **Test Scenarios**:
 
 ```python
+
 # Example integration test
+
 @pytest.mark.integration
 async def test_full_question_workflow(test_client):
     # Index test document
@@ -1347,14 +1430,19 @@ async def test_full_question_workflow(test_client):
 **Requirements**:
 
 - **Response Time**: API endpoints < SLA targets
+
 - **Throughput**: Handle concurrent requests
+
 - **Memory**: Monitor resource usage
+
 - **Tools**: locust, pytest-benchmark, memory-profiler
 
 **Benchmarks**:
 
 ```python
+
 # Performance test example
+
 @pytest.mark.benchmark
 def test_embedding_performance(benchmark):
     embedder = EmbeddingManager()
@@ -1365,10 +1453,15 @@ def test_embedding_performance(benchmark):
 **Load Testing Targets**:
 
 - **Concurrent Users**: 10 simultaneous requests
+
 - **Response Times**:
-    - Health endpoints: < 100ms
-    - Search operations: < 1000ms
-    - AI generation: < 30s
+
+- Health endpoints: < 100ms
+
+- Search operations: < 1000ms
+
+- AI generation: < 30s
+
 - **Memory Usage**: < 2GB under normal load
 
 #### Security Tests
@@ -1378,14 +1471,19 @@ def test_embedding_performance(benchmark):
 **Requirements**:
 
 - **Input Validation**: Test injection attacks
+
 - **Authentication**: Verify access controls
+
 - **Encryption**: Test data protection
+
 - **Tools**: bandit, safety, custom security tests
 
 **Security Test Categories**:
 
 ```python
+
 # Security test examples
+
 @pytest.mark.security
 def test_sql_injection_prevention():
     malicious_input = "'; DROP TABLE users; --"
@@ -1403,9 +1501,13 @@ def test_encryption_decryption():
 **Security Checklist**:
 
 - [ ] Input sanitization for all API endpoints
+
 - [ ] Fernet encryption for sensitive cache data
+
 - [ ] File path traversal prevention
+
 - [ ] Memory leak detection in long-running processes
+
 - [ ] Dependency vulnerability scanning
 
 ### Acceptance Criteria
@@ -1415,15 +1517,21 @@ def test_encryption_decryption():
 **API Endpoints**:
 
 - All endpoints return proper HTTP status codes
+
 - Request/response models validate correctly
+
 - Error handling provides meaningful messages
+
 - Documentation matches actual behavior
 
 **Core Features**:
 
 - Document indexing processes all supported formats
+
 - Semantic search returns relevant results
+
 - Voice transcription accuracy > 90%
+
 - Configuration changes apply without restart
 
 #### Performance Requirements
@@ -1431,15 +1539,21 @@ def test_encryption_decryption():
 **Response Time SLA**:
 
 - Health endpoints: < 100ms (99th percentile)
+
 - Configuration endpoints: < 200ms (95th percentile)
+
 - Search operations: < 1000ms (90th percentile)
+
 - AI generation: Variable based on model size
 
 **Resource Utilization**:
 
 - Memory usage < 4GB under normal load
+
 - CPU usage < 80% during peak operations
+
 - Disk I/O < 100MB/s for indexing operations
+
 - Cache hit ratio > 70% for repeated queries
 
 #### Quality Gates
@@ -1447,15 +1561,21 @@ def test_encryption_decryption():
 **Code Quality**:
 
 - Linting: 0 critical issues (flake8, black, mypy)
+
 - Security: 0 high/critical vulnerabilities (bandit, safety)
+
 - Coverage: Minimum thresholds per component
+
 - Documentation: All public APIs documented
 
 **Test Quality**:
 
 - All tests must pass in CI/CD pipeline
+
 - No flaky tests (< 1% failure rate)
+
 - Test execution time < 10 minutes total
+
 - Performance regression detection
 
 ### Test Frameworks and Tools
@@ -1463,7 +1583,9 @@ def test_encryption_decryption():
 #### Core Testing Stack
 
 ```bash
+
 # Testing dependencies
+
 pytest>=7.4.0                    # Test framework
 pytest-asyncio>=0.21.0          # Async test support
 pytest-cov>=4.1.0               # Coverage reporting
@@ -1475,7 +1597,9 @@ httpx>=0.24.0                    # HTTP testing client
 #### Development Tools
 
 ```bash
+
 # Code quality tools
+
 black>=23.7.0                    # Code formatting
 flake8>=6.0.0                    # Linting
 mypy>=1.5.0                      # Type checking
@@ -1486,7 +1610,9 @@ safety>=2.3.0                    # Dependency scanning
 #### Performance Testing
 
 ```bash
+
 # Load testing tools
+
 locust>=2.15.0                   # Load testing framework
 memory-profiler>=0.61.0          # Memory usage profiling
 py-spy>=0.3.14                   # CPU profiling
@@ -1497,7 +1623,9 @@ py-spy>=0.3.14                   # CPU profiling
 #### GitHub Actions Workflow
 
 ```yaml
+
 # .github/workflows/test.yml
+
 name: Test Suite
 on: [push, pull_request]
 
@@ -1509,66 +1637,75 @@ jobs:
                 python-version: [3.10, 3.11, 3.12]
 
         steps:
-            - uses: actions/checkout@v4
-            - name: Set up Python
+
+- uses: actions/checkout@v4
+
+- name: Set up Python
               uses: actions/setup-python@v4
               with:
                   python-version: ${{ matrix.python-version }}
 
-            - name: Install dependencies
+- name: Install dependencies
               run: |
                   pip install -r requirements.txt
                   pip install -r requirements-dev.txt
 
-            - name: Run linting
+- name: Run linting
               run: |
                   flake8 backend/ tests/
                   black --check backend/ tests/
                   mypy backend/
 
-            - name: Run security scan
+- name: Run security scan
               run: |
                   bandit -r backend/
                   safety check
 
-            - name: Run unit tests
+- name: Run unit tests
               run: |
                   pytest tests/ --cov=backend --cov-report=xml --cov-fail-under=70
 
-            - name: Run integration tests
+- name: Run integration tests
               run: |
                   pytest tests/ -m integration
 
-            - name: Upload coverage
+- name: Upload coverage
               uses: codecov/codecov-action@v3
 ```
 
 #### Pre-commit Hooks
 
 ```yaml
+
 # .pre-commit-config.yaml
+
 repos:
-    - repo: https://github.com/psf/black
+
+- repo: https://github.com/psf/black
       rev: 23.7.0
       hooks:
-          - id: black
+
+- id: black
             language_version: python3.10
 
-    - repo: https://github.com/PyCQA/flake8
+- repo: https://github.com/PyCQA/flake8
       rev: 6.0.0
       hooks:
-          - id: flake8
 
-    - repo: https://github.com/pre-commit/mirrors-mypy
+- id: flake8
+
+- repo: https://github.com/pre-commit/mirrors-mypy
       rev: v1.5.0
       hooks:
-          - id: mypy
+
+- id: mypy
             additional_dependencies: [types-all]
 
-    - repo: https://github.com/PyCQA/bandit
+- repo: https://github.com/PyCQA/bandit
       rev: 1.7.5
       hooks:
-          - id: bandit
+
+- id: bandit
             args: [-r, backend/]
 ```
 
@@ -1577,42 +1714,57 @@ repos:
 **Coverage Reports**:
 
 - HTML reports generated in `htmlcov/`
+
 - XML reports for CI/CD integration
+
 - Line-by-line coverage analysis
+
 - Branch coverage tracking
 
 **Performance Metrics**:
 
 - Benchmark results stored in `benchmarks/`
+
 - Performance regression detection
+
 - Memory usage profiling reports
+
 - Load testing summaries
 
 ### Test Execution
 
 ```bash
+
 # Full test suite with coverage
+
 pytest --cov=backend --cov-report=term-missing --cov-report=html
 
 # Individual module tests
+
 pytest tests/backend/test_backend_simple.py -v
 
 # Coverage target validation
+
 pytest --cov=backend --cov-fail-under=70
 
 # Performance tests only
+
 pytest -m benchmark --benchmark-only
 
 # Security tests only
+
 pytest -m security
 
 # Integration tests with clean database
+
 pytest -m integration --reset-db
 
 # Parallel test execution
+
 pytest -n auto --dist=loadscope
 
 # Test with specific Python version
+
 tox -e py310,py311,py312
 ```
 
@@ -1623,22 +1775,31 @@ tox -e py310,py311,py312
 **Daily Builds**:
 
 - Full test suite execution
+
 - Performance regression testing
+
 - Security vulnerability scanning
+
 - Dependency update checks
 
 **Pull Request Gates**:
 
 - All tests must pass
+
 - Coverage threshold maintained
+
 - No security vulnerabilities introduced
+
 - Code style compliance verified
 
 **Release Criteria**:
 
 - 100% test passage rate
+
 - Performance benchmarks met
+
 - Security scan clean
+
 - Documentation updated
 
 ---
@@ -1652,9 +1813,13 @@ The Obsidian AI Assistant implements a defense-in-depth security model with loca
 #### Security Principles
 
 - **Privacy by Design**: User data remains local unless explicitly configured otherwise
+
 - **Minimal Attack Surface**: Network features disabled by default
+
 - **Defense in Depth**: Multiple security layers and fail-safe mechanisms
+
 - **Secure Defaults**: Most secure configuration out-of-the-box
+
 - **Transparency**: Clear security implications for all configuration options
 
 ### Data Protection & Privacy
@@ -1678,17 +1843,20 @@ from cryptography.fernet import Fernet
 import os
 
 # Generate and store encryption key
+
 def generate_cache_key():
     key = Fernet.generate_key()
     os.environ['CACHE_ENCRYPTION_KEY'] = key.decode()
     return key
 
 # Encrypt sensitive cache data
+
 def encrypt_cache_data(data: str, key: bytes) -> bytes:
     f = Fernet(key)
     return f.encrypt(data.encode())
 
 # Decrypt cache data
+
 def decrypt_cache_data(encrypted_data: bytes, key: bytes) -> str:
     f = Fernet(key)
     return f.decrypt(encrypted_data).decode()
@@ -1697,8 +1865,11 @@ def decrypt_cache_data(encrypted_data: bytes, key: bytes) -> str:
 **File System Security**:
 
 - Vault files: Standard OS file permissions (600/700)
+
 - Config files: Restricted access (600)
+
 - Cache directory: User-only access (700)
+
 - Log files: User-only read/write (600)
 
 #### Data Retention & Cleanup
@@ -1787,6 +1958,7 @@ def create_secure_ssl_context():
     return context
 
 # Apply to HTTP requests
+
 async def secure_http_request(url: str, **kwargs):
     ssl_context = create_secure_ssl_context()
     async with aiohttp.ClientSession(
@@ -1933,6 +2105,7 @@ class SecurityValidator:
         return query
 
 # Apply to Pydantic models
+
 class SecureAskRequest(BaseModel):
     question: str
 
@@ -2072,9 +2245,13 @@ The system is designed for optimal performance across different deployment scena
 #### Performance Design Principles
 
 - **Asynchronous Processing**: Non-blocking I/O for all external operations
+
 - **Intelligent Caching**: Multi-level caching with smart invalidation
+
 - **Resource Optimization**: Dynamic resource allocation based on system capabilities
+
 - **Lazy Loading**: On-demand initialization of expensive components
+
 - **Batch Processing**: Efficient handling of multiple operations
 
 ### Performance Benchmarks & Targets
@@ -2336,9 +2513,11 @@ class PerformanceMonitor:
         return sorted_data[min(index, len(sorted_data) - 1)]
 
 # Global performance monitor instance
+
 perf_monitor = PerformanceMonitor()
 
 # Usage examples
+
 @perf_monitor.timing_decorator("ai_generation")
 async def generate_ai_response(question: str) -> str:
     # AI generation logic
@@ -2504,9 +2683,13 @@ patterns.
 #### Deployment Patterns
 
 - **Local Development**: Single-machine setup with minimal dependencies
+
 - **Standalone Server**: Dedicated server deployment with enhanced security
+
 - **Containerized Deployment**: Docker-based deployment with orchestration
+
 - **Cloud Deployment**: Scalable cloud infrastructure with managed services
+
 - **Enterprise Deployment**: High-availability setup with monitoring and backup
 
 ### System Requirements
@@ -2539,27 +2722,35 @@ patterns.
 **Windows PowerShell**:
 
 ```powershell
+
 # Run as Administrator (optional, for system-wide installation)
+
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 # Download and run setup script
+
 Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.ps1" -OutFile "setup.ps1"
 .\setup.ps1 -InstallType Production -EnableGPU $true
 
 # Verify installation
+
 python -m backend.backend --version
 ```
 
 **Linux/macOS Bash**:
 
 ```bash
+
 # Download and run setup script
+
 curl -fsSL https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.sh | bash -s -- --install-type=production --enable-gpu
 
 # Verify installation
+
 python -m backend.backend --version
 
 # Set up systemd service (Linux)
+
 sudo cp deployment/obsidian-ai-assistant.service /etc/systemd/system/
 sudo systemctl enable obsidian-ai-assistant
 sudo systemctl start obsidian-ai-assistant
@@ -2570,41 +2761,55 @@ sudo systemctl start obsidian-ai-assistant
 ##### Step 1: Environment Setup
 
 ```bash
+
 # Create virtual environment
+
 python -m venv venv
 
 # Activate environment
+
 # Windows:
+
 venv\Scripts\activate
+
 # Linux/macOS:
+
 source .venv/bin/activate
 
 # Upgrade pip
+
 pip install --upgrade pip setuptools wheel
 ```
 
 ##### Step 2: Install Dependencies
 
 ```bash
+
 # Install core dependencies
+
 pip install -r requirements.txt
 
 # Install GPU support (optional)
+
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
 # Install development dependencies (optional)
+
 pip install -r requirements-dev.txt
 ```
 
 ##### Step 3: Download Models
 
 ```bash
+
 # Download recommended models
+
 python -m backend.modelmanager download --model llama-7b-chat
 python -m backend.modelmanager download --embedding sentence-transformers/all-MiniLM-L6-v2
 python -m backend.modelmanager download --voice vosk-model-small-en-us-0.15
 
 # Verify model installation
+
 python -m backend.modelmanager list
 ```
 
@@ -2615,18 +2820,22 @@ python -m backend.modelmanager list
 Create a `.env` file in the project root:
 
 ```bash
+
 # Core Configuration
+
 BACKEND_URL=http://127.0.0.1:8000
 API_PORT=8000
 ALLOW_NETWORK=false
 CONTINUOUS_MODE=false
 
 # Paths (relative to project root)
+
 VAULT_PATH=vault
 MODELS_DIR=backend/models
 CACHE_DIR=backend/cache
 
 # AI/ML Configuration
+
 MODEL_BACKEND=llama_cpp
 MODEL_PATH=backend/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
@@ -2634,21 +2843,25 @@ VECTOR_DB=chroma
 GPU=true
 
 # Performance Tuning
+
 TOP_K=10
 CHUNK_SIZE=800
 CHUNK_OVERLAP=200
 SIMILARITY_THRESHOLD=0.75
 
 # Voice Processing
+
 VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 
 # Security (Production)
+
 CACHE_ENCRYPTION=true
 CACHE_ENCRYPTION_KEY=your-generated-key-here
 LOG_LEVEL=INFO
 ENABLE_METRICS=true
 
 # External Services (Optional)
+
 HUGGINGFACE_TOKEN=your-hf-token-here
 OPENAI_API_KEY=your-openai-key-here
 ```
@@ -2656,7 +2869,9 @@ OPENAI_API_KEY=your-openai-key-here
 #### Configuration File (backend/config.yaml)
 
 ```yaml
+
 # Production configuration template
+
 server:
     host: 0.0.0.0
     port: 8000
@@ -2691,9 +2906,12 @@ backup:
     interval: daily
     retention_count: 7
     backup_paths:
-        - vault
-        - backend/cache/embeddings
-        - logs
+
+- vault
+
+- backend/cache/embeddings
+
+- logs
 ```
 
 ### Container Deployment
@@ -2701,14 +2919,18 @@ backup:
 #### Dockerfile
 
 ```dockerfile
+
 # Multi-stage build for optimized production image
+
 FROM python:3.11-slim as builder
 
 # Set build arguments
+
 ARG ENABLE_GPU=false
 ARG MODEL_VARIANT=small
 
 # Install build dependencies
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -2717,50 +2939,62 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create application directory
+
 WORKDIR /app
 
 # Copy requirements and install Python dependencies
+
 COPY requirements*.txt ./
 RUN pip install --no-cache-dir --user -r requirements.txt
 
 # Install GPU dependencies conditionally
+
 RUN if [ "$ENABLE_GPU" = "true" ]; then \
     pip install --no-cache-dir --user torch torchvision torchaudio \
-    --index-url https://download.pytorch.org/whl/cu118; \
+--index-url https://download.pytorch.org/whl/cu118; \
     fi
 
 # Production stage
+
 FROM python:3.11-slim
 
 # Install runtime dependencies
+
 RUN apt-get update && apt-get install -y \
     ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
+
 RUN useradd --create-home --shell /bin/bash aiassist
 
 # Set up application directory
+
 WORKDIR /app
 COPY --from=builder /root/.local /home/aiassist/.local
 COPY --chown=aiassist:aiassist . .
 
 # Create necessary directories
+
 RUN mkdir -p logs backend/cache backend/models vault && \
     chown -R aiassist:aiassist logs backend vault
 
 # Switch to non-root user
+
 USER aiassist
 ENV PATH=/home/aiassist/.local/bin:$PATH
 
 # Expose port
+
 EXPOSE 8000
 
 # Health check
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 # Start command
+
 CMD ["python", "-m", "uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
@@ -2777,17 +3011,26 @@ services:
                 ENABLE_GPU: 'true'
                 MODEL_VARIANT: 'medium'
         ports:
-            - '8000:8000'
+
+- '8000:8000'
         environment:
-            - BACKEND_URL=http://localhost:8000
-            - GPU=true
-            - LOG_LEVEL=INFO
+
+- BACKEND_URL=http://localhost:8000
+
+- GPU=true
+
+- LOG_LEVEL=INFO
         volumes:
-            - ./vault:/app/vault:ro
-              - ./backend/models:/app/backend/models
-              - ./backend/cache:/app/backend/cache
-            - ./logs:/app/logs
-            - ./backend/config.yaml:/app/backend/config.yaml:ro
+
+- ./vault:/app/vault:ro
+
+- ./backend/models:/app/backend/models
+
+- ./backend/cache:/app/backend/cache
+
+- ./logs:/app/logs
+
+- ./backend/config.yaml:/app/backend/config.yaml:ro
         restart: unless-stopped
         deploy:
             resources:
@@ -2808,25 +3051,36 @@ services:
     prometheus:
         image: prom/prometheus:latest
         ports:
-            - '9090:9090'
+
+- '9090:9090'
         volumes:
-            - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+- ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
         command:
-            - '--config.file=/etc/prometheus/prometheus.yml'
-            - '--storage.tsdb.path=/prometheus'
-            - '--web.console.libraries=/etc/prometheus/console_libraries'
-            - '--web.console.templates=/etc/prometheus/consoles'
+
+- '--config.file=/etc/prometheus/prometheus.yml'
+
+- '--storage.tsdb.path=/prometheus'
+
+- '--web.console.libraries=/etc/prometheus/console_libraries'
+
+- '--web.console.templates=/etc/prometheus/consoles'
 
     grafana:
         image: grafana/grafana:latest
         ports:
-            - '3000:3000'
+
+- '3000:3000'
         environment:
-            - GF_SECURITY_ADMIN_PASSWORD=admin
+
+- GF_SECURITY_ADMIN_PASSWORD=admin
         volumes:
-            - grafana-data:/var/lib/grafana
-            - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
-            - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+
+- grafana-data:/var/lib/grafana
+
+- ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+
+- ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
 
 volumes:
     grafana-data:
@@ -2859,7 +3113,8 @@ Resources:
             EnableDnsHostnames: true
             EnableDnsSupport: true
             Tags:
-                - Key: Name
+
+- Key: Name
                   Value: AIAssistant-VPC
 
     PublicSubnet:
@@ -2870,7 +3125,8 @@ Resources:
             AvailabilityZone: !Select [0, !GetAZs '']
             MapPublicIpOnLaunch: true
             Tags:
-                - Key: Name
+
+- Key: Name
                   Value: AIAssistant-PublicSubnet
 
     SecurityGroup:
@@ -2879,15 +3135,18 @@ Resources:
             GroupDescription: Security group for AI Assistant
             VpcId: !Ref VPC
             SecurityGroupIngress:
-                - IpProtocol: tcp
+
+- IpProtocol: tcp
                   FromPort: 22
                   ToPort: 22
                   CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
+
+- IpProtocol: tcp
                   FromPort: 8000
                   ToPort: 8000
                   CidrIp: 0.0.0.0/0
-                - IpProtocol: tcp
+
+- IpProtocol: tcp
                   FromPort: 443
                   ToPort: 443
                   CidrIp: 0.0.0.0/0
@@ -2898,7 +3157,8 @@ Resources:
             InstanceType: !Ref InstanceType
             KeyName: !Ref KeyPairName
             SecurityGroupIds:
-                - !Ref SecurityGroup
+
+- !Ref SecurityGroup
             SubnetId: !Ref PublicSubnet
             ImageId: ami-0c02fb55956c7d316 # Amazon Linux 2023
             UserData:
@@ -2924,7 +3184,8 @@ Resources:
                     # Start services
                     docker-compose up -d
             Tags:
-                - Key: Name
+
+- Key: Name
                   Value: AIAssistant-Server
 
 Outputs:
@@ -2974,7 +3235,8 @@ metadata:
     namespace: ai-assistant
 spec:
     accessModes:
-        - ReadWriteOnce
+
+- ReadWriteOnce
     resources:
         requests:
             storage: 20Gi
@@ -2997,22 +3259,29 @@ spec:
                 app: ai-assistant
         spec:
             containers:
-                - name: ai-assistant
+
+- name: ai-assistant
                   image: obsidian-ai-assistant:latest
                   ports:
-                      - containerPort: 8000
+
+- containerPort: 8000
                   env:
-                      - name: GPU
+
+- name: GPU
                         value: 'false'
-                      - name: LOG_LEVEL
+
+- name: LOG_LEVEL
                         value: 'INFO'
                   volumeMounts:
-                      - name: config
+
+- name: config
                         mountPath: /app/backend/config.yaml
                         subPath: config.yaml
-                      - name: storage
+
+- name: storage
                         mountPath: /app/cache
-                      - name: storage
+
+- name: storage
                         mountPath: /app/models
                   resources:
                       requests:
@@ -3034,10 +3303,12 @@ spec:
                       initialDelaySeconds: 60
                       periodSeconds: 30
             volumes:
-                - name: config
+
+- name: config
                   configMap:
                       name: ai-assistant-config
-                - name: storage
+
+- name: storage
                   persistentVolumeClaim:
                       claimName: ai-assistant-storage
 
@@ -3051,7 +3322,8 @@ spec:
     selector:
         app: ai-assistant
     ports:
-        - protocol: TCP
+
+- protocol: TCP
           port: 80
           targetPort: 8000
     type: LoadBalancer
@@ -3067,14 +3339,18 @@ metadata:
         cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
     tls:
-        - hosts:
-              - ai-assistant.yourdomain.com
+
+- hosts:
+
+- ai-assistant.yourdomain.com
           secretName: ai-assistant-tls
     rules:
-        - host: ai-assistant.yourdomain.com
+
+- host: ai-assistant.yourdomain.com
           http:
               paths:
-                  - path: /
+
+- path: /
                     pathType: Prefix
                     backend:
                         service:
@@ -3088,41 +3364,53 @@ spec:
 #### Prometheus Metrics Configuration
 
 ```yaml
+
 # monitoring/prometheus.yml
+
 global:
     scrape_interval: 15s
     evaluation_interval: 15s
 
 rule_files:
-    - 'alert_rules.yml'
+
+- 'alert_rules.yml'
 
 scrape_configs:
-    - job_name: 'ai-assistant'
+
+- job_name: 'ai-assistant'
       static_configs:
-          - targets: ['localhost:8000']
+
+- targets: ['localhost:8000']
       metrics_path: '/metrics'
       scrape_interval: 30s
 
-    - job_name: 'system-metrics'
+- job_name: 'system-metrics'
       static_configs:
-          - targets: ['localhost:9100']
+
+- targets: ['localhost:9100']
 
 alerting:
     alertmanagers:
-        - static_configs:
-              - targets:
-                    - alertmanager:9093
+
+- static_configs:
+
+- targets:
+
+- alertmanager:9093
 ```
 
 #### Application Metrics
 
 ```python
+
 # backend/metrics.py
+
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
 import time
 import psutil
 
 # Metrics definitions
+
 request_count = Counter(
     'ai_assistant_requests_total',
     'Total number of requests',
@@ -3184,6 +3472,7 @@ class MetricsCollector:
         ).observe(duration)
 
 # FastAPI metrics middleware
+
 @app.middleware("http")
 async def metrics_middleware(request: Request, call_next):
     start_time = time.time()
@@ -3268,7 +3557,9 @@ async def get_metrics():
 #### Automated Backup System
 
 ```python
+
 # operations/backup.py
+
 import os
 import shutil
 import tarfile
@@ -3407,6 +3698,7 @@ class BackupManager:
             shutil.copytree(embeddings_backup, embeddings_dir)
 
 # Backup scheduler
+
 import schedule
 import threading
 import time
@@ -3446,13 +3738,17 @@ class BackupScheduler:
 ##### Issue: Model Loading Failures
 
 ```bash
+
 # Symptoms
+
 Error: "Failed to load model: llama-7b.gguf"
 
 # Diagnosis
+
 python -m backend.modelmanager verify --model llama-7b.gguf
 
 # Solutions
+
 1. Check model file exists and has correct permissions:
     ls -la backend/models/llama-7b.gguf
 
@@ -3472,13 +3768,17 @@ python -m backend.modelmanager verify --model llama-7b.gguf
 ##### Issue: High Memory Usage
 
 ```bash
+
 # Symptoms
+
 System becomes unresponsive, OOM errors
 
 # Diagnosis
+
 python -m backend.diagnostics memory-profile
 
 # Solutions
+
 1. Reduce model size in config:
    MODEL_BACKEND=llama_cpp
     MODEL_PATH=backend/models/llama-7b-q4.gguf  # Quantized version
@@ -3496,13 +3796,17 @@ python -m backend.diagnostics memory-profile
 ##### Issue: Slow Response Times
 
 ```bash
+
 # Symptoms
+
 API responses taking > 30 seconds
 
 # Diagnosis
+
 python -m backend.diagnostics performance-profile --duration 300
 
 # Solutions
+
 1. Enable GPU acceleration:
    GPU=true
    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
@@ -3521,7 +3825,9 @@ python -m backend.diagnostics performance-profile --duration 300
 #### Diagnostic Tools
 
 ```python
+
 # backend/diagnostics.py
+
 import subprocess
 import psutil
 import torch
@@ -3595,6 +3901,7 @@ class SystemDiagnostics:
         return checks
 
 # Command-line diagnostic tool
+
 if __name__ == "__main__":
     import argparse
 
@@ -3620,15 +3927,21 @@ if __name__ == "__main__":
 ### Code Standards
 
 - **Indentation**: 4 spaces (no tabs)
+
 - **Type Hints**: Required for public APIs
+
 - **Docstrings**: All public functions and classes
+
 - **Error Handling**: Comprehensive exception management
 
 ### Git Workflow
 
 - **Branch Protection**: Main branch requires PR review
+
 - **CI/CD**: Automated testing on all PRs
+
 - **Coverage Gates**: Minimum 70% coverage required
+
 - **Code Quality**: Linting and formatting checks
 
 ---
@@ -3645,9 +3958,13 @@ communication.
 #### Core Architecture Principles
 
 - **Separation of Concerns**: UI, business logic, and data access layers are distinct
+
 - **Event-Driven Communication**: Components communicate through Obsidian's event system
+
 - **Asynchronous Operations**: All backend communications are non-blocking
+
 - **Error Boundary Management**: Graceful degradation and user feedback for all failures
+
 - **Configuration Flexibility**: Runtime configuration without plugin reload
 
 ### Plugin Manifest Configuration
@@ -4195,9 +4512,13 @@ class PluginTestSuite {
 ### HTTP Status Codes
 
 - **200**: Success
+
 - **400**: Bad Request (invalid parameters)
+
 - **422**: Validation Error (Pydantic model validation)
+
 - **500**: Internal Server Error
+
 - **503**: Service Unavailable (model loading)
 
 ### Error Response Format
@@ -4217,8 +4538,11 @@ class PluginTestSuite {
 ### Logging Strategy
 
 - **Levels**: DEBUG, INFO, WARNING, ERROR, CRITICAL
+
 - **Format**: Structured JSON logging for production
+
 - **Rotation**: Log file rotation and cleanup
+
 - **Privacy**: No sensitive data in logs
 
 ---
@@ -4228,15 +4552,21 @@ class PluginTestSuite {
 ### Health Metrics
 
 - **Uptime**: Service availability tracking
+
 - **Response Times**: Endpoint performance monitoring
+
 - **Error Rates**: Failure rate tracking
+
 - **Resource Usage**: CPU, memory, disk utilization
 
 ### Business Metrics
 
 - **Query Volume**: Questions processed per day
+
 - **Cache Hit Rate**: Caching efficiency
+
 - **Model Usage**: Model selection patterns
+
 - **Feature Adoption**: Plugin feature usage
 
 ---
@@ -4246,17 +4576,25 @@ class PluginTestSuite {
 ### Version 1.0.0 (Current)
 
 - ✅ Core FastAPI backend implementation
+
 - ✅ Comprehensive configuration system
+
 - ✅ 70%+ test coverage achievement
+
 - ✅ PyTorch conflict resolution
+
 - ✅ Offline-first architecture
+
 - ✅ Plugin integration with Obsidian
 
 ### Planned Features
 
 - 🚧 Enhanced model routing
+
 - 🚧 Advanced caching strategies
+
 - 🚧 Real-time collaboration features
+
 - 🚧 Extended plugin capabilities
 
 ---
@@ -4266,15 +4604,21 @@ class PluginTestSuite {
 ### Documentation
 
 - **API Docs**: Auto-generated Swagger UI at `/docs`
+
 - **ReDoc**: Alternative docs at `/redoc`
+
 - **README**: Comprehensive setup guide
+
 - **Constitution**: Project principles and standards
 
 ### Issue Tracking
 
 - **Bug Reports**: GitHub Issues with templates
+
 - **Feature Requests**: Community-driven roadmap
+
 - **Security Issues**: Private reporting channel
+
 - **Performance**: Benchmark tracking and optimization
 
 ---

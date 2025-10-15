@@ -25,16 +25,23 @@
 Create a sophisticated, offline-first AI assistant plugin for Obsidian that provides:
 
 - **Semantic search** with vector embeddings across vault contents
+
 - **Conversational AI** with context awareness and memory
+
 - **Voice interaction** capabilities for hands-free operation
+
 - **Multi-model support** for various AI providers (OpenAI, Anthropic, local models)
+
 - **Secure architecture** with local-first processing and optional encryption
 
 ### **Success Criteria**
 
 - **Technical**: 90% test coverage, <200ms response time for cached queries
+
 - **User Experience**: Seamless integration with Obsidian workflow
+
 - **Performance**: Support for large vaults (10,000+ notes) with sub-second search
+
 - **Security**: Zero data leakage, comprehensive audit trails
 
 ---
@@ -102,8 +109,11 @@ sequenceDiagram
 **Acceptance Criteria**:
 
 - Search results return within 500ms for cached queries
+
 - Support for fuzzy matching and semantic similarity
+
 - Ranking based on relevance and recency
+
 - Integration with Obsidian's native search
 
 **Priority**: High
@@ -116,8 +126,11 @@ sequenceDiagram
 **Acceptance Criteria**:
 
 - Context-aware responses using vault content
+
 - Conversation memory for multi-turn dialogs
+
 - Support for multiple AI models (GPT-4, Claude, local models)
+
 - Customizable response length and style
 
 **Priority**: High
@@ -130,8 +143,11 @@ sequenceDiagram
 **Acceptance Criteria**:
 
 - Real-time speech-to-text transcription
+
 - Support for multiple languages
+
 - Push-to-talk and continuous listening modes
+
 - Audio feedback and confirmation
 
 **Priority**: Medium
@@ -144,8 +160,11 @@ sequenceDiagram
 **Acceptance Criteria**:
 
 - Real-time indexing of new/modified files
+
 - Support for Markdown, PDF, and text files
+
 - Incremental updates without full re-indexing
+
 - Progress indicators for large operations
 
 **Priority**: High
@@ -158,8 +177,11 @@ sequenceDiagram
 **Acceptance Criteria**:
 
 - Environment variable support for sensitive data
+
 - YAML configuration files for settings
+
 - Runtime configuration updates
+
 - Configuration validation and error handling
 
 **Priority**: Medium
@@ -181,29 +203,41 @@ sequenceDiagram
 ### **NFR-002: Reliability**
 
 - **Uptime**: 99.9% availability target
+
 - **Error Rate**: <0.1% of requests
+
 - **Recovery Time**: <30s for service restart
+
 - **Data Integrity**: Zero data loss guarantee
 
 ### **NFR-003: Security**
 
 - **Encryption**: AES-256 for sensitive data
+
 - **Authentication**: API key-based access
+
 - **Audit Logging**: Comprehensive activity logs
+
 - **Privacy**: Local-first processing by default
 
 ### **NFR-004: Scalability**
 
 - **Vault Size**: Support for 10,000+ notes
+
 - **Concurrent Users**: Handle 10+ simultaneous requests
+
 - **Model Loading**: Lazy loading and memory management
+
 - **Storage**: Efficient vector storage and retrieval
 
 ### **NFR-005: Maintainability**
 
 - **Test Coverage**: 90% minimum across all modules
+
 - **Documentation**: Comprehensive inline and external docs
+
 - **Code Quality**: Type hints, linting, formatting standards
+
 - **Modularity**: Clear separation of concerns
 
 ---
@@ -517,35 +551,49 @@ class ModelConfig(BaseModel):
 #### **Unit Tests**
 
 - Individual function and method testing
+
 - Mock external dependencies
+
 - Fast execution (<1s per test)
+
 - Isolated test environments
 
 #### **Integration Tests**
 
 - Service interaction testing
+
 - Database connectivity
+
 - API endpoint validation
+
 - End-to-end workflows
 
 #### **Performance Tests**
 
 - Load testing with concurrent requests
+
 - Memory usage profiling
+
 - Response time benchmarking
+
 - Stress testing with large datasets
 
 #### **Security Tests**
 
 - Input validation testing
+
 - Authentication/authorization checks
+
 - Encryption/decryption validation
+
 - SQL injection and XSS prevention
 
 ### **Test Execution Framework**
 
 ```python
+
 # Async Test Runner Configuration
+
 class TestConfig:
     max_workers: int = 8
     timeout_per_test: int = 60
@@ -563,15 +611,21 @@ class TestConfig:
 #### **API Key Management**
 
 - **Storage**: Environment variables or encrypted config files
+
 - **Rotation**: Quarterly key rotation policy
+
 - **Scope**: Per-service API key isolation
+
 - **Validation**: Real-time key validation and rate limiting
 
 #### **Access Control**
 
 - **Principle of Least Privilege**: Minimal required permissions
+
 - **Session Management**: Secure session tokens with expiration
+
 - **Audit Trails**: Comprehensive logging of all access attempts
+
 - **Role-Based Access**: Different permission levels for different users
 
 ### **Data Protection**
@@ -579,15 +633,21 @@ class TestConfig:
 #### **Encryption Standards**
 
 - **At Rest**: AES-256 encryption for sensitive configuration
+
 - **In Transit**: TLS 1.3 for all API communications
+
 - **Key Management**: Secure key derivation and storage
+
 - **Data Sanitization**: Secure deletion of temporary files
 
 #### **Privacy Controls**
 
 - **Local Processing**: Default to local-only AI models
+
 - **Data Minimization**: Process only necessary data
+
 - **User Consent**: Explicit consent for external API usage
+
 - **Data Retention**: Configurable retention policies
 
 ### **Security Monitoring**
@@ -595,15 +655,21 @@ class TestConfig:
 #### **Threat Detection**
 
 - **Anomaly Detection**: Unusual access patterns
+
 - **Intrusion Prevention**: Real-time threat blocking
+
 - **Vulnerability Scanning**: Regular dependency scanning
+
 - **Security Alerts**: Automated alert system
 
 #### **Compliance**
 
 - **GDPR Compliance**: Right to deletion and data portability
+
 - **Privacy by Design**: Built-in privacy protections
+
 - **Audit Compliance**: Comprehensive logging for compliance
+
 - **Security Standards**: Follow industry security best practices
 
 ---
@@ -625,15 +691,21 @@ class TestConfig:
 #### **Memory Management**
 
 - **Baseline Usage**: <500MB for core services
+
 - **Peak Usage**: <2GB during heavy operations
+
 - **Model Loading**: Lazy loading with automatic unloading
+
 - **Cache Management**: LRU eviction with configurable limits
 
 #### **CPU Optimization**
 
 - **Background Processing**: Async operations for heavy tasks
+
 - **Multi-threading**: Parallel processing where appropriate
+
 - **Load Balancing**: Distribute work across available cores
+
 - **Throttling**: Rate limiting to prevent system overload
 
 ### **Scalability Targets**
@@ -641,15 +713,21 @@ class TestConfig:
 #### **Data Scaling**
 
 - **Vault Size**: Support up to 50GB of indexed content
+
 - **File Count**: Handle 100,000+ files efficiently
+
 - **Query Volume**: Process 1000+ queries per hour
+
 - **Concurrent Users**: Support 50+ simultaneous connections
 
 #### **Performance Optimization**
 
 - **Caching Strategy**: Multi-tier caching (memory, disk, distributed)
+
 - **Index Optimization**: Incremental updates and compression
+
 - **Query Optimization**: Smart query planning and execution
+
 - **Resource Pooling**: Connection and thread pooling
 
 ---
@@ -661,16 +739,23 @@ class TestConfig:
 #### **Minimum Requirements**
 
 - **Operating System**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
+
 - **Python Version**: 3.10+
+
 - **Memory**: 4GB RAM
+
 - **Storage**: 2GB available space
+
 - **Network**: Internet connection for external AI models (optional)
 
 #### **Recommended Requirements**
 
 - **Memory**: 8GB+ RAM for optimal performance
+
 - **Storage**: 10GB+ SSD for model storage and caching
+
 - **CPU**: 4+ cores for parallel processing
+
 - **GPU**: NVIDIA GPU with CUDA support (optional, for local models)
 
 ### **Installation Process**
@@ -678,31 +763,40 @@ class TestConfig:
 #### **Automated Setup**
 
 ```bash
+
 # Windows PowerShell
+
 .\setup.ps1
 
 # Unix/Linux/macOS
+
 ./setup.sh
 ```
 
 #### **Manual Installation**
 
 ```bash
+
 # 1. Create virtual environment
+
 python -m venv obsidian-ai-env
 source obsidian-ai-env/bin/activate  # Unix
 obsidian-ai-env\Scripts\activate     # Windows
 
 # 2. Install dependencies
+
 pip install -r requirements.txt
 
 # 3. Download models
+
 # Model download functionality moved to backend setup
 
 # 4. Initialize database
+
 # Database initialization moved to backend startup
 
 # 5. Start backend server
+
 uvicorn backend.backend:app --host 127.0.0.1 --port 8000
 ```
 
@@ -711,21 +805,26 @@ uvicorn backend.backend:app --host 127.0.0.1 --port 8000
 #### **Environment Variables**
 
 ```bash
+
 # API Keys
+
 OPENAI_API_KEY=your_openai_key_here
 ANTHROPIC_API_KEY=your_anthropic_key_here
 
 # Model Settings
+
 DEFAULT_MODEL=gpt-4
 MODEL_CACHE_DIR=./backend/models
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 # Performance Settings
+
 MAX_WORKERS=4
 CACHE_TTL=3600
 MAX_MEMORY_MB=2048
 
 # Security Settings
+
 ENCRYPT_CONFIG=true
 API_KEY_REQUIRED=true
 CORS_ORIGINS=["http://localhost:3000"]
@@ -734,7 +833,9 @@ CORS_ORIGINS=["http://localhost:3000"]
 #### **Configuration Files**
 
 ```yaml
+
 # backend/config.yaml
+
 server:
     host: 127.0.0.1
     port: 8000
@@ -774,29 +875,36 @@ security:
 #### **Code Formatting**
 
 ```python
+
 # .pre-commit-config.yaml
+
 repos:
-  - repo: https://github.com/psf/black
+
+- repo: https://github.com/psf/black
     rev: 23.7.0
     hooks:
-      - id: black
+
+- id: black
         language_version: python3.10
 
-  - repo: https://github.com/pycqa/isort
+- repo: https://github.com/pycqa/isort
     rev: 5.12.0
     hooks:
-      - id: isort
 
-  - repo: https://github.com/pycqa/flake8
+- id: isort
+
+- repo: https://github.com/pycqa/flake8
     rev: 6.0.0
     hooks:
-      - id: flake8
+
+- id: flake8
         args: [--max-line-length=88]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
+- repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.5.1
     hooks:
-      - id: mypy
+
+- id: mypy
 ```
 
 #### **Documentation Standards**
@@ -817,11 +925,16 @@ def process_query(
 
     Returns:
         Dictionary containing:
-            - answer: AI-generated response text
-            - sources: List of source documents used
-            - model_used: Actual model used for generation
-            - processing_time: Time taken to process query
-            - token_count: Number of tokens in response
+
+- answer: AI-generated response text
+
+- sources: List of source documents used
+
+- model_used: Actual model used for generation
+
+- processing_time: Time taken to process query
+
+- token_count: Number of tokens in response
 
     Raises:
         ValidationError: If query is empty or invalid
@@ -846,15 +959,21 @@ def process_query(
 #### **Branch Structure**
 
 - **main**: Production-ready code
+
 - **develop**: Integration branch for features
+
 - **feature/**: Feature development branches
+
 - **hotfix/**: Critical bug fixes
+
 - **release/**: Release preparation branches
 
 #### **Commit Standards**
 
 ```bash
+
 # Commit message format
+
 type(scope): brief description
 
 [optional body]
@@ -862,6 +981,7 @@ type(scope): brief description
 [optional footer]
 
 # Examples
+
 feat(api): add voice transcription endpoint
 fix(search): resolve empty query handling
 docs(readme): update installation instructions
@@ -874,7 +994,9 @@ refactor(cache): improve memory management
 #### **Automated Testing**
 
 ```yaml
+
 # .github/workflows/test.yml
+
 name: Test Suite
 on: [push, pull_request]
 
@@ -882,14 +1004,20 @@ jobs:
     test:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
-            - uses: actions/setup-python@v4
+
+- uses: actions/checkout@v3
+
+- uses: actions/setup-python@v4
               with:
                   python-version: '3.10'
-            - run: pip install -r requirements-test.txt
-            - run: python -m pytest tests/ --cov=backend --cov-report=xml
-            - run: python tests/comprehensive_async_test_runner.py
-            - uses: codecov/codecov-action@v3
+
+- run: pip install -r requirements-test.txt
+
+- run: python -m pytest tests/ --cov=backend --cov-report=xml
+
+- run: python tests/comprehensive_async_test_runner.py
+
+- uses: codecov/codecov-action@v3
               with:
                   file: ./coverage.xml
 ```
@@ -897,7 +1025,9 @@ jobs:
 #### **Deployment Pipeline**
 
 ```yaml
+
 # .github/workflows/deploy.yml
+
 name: Deploy
 on:
     release:
@@ -907,9 +1037,11 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         steps:
-            - uses: actions/checkout@v3
+
+- uses: actions/checkout@v3
             # Build and installer functionality moved to setup scripts
-            - uses: actions/upload-release-asset@v1
+
+- uses: actions/upload-release-asset@v1
               with:
                   upload_url: ${{ github.event.release.upload_url }}
                   asset_path: ./dist/obsidian-ai-assistant.zip
@@ -926,18 +1058,27 @@ jobs:
 #### **Key Performance Indicators (KPIs)**
 
 - **Response Time**: Average API response time
+
 - **Throughput**: Requests per second
+
 - **Error Rate**: Percentage of failed requests
+
 - **Cache Hit Ratio**: Percentage of cached responses
+
 - **Model Usage**: Distribution of AI model usage
+
 - **User Engagement**: Active users and session length
 
 #### **System Metrics**
 
 - **CPU Usage**: System CPU utilization
+
 - **Memory Usage**: RAM consumption
+
 - **Disk I/O**: Read/write operations per second
+
 - **Network Usage**: Bandwidth utilization
+
 - **Database Performance**: Query execution times
 
 ### **Logging Strategy**
@@ -948,6 +1089,7 @@ jobs:
 import logging
 
 # Configure logging
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -958,21 +1100,27 @@ logging.basicConfig(
 )
 
 # Log categories
+
 logger = logging.getLogger(__name__)
 
 # DEBUG: Detailed diagnostic information
+
 logger.debug("Processing query with embedding model: %s", model_name)
 
 # INFO: General operational information
+
 logger.info("User query processed successfully in %.2f seconds", duration)
 
 # WARNING: Potential issues that don't prevent operation
+
 logger.warning("Cache hit ratio below threshold: %.2f", hit_ratio)
 
 # ERROR: Error conditions that prevent specific operations
+
 logger.error("Failed to load model %s: %s", model_name, error)
 
 # CRITICAL: Serious errors that may cause system failure
+
 logger.critical("Database connection lost, attempting reconnection")
 ```
 
@@ -982,6 +1130,7 @@ logger.critical("Database connection lost, attempting reconnection")
 import structlog
 
 # Configure structured logging
+
 structlog.configure(
     processors=[
         structlog.stdlib.filter_by_level,
@@ -1003,6 +1152,7 @@ structlog.configure(
 logger = structlog.get_logger()
 
 # Example structured log entries
+
 logger.info("query_processed",
            query="What is machine learning?",
            model="gpt-4",
@@ -1016,8 +1166,11 @@ logger.info("query_processed",
 #### **Error Categories**
 
 - **User Errors**: Invalid input, authentication failures
+
 - **System Errors**: Service unavailability, timeout errors
+
 - **Integration Errors**: External API failures, database issues
+
 - **Performance Errors**: Memory exhaustion, CPU overload
 
 #### **Error Response Format**
@@ -1052,21 +1205,24 @@ graph TB
 #### **Testing Framework**
 
 ```python
+
 # pytest configuration
+
 # pytest.ini
+
 [tool:pytest]
 testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
 addopts =
-    --strict-markers
-    --strict-config
-    --cov=backend
-    --cov-report=html
-    --cov-report=term-missing
-    --cov-fail-under=90
-    --durations=10
+--strict-markers
+--strict-config
+--cov=backend
+--cov-report=html
+--cov-report=term-missing
+--cov-fail-under=90
+--durations=10
 markers =
     unit: Unit tests
     integration: Integration tests
@@ -1080,22 +1236,31 @@ markers =
 **Unit Tests (70%)**:
 
 - Individual function testing
+
 - Mock external dependencies
+
 - Fast execution (<100ms per test)
+
 - High coverage (>95%)
 
 **Integration Tests (20%)**:
 
 - Service interaction testing
+
 - Database connectivity
+
 - API endpoint validation
+
 - Moderate execution time (<5s per test)
 
 **End-to-End Tests (10%)**:
 
 - Complete user workflows
+
 - Real environment testing
+
 - Performance validation
+
 - Longer execution time (<30s per test)
 
 ### **Quality Gates**
@@ -1104,9 +1269,11 @@ markers =
 
 ```bash
 #!/bin/bash
+
 # pre-commit hook script
 
 # Run linting
+
 echo "Running linting..."
 flake8 backend/ tests/
 if [ $? -ne 0 ]; then
@@ -1115,6 +1282,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run type checking
+
 echo "Running type checking..."
 mypy backend/
 if [ $? -ne 0 ]; then
@@ -1123,6 +1291,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run tests
+
 echo "Running tests..."
 python -m pytest tests/ --cov=backend --cov-fail-under=90
 if [ $? -ne 0 ]; then
@@ -1131,6 +1300,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run security scan
+
 echo "Running security scan..."
 bandit -r backend/
 if [ $? -ne 0 ]; then
@@ -1144,12 +1314,19 @@ echo "All quality checks passed!"
 #### **Pull Request Checklist**
 
 - [ ] All tests pass
+
 - [ ] Code coverage ≥ 90%
+
 - [ ] No linting errors
+
 - [ ] Type hints complete
+
 - [ ] Documentation updated
+
 - [ ] Security scan clean
+
 - [ ] Performance benchmarks met
+
 - [ ] Changelog updated
 
 ---
@@ -1159,37 +1336,57 @@ echo "All quality checks passed!"
 ### **Phase 1: Foundation (Completed ✅)**
 
 - [x] Core backend API implementation
+
 - [x] Basic Obsidian plugin integration
+
 - [x] Local AI model support
+
 - [x] Vector search implementation
+
 - [x] Configuration system
+
 - [x] Basic test coverage
 
 ### **Phase 2: Enhancement (Completed ✅)**
 
 - [x] Voice input/output capabilities
+
 - [x] Advanced caching system
+
 - [x] Security and encryption
+
 - [x] Performance optimizations
+
 - [x] Comprehensive test suite
+
 - [x] Documentation and deployment guides
 
 ### **Phase 3: Advanced Features (Current)**
 
 - [ ] Multi-language support
+
 - [ ] Advanced analytics dashboard
+
 - [ ] Plugin marketplace integration
+
 - [ ] Cloud synchronization (optional)
+
 - [ ] Mobile companion app
+
 - [ ] Advanced AI model fine-tuning
 
 ### **Phase 4: Enterprise (Future)**
 
 - [ ] Enterprise authentication (SSO)
+
 - [ ] Advanced compliance features
+
 - [ ] Multi-tenant architecture
+
 - [ ] Advanced monitoring and alerting
+
 - [ ] Professional support options
+
 - [ ] Integration with enterprise tools
 
 ---
@@ -1199,8 +1396,11 @@ echo "All quality checks passed!"
 ### **Support Channels**
 
 - **Documentation**: Comprehensive guides and API reference
+
 - **GitHub Issues**: Bug reports and feature requests
+
 - **Community Forum**: User discussions and Q&A
+
 - **Email Support**: Direct support for critical issues
 
 ### **Maintenance Schedule**
@@ -1208,14 +1408,19 @@ echo "All quality checks passed!"
 #### **Regular Updates**
 
 - **Weekly**: Dependency security updates
+
 - **Monthly**: Performance optimizations and bug fixes
+
 - **Quarterly**: Feature releases and major improvements
+
 - **Annually**: Major version releases and architecture reviews
 
 #### **Support Lifecycle**
 
 - **Active Support**: Latest version + previous major version
+
 - **Security Updates**: Latest 3 major versions
+
 - **End of Life**: Notice given 6 months in advance
 
 ### **Issue Tracking**
@@ -1223,15 +1428,21 @@ echo "All quality checks passed!"
 #### **Priority Levels**
 
 - **P0 - Critical**: System down, data loss, security breach
+
 - **P1 - High**: Major feature broken, performance degradation
+
 - **P2 - Medium**: Minor feature issues, cosmetic problems
+
 - **P3 - Low**: Enhancement requests, documentation updates
 
 #### **Response Times**
 
 - **P0**: 2 hours
+
 - **P1**: 24 hours
+
 - **P2**: 72 hours
+
 - **P3**: 1 week
 
 ---
@@ -1269,8 +1480,13 @@ current state and future direction of the project._
 ### **Document Control**
 
 - **Version**: 2.0
+
 - **Status**: Active
+
 - **Last Review**: October 6, 2025
+
 - **Next Review**: January 6, 2026
+
 - **Approved By**: Project Team
+
 - **Distribution**: All stakeholders

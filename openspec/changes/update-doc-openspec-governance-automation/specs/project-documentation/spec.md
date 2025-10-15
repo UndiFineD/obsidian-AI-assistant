@@ -1,20 +1,20 @@
+
 # Spec Delta: project-documentation / update-doc-openspec-governance-automation
+
+This change updates `openspec/governance-automation.md` to comply with OpenSpec documentation governance. All automation documentation changes are tracked via proposals, tasks, and capability specs.
 
 ## ADDED Requirements
 
-### Requirement: OpenSpec Governance Automation
+### Requirement: proposal.md present with Why section and capability reference
 
-#### Scenario: Automated change management and validation
+### Requirement: tasks.md present with ≥3 checklist items and validation command
 
-- **WHEN** a user needs to manage multiple OpenSpec changes efficiently
-- **THEN** the system provides automated tools for tracking, validating, applying, and archiving changes
+### Requirement: specs/project-documentation/spec.md present with proper structure
 
-#### Scenario: Governance oversight and audit trails
+### Requirement: Validation command: `openspec validate update-doc-openspec-governance-automation --strict`
 
-- **WHEN** administrators need visibility into specification change processes
-- **THEN** the system provides dashboards, metrics, and audit logging for all governance operations
+#### Scenario: Update openspec/governance-automation.md with OpenSpec compliance
 
-#### Scenario: Bulk operations for change management
+- **WHEN** a contributor updates openspec/governance-automation.md for OpenSpec compliance
 
-- **WHEN** there are many pending changes to process
-- **THEN** the system supports bulk validation, application, and archiving operations
+- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.

@@ -9,4 +9,5 @@ The project SHALL have a comprehensive `README.md` file that provides an overvie
 #### Scenario: README.md content
 
 - **WHEN** a user reads the `README.md` file
+
 - **THEN** they should be able to understand the project's purpose, how to install and use the plugin, and how to contribute to the project.

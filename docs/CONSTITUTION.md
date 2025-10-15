@@ -9,9 +9,13 @@
 The Obsidian AI Assistant project exists to create a robust, intelligent, and extensible AI-powered plugin for Obsidian that provides:
 
 - **Semantic search** across vault contents
+
 - **Conversational AI** with context awareness
+
 - **Voice interaction** capabilities
+
 - **Multi-model support** for various AI providers
+
 - **Secure and private** local-first architecture
 
 ---
@@ -21,33 +25,49 @@ The Obsidian AI Assistant project exists to create a robust, intelligent, and ex
 ### 🔒 **1. Security & Privacy First**
 
 - **Local-First Architecture**: All processing happens locally when possible
+
 - **Data Encryption**: Sensitive data is encrypted at rest and in transit
+
 - **API Key Protection**: Secure handling of API keys and credentials
+
 - **User Consent**: Clear permissions for data access and processing
+
 - **Audit Trails**: Comprehensive logging for security analysis
 
 ### ⚡ **2. Performance & Reliability**
 
 - **Async Operations**: Non-blocking I/O for responsive user experience
+
 - **Resource Management**: Efficient memory and CPU usage
+
 - **Error Recovery**: Graceful degradation and automatic retry mechanisms
+
 - **Load Balancing**: Smart distribution across available AI models
+
 - **Caching Strategy**: Multi-layer caching for optimal performance
 
 ### 🧪 **3. Quality Assurance**
 
 - **Test Coverage**: Minimum 90% code coverage across all modules
+
 - **Automated Testing**: Comprehensive CI/CD pipeline with async test execution
+
 - **Code Standards**: Strict linting, type hints, and documentation requirements
+
 - **Integration Testing**: Real-world scenario validation
+
 - **Performance Benchmarks**: Continuous performance monitoring
 
 ### 🔧 **4. Maintainability**
 
 - **Modular Architecture**: Clear separation of concerns and loose coupling
+
 - **Documentation**: Comprehensive inline and external documentation
+
 - **Code Reviews**: Mandatory peer review for all changes
+
 - **Refactoring**: Regular code improvement and technical debt reduction
+
 - **Version Control**: Semantic versioning and clear release notes
 
 ---
@@ -83,16 +103,23 @@ obsidian-AI-assistant/
 ### 🔌 **API Design Standards**
 
 - **RESTful Endpoints**: Clear, predictable URL patterns
+
 - **JSON Schema**: Strict request/response validation
+
 - **Error Handling**: Consistent error codes and messages
+
 - **Rate Limiting**: Protect against abuse
+
 - **Versioning**: API version management strategy
 
 ### 🗃️ **Database & Storage**
 
 - **Vector Database**: ChromaDB for semantic search
+
 - **File Caching**: Intelligent file system caching
+
 - **Configuration**: YAML-based configuration management
+
 - **Backups**: Automated backup and recovery procedures
 
 ---
@@ -102,23 +129,33 @@ obsidian-AI-assistant/
 ### 📊 **Coverage Requirements**
 
 - **Minimum Coverage**: 90% overall, 95% for critical paths
+
 - **Test Categories**: Unit, Integration, End-to-End, Performance
+
 - **Async Testing**: Comprehensive async test execution with worker management
+
 - **Mock Strategy**: Intelligent mocking of external dependencies
 
 ### 🚀 **Test Execution**
 
 - **Async Runner**: Multi-worker async test execution for performance
+
 - **Categorization**: Tests organized by module and priority
+
 - **Real-time Feedback**: Live progress tracking with colored output
+
 - **Performance Metrics**: Execution time tracking and optimization
 
 ### 🔍 **Test Types**
 
 1. **Unit Tests**: Individual component testing
+
 2. **Integration Tests**: Service interaction testing
+
 3. **API Tests**: Endpoint validation and error handling
+
 4. **Performance Tests**: Load testing and benchmarking
+
 5. **Security Tests**: Vulnerability and penetration testing
 
 ---
@@ -128,22 +165,31 @@ obsidian-AI-assistant/
 ### 🛡️ **Authentication & Authorization**
 
 - **API Key Management**: Secure storage and rotation
+
 - **User Permissions**: Granular permission system
+
 - **Session Management**: Secure session handling
+
 - **Audit Logging**: Comprehensive access logging
 
 ### 🔒 **Data Protection**
 
 - **Encryption**: AES-256 encryption for sensitive data
+
 - **Key Management**: Secure key generation and storage
+
 - **Data Sanitization**: Input validation and sanitization
+
 - **Privacy Controls**: User data control and deletion
 
 ### 🚨 **Security Monitoring**
 
 - **Intrusion Detection**: Anomaly detection and alerting
+
 - **Vulnerability Scanning**: Regular security assessments
+
 - **Incident Response**: Clear incident response procedures
+
 - **Compliance**: GDPR and privacy law compliance
 
 ---
@@ -153,22 +199,31 @@ obsidian-AI-assistant/
 ### ⚡ **Response Time Requirements**
 
 - **API Endpoints**: < 200ms for cached responses, < 2s for AI generation
+
 - **Voice Processing**: < 1s for transcription initiation
+
 - **Search Operations**: < 500ms for semantic search
+
 - **File Indexing**: Background processing with progress indicators
 
 ### 💾 **Resource Limits**
 
 - **Memory Usage**: < 500MB baseline, < 2GB during heavy operations
+
 - **CPU Usage**: < 50% sustained load during normal operation
+
 - **Disk I/O**: Efficient caching to minimize disk access
+
 - **Network**: Minimal external API calls, intelligent batching
 
 ### 📊 **Scalability**
 
 - **Concurrent Users**: Support for multiple simultaneous operations
+
 - **Model Loading**: Lazy loading and efficient model management
+
 - **Cache Strategy**: Multi-tier caching for optimal performance
+
 - **Resource Scaling**: Graceful degradation under load
 
 ---
@@ -178,7 +233,9 @@ obsidian-AI-assistant/
 ### 📝 **Code Standards**
 
 ```python
+
 # Example: Proper function documentation
+
 async def process_query(
     query: str,
     context: Optional[Dict[str, Any]] = None,
@@ -204,15 +261,21 @@ async def process_query(
 ### 🔄 **Git Workflow**
 
 1. **Feature Branches**: `feature/description`
+
 2. **Bug Fixes**: `fix/issue-number`
+
 3. **Hotfixes**: `hotfix/critical-issue`
+
 4. **Releases**: `release/version-number`
 
 ### 🔍 **Code Review Process**
 
 - **Mandatory Reviews**: All code changes require peer review
+
 - **Review Criteria**: Functionality, performance, security, maintainability
+
 - **Testing Requirements**: All new code must include tests
+
 - **Documentation**: Updates to documentation for API changes
 
 ---
@@ -222,7 +285,9 @@ async def process_query(
 ### 📦 **Build Process**
 
 ```bash
+
 # Standard build and test sequence
+
 npm run build          # Build plugin
 python -m pytest      # Run test suite
 python -m mypy backend # Type checking
@@ -232,16 +297,23 @@ python -m flake8       # Linting
 ### 🎯 **Release Process**
 
 1. **Version Bump**: Update version numbers
+
 2. **Changelog**: Document all changes
+
 3. **Testing**: Full test suite execution
+
 4. **Documentation**: Update user documentation
+
 5. **Release Notes**: Clear release communication
 
 ### 🔧 **Configuration Management**
 
 - **Environment Variables**: Secure configuration management
+
 - **Feature Flags**: Gradual feature rollout capability
+
 - **A/B Testing**: Support for experimental features
+
 - **Rollback Strategy**: Quick rollback capabilities
 
 ---
@@ -251,22 +323,31 @@ python -m flake8       # Linting
 ### 📖 **Code Documentation**
 
 - **Docstrings**: All functions, classes, and modules
+
 - **Type Hints**: Comprehensive type annotations
+
 - **Inline Comments**: Complex logic explanation
+
 - **API Documentation**: Auto-generated API docs
 
 ### 👥 **User Documentation**
 
 - **Installation Guide**: Step-by-step setup instructions
+
 - **User Manual**: Comprehensive feature documentation
+
 - **Troubleshooting**: Common issues and solutions
+
 - **FAQ**: Frequently asked questions
 
 ### 🔧 **Developer Documentation**
 
 - **Architecture Overview**: System design documentation
+
 - **API Reference**: Complete API documentation
+
 - **Contributing Guide**: Development workflow and standards
+
 - **Deployment Guide**: Production deployment instructions
 
 ---
@@ -276,22 +357,31 @@ python -m flake8       # Linting
 ### 👑 **Decision Making**
 
 - **Technical Decisions**: Lead developer approval required
+
 - **Architecture Changes**: Team consensus required
+
 - **Breaking Changes**: Community notification and migration path
+
 - **Security Issues**: Immediate action authority
 
 ### 🤝 **Community**
 
 - **Code of Conduct**: Respectful and inclusive community
+
 - **Issue Tracking**: GitHub issues for bug reports and features
+
 - **Discussions**: Open discussion forum for ideas
+
 - **Contributions**: Welcome community contributions
 
 ### 📊 **Quality Gates**
 
 - **Automated Checks**: CI/CD pipeline validation
+
 - **Manual Review**: Human oversight for critical changes
+
 - **Performance Benchmarks**: Automated performance testing
+
 - **Security Scans**: Regular security assessments
 
 ---
@@ -301,22 +391,31 @@ python -m flake8       # Linting
 ### 📈 **Technical Metrics**
 
 - **Test Coverage**: > 90% across all modules
+
 - **Performance**: Response times within SLA
+
 - **Reliability**: < 0.1% error rate
+
 - **Security**: Zero critical vulnerabilities
 
 ### 👥 **User Metrics**
 
 - **Adoption Rate**: Plugin installation and usage
+
 - **User Satisfaction**: Feedback scores and reviews
+
 - **Feature Usage**: Analytics on feature utilization
+
 - **Support Load**: Reduced support ticket volume
 
 ### 🔄 **Development Metrics**
 
 - **Delivery Velocity**: Feature delivery rate
+
 - **Code Quality**: Reduced technical debt
+
 - **Bug Rate**: Low defect escape rate
+
 - **Team Health**: Developer satisfaction and retention
 
 ---
@@ -326,22 +425,31 @@ python -m flake8       # Linting
 ### 📊 **Regular Reviews**
 
 - **Monthly**: Performance and security reviews
+
 - **Quarterly**: Architecture and design reviews
+
 - **Annually**: Full system audit and strategy review
+
 - **Ad-hoc**: Critical issue retrospectives
 
 ### 🎯 **Innovation Process**
 
 - **Research**: Regular exploration of new technologies
+
 - **Experimentation**: Proof-of-concept development
+
 - **Evaluation**: Data-driven decision making
+
 - **Adoption**: Gradual integration of improvements
 
 ### 📚 **Learning Culture**
 
 - **Knowledge Sharing**: Regular team knowledge sessions
+
 - **Documentation**: Capture lessons learned
+
 - **Training**: Continuous skill development
+
 - **Mentorship**: Support for team growth
 
 ---
@@ -353,25 +461,37 @@ python -m flake8       # Linting
 We commit to maintaining the highest standards of software craftsmanship:
 
 - **Zero Tolerance for Security Vulnerabilities**: Immediate resolution of critical security issues
+
 - **Performance First**: Sub-second response times for core operations
+
 - **User Experience Excellence**: Intuitive, responsive, and reliable interfaces
+
 - **Code Craftsmanship**: Clean, maintainable, and well-documented code
+
 - **Test-Driven Development**: Comprehensive testing precedes all releases
 
 ### 🌟 **Innovation Principles**
 
 - **AI-First Design**: Leverage cutting-edge AI capabilities responsibly
+
 - **Privacy by Design**: Built-in privacy protection, not retrofitted
+
 - **Accessibility**: Inclusive design for users with diverse needs
+
 - **Sustainability**: Efficient resource usage and long-term maintainability
+
 - **Community-Driven**: Open development guided by user needs
 
 ### 🎯 **Success Definitions**
 
 - **Technical Excellence**: 99.9% uptime, <200ms response times, >95% test coverage
+
 - **User Satisfaction**: >4.8/5 user rating, <24hr support response, intuitive UX
+
 - **Developer Experience**: Clear documentation, easy contribution, rapid iteration
+
 - **Security Posture**: Zero critical vulnerabilities, comprehensive audit trails
+
 - **Performance Standards**: Efficient resource usage, scalable architecture
 
 ---
@@ -381,17 +501,25 @@ We commit to maintaining the highest standards of software craftsmanship:
 ### 🚀 **Technology Evolution**
 
 - **AI Model Agnostic**: Support for emerging AI technologies
+
 - **API Versioning**: Backward compatibility for plugin ecosystem
+
 - **Modular Architecture**: Easy integration of new capabilities
+
 - **Standards Compliance**: Adherence to evolving web and security standards
+
 - **Scalability Planning**: Architecture ready for growth
 
 ### 🔄 **Adaptation Framework**
 
 - **Quarterly Technology Reviews**: Assess emerging technologies
+
 - **User Feedback Integration**: Regular incorporation of user suggestions
+
 - **Performance Monitoring**: Continuous optimization based on real usage
+
 - **Security Updates**: Proactive security posture enhancement
+
 - **Community Evolution**: Growing with the open-source ecosystem
 
 ---
@@ -401,18 +529,27 @@ We commit to maintaining the highest standards of software craftsmanship:
 ### 🚨 **Incident Response**
 
 1. **Detection**: Automated monitoring and alerting
+
 2. **Assessment**: Rapid impact and severity assessment
+
 3. **Response**: Immediate mitigation actions
+
 4. **Communication**: User and stakeholder notification
+
 5. **Resolution**: Root cause analysis and fixes
+
 6. **Post-mortem**: Learn and improve processes
 
 ### 🔒 **Security Incidents**
 
 - **Immediate Actions**: Isolate and contain threats
+
 - **Investigation**: Forensic analysis of incidents
+
 - **Notification**: Required breach notifications
+
 - **Recovery**: System restoration and validation
+
 - **Prevention**: Implement preventive measures
 
 ---
@@ -432,25 +569,37 @@ and adhere to these principles and standards._
 ### ✅ **Before Every Commit**
 
 - [ ] Tests pass (run async test runner)
+
 - [ ] Code coverage > 90%
+
 - [ ] No security vulnerabilities
+
 - [ ] Documentation updated
+
 - [ ] Type hints complete
 
 ### ✅ **Before Every Release**
 
 - [ ] Full test suite execution
+
 - [ ] Performance benchmarks met
+
 - [ ] Security scan completed
+
 - [ ] Documentation reviewed
+
 - [ ] Changelog updated
 
 ### ✅ **Monthly Health Check**
 
 - [ ] Review test coverage reports
+
 - [ ] Analyze performance metrics
+
 - [ ] Update security dependencies
+
 - [ ] Review error logs and issues
+
 - [ ] Team retrospective completed
 
 ---

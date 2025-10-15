@@ -1,40 +1,25 @@
 # Change Proposal: update-doc-openspec-governance-automation
 
-## Why
+## Summary
 
-The project has accumulated many pending OpenSpec changes that need to be processed efficiently. We need automated tooling to:
-
-- Track and validate pending changes
-- Apply approved changes systematically
-- Archive completed changes properly
-- Provide governance oversight for the specification process
+Update `openspec/governance-automation.md` for OpenSpec governance and compliance. This proposal covers changes to governance automation documentation under the project-documentation capability.
 
 ## What Changes
 
-- Add OpenSpec governance automation capability
-- Implement change tracking and validation system
-- Create automated proposal processing workflows
-- Add bulk change management tools
+- Revise openspec/governance-automation.md for OpenSpec compliance
+
+- Add documentation for change proposals, tasks, and capability specs
+
+- Implement project-documentation capability requirements
+
+## Why
+
+Governance automation documentation needs to comply with OpenSpec governance to ensure consistent change tracking, validation, and auditability. The current documentation lacks proper OpenSpec structure and references.
+
+## Capability Reference
+
+This change implements the project-documentation capability as required by OpenSpec governance.
 
 ## Impact
 
-- Affected specs: project-documentation (new capability reference)
-- Affected code: backend (new OpenSpec management endpoints and utilities)
-- Benefits: Improved specification governance, reduced manual overhead, better change tracking
-
-## Implementation Plan
-
-1. Create OpenSpec management backend endpoints
-2. Implement change validation and processing logic
-3. Add bulk operations for managing multiple changes
-4. Create governance dashboard for tracking change status
-5. Implement automated archiving system
-
-## Acceptance Criteria
-
-- [ ] OpenSpec changes can be listed and filtered
-- [ ] Individual changes can be validated programmatically
-- [ ] Approved changes can be applied automatically
-- [ ] Completed changes can be archived in bulk
-- [ ] Change status tracking is automated
-- [ ] Governance metrics are available via dashboard
+Improves governance, auditability, and compliance of governance automation documentation. Enables automated validation and change tracking for governance automation files under the project-documentation capability.

@@ -17,11 +17,17 @@ models, performance requirements, and integration standards.
 ### **Key Features**
 
 - ✅ **16+ FastAPI Endpoints**: Complete REST API for AI operations
+
 - ✅ **Multi-Model Support**: LLM routing across multiple AI providers
+
 - ✅ **Vector Database**: ChromaDB for semantic search and embeddings
+
 - ✅ **Voice Processing**: Speech-to-text transcription capabilities
+
 - ✅ **Caching Layer**: Multi-tier caching for optimal performance
+
 - ✅ **Security Framework**: Encryption, authentication, and secure storage
+
 - ✅ **Obsidian Plugin**: Native integration with Obsidian workspace
 
 ---
@@ -238,7 +244,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Configuration updated successfully
+
 - `422 Unprocessable Entity`: Invalid configuration values
+
 - `500 Internal Server Error`: Configuration update failed
 
 ---
@@ -263,6 +271,7 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Configuration reloaded successfully
+
 - `500 Internal Server Error`: Configuration reload failed
 
 ---
@@ -302,7 +311,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Question processed successfully
+
 - `422 Unprocessable Entity`: Invalid request format
+
 - `500 Internal Server Error`: Model unavailable or generation failed
 
 ---
@@ -344,7 +355,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Transcription completed successfully
+
 - `422 Unprocessable Entity`: Invalid audio data or format
+
 - `500 Internal Server Error`: Transcription service failed
 
 ---
@@ -378,7 +391,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Reindexing completed successfully
+
 - `422 Unprocessable Entity`: Invalid vault path
+
 - `500 Internal Server Error`: Indexing failed
 
 ---
@@ -418,7 +433,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Web content processed successfully
+
 - `422 Unprocessable Entity`: Invalid URL format
+
 - `500 Internal Server Error`: Web processing failed
 
 ---
@@ -440,6 +457,7 @@ Documentation:
 **Request Parameters**:
 
 - `query` (string): Search query
+
 - `top_k` (int, default=5): Number of results to return
 
 **Response Model**: `SearchResponse`
@@ -466,7 +484,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Search completed successfully
+
 - `422 Unprocessable Entity`: Invalid search query
+
 - `500 Internal Server Error`: Search service unavailable
 
 ---
@@ -494,7 +514,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: Vault scan completed successfully
+
 - `422 Unprocessable Entity`: Invalid vault path
+
 - `500 Internal Server Error`: Scan operation failed
 
 ---
@@ -522,7 +544,9 @@ Documentation:
 **Status Codes**:
 
 - `200 OK`: PDF indexing completed successfully
+
 - `422 Unprocessable Entity`: Invalid PDF path or corrupt file
+
 - `500 Internal Server Error`: PDF processing failed
 
 ---
@@ -574,7 +598,9 @@ class TranscribeRequest(BaseModel):
 #### **Standard Response Structure**
 
 ```python
+
 # All responses follow this pattern:
+
 {
     "status": "success|error",              # Operation status
     "data": { /* response payload */ },     # Main response data
@@ -625,22 +651,31 @@ class TranscribeRequest(BaseModel):
 #### **Memory Management**
 
 - **Baseline Usage**: < 256MB (idle state)
+
 - **Active Processing**: < 1GB (during AI operations)
+
 - **Peak Usage**: < 2GB (heavy document processing)
+
 - **Memory Leaks**: Zero tolerance - automatic cleanup
 
 #### **CPU Utilization**
 
 - **Idle State**: < 5% CPU usage
+
 - **Normal Operations**: < 50% CPU usage
+
 - **Peak Processing**: < 80% CPU usage (temporary spikes allowed)
+
 - **Background Tasks**: < 20% CPU usage
 
 #### **Storage Requirements**
 
 - **Cache Storage**: Configurable, default 1GB limit
+
 - **Vector Database**: Scales with document count (~10MB per 1000 documents)
+
 - **Model Storage**: 2-8GB per AI model (user configurable)
+
 - **Temporary Files**: Automatic cleanup within 24 hours
 
 ### **📊 Scalability Targets**
@@ -648,15 +683,21 @@ class TranscribeRequest(BaseModel):
 #### **Concurrent Operations**
 
 - **Simultaneous Users**: 10+ concurrent API requests
+
 - **Parallel Processing**: Multi-threaded document indexing
+
 - **Queue Management**: Task queue for resource-intensive operations
+
 - **Rate Limiting**: Configurable per-endpoint rate limits
 
 #### **Data Volume Handling**
 
 - **Document Capacity**: 100,000+ documents in vault
+
 - **Search Performance**: Sub-second search across large datasets
+
 - **Batch Operations**: Process 1000+ files in single operation
+
 - **Database Scaling**: Automatic vector database optimization
 
 ---
@@ -668,7 +709,9 @@ class TranscribeRequest(BaseModel):
 #### **API Security**
 
 ```python
+
 # Security Headers (Implemented)
+
 {
     "Access-Control-Allow-Origin": "*",         # CORS configuration
     "Access-Control-Allow-Methods": "*",        # Allowed HTTP methods
@@ -677,18 +720,26 @@ class TranscribeRequest(BaseModel):
 }
 
 # Future Implementation Roadmap:
+
 - JWT Token Authentication
+
 - API Key Management
+
 - Role-Based Access Control (RBAC)
+
 - Rate Limiting per User/API Key
 ```
 
 #### **Data Protection Standards**
 
 - **Encryption at Rest**: AES-256 for sensitive configuration
+
 - **Encryption in Transit**: TLS 1.3 for all HTTPS communications
+
 - **API Key Security**: Secure storage for external service keys
+
 - **Input Validation**: Comprehensive sanitization of all inputs
+
 - **Output Filtering**: Prevent sensitive data exposure in responses
 
 ### **🔐 Security Implementation Requirements**
@@ -696,27 +747,40 @@ class TranscribeRequest(BaseModel):
 #### **Input Security**
 
 ```python
+
 # Validation Rules (Enforced by Pydantic)
+
 AskRequest:
-    - question: str (required, max_length=10000, no_null_bytes)
-    - max_tokens: int (range: 1-4096)
-    - model_name: str (whitelist validation)
+
+- question: str (required, max_length=10000, no_null_bytes)
+
+- max_tokens: int (range: 1-4096)
+
+- model_name: str (whitelist validation)
 
 WebRequest:
-    - url: str (URL validation, protocol whitelist: http/https)
-    - question: str (optional, max_length=10000)
+
+- url: str (URL validation, protocol whitelist: http/https)
+
+- question: str (optional, max_length=10000)
 
 TranscribeRequest:
-    - audio_data: str (base64 validation, max_size: 10MB)
-    - format: str (whitelist: webm, mp3, wav)
-    - language: str (ISO 639-1 code validation)
+
+- audio_data: str (base64 validation, max_size: 10MB)
+
+- format: str (whitelist: webm, mp3, wav)
+
+- language: str (ISO 639-1 code validation)
 ```
 
 #### **File System Security**
 
 - **Path Traversal Prevention**: Validate all file paths, restrict to configured directories
+
 - **File Type Validation**: Whitelist allowed file extensions (.md, .pdf, .txt)
+
 - **Size Limits**: Maximum file size limits (configurable, default 100MB)
+
 - **Temporary File Cleanup**: Automatic cleanup of uploaded/processed files
 
 ### **📋 Security Audit Requirements**
@@ -724,7 +788,9 @@ TranscribeRequest:
 #### **Logging & Monitoring**
 
 ```python
+
 # Security Event Logging
+
 {
     "timestamp": "2025-10-06T10:30:00Z",
     "event_type": "api_request",
@@ -741,8 +807,11 @@ TranscribeRequest:
 #### **Vulnerability Management**
 
 - **Dependency Scanning**: Regular security audits of all dependencies
+
 - **OWASP Compliance**: Follow OWASP Top 10 security guidelines
+
 - **Penetration Testing**: Quarterly security assessments
+
 - **Incident Response**: Documented procedures for security incidents
 
 ---
@@ -754,16 +823,23 @@ TranscribeRequest:
 #### **Test Suite Performance**
 
 - **Total Tests**: 498 comprehensive tests
+
 - **Pass Rate**: 98.5% (451 passed, 7 failed, 2 warnings)
+
 - **Code Quality**: 94% reduction in deprecation warnings
+
 - **API Modernization**: FastAPI lifespan, Pydantic V2, proper test assertions
 
 #### **Recent Quality Improvements**
 
 - ✅ **FastAPI Lifespan Migration**: Replaced deprecated `@app.on_event()` with modern context manager
+
 - ✅ **Pydantic V2 Compliance**: Updated all `dict()` calls to `model_dump()`
+
 - ✅ **Test Pattern Modernization**: Converted return-based tests to proper `assert` statements
+
 - ✅ **Async Test Classification**: Fixed pytest async/sync test marker issues
+
 - ✅ **Warning Reduction**: From 34 warnings to 2 warnings across test suite
 
 ### **📊 Test Coverage Requirements**
@@ -771,9 +847,13 @@ TranscribeRequest:
 #### **Minimum Coverage Standards**
 
 - **Overall Backend Coverage**: 85% minimum, target 95%
+
 - **Critical Path Coverage**: 98% for core API endpoints
+
 - **Integration Test Coverage**: 80% for service interactions
+
 - **Security Test Coverage**: 100% for authentication/authorization
+
 - **Performance Test Coverage**: All endpoints under load
 
 #### **Test Architecture**
@@ -805,7 +885,9 @@ tests/
 #### **Unit Tests (486 total tests)**
 
 ```python
+
 # Test Pattern Example
+
 class TestAskEndpoint:
     """Test /ask endpoint functionality."""
 
@@ -834,7 +916,9 @@ class TestAskEndpoint:
 #### **Integration Tests**
 
 ```python
+
 # Integration Test Pattern
+
 class TestFullAPIWorkflow:
     """Test complete API workflow scenarios."""
 
@@ -858,7 +942,9 @@ class TestFullAPIWorkflow:
 #### **Performance Tests**
 
 ```python
+
 # Performance Test Pattern
+
 class TestPerformanceRequirements:
     """Validate performance SLA compliance."""
 
@@ -888,7 +974,9 @@ class TestPerformanceRequirements:
 #### **Async Test Runner Performance**
 
 ```python
+
 # Comprehensive Async Test Runner Results
+
 Total Tests: 486
 Pass Rate: 95%+ target (currently 28% - improvement in progress)
 Execution Time: <400s for full suite
@@ -900,9 +988,13 @@ Memory Usage: <2GB during test execution
 #### **Continuous Integration Requirements**
 
 - **Pre-commit Hooks**: Run linting, type checking, security scans
+
 - **Pull Request Validation**: Full test suite must pass
+
 - **Performance Regression Detection**: Automated performance comparison
+
 - **Coverage Reporting**: Coverage reports on every commit
+
 - **Security Scanning**: Dependency vulnerability scans
 
 ---
@@ -1112,48 +1204,76 @@ class VoiceInputManager {
 #### **Development Environment**
 
 ```bash
+
 # Required Software
+
 - Python 3.9+
+
 - Node.js 18+
+
 - Obsidian (latest version)
 
 # Python Dependencies
+
 pip install -r requirements.txt
+
 # fastapi==0.104.1
+
 # uvicorn==0.24.0
+
 # pydantic==2.5.0
+
 # chromadb==0.4.18
+
 # sentence-transformers==2.2.2
+
 # python-multipart==0.0.6
+
 # python-dotenv==1.0.0
 
 # Node.js Dependencies (Plugin)
+
 npm install
+
 # typescript
+
 # @types/node
+
 # obsidian (API types)
+
 ```
 
 #### **Production Deployment**
 
 ```yaml
+
 # Docker Configuration
+
 version: '3.8'
 services:
     ai-assistant-backend:
         image: obsidian-ai-assistant:latest
         ports:
-            - '8000:8000'
+
+- '8000:8000'
         volumes:
-            - ./vault:/app/vault:ro
-              - ./backend/cache:/app/backend/cache
-              - ./backend/models:/app/backend/models
-            - ./vector_db:/app/vector_db
+
+- ./vault:/app/vault:ro
+
+- ./backend/cache:/app/backend/cache
+
+- ./backend/models:/app/backend/models
+
+- ./vector_db:/app/vector_db
         environment:
-            - ENVIRONMENT=production
-            - GPU_ENABLED=true
-            - CACHE_TTL=3600
-            - MAX_TOKENS=2048
+
+- ENVIRONMENT=production
+
+- GPU_ENABLED=true
+
+- CACHE_TTL=3600
+
+- MAX_TOKENS=2048
         healthcheck:
             test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
             interval: 30s
@@ -1166,7 +1286,9 @@ services:
 #### **Settings Schema**
 
 ```python
+
 # backend/settings.py
+
 class Settings(BaseModel):
     # Server Configuration
     api_port: int = 8000
@@ -1199,12 +1321,15 @@ class Settings(BaseModel):
 #### **Environment Variables**
 
 ```bash
+
 # Required Environment Variables
+
 OBSIDIAN_AI_VAULT_PATH="/path/to/vault"
 OBSIDIAN_AI_API_PORT=8000
 OBSIDIAN_AI_GPU_ENABLED=true
 
 # Optional Configuration
+
 HUGGINGFACE_TOKEN="hf_xxxxxxxxxxxx"
 OPENAI_API_KEY="sk-xxxxxxxxxxxx"
 OBSIDIAN_AI_CACHE_TTL=3600
@@ -1212,6 +1337,7 @@ OBSIDIAN_AI_MAX_TOKENS=2048
 OBSIDIAN_AI_LOG_LEVEL="INFO"
 
 # Security Configuration
+
 OBSIDIAN_AI_API_KEY="your-secure-api-key"
 OBSIDIAN_AI_RATE_LIMIT=60
 OBSIDIAN_AI_ENABLE_CORS=true
@@ -1222,25 +1348,36 @@ OBSIDIAN_AI_ENABLE_CORS=true
 #### **Health Monitoring**
 
 ```python
+
 # Health Check Endpoints
+
 GET /health       # Full system health with configuration
 GET /status       # Lightweight liveness check
 GET /metrics      # Prometheus-compatible metrics (future)
 
 # Monitoring Metrics
+
 - Request count by endpoint
+
 - Response time percentiles (50th, 95th, 99th)
+
 - Error rate by endpoint and status code
+
 - Active model performance metrics
+
 - Cache hit/miss ratios
+
 - Vector database query performance
+
 - System resource utilization
 ```
 
 #### **Logging Configuration**
 
 ```python
+
 # Structured Logging Format
+
 {
     "timestamp": "2025-10-06T10:30:00.123Z",
     "level": "INFO",
@@ -1269,34 +1406,44 @@ GET /metrics      # Prometheus-compatible metrics (future)
 #### **Code Standards Enforcement**
 
 ```python
+
 # Pre-commit Hooks Configuration
+
 repos:
-  - repo: https://github.com/psf/black
+
+- repo: https://github.com/psf/black
     hooks:
-      - id: black
+
+- id: black
         language_version: python3.9
 
-  - repo: https://github.com/pycqa/flake8
+- repo: https://github.com/pycqa/flake8
     hooks:
-      - id: flake8
+
+- id: flake8
         args: [--max-line-length=88, --extend-ignore=E203]
 
-  - repo: https://github.com/pre-commit/mirrors-mypy
+- repo: https://github.com/pre-commit/mirrors-mypy
     hooks:
-      - id: mypy
+
+- id: mypy
         additional_dependencies: [types-all]
 
-  - repo: https://github.com/PyCQA/bandit
+- repo: https://github.com/PyCQA/bandit
     hooks:
-      - id: bandit
+
+- id: bandit
         args: [-r, backend/, -f, json, -o, bandit-report.json]
 ```
 
 #### **Type Coverage Requirements**
 
 - **Python Backend**: 100% type annotation coverage
+
 - **TypeScript Plugin**: Strict TypeScript configuration
+
 - **API Schemas**: Complete Pydantic model validation
+
 - **Configuration**: Typed settings with validation
 
 ### **📊 Performance Benchmarks**
@@ -1304,7 +1451,9 @@ repos:
 #### **Load Testing Standards**
 
 ```python
+
 # Performance Test Requirements
+
 class PerformanceTests:
 
     @pytest.mark.benchmark
@@ -1332,7 +1481,9 @@ class PerformanceTests:
 #### **Memory & Resource Testing**
 
 ```python
+
 # Resource Usage Monitoring
+
 class ResourceTests:
 
     def test_memory_usage_baseline(self):
@@ -1363,17 +1514,24 @@ MINOR: New features, backward-compatible API additions
 PATCH: Bug fixes, security updates, performance improvements
 
 Examples:
+
 - 1.0.0 - Initial release
+
 - 1.1.0 - Add voice transcription feature
+
 - 1.1.1 - Fix caching bug
+
 - 2.0.0 - New API authentication (breaking change)
 ```
 
 #### **Release Schedule**
 
 - **Major Releases**: Quarterly (with 2-week beta period)
+
 - **Minor Releases**: Monthly (new features, enhancements)
+
 - **Patch Releases**: As needed (critical bugs, security issues)
+
 - **Security Updates**: Immediate (within 24-48 hours)
 
 ### **📚 Documentation Requirements**
@@ -1381,40 +1539,56 @@ Examples:
 #### **API Documentation**
 
 - **Interactive Documentation**: Swagger UI at `/docs`
+
 - **Alternative Documentation**: ReDoc at `/redoc`
+
 - **OpenAPI Specification**: Auto-generated from code annotations
+
 - **Code Examples**: Working examples for each endpoint
+
 - **Error Documentation**: Complete error code reference
 
 #### **User Documentation**
 
 - **Installation Guide**: Step-by-step setup instructions
+
 - **Configuration Guide**: All settings explained with examples
+
 - **Troubleshooting Guide**: Common issues and solutions
+
 - **Best Practices**: Recommended usage patterns
+
 - **FAQ**: Frequently asked questions with answers
 
 ### **🔧 Troubleshooting Guide**
 
 #### **Common Issues & Solutions**
 
-## Backend Connection Issues
+##### Backend Connection Issues
 
 ```bash
+
 # Check backend status
+
 curl http://127.0.0.1:8000/health
 
 # Common fixes:
+
 1. Verify Python dependencies installed
+
 2. Check port 8000 availability
+
 3. Review backend logs for errors
+
 4. Validate configuration file
 ```
 
 ## Model Loading Problems
 
 ```python
+
 # Debug model initialization
+
 python -c "
 from backend.modelmanager import ModelManager
 mm = ModelManager()
@@ -1422,24 +1596,34 @@ print('Models available:', mm.list_models())
 "
 
 # Common fixes:
+
 1. Verify Hugging Face token
+
 2. Check internet connection for model downloads
+
 3. Ensure sufficient disk space (2-8GB per model)
+
 4. Validate GPU drivers if GPU enabled
 ```
 
 ## Performance Issues
 
 ```bash
+
 # Monitor resource usage
+
 htop  # CPU and memory
 iotop # Disk I/O
 netstat -an | grep 8000  # Network connections
 
 # Common optimizations:
+
 1. Enable GPU acceleration
+
 2. Increase cache TTL
+
 3. Reduce max_tokens for faster responses
+
 4. Use prefer_fast=true for simple queries
 ```
 
@@ -1452,30 +1636,47 @@ netstat -an | grep 8000  # Network connections
 #### **Core Features (Complete)**
 
 - [x] **FastAPI Backend**: 16 endpoints implemented and tested
+
 - [x] **AI Integration**: Multiple model support with routing
+
 - [x] **Vector Database**: ChromaDB with semantic search
+
 - [x] **Caching System**: TTL-based caching with configurable expiration
+
 - [x] **Configuration Management**: YAML-based settings with runtime updates
+
 - [x] **Security Framework**: Input validation, CORS, error handling
+
 - [x] **Voice Processing**: Speech-to-text transcription capability
+
 - [x] **Document Indexing**: PDF and markdown processing
+
 - [x] **Obsidian Plugin**: Native integration with Obsidian workspace
 
 #### **Testing & Quality (In Progress)**
 
 - [x] **Test Infrastructure**: Async test runner with 6.2x speedup
+
 - [x] **Comprehensive Tests**: 486 tests across all modules
+
 - [x] **Service Mocking**: Standardized mocking patterns
+
 - [⚠️] **Test Pass Rate**: 28% (improvement in progress - was 29%)
+
 - [x] **Performance Testing**: Load testing and benchmarking
+
 - [x] **CI/CD Integration**: Automated test execution
 
 #### **Documentation & Compliance (Complete)**
 
 - [x] **API Specification**: Complete endpoint documentation
+
 - [x] **Architecture Documentation**: System design and data flow
+
 - [x] **Security Standards**: Authentication, validation, monitoring
+
 - [x] **Performance Requirements**: SLA definitions and monitoring
+
 - [x] **Deployment Guide**: Environment setup and configuration
 
 ### **🎯 Specification Summary**
@@ -1483,12 +1684,19 @@ netstat -an | grep 8000  # Network connections
 This comprehensive specification establishes the **Obsidian AI Assistant** as a **production-ready, enterprise-grade AI integration** for Obsidian. The specification covers:
 
 1. **✅ Complete API Documentation**: All 16 endpoints with request/response models
+
 2. **✅ System Architecture**: Modular design with clear service boundaries
+
 3. **✅ Performance Standards**: Response time SLAs and resource requirements
+
 4. **✅ Security Framework**: Authentication, encryption, and input validation
+
 5. **✅ Testing Standards**: Comprehensive test coverage with async execution
+
 6. **✅ Plugin Integration**: Native Obsidian plugin with UI components
+
 7. **✅ Deployment Procedures**: Environment setup and configuration management
+
 8. **✅ Quality Assurance**: Code standards, benchmarks, and monitoring
 
 ## The system is specified for enterprise deployment with professional-grade reliability, security, and performance standards

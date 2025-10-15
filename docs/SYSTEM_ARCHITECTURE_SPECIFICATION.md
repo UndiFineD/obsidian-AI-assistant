@@ -84,18 +84,26 @@ graph TB
 #### **`backend.py` - FastAPI Application**
 
 ```python
+
 # Architecture: Single FastAPI instance with modular endpoints
+
 # Responsibility: HTTP request handling, service coordination, error management
+
 # Dependencies: All service modules, Pydantic models, FastAPI framework
 
 class FastAPIApplication:
     """
     Central application controller managing:
-    - 16 REST API endpoints
-    - Service lifecycle management
-    - Request/response transformation
-    - Error handling and logging
-    - CORS and middleware configuration
+
+- 16 REST API endpoints
+
+- Service lifecycle management
+
+- Request/response transformation
+
+- Error handling and logging
+
+- CORS and middleware configuration
     """
 
     services: ServiceRegistry
@@ -115,7 +123,9 @@ class FastAPIApplication:
 **Service Integration Pattern**:
 
 ```python
+
 # Service Access Pattern
+
 global model_manager, emb_manager, vault_indexer, cache_manager
 
 def init_services():
@@ -128,17 +138,24 @@ def init_services():
 #### **`modelmanager.py` - AI Model Management**
 
 ```python
+
 # Architecture: Centralized model lifecycle management
+
 # Responsibility: Model loading, routing, generation, resource management
+
 # Dependencies: HybridLLMRouter, external AI APIs, local model storage
 
 class ModelManager:
     """
     AI Model Management Service:
-    - Multi-model support (OpenAI, Hugging Face, Local)
-    - Intelligent model routing based on request characteristics
-    - Resource optimization and memory management
-    - Model health monitoring and failover
+
+- Multi-model support (OpenAI, Hugging Face, Local)
+
+- Intelligent model routing based on request characteristics
+
+- Resource optimization and memory management
+
+- Model health monitoring and failover
     """
 
     llm_router: HybridLLMRouter
@@ -158,17 +175,24 @@ class ModelManager:
 #### **`embeddings.py` - Vector Operations**
 
 ```python
+
 # Architecture: ChromaDB integration with caching layer
+
 # Responsibility: Document embedding, vector search, similarity computation
+
 # Dependencies: ChromaDB, sentence-transformers, caching system
 
 class EmbeddingsManager:
     """
     Vector Database Management:
-    - Document embedding generation and storage
-    - Semantic search with relevance scoring
-    - Vector database optimization and maintenance
-    - Batch processing for large document sets
+
+- Document embedding generation and storage
+
+- Semantic search with relevance scoring
+
+- Vector database optimization and maintenance
+
+- Batch processing for large document sets
     """
 
     chroma_client: chromadb.Client
@@ -188,17 +212,24 @@ class EmbeddingsManager:
 #### **`indexing.py` - Document Processing**
 
 ```python
+
 # Architecture: Multi-format document processor with chunking strategy
+
 # Responsibility: File parsing, content extraction, chunk optimization
+
 # Dependencies: EmbeddingsManager, file format parsers, caching
 
 class VaultIndexer:
     """
     Document Indexing Service:
-    - Multi-format file processing (MD, PDF, TXT)
-    - Intelligent content chunking for optimal retrieval
-    - Incremental indexing with change detection
-    - Metadata extraction and enrichment
+
+- Multi-format file processing (MD, PDF, TXT)
+
+- Intelligent content chunking for optimal retrieval
+
+- Incremental indexing with change detection
+
+- Metadata extraction and enrichment
     """
 
     embeddings_manager: EmbeddingsManager
@@ -218,17 +249,24 @@ class VaultIndexer:
 #### **`caching.py` - Performance Optimization**
 
 ```python
+
 # Architecture: Multi-tier caching with TTL management
+
 # Responsibility: Response caching, performance optimization, memory management
+
 # Dependencies: File system, memory management, configuration
 
 class CacheManager:
     """
     Multi-Tier Caching System:
-    - In-memory cache for frequently accessed data
-    - File-based cache for large responses
-    - TTL-based expiration with configurable policies
-    - Cache warming and preloading strategies
+
+- In-memory cache for frequently accessed data
+
+- File-based cache for large responses
+
+- TTL-based expiration with configurable policies
+
+- Cache warming and preloading strategies
     """
 
     memory_cache: LRUCache
@@ -248,17 +286,24 @@ class CacheManager:
 #### **`llm_router.py` - Intelligent Model Routing**
 
 ```python
+
 # Architecture: Decision engine for optimal model selection
+
 # Responsibility: Model routing logic, load balancing, fallback management
+
 # Dependencies: External AI APIs, model availability monitoring
 
 class HybridLLMRouter:
     """
     Intelligent Model Routing:
-    - Dynamic model selection based on request characteristics
-    - Load balancing across available models
-    - Automatic failover and retry logic
-    - Cost optimization and rate limit management
+
+- Dynamic model selection based on request characteristics
+
+- Load balancing across available models
+
+- Automatic failover and retry logic
+
+- Cost optimization and rate limit management
     """
 
     model_registry: ModelRegistry
@@ -278,17 +323,24 @@ class HybridLLMRouter:
 #### **`security.py` - Security Framework**
 
 ```python
+
 # Architecture: Centralized security services
+
 # Responsibility: Authentication, encryption, input validation, audit logging
+
 # Dependencies: Cryptography libraries, configuration management
 
 class SecurityManager:
     """
     Comprehensive Security Framework:
-    - Input validation and sanitization
-    - Encryption/decryption services
-    - Authentication and authorization
-    - Security audit logging
+
+- Input validation and sanitization
+
+- Encryption/decryption services
+
+- Authentication and authorization
+
+- Security audit logging
     """
 
     crypto_handler: CryptographyHandler
@@ -308,17 +360,24 @@ class SecurityManager:
 #### **`voice.py` - Speech Processing**
 
 ```python
+
 # Architecture: Speech-to-text processing with fallback options
+
 # Responsibility: Audio processing, transcription, voice interface support
+
 # Dependencies: Vosk models, audio processing libraries
 
 class VoiceProcessor:
     """
     Speech Recognition Service:
-    - Audio format conversion and preprocessing
-    - Speech-to-text using Vosk engine
-    - Language detection and model selection
-    - Audio quality assessment and enhancement
+
+- Audio format conversion and preprocessing
+
+- Speech-to-text using Vosk engine
+
+- Language detection and model selection
+
+- Audio quality assessment and enhancement
     """
 
     vosk_model: VoskModel
@@ -338,17 +397,24 @@ class VoiceProcessor:
 #### **`settings.py` - Configuration Management**
 
 ```python
+
 # Architecture: Centralized configuration with validation
+
 # Responsibility: Settings management, environment configuration, validation
+
 # Dependencies: Pydantic, environment variables, YAML parsing
 
 class SettingsManager:
     """
     Configuration Management System:
-    - Environment-based configuration loading
-    - Runtime configuration updates
-    - Configuration validation and type checking
-    - Settings persistence and backup
+
+- Environment-based configuration loading
+
+- Runtime configuration updates
+
+- Configuration validation and type checking
+
+- Settings persistence and backup
     """
 
     current_settings: Settings
@@ -378,12 +444,17 @@ class SettingsManager:
 
 class AIAssistantPlugin extends Plugin {
     /**
-     * Core Plugin Management:
-     * - Obsidian lifecycle integration
-     * - Settings management and persistence
-     * - Command registration and handling
-     * - UI component coordination
-     */
+
+* Core Plugin Management:
+
+* - Obsidian lifecycle integration
+
+* - Settings management and persistence
+
+* - Command registration and handling
+
+* - UI component coordination
+*/
 
     settings: AIAssistantSettings;
     apiClient: BackendAPIClient;
@@ -530,7 +601,9 @@ sequenceDiagram
 #### **Dependency Graph**
 
 ```python
+
 # Service Dependency Hierarchy
+
 ServiceRegistry = {
     "core_services": {
         "ModelManager": {
@@ -580,7 +653,9 @@ ServiceRegistry = {
 #### **Inter-Service Communication Patterns**
 
 ```python
+
 # Service Interface Contracts
+
 class ServiceInterface:
     """Standard interface for all backend services."""
 
@@ -597,6 +672,7 @@ class ServiceInterface:
         """Performance and operational metrics."""
 
 # Event-Driven Communication
+
 class ServiceEventBus:
     """Decoupled service communication via events."""
 
@@ -610,6 +686,7 @@ class ServiceEventBus:
         """Remove event subscription."""
 
 # Examples of Service Events
+
 ServiceEvents = {
     "model.loaded": {"model_id": str, "memory_usage": int},
     "cache.miss": {"key": str, "operation": str},
@@ -656,7 +733,9 @@ Storage Architecture:
 #### **Data Flow Between Tiers**
 
 ```python
+
 # Storage Tier Interaction
+
 class StorageTierManager:
     """Manages data flow between storage tiers."""
 
@@ -681,7 +760,9 @@ class StorageTierManager:
 #### **Vector Database Schema (ChromaDB)**
 
 ```python
+
 # ChromaDB Collection Schema
+
 VectorCollections = {
     "documents": {
         "embeddings": List[float],  # 384-dimensional vectors
@@ -714,7 +795,9 @@ VectorCollections = {
 #### **Configuration Schema**
 
 ```python
+
 # Settings Storage Schema
+
 class Settings(BaseModel):
     # Server Configuration
     api_port: int = Field(8000, ge=1024, le=65535)
@@ -759,7 +842,9 @@ class Settings(BaseModel):
 #### **Multi-Layer Security Model**
 
 ```python
+
 # Security Architecture Layers
+
 SecurityLayers = {
     "Layer_1_Input": {
         "component": "RequestValidator",
@@ -802,7 +887,9 @@ SecurityLayers = {
 #### **Threat Model & Mitigations**
 
 ```python
+
 # Security Threat Assessment
+
 ThreatModel = {
     "Input_Injection": {
         "threats": ["SQL injection", "Command injection", "Path traversal"],
@@ -839,7 +926,9 @@ ThreatModel = {
 #### **Multi-Level Caching Architecture**
 
 ```python
+
 # Performance Optimization Layers
+
 PerformanceLayers = {
     "L1_Application": {
         "cache_type": "In-memory LRU cache",
@@ -878,7 +967,9 @@ PerformanceLayers = {
 #### **Resource Management Strategy**
 
 ```python
+
 # Resource Allocation & Monitoring
+
 class ResourceManager:
     """System resource management and optimization."""
 
@@ -915,7 +1006,9 @@ class ResourceManager:
 #### **Environment Configurations**
 
 ```yaml
+
 # Multi-Environment Deployment Architecture
+
 environments:
     development:
         resources:
@@ -923,9 +1016,12 @@ environments:
             cpu: '1 core'
             storage: '5GB'
         services:
-            - 'FastAPI Backend'
-            - 'Local ChromaDB'
-            - 'File-based cache'
+
+- 'FastAPI Backend'
+
+- 'Local ChromaDB'
+
+- 'File-based cache'
         monitoring: 'Basic logging'
 
     staging:
@@ -934,10 +1030,14 @@ environments:
             cpu: '2 cores'
             storage: '20GB'
         services:
-            - 'FastAPI Backend'
-            - 'ChromaDB with persistence'
-            - 'Redis cache (optional)'
-            - 'Model storage optimization'
+
+- 'FastAPI Backend'
+
+- 'ChromaDB with persistence'
+
+- 'Redis cache (optional)'
+
+- 'Model storage optimization'
         monitoring: 'Performance metrics + health checks'
 
     production:
@@ -946,18 +1046,25 @@ environments:
             cpu: '4+ cores'
             storage: '50-100GB'
         services:
-            - 'Load-balanced FastAPI backends'
-            - 'Distributed ChromaDB cluster'
-            - 'Redis cache cluster'
-            - 'Model CDN distribution'
-            - 'Backup and recovery services'
+
+- 'Load-balanced FastAPI backends'
+
+- 'Distributed ChromaDB cluster'
+
+- 'Redis cache cluster'
+
+- 'Model CDN distribution'
+
+- 'Backup and recovery services'
         monitoring: 'Full observability stack + alerting'
 ```
 
 #### **Scalability Architecture**
 
 ```python
+
 # Horizontal Scaling Strategy
+
 class ScalabilityManager:
     """Manages horizontal scaling of services."""
 
@@ -995,23 +1102,29 @@ class ScalabilityManager:
 #### **SOLID Principles Compliance**
 
 ```python
+
 # Single Responsibility Principle
+
 ✅ Each service has a single, well-defined responsibility
 ✅ Clear separation between API, business logic, and data layers
 
 # Open/Closed Principle
+
 ✅ Services are open for extension (new models, processors)
 ✅ Closed for modification (stable interfaces and contracts)
 
 # Liskov Substitution Principle
+
 ✅ Service interfaces allow for implementation substitution
 ✅ Mock services can replace real services in testing
 
 # Interface Segregation Principle
+
 ✅ Services expose minimal, focused interfaces
 ✅ Clients depend only on interfaces they actually use
 
 # Dependency Inversion Principle
+
 ✅ High-level modules depend on abstractions, not concretions
 ✅ Dependency injection enables flexible service composition
 ```
@@ -1019,7 +1132,9 @@ class ScalabilityManager:
 #### **Microservices Architecture Patterns**
 
 ```python
+
 # Architecture Pattern Compliance
+
 Patterns = {
     "Service_Discovery": "✅ Service registry with health checking",
     "Circuit_Breaker": "✅ Automatic failover for external dependencies",
@@ -1039,7 +1154,9 @@ Patterns = {
 ### **🎯 Quality Metrics**
 
 ```python
+
 # Architecture Quality Assessment
+
 ArchitectureMetrics = {
     "Modularity": {
         "score": 9.5,
@@ -1086,21 +1203,33 @@ ArchitectureMetrics = {
 ### **✅ Architecture Strengths**
 
 1. **🏗️ Modular Design**: Clean separation of concerns with well-defined service boundaries
+
 2. **⚡ Performance Optimized**: Multi-tier caching with sub-second response times
+
 3. **🔒 Security First**: Comprehensive security layers with threat mitigation
+
 4. **📈 Scalable**: Horizontal scaling ready with distributed architecture support
+
 5. **🧪 Testable**: 95%+ test coverage with comprehensive mocking strategies
+
 6. **🔧 Maintainable**: Clear code organization with extensive documentation
+
 7. **🔄 Extensible**: Plugin architecture supporting new features and integrations
+
 8. **📊 Observable**: Comprehensive logging, monitoring, and health checking
 
 ### **🎯 Architecture Goals Achieved**
 
 - ✅ **High Performance**: Sub-200ms API responses with intelligent caching
+
 - ✅ **Reliability**: 99.9% uptime target with automatic failover
+
 - ✅ **Security**: Multi-layer security with comprehensive threat protection
+
 - ✅ **Scalability**: Ready for 100+ concurrent users and large datasets
+
 - ✅ **Maintainability**: Clean code with 95%+ documentation coverage
+
 - ✅ **Extensibility**: Plugin-ready architecture for future enhancements
 
 **This architecture establishes the Obsidian AI Assistant as a production-ready,

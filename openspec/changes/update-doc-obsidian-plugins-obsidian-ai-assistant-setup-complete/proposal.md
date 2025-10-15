@@ -1,15 +1,21 @@
 # Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete
 
-## Why
-
-Ensure `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+## Summary
 
 ## What Changes
 
-- Add a documentation governance requirement for `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md` under the `project-documentation` capability.
-- Track material updates via OpenSpec proposals (no functional code changes).
+- Revise Obsidian plugin setup documentation for OpenSpec compliance
 
-## Impact
+- Add documentation for change proposals, tasks, and capability specs
 
-- Affected specs: project-documentation
-- Affected code: none (documentation only)
+- Reference all updated files in this proposal
+
+- Implement project-documentation capability requirements
+
+## Why
+
+This documentation needs to comply with OpenSpec governance to ensure consistent change tracking, validation, and auditability. The current documentation lacks proper OpenSpec structure and references.
+
+## Capability Reference
+
+This change implements the project-documentation capability as required by OpenSpec governance.

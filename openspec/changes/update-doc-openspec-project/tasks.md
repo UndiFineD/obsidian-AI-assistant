@@ -1,8 +1,12 @@
+
 # Tasks: update-doc-openspec-project
 
 ## 1. Implementation
 
-- [ ] 1.1 Review `openspec/project.md` and classify changes as material or minor
-- [ ] 1.2 For material changes, update this proposal and add/modify deltas as needed
-- [ ] 1.3 Validate: `openspec validate update-doc-openspec-project --strict`
-- [ ] 1.4 Open PR referencing this change and request review
+- [ ] 1.1 Revise `openspec/project.md` for OpenSpec compliance
+
+- [ ] 1.2 Add `proposal.md` and capability spec
+
+- [ ] 1.3 Validate tasks.md checklist format
+
+- [ ] 1.4 Run validation: `openspec validate update-doc-openspec-project --strict`

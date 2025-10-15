@@ -2,7 +2,12 @@
 
 ## 1. Implementation
 
-- [ ] 1.1 Review `docs/audit-backend.md` and classify changes as material or minor
-- [ ] 1.2 For material changes, update this proposal and add/modify deltas as needed
-- [ ] 1.3 Validate: `openspec validate update-doc-docs-audit-backend --strict`
-- [ ] 1.4 Open PR referencing this change and request review
+- [ ] 1.1 Revise docs/audit-backend.md for OpenSpec compliance
+
+- [ ] 1.2 Add proposal.md with Why, What Changes, Impact, and capability reference
+
+- [ ] 1.3 Add specs/project-documentation/spec.md with scenario (**WHEN**/**THEN**) and requirements
+
+## 2. Validation
+
+- [ ] 2.1 Run `openspec validate update-doc-docs-audit-backend --strict` to verify compliance

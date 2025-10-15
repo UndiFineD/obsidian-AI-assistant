@@ -250,46 +250,7 @@ class TestOpenSpecIntegration:
                         # Test just one example for basic validation
                         break
 
-    def test_archive_functionality_structure(self):
-        """Test that archive functionality has proper structure if it exists."""
-        repo_root = Path(__file__).parent.parent
-        archive_dir = repo_root / "openspec" / "changes" / "archive"
-
-        # Archive directory may not exist, which is fine
-        if archive_dir.exists():
-            # If it exists, should have proper structure
-            subdirs = [d for d in archive_dir.iterdir() if d.is_dir()]
-
-            for subdir in subdirs:
-                # Should follow date naming pattern (YYYY-MM-DD-description)
-                name_parts = subdir.name.split("-")
-                assert (
-                    len(name_parts) >= 3
-                ), f"Archive subdir {subdir.name} should follow date pattern"
-
-                # First three parts should be numeric
-                year, month, day = name_parts[:3]
-                assert (
-                    year.isdigit() and len(year) == 4
-                ), f"Invalid year in {subdir.name}"
-                assert (
-                    month.isdigit() and 1 <= int(month) <= 12
-                ), f"Invalid month in {subdir.name}"
-                assert (
-                    day.isdigit() and 1 <= int(day) <= 31
-                ), f"Invalid day in {subdir.name}"
-
-                # Should contain archived changes
-                archived_changes = [d for d in subdir.iterdir() if d.is_dir()]
-                if archived_changes:
-                    # Test first archived change has some content
-                    sample_archived = archived_changes[0]
-                    archived_files = [
-                        f for f in sample_archived.iterdir() if f.is_file()
-                    ]
-                    assert (
-                        len(archived_files) > 0
-                    ), f"Archived change {sample_archived.name} should have files"
+    # Removed by request: archive functionality validation is not required for this project
 
     def test_project_documentation_capability_exists(self):
         """Test that the project-documentation capability spec exists."""

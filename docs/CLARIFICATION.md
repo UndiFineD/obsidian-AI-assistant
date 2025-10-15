@@ -43,7 +43,9 @@ This document addresses common confusion points, provides clear explanations of 
 **✅ Corrected Approach:**
 
 ```python
+
 # At top of file - clean imports
+
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import Mock, patch, MagicMock
@@ -52,11 +54,13 @@ import os
 import sys
 
 # Add backend to Python path
+
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
 if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
 # Import with proper mocking to avoid PyTorch conflicts
+
 @pytest.fixture(scope="module")
 def mock_pytorch_imports():
     """Mock PyTorch imports to avoid conflicts."""
@@ -87,7 +91,9 @@ def client(backend_app):
 Looking at the actual backend code, here are the **confirmed endpoints**:
 
 ```python
+
 # From backend/backend.py analysis
+
 GET  /                    # Root welcome
 GET  /health             # Health check
 GET  /status             # Service status
@@ -103,7 +109,9 @@ POST /transcribe         # Voice transcription
 **❌ Common Test Mistakes:**
 
 ```python
+
 # WRONG - These endpoints don't exist:
+
 client.get("/api/health")      # Should be "/health"
 client.post("/api/ask")        # Should be "/ask"
 client.post("/api/reindex")    # Should be "/reindex"
@@ -112,7 +120,9 @@ client.post("/api/reindex")    # Should be "/reindex"
 **✅ Correct Usage:**
 
 ```python
+
 # RIGHT - Use actual endpoints:
+
 response = client.get("/health")
 response = client.post("/ask", json={"question": "test"})
 response = client.post("/reindex", json={"vault_path": "./vault"})
@@ -127,7 +137,9 @@ response = client.post("/reindex", json={"vault_path": "./vault"})
 The backend uses **global singletons** that are lazily initialized:
 
 ```python
+
 # In backend.py - These are module-level globals
+
 model_manager = None    # ModelManager instance
 emb_manager = None      # EmbeddingsManager instance
 vault_indexer = None    # VaultIndexer instance
@@ -142,13 +154,16 @@ def init_services():
 **🎯 Testing Implications:**
 
 ```python
+
 # WRONG - This won't work in tests:
+
 @patch('backend.backend.ModelManager')
 def test_something(mock_model_cls):
     # The class is mocked but global instance may already exist
     pass
 
 # RIGHT - Mock the global instances:
+
 @patch.object(backend, 'model_manager')
 def test_something(mock_model_manager):
     mock_model_manager.generate.return_value = "test"
@@ -168,7 +183,9 @@ CacheManager ──┘
 **Key Points:**
 
 - Services are initialized once via `init_services()`
+
 - All endpoints share the same service instances
+
 - Services depend on external libraries (PyTorch, transformers, etc.)
 
 ---
@@ -188,7 +205,9 @@ Environment Variables  (highest priority)
 **📁 Configuration Files:**
 
 1. **`backend/settings.py`** - Pydantic models with defaults
+
 2. **`backend/config.yaml`** - Runtime configuration
+
 3. **Environment variables** - Override everything
 
 **🔧 Configuration Endpoints:**
@@ -202,10 +221,13 @@ POST /api/config/reload  # Reloads from config.yaml
 #### **Testing Configuration**
 
 ```python
+
 # WRONG - Direct config modification:
+
 settings.model_path = "test-model"
 
 # RIGHT - Use the configuration API:
+
 @patch('backend.settings.get_settings')
 def test_with_config(mock_get_settings):
     mock_settings = Mock()
@@ -251,7 +273,9 @@ tests/
 **💡 Solution Pattern:**
 
 ```python
+
 # Use this pattern in ALL backend tests:
+
 @pytest.fixture(scope="module", autouse=True)
 def mock_ml_dependencies():
     """Mock ML libraries to avoid import issues."""
@@ -294,7 +318,9 @@ obsidian-AI-assistant/
 **🚨 Critical Missing File:**
 
 ```python
+
 # CREATE: backend/__init__.py
+
 """
 Obsidian AI Assistant Backend
 
@@ -305,6 +331,7 @@ Provides LLM integration, vector database, and caching services.
 __version__ = "0.1.0"
 
 # Optional: Export main components
+
 from .backend import app
 from .settings import get_settings
 
@@ -326,13 +353,17 @@ ModuleNotFoundError: No module named 'backend'
 **Solutions:**
 
 ```python
+
 # Option A: Add to Python path
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 # Option B: Create __init__.py files
+
 touch backend/__init__.py
 
 # Option C: Use relative imports
+
 from .settings import get_settings  # Within backend/
 ```
 
@@ -347,7 +378,9 @@ ImportError: PyTorch not available
 **Solution:**
 
 ```python
+
 # Mock early and consistently
+
 @pytest.fixture(autouse=True, scope="session")
 def setup_test_environment():
     """Setup test environment with mocked dependencies."""
@@ -371,7 +404,9 @@ AttributeError: 'NoneType' object has no attribute 'generate'
 **Solution:**
 
 ```python
+
 # Always mock services before importing backend
+
 @pytest.fixture
 def mock_services():
     """Mock all backend services."""
@@ -469,7 +504,9 @@ def mock_services():
 ### **Phase 3: Service Mocking Strategy**
 
 ```python
+
 # Use this comprehensive mocking approach
+
 @pytest.fixture
 def fully_mocked_backend():
     """Backend with all services properly mocked."""
@@ -528,40 +565,59 @@ def fully_mocked_backend():
 ### **✅ What's Working Well**
 
 1. **Setup Scripts**: Comprehensive PowerShell/Bash setup with excellent test coverage
+
 2. **Configuration System**: Robust three-tier configuration with runtime updates
+
 3. **Security Module**: Encryption/decryption working well with good tests
+
 4. **Project Structure**: Well-organized with clear separation of concerns
 
 ### **🔧 What Needs Attention**
 
 1. **Test Import Issues**: Missing `__init__.py`, incorrect imports, undefined variables
+
 2. **API Endpoint Mismatches**: Tests assume wrong endpoint paths
+
 3. **Service Mocking**: Inconsistent mocking strategies causing failures
+
 4. **PyTorch Conflicts**: ML library imports breaking test execution
 
 ### **🎯 Priority Actions**
 
 1. **Immediate** (< 1 hour):
-    - Create `backend/__init__.py`
-    - Fix test imports and undefined variables
-    - Standardize mocking approach
+
+- Create `backend/__init__.py`
+
+- Fix test imports and undefined variables
+
+- Standardize mocking approach
 
 2. **Short-term** (1-2 hours):
-    - Align test expectations with actual API
-    - Implement comprehensive service mocking
-    - Get basic endpoint tests passing
+
+- Align test expectations with actual API
+
+- Implement comprehensive service mocking
+
+- Get basic endpoint tests passing
 
 3. **Medium-term** (1 day):
-    - Expand test coverage for working modules
-    - Add integration test scenarios
-    - Document testing best practices
+
+- Expand test coverage for working modules
+
+- Add integration test scenarios
+
+- Document testing best practices
 
 ### **🧪 Testing Best Practices**
 
 1. **Always Mock ML Libraries**: Use `patch.dict('sys.modules', ...)` pattern
+
 2. **Mock Services, Not Classes**: Mock global service instances, not their classes
+
 3. **Be Flexible with Assertions**: Use status code ranges (`[200, 400, 500]`) instead of exact codes
+
 4. **Test Endpoint Existence**: Focus on "does it respond" rather than "exact behavior"
+
 5. **Isolate Test Data**: Use temporary files and cleanup fixtures
 
 ---
@@ -571,8 +627,11 @@ def fully_mocked_backend():
 If you encounter issues not covered here:
 
 1. **Check Existing Tests**: Look at `test_security.py` for working patterns
+
 2. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures
+
 3. **Test One Module**: Start with a single working test file and expand
+
 4. **Use Mock Liberally**: When in doubt, mock external dependencies
 
 ---

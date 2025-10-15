@@ -5,11 +5,17 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 ## TL;DR Quick Checklist
 
 - Search existing work: `openspec spec list --long`, `openspec list` (use `rg` only for full-text search)
+
 - Decide scope: new capability vs modify existing capability
+
 - Pick a unique `change-id`: kebab-case, verb-led (`add-`, `update-`, `remove-`, `refactor-`)
+
 - Scaffold: `proposal.md`, `tasks.md`, `design.md` (only if needed), and delta specs per affected capability
+
 - Write deltas: use `## ADDED|MODIFIED|REMOVED|RENAMED Requirements`; include at least one `#### Scenario:` per requirement
+
 - Validate: `openspec validate [change-id] --strict` and fix issues
+
 - Request approval: Do not start implementation until proposal is approved
 
 ## Three-Stage Workflow
@@ -19,37 +25,53 @@ Instructions for AI coding assistants using OpenSpec for spec-driven development
 Create proposal when you need to:
 
 - Add features or functionality
+
 - Make breaking changes (API, schema)
+
 - Change architecture or patterns
+
 - Optimize performance (changes behavior)
+
 - Update security patterns
 
 Triggers (examples):
 
 - "Help me create a change proposal"
+
 - "Help me plan a change"
+
 - "Help me create a proposal"
+
 - "I want to create a spec proposal"
+
 - "I want to create a spec"
 
 Loose matching guidance:
 
 - Contains one of: `proposal`, `change`, `spec`
+
 - With one of: `create`, `plan`, `make`, `start`, `help`
 
 Skip proposal for:
 
 - Bug fixes (restore intended behavior)
+
 - Typos, formatting, comments
+
 - Dependency updates (non-breaking)
+
 - Configuration changes
+
 - Tests for existing behavior
 
 #### Workflow
 
 1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
+
 1. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
+
 1. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
+
 1. Run `openspec validate <id> --strict` and resolve any issues before sharing the proposal.
 
 ### Stage 2: Implementing Changes
@@ -57,11 +79,17 @@ Skip proposal for:
 Track these steps as TODOs and complete them one by one.
 
 1. **Read proposal.md** - Understand what's being built
+
 1. **Read design.md** (if exists) - Review technical decisions
+
 1. **Read tasks.md** - Get implementation checklist
+
 1. **Implement tasks sequentially** - Complete in order
+
 1. **Confirm completion** - Ensure every item in `tasks.md` is finished before updating statuses
+
 1. **Update checklist** - After all work is done, set every task to `- [x]` so the list reflects reality
+
 1. **Approval gate** - Do not start implementation until the proposal is reviewed and approved
 
 ### Stage 3: Archiving Changes
@@ -69,8 +97,11 @@ Track these steps as TODOs and complete them one by one.
 After deployment, create separate PR to:
 
 - Move `changes/[name]/` → `changes/archive/YYYY-MM-DD-[name]/`
+
 - Update `specs/` if capabilities changed
+
 - Use `openspec archive [change] --skip-specs --yes` for tooling-only changes
+
 - Run `openspec validate --strict` to confirm the archived change passes checks
 
 ## Before Any Task
@@ -78,26 +109,37 @@ After deployment, create separate PR to:
 ### Context Checklist
 
 - [ ] Read relevant specs in `specs/[capability]/spec.md`
+
 - [ ] Check pending changes in `changes/` for conflicts
+
 - [ ] Read `openspec/project.md` for conventions
+
 - [ ] Run `openspec list` to see active changes
+
 - [ ] Run `openspec list --specs` to see existing capabilities
 
 ### Before Creating Specs
 
 - Always check if capability already exists
+
 - Prefer modifying existing specs over creating duplicates
+
 - Use `openspec show [spec]` to review current state
+
 - If request is ambiguous, ask 1–2 clarifying questions before scaffolding
 
 ### Search Guidance
 
 - Enumerate specs: `openspec spec list --long` (or `--json` for scripts)
+
 - Enumerate changes: `openspec list` (or `openspec change list --json` - deprecated but available)
+
 - Show details:
 
-  - Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
-  - Change: `openspec show <change-id> --json --deltas-only`
+- Spec: `openspec show <spec-id> --type spec` (use `--json` for filters)
+
+- Change: `openspec show <change-id> --json --deltas-only`
+
 - Full-text search (use ripgrep): `rg -n "Requirement:|Scenario:" openspec/specs`
 
 ## Quick Start
@@ -105,7 +147,9 @@ After deployment, create separate PR to:
 ### CLI Commands
 
 ```bash
+
 # Essential commands
+
 openspec list                  # List active changes
 openspec list --specs          # List specifications
 openspec show [item]           # Display change or spec
@@ -114,14 +158,17 @@ openspec validate [item]       # Validate changes or specs
 openspec archive [change] [--yes|-y]      # Archive after deployment (add --yes for non-interactive runs)
 
 # Project management
+
 openspec init [path]           # Initialize OpenSpec
 openspec update [path]         # Update instruction files
 
 # Interactive mode
+
 openspec show                  # Prompts for selection
 openspec validate              # Bulk validation mode
 
 # Debugging
+
 openspec show [change] --json --deltas-only
 openspec validate [change] --strict
 ```
@@ -129,10 +176,15 @@ openspec validate [change] --strict
 ### Command Flags
 
 - `--json` - Machine-readable output
+
 - `--type change|spec` - Disambiguate items
+
 - `--strict` - Comprehensive validation
+
 - `--no-interactive` - Disable prompts
+
 - `--skip-specs` - Archive without spec updates
+
 - `--yes`/`-y` - Skip confirmation prompts (non-interactive archive)
 
 ## Directory Structure
@@ -176,6 +228,7 @@ New request?
 1. **Write proposal.md:**
 
 ```markdown
+
 ## Why
 
 [1-2 sentences on problem/opportunity]
@@ -183,17 +236,20 @@ New request?
 ## What Changes
 
 - [Bullet list of changes]
+
 - [Mark breaking changes with **BREAKING**]
 
 ## Impact
 
 - Affected specs: [list capabilities]
+
 - Affected code: [key files/systems]
 ```
 
 1. **Create spec deltas:** `specs/[capability]/spec.md`
 
 ```markdown
+
 ## ADDED Requirements
 
 ### Requirement: New Feature
@@ -203,6 +259,7 @@ The system SHALL provide...
 #### Scenario: Success case
 
 - **WHEN** user performs action
+
 - **THEN** expected result
 
 ## MODIFIED Requirements
@@ -229,11 +286,15 @@ If multiple capabilities are affected, create multiple delta files under `change
 1. **Create tasks.md:**
 
 ```markdown
+
 ## 1. Implementation
 
 - [ ] 1.1 Create database schema
+
 - [ ] 1.2 Implement API endpoint
+
 - [ ] 1.3 Add frontend component
+
 - [ ] 1.4 Write tests
 ```
 
@@ -242,13 +303,17 @@ If multiple capabilities are affected, create multiple delta files under `change
 Create `design.md` if any of the following apply; otherwise omit it:
 
 - Cross-cutting change (multiple services/modules) or a new architectural pattern
+
 - New external dependency or significant data model changes
+
 - Security, performance, or migration complexity
+
 - Ambiguity that benefits from technical decisions before coding
 
 Minimal `design.md` skeleton:
 
 ```markdown
+
 ## Context
 
 [Background, constraints, stakeholders]
@@ -256,11 +321,13 @@ Minimal `design.md` skeleton:
 ## Goals / Non-Goals
 
 - Goals: [...]
+
 - Non-Goals: [...]
 
 ## Decisions
 
 - Decision: [What and why]
+
 - Alternatives considered: [Options + rationale]
 
 ## Risks / Trade-offs
@@ -283,19 +350,23 @@ Minimal `design.md` skeleton:
 CORRECT (use #### headers):
 
 ```markdown
+
 #### Scenario: User login success
 
 - **WHEN** valid credentials provided
+
 - **THEN** return JWT token
 ```
 
 WRONG (don't use bullets or bold):
 
 ```markdown
+
 - **Scenario: User login** ❌
   Scenario (bold-only) example: User login ❌
 
 ### Scenario: User login ❌
+
 ```
 
 Every requirement MUST have at least one scenario.
@@ -307,8 +378,11 @@ Every requirement MUST have at least one scenario.
 ### Delta Operations
 
 - `## ADDED Requirements` - New capabilities
+
 - `## MODIFIED Requirements` - Changed behavior
+
 - `## REMOVED Requirements` - Deprecated features
+
 - `## RENAMED Requirements` - Name changes
 
 Headers matched with `trim(header)` - whitespace ignored.
@@ -335,16 +409,21 @@ instead.
 Authoring a MODIFIED requirement correctly:
 
 1. Locate the existing requirement in `openspec/specs/<capability>/spec.md`.
+
 2. Copy the entire requirement block (from `### Requirement: ...` through its scenarios).
+
 3. Paste it under `## MODIFIED Requirements` and edit to reflect the new behavior.
+
 4. Ensure the header text matches exactly (whitespace-insensitive) and keep at least one `#### Scenario:`.
 
 Example for RENAMED:
 
 ```markdown
+
 ## RENAMED Requirements
 
 - FROM: `### Requirement: Login`
+
 - TO: `### Requirement: User Authentication`
 ```
 
@@ -355,59 +434,79 @@ Example for RENAMED:
 #### Change must have at least one delta
 
 - Check `changes/[name]/specs/` exists with .md files
+
 - Verify files have operation prefixes (## ADDED Requirements)
 
 #### Requirement must have at least one scenario
 
 - Check scenarios use `#### Scenario:` format (4 hashtags)
+
 - Don't use bullet points or bold for scenario headers
 
 #### Silent scenario parsing failures
 
 - Exact format required: `#### Scenario: Name`
+
 - Debug with: `openspec show [change] --json --deltas-only`
 
 ### Validation Tips
 
 ```bash
+
 # Always use strict mode for comprehensive checks
+
 openspec validate [change] --strict
 
 # Debug delta parsing
+
 openspec show [change] --json | jq '.deltas'
 
 # Check specific requirement
+
 openspec show [spec] --json -r 1
 ```
 
 ## Happy Path Script
 
 ```bash
+
 # 1) Explore current state
+
 openspec spec list --long
 openspec list
+
 # Optional full-text search:
+
 # rg -n "Requirement:|Scenario:" openspec/specs
+
 # rg -n "^#|Requirement:" openspec/changes
 
 # 2) Choose change id and scaffold
+
 CHANGE=add-two-factor-auth
 mkdir -p openspec/changes/$CHANGE/{specs/auth}
 printf "## Why\n...\n\n## What Changes\n- ...\n\n## Impact\n- ...\n" > openspec/changes/$CHANGE/proposal.md
 printf "## 1. Implementation\n- [ ] 1.1 ...\n" > openspec/changes/$CHANGE/tasks.md
 
 # 3) Add deltas (example)
+
 cat > openspec/changes/$CHANGE/specs/auth/spec.md << 'EOF'
+
 ## ADDED Requirements
+
 ### Requirement: Two-Factor Authentication
+
 Users MUST provide a second factor during login.
 
 #### Scenario: OTP required
+
 - **WHEN** valid credentials are provided
+
 - **THEN** an OTP challenge is required
 EOF
 
 # 4) Validate
+
 openspec validate $CHANGE --strict
 ```
 
@@ -427,6 +526,7 @@ openspec/changes/add-2fa-notify/
 auth/spec.md
 
 ```markdown
+
 ## ADDED Requirements
 
 ### Requirement: Two-Factor Authentication
@@ -437,6 +537,7 @@ auth/spec.md
 notifications/spec.md
 
 ```markdown
+
 ## ADDED Requirements
 
 ### Requirement: OTP Email Notification
@@ -449,8 +550,11 @@ notifications/spec.md
 ### Simplicity First
 
 - Default to <100 lines of new code
+
 - Single-file implementations until proven insufficient
+
 - Avoid frameworks without clear justification
+
 - Choose boring, proven patterns
 
 ### Complexity Triggers
@@ -458,26 +562,35 @@ notifications/spec.md
 Only add complexity with:
 
 - Performance data showing current solution too slow
+
 - Concrete scale requirements (>1000 users, >100MB data)
+
 - Multiple proven use cases requiring abstraction
 
 ### Clear References
 
 - Use `file.ts:42` format for code locations
+
 - Reference specs as `specs/auth/spec.md`
+
 - Link related changes and PRs
 
 ### Capability Naming
 
 - Use verb-noun: `user-auth`, `payment-capture`
+
 - Single purpose per capability
+
 - 10-minute understandability rule
+
 - Split if description needs "AND"
 
 ### Change ID Naming
 
 - Use kebab-case, short and descriptive: `add-two-factor-auth`
+
 - Prefer verb-led prefixes: `add-`, `update-`, `remove-`, `refactor-`
+
 - Ensure uniqueness; if taken, append `-2`, `-3`, etc.
 
 ## Tool Selection Guide
@@ -494,22 +607,31 @@ Only add complexity with:
 ### Change Conflicts
 
 1. Run `openspec list` to see active changes
+
 1. Check for overlapping specs
+
 1. Coordinate with change owners
+
 1. Consider combining proposals
 
 ### Validation Failures
 
 1. Run with `--strict` flag
+
 1. Check JSON output for details
+
 1. Verify spec file format
+
 1. Ensure scenarios properly formatted
 
 ### Missing Context
 
 1. Read project.md first
+
 1. Check related specs
+
 1. Review recent archives
+
 1. Ask for clarification
 
 ## Quick Reference
@@ -517,14 +639,19 @@ Only add complexity with:
 ### Stage Indicators
 
 - `changes/` - Proposed, not yet built
+
 - `specs/` - Built and deployed
+
 - `archive/` - Completed changes
 
 ### File Purposes
 
 - `proposal.md` - Why and what
+
 - `tasks.md` - Implementation steps
+
 - `design.md` - Technical decisions
+
 - `spec.md` - Requirements and behavior
 
 ### CLI Essentials
@@ -538,3 +665,17 @@ openspec archive [change] [--yes|-y]  # Mark complete (add --yes for automation)
 ```
 
 Remember: Specs are truth. Changes are proposals. Keep them in sync.
+
+# OpenSpec AGENTS.md
+
+## Documentation Governance
+
+This file is covered by OpenSpec governance. All changes are tracked via proposals in `openspec/changes/` and must follow the required structure:
+
+- `proposal.md`: Change proposal and rationale
+
+- `tasks.md`: Implementation checklist (≥3 items)
+
+- `specs/project-documentation/spec.md`: Capability documentation
+
+See `README.md` and `.github/copilot-instructions.md` for compliance details.

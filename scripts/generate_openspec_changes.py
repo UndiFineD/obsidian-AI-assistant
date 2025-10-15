@@ -1,115 +1,221 @@
-from __future__ import annotations
-
-import re
+#!/usr/bin/env python3
+"""Generate OpenSpec change directories for documentation governance."""
+import sys
 from pathlib import Path
+from datetime import datetime
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+# Repository root detection
+REPO_ROOT = Path(__file__).parent.parent
 
-
-def to_change_id(md_path: Path) -> str:
-    rel = md_path.relative_to(REPO_ROOT).as_posix().lower()
-    # Replace non-alphanumeric with hyphens
-    slug = re.sub(r"[^a-z0-9]+", "-", rel.replace(".md", "")).strip("-")
-    return f"update-doc-{slug}"
-
-
-def h1_title(change_id: str) -> str:
-    return f"# Change Proposal: {change_id}\n"
-
-
-def proposal_md(change_id: str, rel_path: str) -> str:
-    return (
-        f"{h1_title(change_id)}\n"
-        "## Why\n\n"
-        f"Ensure `{rel_path}` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.\n\n"
-        "## What Changes\n\n"
-        f"- Add a documentation governance requirement for `{rel_path}` under the `project-documentation` capability.\n"
-        "- Track material updates via OpenSpec proposals (no functional code changes).\n\n"
-        "## Impact\n\n"
-        "- Affected specs: project-documentation\n"
-        "- Affected code: none (documentation only)\n"
-    )
+# Paths to exclude from OpenSpec change generation
+EXCLUDED_PATHS = {
+    '__pycache__',
+    '.git',
+    'node_modules',
+    '.venv',
+    '.pytest_cache',
+    'htmlcov',
+    'dist',
+    'build',
+    '.mypy_cache',
+    '.ruff_cache',
+}
 
 
-def tasks_md(change_id: str, rel_path: str) -> str:
-    return (
-        f"# Tasks: {change_id}\n\n"
-        "## 1. Implementation\n\n"
-        f"- [ ] 1.1 Review `{rel_path}` and classify changes as material or minor\n"
-        "- [ ] 1.2 For material changes, update this proposal and add/modify deltas as needed\n"
-        f"- [ ] 1.3 Validate: `openspec validate {change_id} --strict`\n"
-        "- [ ] 1.4 Open PR referencing this change and request review\n"
-    )
+def to_change_id(file_path):
+    """Convert a file path to an OpenSpec change ID.
+    
+    Args:
+        file_path: Path object or string representing the file
+        
+    Returns:
+        String change ID in format: update-doc-{path-parts}
+    """
+    if isinstance(file_path, str):
+        file_path = Path(file_path)
+    
+    # Get relative path from repo root
+    try:
+        rel_path = file_path.relative_to(REPO_ROOT)
+    except ValueError:
+        # If not relative to REPO_ROOT, use as-is
+        rel_path = file_path
+    
+    # Convert to parts and clean up
+    parts = []
+    for part in rel_path.parts:
+        # Remove .md extension only
+        if part.endswith('.md'):
+            part = part[:-3]
+        # Handle dotfiles/dotdirs (like .github) - keep the name without the dot
+        if part.startswith('.') and len(part) > 1:
+            part = part[1:]  # Remove leading dot
+        # Replace remaining dots and underscores with hyphens
+        part = part.replace('.', '-').replace('_', '-')
+        # Lowercase
+        part = part.lower()
+        if part:  # Only add non-empty parts
+            parts.append(part)
+    
+    # Join with hyphens and prefix with update-doc-
+    change_id = "update-doc-" + "-".join(parts)
+    return change_id
 
 
-def spec_delta_md(change_id: str, rel_path: str) -> str:
-    requirement_title = f"Governance for {Path(rel_path).name}"
-    return (
-        f"# Spec Delta: project-documentation / {change_id}\n\n"
-        "## ADDED Requirements\n\n"
-        f"### Requirement: {requirement_title}\n\n"
-        f"The project SHALL govern material changes to `{rel_path}` via OpenSpec change proposals to maintain consistency and review.\n\n"
-        "#### Scenario: Material change requires proposal\n\n"
-        f"- **WHEN** a contributor plans a material update to `{rel_path}`\n"
-        "- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`\n"
-    )
+def proposal_md(change_id, rel_path):
+    """Generate proposal.md content for a change.
+    
+    Args:
+        change_id: The change ID
+        rel_path: Relative path to the file being changed
+        
+    Returns:
+        String containing the proposal markdown
+    """
+    return f"""# Change Proposal: {change_id}
+
+## Summary
+
+Update `{rel_path}` for OpenSpec governance, compliance, and documentation structure. This proposal covers changes to `{rel_path}` and related documentation files for the project-documentation capability.
+
+## Why
+
+The {rel_path} needs to comply with OpenSpec governance to ensure consistent change tracking, validation, and auditability. The current file lacks proper OpenSpec structure and references.
+
+## What Changes
+
+- Revise `{rel_path}` for OpenSpec compliance
+
+- Add documentation for change proposals, tasks, and capability specs
+
+- Reference all updated files in this proposal
+
+- Implement project-documentation capability requirements
+
+## Rationale
+
+Ensures `{rel_path}` reflects current OpenSpec requirements and project documentation standards. Improves auditability and clarity for contributors and AI agents working with the project-documentation capability.
+
+## Scope
+
+Files affected:
+- `{rel_path}` (primary)
+- `openspec/changes/{change_id}/proposal.md` (this file)
+- `openspec/changes/{change_id}/tasks.md`
+- `openspec/changes/{change_id}/specs/project-documentation/spec.md`
+
+## Impact
+
+Improves clarity, governance, and auditability of project documentation. Enables automated validation and change tracking for `{rel_path}` and related files under the project-documentation capability.
+"""
 
 
-def main() -> None:
-    md_files: list[Path] = []
-    EXCLUDED_PARTS = {
-        "/openspec/changes/",
-        "/.git/",
-        "/node_modules/",
-        "/.venv/",
-        "/venv/",
-        "/env/",
-        "/.pytest_cache/",
-        "/tests/.pytest_cache/",
-        "/htmlcov/",
-    }
+def tasks_md(change_id, rel_path):
+    """Generate tasks.md content for a change.
+    
+    Args:
+        change_id: The change ID
+        rel_path: Relative path to the file being changed
+        
+    Returns:
+        String containing the tasks markdown
+    """
+    return f"""
+# Tasks: {change_id}
 
-    for path in REPO_ROOT.rglob("*.md"):
-        p = path.as_posix()
-        # Skip generated change proposals and excluded dirs to avoid noise
-        if any(part in p for part in EXCLUDED_PARTS):
-            continue
-        md_files.append(path)
+## 1. Implementation
 
-    generated = []
-    skipped = []
+- [ ] 1.1 Revise `{rel_path}` for OpenSpec compliance
 
-    for md in sorted(md_files):
-        change_id = to_change_id(md)
-        change_dir = REPO_ROOT / "openspec" / "changes" / change_id
-        if change_dir.exists():
-            skipped.append((md, "exists"))
-            continue
+- [ ] 1.2 Add `proposal.md` and capability spec
 
-        rel_path = md.relative_to(REPO_ROOT).as_posix()
-        # Create files
-        spec_dir = change_dir / "specs" / "project-documentation"
-        spec_dir.mkdir(parents=True, exist_ok=True)
+- [ ] 1.3 Validate tasks.md checklist format
 
-        (change_dir / "proposal.md").write_text(
-            proposal_md(change_id, rel_path), encoding="utf-8"
-        )
-        (change_dir / "tasks.md").write_text(
-            tasks_md(change_id, rel_path), encoding="utf-8"
-        )
-        (spec_dir / "spec.md").write_text(
-            spec_delta_md(change_id, rel_path), encoding="utf-8"
-        )
+- [ ] 1.4 Run validation: `openspec validate {change_id} --strict`
 
-        generated.append(rel_path)
+## 2. Validation
 
-    print(f"Generated {len(generated)} OpenSpec changes.")
-    if generated:
-        print("First 10 generated:")
-        for g in generated[:10]:
-            print(f"  - {g}")
-    print(f"Skipped {len(skipped)} existing changes.")
+- [ ] 2.1 Run `openspec validate {change_id} --strict` to confirm compliance
+"""
+
+
+def spec_delta_md(change_id, rel_path):
+    """Generate spec delta markdown for a change.
+    
+    Args:
+        change_id: The change ID
+        rel_path: Relative path to the file being changed
+        
+    Returns:
+        String containing the spec delta markdown
+    """
+    return f"""# Spec Delta: project-documentation / {change_id}
+
+This change updates `{rel_path}` to comply with OpenSpec documentation governance. All project documentation changes are tracked via proposals, tasks, and capability specs.
+
+## ADDED Requirements
+
+### Requirement: proposal.md present with Why section and capability reference
+
+### Requirement: tasks.md present with ≥3 checklist items and validation command
+
+### Requirement: specs/project-documentation/spec.md present with proper structure
+
+### Requirement: Validation command: `openspec validate {change_id} --strict`
+
+#### Scenario: Update {rel_path} with OpenSpec compliance
+
+- **WHEN** a contributor updates {rel_path} for OpenSpec compliance
+
+- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.
+"""
+
+
+def main():
+    """Main entry point for the script."""
+    if len(sys.argv) < 2:
+        print("Usage: generate_openspec_changes.py <file_path>")
+        return 1
+    
+    file_path = Path(sys.argv[1])
+    change_id = to_change_id(file_path)
+    
+    # Get relative path
+    try:
+        rel_path = file_path.relative_to(REPO_ROOT)
+    except ValueError:
+        rel_path = file_path
+    
+    # Create change directory
+    changes_dir = REPO_ROOT / "openspec" / "changes" / change_id
+    changes_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Create specs directory
+    specs_dir = changes_dir / "specs" / "project-documentation"
+    specs_dir.mkdir(parents=True, exist_ok=True)
+    
+    # Write proposal.md (check if exists first)
+    proposal_path = changes_dir / "proposal.md"
+    if not proposal_path.exists():
+        proposal_path.write_text(proposal_md(change_id, str(rel_path)), encoding='utf-8')
+    
+    # Write tasks.md
+    tasks_path = changes_dir / "tasks.md"
+    if not tasks_path.exists():
+        tasks_path.write_text(tasks_md(change_id, str(rel_path)), encoding='utf-8')
+    
+    # Write spec.md
+    spec_path = specs_dir / "spec.md"
+    if not spec_path.exists():
+        spec_path.write_text(spec_delta_md(change_id, str(rel_path)), encoding='utf-8')
+    
+    print(f"Created OpenSpec change: {change_id}")
+    print(f"  - {proposal_path}")
+    print(f"  - {tasks_path}")
+    print(f"  - {spec_path}")
+    
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

@@ -138,6 +138,7 @@ class AskRequest(BaseModel):
         return validated_paths
 
 # Usage Examples
+
 ask_examples = {
     "simple_question": {
         "question": "What is artificial intelligence?",
@@ -239,6 +240,7 @@ class ReindexRequest(BaseModel):
         return validated_patterns
 
 # Usage Examples
+
 reindex_examples = {
     "simple_reindex": {
         "vault_path": "./vault"
@@ -322,6 +324,7 @@ class WebRequest(BaseModel):
         return v
 
 # Usage Examples
+
 web_examples = {
     "simple_web_processing": {
         "url": "https://example.com/blog/ai-trends-2024"
@@ -382,7 +385,7 @@ class TranscribeRequest(BaseModel):
     )
 
     confidence_threshold: float = Field(
-        0.7,
+0.7,
         ge=0.0,
         le=1.0,
         description="Minimum confidence score for accepted transcription",
@@ -422,6 +425,7 @@ class TranscribeRequest(BaseModel):
         return v
 
 # Usage Examples
+
 transcribe_examples = {
     "basic_transcription": {
         "audio_data": "UklGRiQAAABXQVZFZm10...",  # Truncated for brevity
@@ -887,6 +891,7 @@ class Settings(BaseModel):
         return v
 
 # Allowed configuration keys for runtime updates
+
 _ALLOWED_UPDATE_KEYS = {
     "cache_ttl", "max_tokens", "concurrent_requests",
     "gpu", "voice_enabled", "auto_indexing", "cache_enabled",
@@ -1463,7 +1468,7 @@ class SearchRequest(BaseModel):
 
     # Search Parameters
     similarity_threshold: float = Field(
-        0.5,
+0.5,
         ge=0.0,
         le=1.0,
         description="Minimum similarity score",
@@ -1703,9 +1708,11 @@ class ValidationResult(BaseModel):
 ### **🧪 Validation Test Cases**
 
 ```python
+
 # Example validation test cases for all models
 
 # Valid AskRequest examples
+
 valid_ask_requests = [
     {
         "question": "What is machine learning?",
@@ -1721,6 +1728,7 @@ valid_ask_requests = [
 ]
 
 # Invalid AskRequest examples (should raise ValidationError)
+
 invalid_ask_requests = [
     {"question": ""},  # Empty question
     {"question": "test", "max_tokens": 0},  # Invalid token count
@@ -1730,6 +1738,7 @@ invalid_ask_requests = [
 ]
 
 # Valid Settings examples
+
 valid_settings = [
     {
         "api_port": 8000,
@@ -1746,6 +1755,7 @@ valid_settings = [
 ]
 
 # Invalid Settings examples
+
 invalid_settings = [
     {"api_port": 80},  # Port too low (< 1024)
     {"api_port": 70000},  # Port too high
@@ -1764,36 +1774,55 @@ invalid_settings = [
 #### **Request Models (4 Complete)**
 
 - ✅ **AskRequest**: AI query processing with validation
+
 - ✅ **ReindexRequest**: Document indexing configuration
+
 - ✅ **WebRequest**: Web content processing with security
+
 - ✅ **TranscribeRequest**: Audio processing with format validation
 
 #### **Response Models (8 Complete)**
 
 - ✅ **AskResponse**: AI generation results with metadata
+
 - ✅ **HealthResponse**: Comprehensive system status
+
 - ✅ **StatusResponse**: Lightweight health check
+
 - ✅ **ErrorResponse**: Standardized error format
+
 - ✅ **SearchResponse**: Semantic search results
+
 - ✅ **IndexResult**: Document processing results
+
 - ✅ **ConfigResponse**: Configuration management
+
 - ✅ **TranscribeResponse**: Voice processing results
 
 #### **Configuration Models (3 Complete)**
 
 - ✅ **Settings**: Complete system configuration
+
 - ✅ **ConfigUpdateRequest**: Runtime configuration updates
+
 - ✅ **ConfigResponse**: Configuration operation results
 
 #### **Domain Models (12 Complete)**
 
 - ✅ **Document**: File processing and metadata
+
 - ✅ **DocumentChunk**: Vector storage optimization
+
 - ✅ **Embedding**: Vector representation data
+
 - ✅ **SearchResult**: Search result with relevance
+
 - ✅ **SearchRequest**: Search configuration
+
 - ✅ **SecurityEvent**: Audit and monitoring
+
 - ✅ **ValidationResult**: Input validation details
+
 - ✅ **IndexResult**: Processing outcome summary
 
 ### **🎯 Data Quality Standards**
@@ -1801,16 +1830,23 @@ invalid_settings = [
 #### **Validation Coverage**
 
 - **100% Field Validation**: All fields have appropriate type and constraint validation
+
 - **Security Validation**: Input sanitization and path traversal prevention
+
 - **Business Logic Validation**: Domain-specific rules and constraints
+
 - **Cross-Field Validation**: Relationships between fields validated
+
 - **Custom Validators**: 25+ custom validation functions implemented
 
 #### **Documentation Quality**
 
 - **Complete Field Documentation**: Every field has description and example
+
 - **Usage Examples**: Valid and invalid examples for all models
+
 - **Error Documentation**: Expected validation errors documented
+
 - **API Contract Clarity**: Clear request/response contracts
 
 **The data models establish a comprehensive, type-safe foundation for the Obsidian AI Assistant, ensuring data integrity, security, and API contract compliance throughout the system.**

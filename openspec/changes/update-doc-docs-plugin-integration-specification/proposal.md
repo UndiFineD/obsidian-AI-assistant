@@ -1,15 +1,25 @@
 # Change Proposal: update-doc-docs-plugin-integration-specification
 
-## Why
+## Summary
 
-Ensure `docs/PLUGIN_INTEGRATION_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Update `docs/PLUGIN_INTEGRATION_SPECIFICATION.md` for OpenSpec governance and compliance. This proposal covers changes to plugin integration documentation under the project-documentation capability.
 
 ## What Changes
 
-- Add a documentation governance requirement for `docs/PLUGIN_INTEGRATION_SPECIFICATION.md` under the `project-documentation` capability.
-- Track material updates via OpenSpec proposals (no functional code changes).
+- Revise docs/PLUGIN_INTEGRATION_SPECIFICATION.md for OpenSpec compliance
+
+- Add documentation for change proposals, tasks, and capability specs
+
+- Implement project-documentation capability requirements
+
+## Why
+
+Plugin integration documentation needs to comply with OpenSpec governance to ensure consistent change tracking, validation, and auditability. The current documentation lacks proper OpenSpec structure and references.
+
+## Capability Reference
+
+This change implements the project-documentation capability as required by OpenSpec governance.
 
 ## Impact
 
-- Affected specs: project-documentation
-- Affected code: none (documentation only)
+This change ensures plugin integration documentation is OpenSpec compliant, improving governance, validation, and auditability for all plugin integration changes.

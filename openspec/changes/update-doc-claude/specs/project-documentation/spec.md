@@ -1,12 +1,19 @@
 # Spec Delta: project-documentation / update-doc-claude
 
+This change updates `CLAUDE.md` to comply with OpenSpec documentation governance. All Claude documentation changes are tracked via proposals, tasks, and capability specs.
+
 ## ADDED Requirements
 
-### Requirement: Governance for CLAUDE.md
+### Requirement: proposal.md present with Why section and capability reference
 
-The project SHALL govern material changes to `CLAUDE.md` via OpenSpec change proposals to maintain consistency and review.
+### Requirement: tasks.md present with ≥3 checklist items and validation command
 
-#### Scenario: Material change requires proposal
+### Requirement: specs/project-documentation/spec.md present with proper structure
 
-- **WHEN** a contributor plans a material update to `CLAUDE.md`
-- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+### Requirement: Validation command: `openspec validate update-doc-claude --strict`
+
+#### Scenario: Update CLAUDE.md with OpenSpec compliance
+
+- **WHEN** a contributor updates CLAUDE.md for OpenSpec compliance
+
+- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.

@@ -1,12 +1,19 @@
 # Spec Delta: project-documentation / update-doc-docs-enterprise-features-specification
 
+This change updates `docs/ENTERPRISE_FEATURES_SPECIFICATION.md` to comply with OpenSpec documentation governance. All enterprise features documentation changes are tracked via proposals, tasks, and capability specs.
+
 ## ADDED Requirements
 
-### Requirement: Governance for ENTERPRISE_FEATURES_SPECIFICATION.md
+### Requirement: proposal.md present with Why section and capability reference
 
-The project SHALL govern material changes to `docs/ENTERPRISE_FEATURES_SPECIFICATION.md` via OpenSpec change proposals to maintain consistency and review.
+### Requirement: tasks.md present with ≥3 checklist items and validation command
 
-#### Scenario: Material change requires proposal
+### Requirement: specs/project-documentation/spec.md present with proper structure
 
-- **WHEN** a contributor plans a material update to `docs/ENTERPRISE_FEATURES_SPECIFICATION.md`
-- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+### Requirement: Validation command: `openspec validate update-doc-docs-enterprise-features-specification --strict`
+
+#### Scenario: Update docs/ENTERPRISE_FEATURES_SPECIFICATION.md with OpenSpec compliance
+
+- **WHEN** a contributor updates docs/ENTERPRISE_FEATURES_SPECIFICATION.md for OpenSpec compliance
+
+- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.

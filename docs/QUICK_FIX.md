@@ -11,7 +11,9 @@
 **Create Missing `__init__.py` File:**
 
 ```bash
+
 # In the root directory, run:
+
 New-Item -Path "backend\__init__.py" -ItemType File -Force
 ```
 
@@ -27,6 +29,7 @@ FastAPI-based backend for LLM integration, vector database, and caching.
 __version__ = "0.1.0"
 
 # Export main components
+
 try:
     from .backend import app
     from .settings import get_settings
@@ -43,7 +46,9 @@ except ImportError:
 **Replace `test_backend_comprehensive.py` with working version:**
 
 ```python
+
 # tests/backend/test_backend_comprehensive.py
+
 """
 Fixed comprehensive backend tests with proper imports and mocking.
 """
@@ -54,11 +59,13 @@ from unittest.mock import Mock, patch, MagicMock
 from pathlib import Path
 
 # Add backend to Python path BEFORE any imports
+
 backend_path = str(Path(__file__).parent.parent.parent)
 if backend_path not in sys.path:
     sys.path.insert(0, backend_path)
 
 # Mock ML libraries globally to avoid import conflicts
+
 @pytest.fixture(scope="session", autouse=True)
 def mock_ml_dependencies():
     """Mock all ML libraries to prevent import errors."""
@@ -184,7 +191,9 @@ if __name__ == "__main__":
 **Run This Command:**
 
 ```powershell
+
 # Test the basic functionality
+
 python -m pytest tests/backend/test_backend_comprehensive.py::TestBasicEndpoints::test_health_endpoint -v
 ```
 
@@ -201,14 +210,21 @@ tests/backend/test_backend_comprehensive.py::TestBasicEndpoints::test_health_end
 **Check Your Backend Directory:**
 
 ```powershell
+
 # Should show __init__.py now exists
+
 Get-ChildItem backend\
 
 # Output should include:
+
 # __init__.py
+
 # backend.py
+
 # settings.py
+
 # ... other files
+
 ```
 
 ---
@@ -218,10 +234,13 @@ Get-ChildItem backend\
 **Once basic test passes, run comprehensive tests:**
 
 ```powershell
+
 # Run all backend tests
+
 python -m pytest tests/backend/ -v --tb=short
 
 # Or run just the comprehensive test
+
 python -m pytest tests/backend/test_backend_comprehensive.py -v
 ```
 
@@ -230,9 +249,13 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v
 ## 🎯 **What This Fixes**
 
 1. **✅ Import Errors**: `backend/__init__.py` makes backend a proper Python package
+
 2. **✅ Undefined Variables**: Proper fixtures define all needed variables
+
 3. **✅ PyTorch Conflicts**: Global ML library mocking prevents import issues
+
 4. **✅ Service Mocking**: Comprehensive service mocking before backend import
+
 5. **✅ API Reality**: Tests use actual endpoints, not assumed ones
 
 ---
@@ -268,8 +291,11 @@ with __import__('unittest.mock').patch.dict('sys.modules', {'torch': __import__(
 After implementing these fixes:
 
 1. **Run Tests**: Use `pytest tests/backend/test_backend_comprehensive.py -v`
+
 2. **Check Coverage**: Use `pytest --cov=backend tests/backend/`
+
 3. **Fix Remaining Issues**: Address any remaining test failures one by one
+
 4. **Expand Tests**: Add more specific test cases as needed
 
 ---

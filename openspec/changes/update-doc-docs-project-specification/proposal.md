@@ -1,15 +1,25 @@
 # Change Proposal: update-doc-docs-project-specification
 
-## Why
+## Summary
 
-Ensure `docs/PROJECT_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Update `docs/PROJECT_SPECIFICATION.md` for OpenSpec governance and compliance. This proposal covers changes to project specification documentation under the project-documentation capability.
 
 ## What Changes
 
-- Add a documentation governance requirement for `docs/PROJECT_SPECIFICATION.md` under the `project-documentation` capability.
-- Track material updates via OpenSpec proposals (no functional code changes).
+- Revise docs/PROJECT_SPECIFICATION.md for OpenSpec compliance
+
+- Add documentation for change proposals, tasks, and capability specs
+
+- Implement project-documentation capability requirements
+
+## Why
+
+Project specification documentation needs to comply with OpenSpec governance to ensure consistent change tracking, validation, and auditability. The current documentation lacks proper OpenSpec structure and references.
+
+## Capability Reference
+
+This change implements the project-documentation capability as required by OpenSpec governance.
 
 ## Impact
 
-- Affected specs: project-documentation
-- Affected code: none (documentation only)
+This change ensures project specification documentation is OpenSpec compliant, improving governance, validation, and auditability for all project specification changes.
