@@ -1,32 +1,21 @@
+
+
 ## MODIFIED Requirements: Backend as Modular AI Agent
 
-### Requirement: Backend agent orchestration and extensibility
-The backend SHALL act as a modular AI agent, exposing a REST API capable of:
-- Answering questions using local compute AI models (offline/private)
-- Indexing, searching, and analyzing Obsidian notes
-- Using web hooks and internet access (if enabled) for external research
-- Routing requests to other AI agents/models for multi-agent workflows
-- Integrating enterprise features and extensible orchestration
+### MODIFIED Requirement: Backend agent orchestration and extensibility
 
-#### Scenario: Local compute AI answering
-- WHEN a user asks a question via the API
-- THEN the backend SHALL answer using local models if available
+**Original requirement:** Backend agent orchestration and extensibility
 
-#### Scenario: Web-enabled research
-- WHEN internet access is enabled and a user requests external research
-- THEN the backend SHALL use web hooks or external models to fetch and summarize content
+**Modification:**
 
-#### Scenario: Multi-agent orchestration
-- WHEN a request requires broader research or model access
-- THEN the backend SHALL route or delegate to other agents/models as configured
+- Add explicit support for multi-agent orchestration, agent-to-agent workflows, and extensibility for local/remote model routing and web-enabled research.
+- Clarify that the backend can delegate requests to other agents/models and supports both offline/local and connected/internet-enabled modes.
 
-#### Scenario: Enterprise integration
-- WHEN enterprise features are enabled
-- THEN the backend SHALL support SSO, RBAC, compliance, and extensible service orchestration
+### MODIFIED Requirement: Documentation clarity
 
-### Requirement: Documentation clarity
-The OpenSpec documentation SHALL describe backend agent architecture, API capabilities, and extensibility for both offline and connected modes.
+**Original requirement:** Documentation clarity
 
-#### Scenario: Contributor onboarding
-- WHEN a new contributor reviews AGENTS.md or project-documentation/spec.md
-- THEN they SHALL understand backend agent roles, orchestration, and extensibility
+**Modification:**
+
+- Documentation must explicitly cover both offline/local and connected/internet-enabled modes.
+- Add onboarding guidance for contributors about agent orchestration, extensibility, and multi-agent workflows.

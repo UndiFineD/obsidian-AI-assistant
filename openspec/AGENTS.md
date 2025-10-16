@@ -1,21 +1,63 @@
-# OpenSpec Instructions
 # Backend as Modular AI Agent
 
-The backend is designed as a modular AI agent with the following capabilities:
-- Exposes a REST API for answering questions, indexing, and searching notes
+## OpenSpec Instructions
+
+## Architecture Diagram
+
+```mermaid
+flowchart TD
+  User[User/API Client] -->|Ask/Search| BackendAgent[Backend AI Agent]
+  BackendAgent -->|Local Model| LocalModel[Local AI Model]
+  BackendAgent -->|Web Hook| WebResearch[Web/Internet Research]
+  BackendAgent -->|Delegate| OtherAgent[Other AI Agent/Model]
+  BackendAgent -->|Enterprise| EnterpriseFeatures[SSO/RBAC/Compliance]
+  BackendAgent -->|Vector Search| VectorDB[Vector DB]
+  BackendAgent -->|Index| ObsidianNotes[Obsidian Notes]
+```
+
+## Usage Example: Multi-Agent Orchestration
+
+```python
+# Example: Ask a question, route to local model, fallback to web research if allowed
+def ask_question(question, allow_web=False):
+  answer = backend_agent.ask_local_model(question)
+  if not answer and allow_web:
+    answer = backend_agent.ask_web_research(question)
+  return answer
+```
+
+## Contributor Guidance
+
+When adding orchestration, model routing, or agent-to-agent features:
+
+- Update this diagram and usage example
+- Document new API endpoints and agent flows
+
 - Uses local compute AI models for offline/private answers
 - Can use web hooks and internet access (if enabled) for external research
 - Supports routing requests to other AI agents or models for multi-agent workflows
 - Integrates enterprise features (SSO, RBAC, compliance) and extensible orchestration
 
-### Architecture Modes
+## Architecture Modes
+
 - **Offline/local**: Answers and research are performed using only local models and data
 - **Connected/internet-enabled**: Backend can fetch, summarize, and analyze external content via web hooks or remote models
 - **Multi-agent orchestration**: Requests can be delegated or routed to other agents/models for broader research or specialized tasks
 
-### Contributor Guidance
+### Mode enforcement
+
+- Offline mode: No outbound network calls. Operations restricted to local models and local data sources.
+- Connected mode: Outbound requests MUST be performed only via approved web hooks or configured providers, respecting security and compliance settings.
+
+## Mode Change Guidance
+
 - When extending backend agent capabilities, update AGENTS.md and project-documentation/spec.md to reflect new orchestration, model routing, or research features
 - Ensure documentation covers both offline and connected modes
+
+When changing mode behavior (offline/connected):
+
+- Document enforcement rules (no-network offline; approved providers only when connected)
+- Update examples and diagrams to reflect the new behavior
 
 Instructions for AI coding assistants using OpenSpec for spec-driven development.
 
@@ -683,9 +725,9 @@ openspec archive [change] [--yes|-y]  # Mark complete (add --yes for automation)
 
 Remember: Specs are truth. Changes are proposals. Keep them in sync.
 
-# OpenSpec AGENTS.md
+## OpenSpec AGENTS
 
-## Documentation Governance
+### Documentation Governance
 
 This file is covered by OpenSpec governance. All changes are tracked via proposals in `openspec/changes/` and must follow the required structure:
 

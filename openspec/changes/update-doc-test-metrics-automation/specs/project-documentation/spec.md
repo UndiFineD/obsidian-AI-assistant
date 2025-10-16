@@ -1,68 +1,30 @@
 # Spec Delta: project-documentation / update-doc-test-metrics-automation
 
-This change enhances project documentation infrastructure under OpenSpec governance. Material changes to documentation tooling require proposals and validation in `openspec/changes`.
+## MODIFIED Requirements
 
-## ADDED Requirements
+### Requirement: Documentation clarity
 
-### Requirement: Automated test metrics updates
+The OpenSpec documentation SHALL describe backend agent architecture, API capabilities, and extensibility for both offline and connected modes.
 
-- Capability: project-documentation
-- Artifact: scripts/update_test_metrics.py
+#### Scenario: Contributor onboarding for automation
 
-#### Scenario: Test metrics automation script
+- **WHEN** a contributor adds or updates test metrics automation documentation (e.g., scripts or CI workflows)
+- **THEN** they SHALL ensure docs (e.g., `docs/TESTING_GUIDE.md`) clearly document usage, flags, CI integration, and troubleshooting
 
-- **GIVEN** test suite execution completes with new metrics
-- **WHEN** the automation script is run with `--apply` flag
-- **THEN** README.md, docs/TEST_RESULTS_OCTOBER_2025.md, and docs/SYSTEM_STATUS_OCTOBER_2025.md MUST be updated with consistent metrics
+### Requirement: Governance for TESTING_GUIDE.md
 
-#### Scenario: Dry-run preview mode
+The project SHALL govern material changes to `docs/TESTING_GUIDE.md` via OpenSpec change proposals to maintain consistency and review.
 
-- **GIVEN** automation script is run without `--apply` flag
-- **WHEN** metrics are provided via CLI or pytest execution
-- **THEN** changes MUST be previewed without modifying files
+#### Scenario: Material change requires proposal
 
-#### Scenario: OpenSpec scaffolding
+- **WHEN** a contributor plans a material update to `docs/TESTING_GUIDE.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-- **GIVEN** `--scaffold-openspec` flag is provided
-- **WHEN** automation script updates documentation
-- **THEN** a compliant OpenSpec change directory MUST be created with proposal.md, tasks.md, and spec delta containing governance language
+#### Scenario: Proposal content and validation requirements
 
-### Requirement: CI/CD workflow for automated updates
-
-- Capability: project-documentation
-- Artifact: .github/workflows/update-test-metrics.yml
-
-#### Scenario: Scheduled weekly updates
-
-- **GIVEN** the GitHub Actions workflow is configured
-- **WHEN** Sunday 00:00 UTC arrives
-- **THEN** the workflow MUST run tests, update documentation, and create a pull request if changes exist
-
-#### Scenario: Manual workflow dispatch
-
-- **GIVEN** a maintainer triggers the workflow manually
-- **WHEN** workflow inputs specify `scaffold-openspec=true` and `create-pr=true`
-- **THEN** the workflow MUST generate OpenSpec change directory and create a PR with updated metrics
-
-#### Scenario: Direct commit mode
-
-- **GIVEN** workflow is triggered with `create-pr=false`
-- **WHEN** test metrics change
-- **THEN** changes MUST be committed directly to the current branch without PR creation
-
-### Requirement: Comprehensive automation documentation
-
-- Capability: project-documentation
-- Artifact: docs/TESTING_GUIDE.md
-
-#### Scenario: Developer onboarding
-
-- **GIVEN** a new developer needs to update test metrics
-- **WHEN** they consult docs/TESTING_GUIDE.md
-- **THEN** they MUST find complete usage examples, CLI flags, CI integration steps, and troubleshooting guidance
-
-#### Scenario: Troubleshooting common issues
-
-- **GIVEN** automation script fails with encoding or parsing errors
-- **WHEN** developer checks troubleshooting section
-- **THEN** documentation MUST provide specific error messages, root causes, and fixes
+- **WHEN** a contributor creates a change for updating automation documentation
+- **THEN** the change SHALL include:
+	- A `proposal.md` with a Why section and capability reference
+	- A `tasks.md` with three or more actionable checklist items and a validation step
+	- A delta spec at `changes/update-doc-test-metrics-automation/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
+	- A documented validation command: `openspec validate update-doc-test-metrics-automation --strict`

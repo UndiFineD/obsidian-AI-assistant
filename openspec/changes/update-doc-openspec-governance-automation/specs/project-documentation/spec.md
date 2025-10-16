@@ -1,20 +1,22 @@
 
 # Spec Delta: project-documentation / update-doc-openspec-governance-automation
 
-This change updates `openspec/governance-automation.md` to comply with OpenSpec documentation governance. All automation documentation changes are tracked via proposals, tasks, and capability specs.
+## MODIFIED Requirements
 
-## ADDED Requirements
+### Requirement: OpenSpec Governance Automation
 
-### Requirement: proposal.md present with Why section and capability reference
+The system SHALL provide comprehensive OpenSpec change management capabilities including automated validation, application, and archiving of specification changes.
 
-### Requirement: tasks.md present with ≥3 checklist items and validation command
+#### Scenario: Material change requires proposal
 
-### Requirement: specs/project-documentation/spec.md present with proper structure
+- **WHEN** a contributor plans a material update to `openspec/governance-automation.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-### Requirement: Validation command: `openspec validate update-doc-openspec-governance-automation --strict`
+#### Scenario: Proposal content and validation requirements
 
-#### Scenario: Update openspec/governance-automation.md with OpenSpec compliance
-
-- **WHEN** a contributor updates openspec/governance-automation.md for OpenSpec compliance
-
-- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.
+- **WHEN** a contributor creates a change for updating `openspec/governance-automation.md`
+- **THEN** the change SHALL include:
+	- A `proposal.md` with a Why section and capability reference
+	- A `tasks.md` with three or more actionable checklist items and a validation step
+	- A delta spec at `changes/update-doc-openspec-governance-automation/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
+	- A documented validation command: `openspec validate update-doc-openspec-governance-automation --strict`

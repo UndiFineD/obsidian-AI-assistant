@@ -1,7 +1,7 @@
 # Implementation Tasks: Update backend agent spec for AI orchestration
 
-1. Draft spec delta for AGENTS.md clarifying backend as modular AI agent, API, and orchestration capabilities
-2. Draft spec delta for project-documentation/spec.md with requirements for agent orchestration, local/remote model routing, and web research
-3. Add scenarios for offline/local compute, internet-enabled research, and multi-agent workflows
-4. Validate changes with openspec validate --strict
-5. Request review and approval
+- [ ] Draft AGENTS.md updates if material changes are needed (covered under project-documentation governance)
+- [x] Draft spec delta for project-documentation/spec.md with requirements for agent orchestration, local/remote model routing, and web research
+- [x] Add scenarios for offline/local compute, internet-enabled research, multi-agent workflows, and mode behaviors (offline/connected)
+- [ ] Validate change with `openspec validate update-spec-backend-agent --strict` and resolve findings
+- [ ] Request review and approval

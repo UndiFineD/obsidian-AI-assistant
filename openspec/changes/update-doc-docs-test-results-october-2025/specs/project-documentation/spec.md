@@ -1,29 +1,26 @@
 # Spec Delta: project-documentation / update-doc-docs-test-results-october-2025
 
-This change updates the project documentation capability to ensure our test result summaries remain accurate and timely.
+## MODIFIED Requirements
 
-It is governed by OpenSpec change management. Material changes to test result documentation require proposals and tasks in `openspec/changes`.
+### Requirement: Governance for SYSTEM_STATUS_OCTOBER_2025.md
 
-## ADDED Requirements
+The project SHALL govern material changes to `docs/SYSTEM_STATUS_OCTOBER_2025.md` via OpenSpec change proposals to maintain consistency and review.
 
-### Requirement: Maintain current test result summaries
+#### Scenario: Material change requires proposal
 
-- Capability: project-documentation
-- Artifact: docs/TEST_RESULTS_OCTOBER_2025.md
+- **WHEN** a contributor plans a material update to `docs/SYSTEM_STATUS_OCTOBER_2025.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-#### Scenario: Documentation reflects latest test suite execution
+### Requirement: Governance for TEST_RESULTS_OCTOBER_2025.md
 
-- **GIVEN** the full test suite has been run
-- **WHEN** test counts or timing change (e.g., 691 passed, 2 skipped on Oct 15, 2025)
-- **THEN** docs/TEST_RESULTS_OCTOBER_2025.md MUST be updated within 24 hours to reflect the latest results
+The project SHALL govern material changes to `docs/TEST_RESULTS_OCTOBER_2025.md` via OpenSpec change proposals to maintain consistency and review.
 
-### Requirement: Consistency across status pages
+#### Scenario: Material change requires proposal
 
-- Capability: project-documentation
-- Artifact: README.md, docs/SYSTEM_STATUS_OCTOBER_2025.md
+- **WHEN** a contributor plans a material update to `docs/TEST_RESULTS_OCTOBER_2025.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-#### Scenario: Cross-document consistency
+#### Scenario: Cross-document consistency and timeliness
 
-- **GIVEN** README, system status, and test results pages
-- **WHEN** one document is updated with new test metrics
-- **THEN** the other documents MUST be updated to ensure aligned counts and dates
+- **WHEN** test counts or timing change after a full test run
+- **THEN** both `docs/TEST_RESULTS_OCTOBER_2025.md` and `docs/SYSTEM_STATUS_OCTOBER_2025.md` SHALL be updated within 24 hours and remain consistent with `README.md`

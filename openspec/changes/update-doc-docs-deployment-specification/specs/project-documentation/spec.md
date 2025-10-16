@@ -1,19 +1,21 @@
 # Spec Delta: project-documentation / update-doc-docs-deployment-specification
 
-This change updates `docs/DEPLOYMENT_SPECIFICATION.md` to comply with OpenSpec documentation governance. All deployment documentation changes are tracked via proposals, tasks, and capability specs.
+## MODIFIED Requirements
 
-## ADDED Requirements
+### Requirement: Governance for DEPLOYMENT_SPECIFICATION.md
 
-### Requirement: proposal.md present with Why section and capability reference
+The project SHALL govern material changes to `docs/DEPLOYMENT_SPECIFICATION.md` via OpenSpec change proposals to maintain consistency and review.
 
-### Requirement: tasks.md present with ≥3 checklist items and validation command
+#### Scenario: Material change requires proposal
 
-### Requirement: specs/project-documentation/spec.md present with proper structure
+- **WHEN** a contributor plans a material update to `docs/DEPLOYMENT_SPECIFICATION.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-### Requirement: Validation command: `openspec validate update-doc-docs-deployment-specification --strict`
+#### Scenario: Proposal content and validation requirements
 
-#### Scenario: Update docs/DEPLOYMENT_SPECIFICATION.md with OpenSpec compliance
-
-- **WHEN** a contributor updates the deployment specification documentation
-
-- **THEN** the change is tracked via proposal.md, tasks.md, and spec.md, and validated using the OpenSpec command above. All requirements are met for OpenSpec compliance.
+- **WHEN** a contributor creates a change for updating `docs/DEPLOYMENT_SPECIFICATION.md`
+- **THEN** the change SHALL include:
+	- A `proposal.md` with a Why section and capability reference
+	- A `tasks.md` with three or more actionable checklist items and a validation step
+	- A delta spec at `changes/update-doc-docs-deployment-specification/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
+	- A documented validation command: `openspec validate update-doc-docs-deployment-specification --strict`

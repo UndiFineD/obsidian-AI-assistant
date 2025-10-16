@@ -1,7 +1,6 @@
 import re
-from pathlib import Path
-
 import pytest
+from pathlib import Path
 
 # Coverage extraction helpers from scripts/update_test_metrics.py
 COVERAGE_PATTERNS = [

@@ -1,16 +1,17 @@
 # Spec Delta: project-documentation / update-doc-readme-latest-run
 
-## ADDED Requirements
+## MODIFIED Requirements
 
-### Requirement: Keep README test status current
+### Requirement: Governance for README.md
 
-- Capability: project-documentation
-- Artifact: README.md
+The project SHALL govern material changes to `README.md` via OpenSpec change proposals to maintain consistency and review.
 
-#### Scenario: README reflects latest test run
+#### Scenario: Material change requires proposal
 
-- **GIVEN** a new full-suite test run completes
-- **WHEN** counts or timing change
-- **THEN** README.md MUST be updated to match the latest status (e.g., 691 passed, 2 skipped on Oct 15, 2025)
+- **WHEN** a contributor plans a material update to `README.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
-This change is governed by OpenSpec documentation governance. Material changes to README require a proposal, tasks checklist, and spec delta in openspec/changes.
+#### Scenario: Keep README test status current
+
+- **WHEN** a new full-suite test run completes and counts or timing change
+- **THEN** `README.md` SHALL be updated to match the latest status within 24 hours and remain consistent with `docs/SYSTEM_STATUS_OCTOBER_2025.md` and `docs/TEST_RESULTS_OCTOBER_2025.md`

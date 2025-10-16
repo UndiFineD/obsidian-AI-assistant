@@ -16,8 +16,6 @@ class TestBackendAPI:
 
     @pytest.fixture
     def client(self):
-if __name__ == "__main__":
-    pytest.main([__file__])
 
         """Create a CSRF-enabled test client for the FastAPI app."""
         import hmac
@@ -360,5 +358,157 @@ class TestServiceIntegration:
         )
 
 
-if __name__ == "__main__":
-    pytest.main([__file__])
+class TestOpenSpecAndSecurityEndpoints:
+    """Test OpenSpec governance and security endpoints."""
+
+    @pytest.fixture
+    def client(self):
+        import hmac
+        from hashlib import sha256
+        from backend.backend import app
+        from backend.settings import get_settings
+        secret = get_settings().csrf_secret.encode()
+        csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+        class CSRFTestClient(TestClient):
+            def request(self, method, url, **kwargs):
+                headers = kwargs.pop("headers", None)
+                if headers is None:
+                    headers = {}
+                if method.upper() in ("POST", "PUT", "DELETE"):
+                    headers["X-CSRF-Token"] = csrf_token
+                kwargs["headers"] = headers
+                return super().request(method, url, **kwargs)
+        with CSRFTestClient(app) as c:
+            yield c
+
+    def test_list_openspec_changes(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.list_changes.return_value = [{"change_id": "abc", "status": "active"}]
+            r = client.get("/api/openspec/changes")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+            assert "changes" in data
+
+    def test_get_openspec_change_details(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.get_change_details.return_value = {"change_id": "abc", "status": "active"}
+            r = client.get("/api/openspec/changes/abc")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+            assert "change" in data
+
+    def test_validate_openspec_change(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.validate_change.return_value = {"result": "ok"}
+            r = client.post("/api/openspec/changes/abc/validate", json={})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_apply_openspec_change(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.apply_change.return_value = {"result": "applied"}
+            r = client.post("/api/openspec/changes/abc/apply", json={})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_archive_openspec_change(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.archive_change.return_value = {"result": "archived"}
+            r = client.post("/api/openspec/changes/abc/archive", json={})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_bulk_validate_openspec_changes(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.bulk_validate.return_value = [{"change_id": "abc", "valid": True}]
+            r = client.post("/api/openspec/validate-bulk", json={"change_ids": ["abc"]})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_openspec_metrics(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
+            r = client.get("/api/openspec/metrics")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_openspec_dashboard(self, client):
+        with patch("backend.backend.get_openspec_governance") as mock_gov:
+            mock_gov.return_value.list_changes.return_value = [{"change_id": "abc", "status": "active"}]
+            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
+            mock_gov.return_value.bulk_validate.return_value = [{"change_id": "abc", "valid": True}]
+            r = client.get("/api/openspec/dashboard")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_security_status(self, client):
+        with patch("backend.backend.get_advanced_security_config") as mock_sec:
+            mock_sec.return_value.get_security_status.return_value = {"secure": True}
+            r = client.get("/api/security/status")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_security_events(self, client):
+        class DummyAuditLogger:
+            def get_recent_events(self, severity=None, event_type=None, limit=100):
+                return [{"event": "login", "severity": "low"}]
+        dummy_sec = type("Sec", (), {"audit_logger": DummyAuditLogger()})()
+        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+            r = client.get("/api/security/events?limit=1")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_clear_security_cache(self, client):
+        class DummyCache:
+            async def clear(self):
+                return None
+        with patch("backend.backend.get_cache_manager", return_value=DummyCache()), \
+             patch("backend.backend.log_security_event"):
+            r = client.post("/api/security/clear-cache", json={})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_compliance_status(self, client):
+        class DummyComplianceManager:
+            def generate_compliance_report(self):
+                return {"gdpr": True, "soc2": True}
+        dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
+        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+            r = client.get("/api/security/compliance")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_handle_gdpr_deletion_request(self, client):
+        class DummyComplianceManager:
+            def handle_data_deletion_request(self, user_id):
+                return {"deleted": True}
+        dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
+        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+            r = client.post("/api/security/gdpr/deletion-request", params={"user_id": "u1"})
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
+    def test_get_security_dashboard(self, client):
+        class DummyAuditLogger:
+            def get_recent_events(self, severity=None, limit=20):
+                return [{"event": "threat", "severity": "high"}]
+        dummy_sec = type("Sec", (), {"audit_logger": DummyAuditLogger(), "get_security_status": lambda self=None: {"secure": True}})()
+        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+            r = client.get("/api/security/dashboard")
+            assert r.status_code == 200
+            data = r.json()
+            assert data["success"] is True
+
