@@ -322,7 +322,8 @@ curl -X POST http://localhost:8000/api/search \
 
 ### Overview
 
-Enterprise features provide advanced authentication, multi-tenancy, compliance, and administration capabilities for organizational deployments.
+Enterprise features provide advanced authentication, multi-tenancy, compliance,
+and administration capabilities for organizational deployments.
 
 ### Features
 
@@ -404,8 +405,8 @@ POST /api/enterprise/compliance/audit
 
 ### Interactive Documentation
 
-- **Swagger UI**: http://localhost:8000/docs
-- **ReDoc**: http://localhost:8000/redoc
+- **Swagger UI**: <http://localhost:8000/docs>
+- **ReDoc**: <http://localhost:8000/redoc>
 
 ### Core Endpoints
 
@@ -826,16 +827,17 @@ gpu_layers: 20  # Load fewer layers to GPU
 ### Getting Help
 
 1. Check the logs: `backend/logs/app.log`
-2. Visit the health endpoint: `http://localhost:8000/health`
-3. Check system status: `http://localhost:8000/status`
+2. Visit the health endpoint: <http://localhost:8000/health>
+3. Check system status: <http://localhost:8000/status>
 4. Review documentation: `docs/` directory
-5. Open an issue: https://github.com/UndiFineD/obsidian-AI-assistant/issues
+5. Open an issue: <https://github.com/UndiFineD/obsidian-AI-assistant/issues>
 
 ---
 
 ## Documentation Governance
 
-This project uses **OpenSpec** for documentation governance to ensure consistency, quality, and proper review of material documentation changes.
+This project uses **OpenSpec** for documentation governance to ensure
+consistency, quality, and proper review of material documentation changes.
 
 ### OpenSpec Structure
 
@@ -900,7 +902,7 @@ We welcome contributions! Please follow these guidelines:
 
 **Author**: Keimpe de Jong  
 **License**: MIT  
-**Repository**: https://github.com/UndiFineD/obsidian-AI-assistant
+**Repository**: <https://github.com/UndiFineD/obsidian-AI-assistant>
 
 ---
 

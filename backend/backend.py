@@ -42,25 +42,25 @@ from .performance import (
     get_connection_pool,
     get_task_queue,
 )
-from .enhanced_caching import get_unified_cache_manager, cached_with_intelligence
+from .enhanced_caching import get_unified_cache_manager
 from .cache_management import cache_router
 from .logging_framework import (
-    initialize_logging, 
-    get_logger, 
-    log_audit, 
-    log_security, 
-    performance_timer, 
+    initialize_logging,
+    get_logger,
+    log_audit,
+    performance_timer,
     request_context,
     LogCategory
 )
 from .log_management import router as log_router
 from .security_hardening import (
-    SecurityHardeningMiddleware, SecurityLevel, 
+    SecurityHardeningMiddleware, SecurityLevel,
     create_security_hardening_middleware
 )
 from .security_management import router as security_router
 from .settings import get_settings, reload_settings, update_settings
 from .utils import redact_data
+from .exception_handlers import setup_exception_handlers, RequestTrackingMiddleware
 
 
 # --- Helper: detect test mode consistently ---
@@ -274,7 +274,6 @@ except Exception as e:
     app_logger = logging.getLogger('backend.app')
 
 # Setup standardized error handling
-from .exception_handlers import setup_exception_handlers, RequestTrackingMiddleware
 setup_exception_handlers(app)
 app.add_middleware(RequestTrackingMiddleware)
 
@@ -930,7 +929,7 @@ def _ask_impl(request: AskRequest):
     with error_context("ask_implementation", reraise=False):
         # Log the request start
         request_logger = get_logger('backend.api.ask', LogCategory.API)
-        with performance_timer("ask_request_processing") as timer_id:
+        with performance_timer("ask_request_processing"):
             request_logger.info("Processing ask request", extra={
                 'question_length': len(request.question),
                 'model_name': request.model_name,
@@ -1012,7 +1011,7 @@ def _ask_impl(request: AskRequest):
                     to_generate = request.prompt if request.prompt else request.question
 
                 # Generate answer with performance tracking
-                with performance_timer("model_generation") as gen_timer_id:
+                with performance_timer("model_generation"):
                     start_time = time.time()
                     answer = model_manager.generate(
                         to_generate,
