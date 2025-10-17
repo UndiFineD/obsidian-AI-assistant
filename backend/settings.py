@@ -153,7 +153,46 @@ _ALLOWED_UPDATE_KEYS = {
     "require_mfa",
     "lockout_attempts",
     "lockout_duration_minutes",
+    # Network & SSL settings
+    "cors_allowed_origins",
+    "ssl_certfile",
+    "ssl_keyfile",
+    "ssl_ca_certs",
+    "csrf_enabled",
 }
+
+
+def validate_cors_origins(origins: list) -> bool:
+    """
+    Validate CORS origins list.
+    
+    Each origin must be a valid URL (http:// or https://) or wildcard "*".
+    Returns True if all origins are valid, False otherwise.
+    """
+    if not isinstance(origins, list):
+        return False
+    pattern = re.compile(r'^(https?://[a-zA-Z0-9.-]+(:\d+)?|\*)$')
+    return all(pattern.match(str(origin)) for origin in origins)
+
+
+def validate_ssl_file(filepath: str, extensions: list) -> bool:
+    """
+    Validate SSL file path and extension.
+    
+    Args:
+        filepath: Path to SSL file (or None/empty for optional files)
+        extensions: List of allowed file extensions (e.g., [".pem", ".crt"])
+    
+    Returns:
+        True if file is valid or None/empty, False otherwise
+    """
+    if not filepath:
+        return True  # None/empty is valid (optional)
+    try:
+        path = Path(filepath)
+        return path.exists() and path.is_file() and path.suffix in extensions
+    except Exception:
+        return False
 
 
 class Settings(BaseModel):
@@ -404,13 +443,45 @@ def reload_settings() -> Settings:
 
 def update_settings(updates: dict) -> Settings:
     """Update settings with new values and reload."""
+    import logging
+    
     # Filter updates to only include whitelisted keys
     filtered_updates = {}
     for key, value in updates.items():
         if key in _ALLOWED_UPDATE_KEYS:
-            # Type coercion for known fields
+            # Validate based on field type
             try:
-                if key == "chunk_size" and isinstance(value, str):
+                if key == "cors_allowed_origins":
+                    if not validate_cors_origins(value):
+                        raise ValueError(f"Invalid CORS origins: {value}. Must be list of valid URLs or '*'")
+                    # Warn about wildcard
+                    if "*" in value:
+                        logging.warning("CORS wildcard origin (*) detected - NOT recommended for production")
+                    filtered_updates[key] = value
+                
+                elif key == "ssl_certfile":
+                    if not validate_ssl_file(value, [".pem", ".crt", ".cert"]):
+                        raise ValueError(f"Invalid SSL certificate file: {value}. Must exist and have .pem, .crt, or .cert extension")
+                    filtered_updates[key] = value
+                
+                elif key == "ssl_keyfile":
+                    if not validate_ssl_file(value, [".pem", ".key"]):
+                        raise ValueError(f"Invalid SSL key file: {value}. Must exist and have .pem or .key extension")
+                    filtered_updates[key] = value
+                
+                elif key == "ssl_ca_certs":
+                    if not validate_ssl_file(value, [".pem", ".crt"]):
+                        raise ValueError(f"Invalid CA certs file: {value}. Must exist and have .pem or .crt extension")
+                    filtered_updates[key] = value
+                
+                elif key == "csrf_enabled":
+                    if isinstance(value, str):
+                        value = value.lower() in ("true", "1", "yes")
+                    if not value:
+                        logging.warning("CSRF protection disabled - NOT recommended for production")
+                    filtered_updates[key] = value
+                
+                elif key == "chunk_size" and isinstance(value, str):
                     filtered_updates[key] = int(value)
                 elif key == "gpu" and isinstance(value, str):
                     filtered_updates[key] = value.lower() in ("true", "1", "yes")
@@ -420,9 +491,11 @@ def update_settings(updates: dict) -> Settings:
                     filtered_updates[key] = str(value)
                 else:
                     filtered_updates[key] = value
-            except (ValueError, TypeError):
-                # Skip invalid type coercions
+            except (ValueError, TypeError) as e:
+                # Log validation errors and skip invalid values
+                logging.error(f"Validation failed for {key}: {e}")
                 continue
+    
     # Load existing config
     cfg_path = Path(__file__).parent / "config.yaml"
     if cfg_path.exists():
