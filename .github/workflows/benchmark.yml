@@ -1,5 +1,9 @@
 name: Scheduled Benchmark Metrics
 
+permissions:
+  contents: read
+  actions: write  # For uploading artifacts
+
 on:
   schedule:
     - cron: '0 3 * * 1'  # Every Monday at 03:00 UTC
