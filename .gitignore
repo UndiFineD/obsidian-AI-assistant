@@ -52,8 +52,25 @@ coverage.xml
 # Models and large files (download locally)
 backend/models/*.bin
 backend/models/*.ggml
+backend/models/*.gguf
 backend/models/*.safetensors
 backend/models/vosk-model-*/
+models/**/*.gguf
+models/**/*.bin
+*.gguf
+*.ggml
+
+# Large archives and binaries
+*.zip
+*.exe
+*.dll
+*.node
+*.jar
+nodejs/
+node_modules/@anthropic-ai/
+
+# Coverage files
+coverage.json
 
 # Cache directories
 backend/cache/
