@@ -121,8 +121,8 @@ function loadPluginConfigFile(app) {
 }
 
 /**
- * User-friendly error modal with actionable steps
- */
+* User-friendly error modal with actionable steps
+*/
 class ErrorModal extends Modal {
     constructor(app, title, message, actionableSteps = []) {
         super(app);
@@ -135,38 +135,38 @@ class ErrorModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass('ai-assistant-error-modal');
-        
+
         // Title with icon
-        const titleEl = contentEl.createEl('h2', { 
+        const titleEl = contentEl.createEl('h2', {
             text: `⚠️ ${this.errorTitle}`,
             attr: { style: 'color: var(--text-error); margin-bottom: 16px;' }
         });
-        
+
         // Error message
-        const messageEl = contentEl.createEl('p', { 
+        const messageEl = contentEl.createEl('p', {
             text: this.errorMessage,
             attr: { style: 'margin-bottom: 20px; color: var(--text-muted);' }
         });
-        
+
         // Actionable steps
         if (this.actionableSteps && this.actionableSteps.length > 0) {
-            contentEl.createEl('h3', { 
+            contentEl.createEl('h3', {
                 text: 'Steps to resolve:',
                 attr: { style: 'margin-bottom: 10px;' }
             });
-            
+
             const stepsList = contentEl.createEl('ol', {
                 attr: { style: 'margin-bottom: 20px; padding-left: 20px;' }
             });
-            
+
             this.actionableSteps.forEach(step => {
-                stepsList.createEl('li', { 
+                stepsList.createEl('li', {
                     text: step,
                     attr: { style: 'margin-bottom: 8px;' }
                 });
             });
         }
-        
+
         // Close button
         const closeButton = contentEl.createEl('button', { text: 'Close' });
         closeButton.onclick = () => this.close();
@@ -228,15 +228,15 @@ class AIModal extends Modal {
                 url: this.plugin.settings.backendUrl
             };
         }
-        
-        statusDiv.createEl('span', { 
+
+        statusDiv.createEl('span', {
             text: statusText,
             attr: { style: offline ? 'color: var(--text-error);' : 'color: var(--text-success);' }
         });
-        
+
         if (offline) {
             // Show detailed error button
-            const detailsBtn = statusDiv.createEl('button', { 
+            const detailsBtn = statusDiv.createEl('button', {
                 text: 'Show Details',
                 attr: { style: 'margin-left: 10px;' }
             });
@@ -248,11 +248,11 @@ class AIModal extends Modal {
                     'Check backend logs for any startup errors',
                     'Ensure no firewall is blocking localhost connections'
                 ];
-                
-                const errorMsg = errorDetails?.error 
+
+                const errorMsg = errorDetails?.error
                     ? `Connection error: ${errorDetails.error}`
                     : `Backend returned status ${errorDetails?.status}: ${errorDetails?.message}`;
-                
+
                 new ErrorModal(
                     this.app,
                     'Backend Connection Failed',
@@ -260,7 +260,7 @@ class AIModal extends Modal {
                     actionableSteps
                 ).open();
             };
-            
+
             const reloadBtn = statusDiv.createEl('button', { text: 'Retry Connection' });
             reloadBtn.onclick = async () => {
                 reloadBtn.disabled = true;
@@ -302,9 +302,9 @@ class ObsidianAIAssistant extends Plugin {
 
         // Enforce HTTPS for backend URL (with helpful error modal)
         if (!/^https:/.test(this.settings.backendUrl)) {
-            const isLocalhost = this.settings.backendUrl.includes('localhost') || 
-                               this.settings.backendUrl.includes('127.0.0.1');
-            
+            const isLocalhost = this.settings.backendUrl.includes('localhost') ||
+                this.settings.backendUrl.includes('127.0.0.1');
+
             if (!isLocalhost) {
                 // Non-localhost must use HTTPS
                 const actionableSteps = [
@@ -314,14 +314,14 @@ class ObsidianAIAssistant extends Plugin {
                     '',
                     'Alternative: Set up a reverse proxy with SSL (nginx, caddy, or cloudflare tunnel)'
                 ];
-                
+
                 new ErrorModal(
                     this.app,
                     'Insecure Backend Connection',
                     `Backend URL "${this.settings.backendUrl}" must use HTTPS for security. HTTP is only allowed for localhost development.`,
                     actionableSteps
                 ).open();
-                
+
                 console.error('AI Assistant: Backend URL must use HTTPS for non-localhost connections');
                 return; // Don't load plugin with insecure connection
             } else {

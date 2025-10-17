@@ -2,7 +2,7 @@ allow_network: true
 api_port: 8001
 cache_dir: backend/cache
 chunk_overlap: 200
-chunk_size: 1500
+chunk_size: 1000
 continuous_mode: false
 cors_allowed_origins:
 - https://app.example.com
@@ -11,12 +11,12 @@ embed_model: sentence-transformers/all-MiniLM-L6-v2
 gpu: true
 log_level: DEBUG
 malicious_key: hack_attempt
-model_backend: gpt4all
+model_backend: new-model
 model_path: backend/models/llama-7b.gguf
-similarity_threshold: 0.75
-ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmprcud43wh.crt
-ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmpm595mwlh.pem
-ssl_keyfile: C:\Users\kdejo\AppData\Local\Temp\tmpsdm06u0d.key
+similarity_threshold: 0.8
+ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmpjll7rdqh.crt
+ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmpqnlqy7d2.pem
+ssl_keyfile: C:\Users\kdejo\AppData\Local\Temp\tmpn9o99iy3.key
 top_k: 15
 vault_path: ./new_vault
 vector_db: chroma

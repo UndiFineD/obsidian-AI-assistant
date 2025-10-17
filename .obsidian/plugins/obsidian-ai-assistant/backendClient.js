@@ -12,10 +12,10 @@ class BackendClient {
         this.token = options.token || null;
         this._pollers = new Map(); // id -> interval handle
         this._nextPollerId = 1;
-        
+
         // Retry configuration - only for connection errors, not AI queries
         this.retryDelay = options.retryDelay || 1000; // Delay before retry in ms
-        
+
         // Endpoints that are safe to retry (non-AI, idempotent operations)
         this.retryableEndpoints = [
             '/health',
@@ -46,15 +46,15 @@ class BackendClient {
     }
 
     /**
-     * Check if an endpoint is safe to retry (non-AI, idempotent)
-     */
+    * Check if an endpoint is safe to retry (non-AI, idempotent)
+    */
     isRetryableEndpoint(endpoint) {
         return this.retryableEndpoints.some(pattern => endpoint.includes(pattern));
     }
 
     /**
-     * Check if an error is a connection error (not a server error response)
-     */
+    * Check if an error is a connection error (not a server error response)
+    */
     isConnectionError(error) {
         // Connection errors: fetch failed, timeout, network error
         // These have status 0 and an error message
@@ -110,12 +110,12 @@ class BackendClient {
             };
         } catch (error) {
             const errorResponse = { ok: false, status: 0, error: String(error), data: null };
-            
+
             // Only retry connection errors on retryable endpoints
             if (this.isConnectionError(errorResponse) && this.isRetryableEndpoint(endpoint)) {
                 console.log(`Backend connection failed, retrying in ${this.retryDelay}ms...`);
                 await new Promise(resolve => setTimeout(resolve, this.retryDelay));
-                
+
                 try {
                     const retryRes = await fetch(url, {
                         method,
@@ -140,7 +140,7 @@ class BackendClient {
                     return errorResponse;
                 }
             }
-            
+
             return errorResponse;
         } finally {
             clearTimeout(id);
