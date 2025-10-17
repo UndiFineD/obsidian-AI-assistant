@@ -920,7 +920,7 @@ This project builds on excellent open-source tools:
 ---
 
 **Status**: Production Ready ✅  
-**Version**: 0.1.0  
-**Last Updated**: October 17, 2025  
-**Test Coverage**: 1021/1042 passed (98.2%)  
-**Backend Coverage**: 88%+
+**Version**: 0.1.1  
+**Last Updated**: October 18, 2025  
+**Test Coverage**: 1131 passed, 20 skipped  
+**Backend Coverage**: ~65% (reporting only; threshold temporarily not enforced)

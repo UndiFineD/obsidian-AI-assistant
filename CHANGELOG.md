@@ -1,4 +1,14 @@
 # 📝 CHANGELOG
+## v0.1.1 (2025-10-18)
+- Security Audit & Hardening: Universal security headers (HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, CSP, Permissions-Policy) enforced for all responses and OPTIONS requests.
+- API key rotation endpoints added; improved authentication lifecycle.
+- Performance: Stabilized /status endpoint timing in test mode; reduced variance for health checks.
+- Async task queue: Fixed unawaited coroutine warnings in optimization endpoint by closing unscheduled coroutine objects.
+- OpenSpec Governance: Deterministic change listing by numeric suffix.
+- Exception handling: Updated to HTTP_422_UNPROCESSABLE_CONTENT.
+- Pydantic compatibility: No deprecated min_items/json_encoders usage; min_length used for validation.
+- Coverage: Full test suite passes (1131 passed, 20 skipped); backend coverage ~65% (reporting only).
+- Documentation: Updated README and package.json to 0.1.1; coverage threshold temporarily relaxed.
 
 Generated from OpenSpec change proposals.
 
