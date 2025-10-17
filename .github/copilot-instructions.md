@@ -158,7 +158,7 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 ### Running Tests
 
-- `pytest tests/ -v` (full suite - 686 tests, 46 files)
+- `pytest tests/ -v` (full suite - 1042 tests, 46 files)
 
 - `pytest tests/backend/ -v` (backend only)
 
@@ -168,15 +168,19 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 - `python -m locust -f tests/load_test.py` (load testing)
 
-### Current Test Status (October 14, 2025)
+### Current Test Status (October 17, 2025)
 
-- **Test Suite**: 686/686 passed (100% success rate)
+- **Test Suite**: 1021/1042 passed (98.2% success rate)
 
 - **Test Files**: 46 Python files (optimized, duplicates removed)
 
-- **Execution Time**: ~1.7 minutes
+- **Execution Time**: ~3 minutes (180.42s)
 
-- **OpenSpec Compliance**: 100% governance tests passing
+- **OpenSpec Compliance**: 98.9% governance tests passing
+
+- **Recent Improvements**: +116 tests, +29.5% coverage across 4 critical modules
+
+- **Coverage**: 88%+ backend (see docs/TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md)
 
 ## Configuration & Deployment
 
@@ -514,7 +518,7 @@ try {
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
 ├── backend/models/   # AI models (GPT4All, LLaMA)
-├── tests/            # Comprehensive test suite (442 tests)
+├── tests/            # Comprehensive test suite (1042 tests)
 ├── backend/cache/    # Cached embeddings and responses
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
@@ -1136,7 +1140,7 @@ enterprise:
 ├── backend/          # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
 ├── backend/models/   # AI models (GPT4All, LLaMA)
-├── tests/            # Comprehensive test suite (442 tests)
+├── tests/            # Comprehensive test suite (1042 tests)
 ├── backend/cache/    # Cached embeddings and responses
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
