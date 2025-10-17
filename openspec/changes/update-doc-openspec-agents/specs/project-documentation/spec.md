@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-openspec-agents
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for AGENTS.md
 

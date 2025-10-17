@@ -250,13 +250,13 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v
 
 1. **✅ Import Errors**: `backend/__init__.py` makes backend a proper Python package
 
-2. **✅ Undefined Variables**: Proper fixtures define all needed variables
+1. **✅ Undefined Variables**: Proper fixtures define all needed variables
 
-3. **✅ PyTorch Conflicts**: Global ML library mocking prevents import issues
+1. **✅ PyTorch Conflicts**: Global ML library mocking prevents import issues
 
-4. **✅ Service Mocking**: Comprehensive service mocking before backend import
+1. **✅ Service Mocking**: Comprehensive service mocking before backend import
 
-5. **✅ API Reality**: Tests use actual endpoints, not assumed ones
+1. **✅ API Reality**: Tests use actual endpoints, not assumed ones
 
 ---
 
@@ -292,11 +292,11 @@ After implementing these fixes:
 
 1. **Run Tests**: Use `pytest tests/backend/test_backend_comprehensive.py -v`
 
-2. **Check Coverage**: Use `pytest --cov=backend tests/backend/`
+1. **Check Coverage**: Use `pytest --cov=backend tests/backend/`
 
-3. **Fix Remaining Issues**: Address any remaining test failures one by one
+1. **Fix Remaining Issues**: Address any remaining test failures one by one
 
-4. **Expand Tests**: Add more specific test cases as needed
+1. **Expand Tests**: Add more specific test cases as needed
 
 ---
 
@@ -308,13 +308,13 @@ After implementing these fixes:
     $env:PYTHONPATH = "$(Get-Location);$env:PYTHONPATH"
     ```
 
-2. **Import Conflicts**: Clear Python cache
+1. **Import Conflicts**: Clear Python cache
 
     ```powershell
     Remove-Item -Recurse -Force backend\__pycache__\, tests\__pycache__\ -ErrorAction SilentlyContinue
     ```
 
-3. **Dependency Issues**: Check virtual environment
+1. **Dependency Issues**: Check virtual environment
 
     ```powershell
     python -c "import sys; print(sys.executable)"

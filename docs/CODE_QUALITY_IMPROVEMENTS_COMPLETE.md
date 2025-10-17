@@ -91,7 +91,7 @@ warning: The top-level linter settings are deprecated
 
 **File**: `tests/test_security_server.py` → `tests/security_test_server.py`
 
-**Problem**: 
+**Problem**:
 - File contained `async def test_security_endpoint()` which pytest tried to collect as a test
 - This is actually a **test server** for manual security testing, not a pytest test
 - Caused false test failure: "async def functions are not natively supported"
@@ -152,22 +152,22 @@ While Phase 1 is **complete and successful**, there are opportunities for furthe
    - Error: `AttributeError: module 'ast' has no attribute 'Num'`
    - Fix: Upgrade to bandit >= 1.9.0 or use ruff security rules
 
-2. **Type Hint Coverage** 🟡
+1. **Type Hint Coverage** 🟡
    - Current: ~100+ mypy type errors across backend modules
    - Target: Add comprehensive type hints to core modules
    - Priority: backend.py, embeddings.py, performance.py
 
-3. **Deprecation Warnings** 🟡
+1. **Deprecation Warnings** 🟡
    - Count: 24 warnings for `datetime.utcnow()` in enterprise_tenant.py
    - Fix: Replace with `datetime.now(datetime.UTC)`
 
 ### Medium Priority
 
-4. **Encoding Issues** 🟢
+1. **Encoding Issues** 🟢
    - File: `scripts/fix_removed_markers.py` (UTF-8 error)
    - Fix: Convert encoding or rewrite script
 
-5. **Remaining Ruff Errors** 🟢
+1. **Remaining Ruff Errors** 🟢
    - Current: 106 errors (mostly in excluded files)
    - Target: Reduce to < 20 errors
    - Focus: E501 (line length), F841 (unused variables)
@@ -273,7 +273,8 @@ The codebase is now in a **healthy, stable state** with:
 - **Automated quality infrastructure**
 - **Clear path forward for Phase 2**
 
-**Next recommended action**: Begin Phase 2 with type hint additions to core modules (backend.py, embeddings.py, performance.py).
+**Next recommended action**: Begin Phase 2 with type hint additions to core modules (backend.py, embeddings.py,
+performance.py).
 
 ---
 

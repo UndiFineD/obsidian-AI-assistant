@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-claude
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for CLAUDE.md
 

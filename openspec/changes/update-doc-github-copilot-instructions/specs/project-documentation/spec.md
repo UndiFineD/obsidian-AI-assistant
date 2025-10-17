@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-github-copilot-instructions
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for copilot-instructions.md
 

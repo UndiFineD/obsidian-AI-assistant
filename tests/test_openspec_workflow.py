@@ -104,10 +104,19 @@ class TestOpenSpecWorkflowCompliance:
                         expected_title in content
                     ), f"Wrong title format in {change_dir.name}"
 
-                    # Check ADDED section (should be exactly this format)
-                    assert (
-                        "## ADDED Requirements" in content
-                    ), f"Missing ADDED section in {change_dir.name}"
+                    # For update-doc-* changes, require ADDED section only
+                    if change_dir.name.startswith("update-doc-"):
+                        assert (
+                            "## ADDED Requirements" in content
+                        ), f"Missing ADDED section in {change_dir.name}"
+                        # Should not have MODIFIED or REMOVED
+                        assert "## MODIFIED Requirements" not in content
+                        assert "## REMOVED Requirements" not in content
+                    # For update-spec-* changes, allow MODIFIED section
+                    elif change_dir.name.startswith("update-spec-"):
+                        assert (
+                            "## MODIFIED Requirements" in content
+                        ), f"Missing MODIFIED section in {change_dir.name}"
 
                     # Check requirement format
                     requirement_match = re.search(r"### Requirement: (.+)", content)
@@ -128,10 +137,6 @@ class TestOpenSpecWorkflowCompliance:
                     assert (
                         "- **THEN**" in content
                     ), f"Missing THEN clause in {change_dir.name}"
-
-                    # Should not have MODIFIED or REMOVED (we're only adding governance)
-                    assert "## MODIFIED Requirements" not in content
-                    assert "## REMOVED Requirements" not in content
 
 
 class TestOpenSpecValidationRules:

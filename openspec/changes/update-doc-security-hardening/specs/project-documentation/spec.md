@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-security-hardening
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for SECURITY_SPECIFICATION.md
 

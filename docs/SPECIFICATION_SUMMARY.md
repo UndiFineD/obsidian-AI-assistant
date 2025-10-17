@@ -82,9 +82,9 @@ I've created a comprehensive **Technical Specification** document (`docs/SPECIFI
 
 1. **Environment Variables** (highest priority)
 
-2. **backend/config.yaml** (medium priority)
+1. **backend/config.yaml** (medium priority)
 
-3. **Code Defaults** (lowest priority)
+1. **Code Defaults** (lowest priority)
 
 ### **🧪 Testing Strategy**
 

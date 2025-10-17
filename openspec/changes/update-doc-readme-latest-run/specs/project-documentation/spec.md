@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-readme-latest-run
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for README.md
 

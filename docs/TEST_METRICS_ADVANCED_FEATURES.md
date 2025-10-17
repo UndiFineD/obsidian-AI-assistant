@@ -234,17 +234,17 @@ This will:
 
 1. Run pytest with coverage and benchmarks
 
-2. Extract all metrics (tests, coverage, benchmarks)
+1. Extract all metrics (tests, coverage, benchmarks)
 
-3. Compare with previous run (trends)
+1. Compare with previous run (trends)
 
-4. Calculate summary statistics
+1. Calculate summary statistics
 
-5. Update all documentation
+1. Update all documentation
 
-6. Create OpenSpec change
+1. Create OpenSpec change
 
-7. Validate compliance
+1. Validate compliance
 
 ### Manual Entry with All Fields
 
@@ -419,7 +419,7 @@ python scripts/update_test_metrics.py --apply
 
 - Automatic reporting of unstable tests
 
-2. **Performance Regression Alerts**
+1. **Performance Regression Alerts**
 
 - Threshold-based alerting (>10% slowdown)
 
@@ -427,7 +427,7 @@ python scripts/update_test_metrics.py --apply
 
 - Automatic issue creation
 
-3. **Coverage Delta Reports**
+1. **Coverage Delta Reports**
 
 - File-level coverage changes
 
@@ -435,7 +435,7 @@ python scripts/update_test_metrics.py --apply
 
 - Generate coverage heat maps
 
-4. **Test Categorization**
+1. **Test Categorization**
 
 - Separate metrics for unit/integration/e2e
 
@@ -443,7 +443,7 @@ python scripts/update_test_metrics.py --apply
 
 - Weighted averages
 
-5. **Interactive Dashboards**
+1. **Interactive Dashboards**
 
 - HTML dashboard generation
 
@@ -451,7 +451,7 @@ python scripts/update_test_metrics.py --apply
 
 - Drill-down capabilities
 
-6. **Multi-Platform Support**
+1. **Multi-Platform Support**
 
 - Cross-platform trend comparison
 
@@ -768,17 +768,17 @@ This will:
 
 1. Run pytest with coverage and benchmarks
 
-2. Extract all metrics (tests, coverage, benchmarks)
+1. Extract all metrics (tests, coverage, benchmarks)
 
-3. Compare with previous run (trends)
+1. Compare with previous run (trends)
 
-4. Calculate summary statistics
+1. Calculate summary statistics
 
-5. Update all documentation
+1. Update all documentation
 
-6. Create OpenSpec change
+1. Create OpenSpec change
 
-7. Validate compliance
+1. Validate compliance
 
 ### Manual Entry with All Fields
 
@@ -946,7 +946,7 @@ python scripts/update_test_metrics.py --apply
 
 - Automatic reporting of unstable tests
 
-2. **Performance Regression Alerts**
+1. **Performance Regression Alerts**
 
 - Threshold-based alerting (>10% slowdown)
 
@@ -954,7 +954,7 @@ python scripts/update_test_metrics.py --apply
 
 - Automatic issue creation
 
-3. **Coverage Delta Reports**
+1. **Coverage Delta Reports**
 
 - File-level coverage changes
 
@@ -962,7 +962,7 @@ python scripts/update_test_metrics.py --apply
 
 - Generate coverage heat maps
 
-4. **Test Categorization**
+1. **Test Categorization**
 
 - Separate metrics for unit/integration/e2e
 
@@ -970,7 +970,7 @@ python scripts/update_test_metrics.py --apply
 
 - Weighted averages
 
-5. **Interactive Dashboards**
+1. **Interactive Dashboards**
 
 - HTML dashboard generation
 
@@ -978,7 +978,7 @@ python scripts/update_test_metrics.py --apply
 
 - Drill-down capabilities
 
-6. **Multi-Platform Support**
+1. **Multi-Platform Support**
 
 - Cross-platform trend comparison
 

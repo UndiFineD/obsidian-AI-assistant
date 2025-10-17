@@ -179,9 +179,9 @@ http://localhost:8000/health  # System health check
 
 1. **Environment Variables** (highest priority)
 
-2. **backend/config.yaml** (medium priority)
+1. **backend/config.yaml** (medium priority)
 
-3. **Code Defaults** (lowest priority)
+1. **Code Defaults** (lowest priority)
 
 ### **✅ Operational Features**
 
@@ -291,7 +291,8 @@ http://localhost:8000/health  # System health check
 
 ### **1. What is the Obsidian AI Assistant?**
 
-**Answer**: A comprehensive AI integration that transforms Obsidian into an intelligent knowledge assistant. It provides:
+**Answer**: A comprehensive AI integration that transforms Obsidian into an intelligent knowledge assistant. It
+provides:
 
 - **Local AI Chat**: Conversational AI using your notes as context
 
@@ -404,11 +405,11 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 
 1. **Download**: Clone repository or download setup script
 
-2. **Install**: Run `setup.ps1` (Windows) or `setup.sh` (Linux/macOS)
+1. **Install**: Run `setup.ps1` (Windows) or `setup.sh` (Linux/macOS)
 
-3. **Configure**: Follow prompts to select AI models and settings
+1. **Configure**: Follow prompts to select AI models and settings
 
-4. **Use**: Open Obsidian and start chatting with your notes!
+1. **Use**: Open Obsidian and start chatting with your notes!
 
 ### **9. What if I encounter issues?**
 
@@ -446,37 +447,37 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 
 1. **Run Setup Script**: Execute platform-specific setup script
 
-2. **Verify Installation**: Check `/health` endpoint responds
+1. **Verify Installation**: Check `/health` endpoint responds
 
-3. **Configure Models**: Select preferred AI models in settings
+1. **Configure Models**: Select preferred AI models in settings
 
-4. **Test Basic Features**: Try chat, search, and voice input
+1. **Test Basic Features**: Try chat, search, and voice input
 
-5. **Read Documentation**: Review README and API docs at `/docs`
+1. **Read Documentation**: Review README and API docs at `/docs`
 
 ### **For Developers**
 
 1. **Review Architecture**: Study `docs/PROJECT_SPECIFICATION.md`
 
-2. **Run Test Suite**: Execute `pytest --cov=backend`
+1. **Run Test Suite**: Execute `pytest --cov=backend`
 
-3. **Check Code Quality**: Review coverage reports in `htmlcov/`
+1. **Check Code Quality**: Review coverage reports in `htmlcov/`
 
-4. **Understand Configuration**: Review `backend/config.yaml`
+1. **Understand Configuration**: Review `backend/config.yaml`
 
-5. **Explore API**: Test endpoints using Swagger UI at `/docs`
+1. **Explore API**: Test endpoints using Swagger UI at `/docs`
 
 ### **For Contributors**
 
 1. **Read Constitution**: Review `docs/CONSTITUTION.md` for project principles
 
-2. **Study Specification**: Understand requirements in `docs/PROJECT_SPECIFICATION.md`
+1. **Study Specification**: Understand requirements in `docs/PROJECT_SPECIFICATION.md`
 
-3. **Set Up Development**: Run setup script with dev dependencies
+1. **Set Up Development**: Run setup script with dev dependencies
 
-4. **Follow Testing Standards**: Maintain 90%+ coverage requirement
+1. **Follow Testing Standards**: Maintain 90%+ coverage requirement
 
-5. **Review Contribution Guidelines**: Follow established code patterns
+1. **Review Contribution Guidelines**: Follow established code patterns
 
 ---
 

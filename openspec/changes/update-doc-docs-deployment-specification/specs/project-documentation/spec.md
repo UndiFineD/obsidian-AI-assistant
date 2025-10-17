@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-deployment-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for DEPLOYMENT_SPECIFICATION.md
 

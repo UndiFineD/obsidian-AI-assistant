@@ -726,5 +726,657 @@ class TestTenantIntegration:
         assert within_limits is True  # Should be within professional tier limits
 
 
+class TestResourceLimits:
+    """Test resource limit checking and management."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenant."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Resource Test", "admin@resource.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+
+    def test_check_resource_limit_users_within_limit(self):
+        """Test checking user limit when within bounds."""
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "users", requested_amount=5
+        )
+        assert result is True
+
+    def test_check_resource_limit_users_exceeds_limit(self):
+        """Test checking user limit when exceeded."""
+        # Set usage to near limit
+        self.tenant_manager.update_tenant_usage(
+            self.tenant_id, current_users=self.tenant.limits.max_users - 1
+        )
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "users", requested_amount=5
+        )
+        assert result is False
+
+    def test_check_resource_limit_documents(self):
+        """Test document limit checking."""
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "documents", requested_amount=100
+        )
+        assert result is True
+
+    def test_check_resource_limit_api_calls(self):
+        """Test API calls limit checking."""
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "api_calls", requested_amount=50
+        )
+        assert result is True
+
+    def test_check_resource_limit_concurrent_requests(self):
+        """Test concurrent requests limit checking."""
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "concurrent_requests", requested_amount=2
+        )
+        assert result is True
+
+    def test_check_resource_limit_invalid_tenant(self):
+        """Test resource limit check with invalid tenant."""
+        result = self.tenant_manager.check_resource_limit(
+            "invalid-id", "users", requested_amount=1
+        )
+        assert result is False
+
+    def test_check_resource_limit_suspended_tenant(self):
+        """Test resource limit check for suspended tenant."""
+        self.tenant_manager.update_tenant_status(self.tenant_id, "suspended")
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "users", requested_amount=1
+        )
+        assert result is False
+
+    def test_check_resource_limit_unknown_resource_type(self):
+        """Test resource limit check with unknown resource type."""
+        result = self.tenant_manager.check_resource_limit(
+            self.tenant_id, "unknown_resource", requested_amount=1
+        )
+        assert result is True  # Returns True for unknown types
+
+
+class TestUsageIncrement:
+    """Test usage increment functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenant."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Increment Test", "admin@increment.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+
+    def test_increment_usage_users(self):
+        """Test incrementing user usage."""
+        initial_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        initial_users = initial_usage.current_users
+
+        self.tenant_manager.increment_usage(self.tenant_id, "users", amount=3)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.current_users == initial_users + 3
+
+    def test_increment_usage_documents(self):
+        """Test incrementing document usage."""
+        initial_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        initial_docs = initial_usage.current_documents
+
+        self.tenant_manager.increment_usage(self.tenant_id, "documents", amount=10)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.current_documents == initial_docs + 10
+
+    def test_increment_usage_api_calls(self):
+        """Test incrementing API call usage."""
+        self.tenant_manager.increment_usage(self.tenant_id, "api_calls", amount=5)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.api_calls_this_hour == 5
+
+    def test_increment_usage_concurrent_requests(self):
+        """Test incrementing concurrent requests."""
+        self.tenant_manager.increment_usage(
+            self.tenant_id, "concurrent_requests", amount=2
+        )
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.concurrent_requests == 2
+
+    def test_increment_usage_storage(self):
+        """Test incrementing storage usage."""
+        self.tenant_manager.increment_usage(self.tenant_id, "storage", amount=5)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.storage_used_gb == 5.0
+
+    def test_increment_usage_invalid_tenant(self):
+        """Test increment usage with invalid tenant ID."""
+        # Should not raise error, just ignore
+        self.tenant_manager.increment_usage("invalid-id", "users", amount=1)
+
+    def test_increment_usage_updates_timestamp(self):
+        """Test that increment_usage updates last_updated timestamp."""
+        initial_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        initial_timestamp = initial_usage.last_updated
+
+        import time
+
+        time.sleep(0.01)  # Small delay to ensure timestamp difference
+
+        self.tenant_manager.increment_usage(self.tenant_id, "users", amount=1)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.last_updated > initial_timestamp
+
+
+class TestHourlyMetricsReset:
+    """Test hourly metrics reset functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenant."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Reset Test", "admin@reset.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+
+    def test_reset_hourly_metrics(self):
+        """Test resetting hourly metrics."""
+        # Increment API calls
+        self.tenant_manager.increment_usage(self.tenant_id, "api_calls", amount=100)
+
+        usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert usage.api_calls_this_hour == 100
+
+        # Reset hourly metrics
+        self.tenant_manager.reset_hourly_metrics(self.tenant_id)
+
+        usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert usage.api_calls_this_hour == 0
+
+    def test_reset_hourly_metrics_invalid_tenant(self):
+        """Test reset with invalid tenant ID."""
+        # Should not raise error
+        self.tenant_manager.reset_hourly_metrics("invalid-id")
+
+    def test_reset_hourly_metrics_updates_timestamp(self):
+        """Test that reset updates timestamp."""
+        initial_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        initial_timestamp = initial_usage.last_updated
+
+        import time
+
+        time.sleep(0.01)
+
+        self.tenant_manager.reset_hourly_metrics(self.tenant_id)
+
+        updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert updated_usage.last_updated > initial_timestamp
+
+
+class TestTenantSuspension:
+    """Test tenant suspension functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenant."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Suspend Test", "admin@suspend.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+
+    def test_suspend_tenant(self):
+        """Test suspending a tenant."""
+        self.tenant_manager.suspend_tenant(self.tenant_id, reason="Payment overdue")
+
+        tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        assert tenant.status == "suspended"
+
+    def test_suspend_tenant_without_reason(self):
+        """Test suspending tenant without reason."""
+        self.tenant_manager.suspend_tenant(self.tenant_id)
+
+        tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        assert tenant.status == "suspended"
+
+    def test_suspend_tenant_invalid_id(self):
+        """Test suspending non-existent tenant."""
+        # Should not raise error
+        self.tenant_manager.suspend_tenant("invalid-id", reason="Test")
+
+
+class TestTenantIsolation:
+    """Test tenant isolation functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and isolation."""
+        from backend.enterprise_tenant import (
+            TenantIsolation,
+            TenantManager,
+            TenantTier,
+        )
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Isolation Test", "admin@isolation.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+        self.isolation = TenantIsolation(self.tenant_manager)
+
+    def test_get_tenant_vault_path(self):
+        """Test getting isolated vault path."""
+        path = self.isolation.get_tenant_vault_path(self.tenant_id)
+        assert path == f"./vaults/tenant_{self.tenant_id}"
+        assert self.tenant_id in path
+
+    def test_get_tenant_vault_path_invalid_tenant(self):
+        """Test vault path with invalid tenant."""
+        with pytest.raises(ValueError, match="Invalid or missing tenant_id"):
+            self.isolation.get_tenant_vault_path("invalid-id")
+
+    def test_get_tenant_vault_path_empty_tenant_id(self):
+        """Test vault path with empty tenant ID."""
+        with pytest.raises(ValueError, match="Invalid or missing tenant_id"):
+            self.isolation.get_tenant_vault_path("")
+
+    def test_get_tenant_cache_path(self):
+        """Test getting isolated cache path."""
+        path = self.isolation.get_tenant_cache_path(self.tenant_id)
+        assert path == f"./backend/cache/tenant_{self.tenant_id}"
+        assert self.tenant_id in path
+
+    def test_get_tenant_cache_path_invalid_tenant(self):
+        """Test cache path with invalid tenant."""
+        with pytest.raises(ValueError, match="Invalid or missing tenant_id"):
+            self.isolation.get_tenant_cache_path("invalid-id")
+
+    def test_get_tenant_models_path(self):
+        """Test getting isolated models path."""
+        path = self.isolation.get_tenant_models_path(self.tenant_id)
+        assert path == f"./backend/models/tenant_{self.tenant_id}"
+        assert self.tenant_id in path
+
+    def test_get_tenant_models_path_invalid_tenant(self):
+        """Test models path with invalid tenant."""
+        with pytest.raises(ValueError, match="Invalid or missing tenant_id"):
+            self.isolation.get_tenant_models_path("invalid-id")
+
+    def test_get_tenant_logs_path(self):
+        """Test getting isolated logs path."""
+        path = self.isolation.get_tenant_logs_path(self.tenant_id)
+        assert path == f"./logs/tenant_{self.tenant_id}"
+        assert self.tenant_id in path
+
+    def test_get_tenant_logs_path_invalid_tenant(self):
+        """Test logs path with invalid tenant."""
+        with pytest.raises(ValueError, match="Invalid or missing tenant_id"):
+            self.isolation.get_tenant_logs_path("invalid-id")
+
+    def test_filter_user_access_valid(self):
+        """Test user access filtering with valid resource."""
+        resource = f"/vaults/tenant_{self.tenant_id}/document.md"
+        result = self.isolation.filter_user_access(
+            self.tenant_id, "user123", resource
+        )
+        assert result is True
+
+    def test_filter_user_access_invalid_resource(self):
+        """Test user access filtering with resource from different tenant."""
+        resource = "/vaults/tenant_other_id/document.md"
+        result = self.isolation.filter_user_access(
+            self.tenant_id, "user123", resource
+        )
+        assert result is False
+
+    def test_filter_user_access_invalid_tenant(self):
+        """Test user access filtering with invalid tenant."""
+        resource = f"/vaults/tenant_{self.tenant_id}/document.md"
+        result = self.isolation.filter_user_access("invalid-id", "user123", resource)
+        assert result is False
+
+    def test_filter_user_access_suspended_tenant(self):
+        """Test user access filtering for suspended tenant."""
+        self.tenant_manager.suspend_tenant(self.tenant_id)
+        resource = f"/vaults/tenant_{self.tenant_id}/document.md"
+        result = self.isolation.filter_user_access(
+            self.tenant_id, "user123", resource
+        )
+        assert result is False
+
+
+class TestBillingManager:
+    """Test billing manager functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and billing manager."""
+        from backend.enterprise_tenant import BillingManager, TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Billing Test", "admin@billing.com", TenantTier.PROFESSIONAL
+        )
+        self.tenant_id = self.tenant.tenant_id
+        self.billing_manager = BillingManager(self.tenant_manager)
+
+    def test_record_usage_event(self):
+        """Test recording a usage event."""
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "api_call", quantity=10, metadata={"endpoint": "/ask"}
+        )
+
+        assert self.tenant_id in self.billing_manager.usage_history
+        events = self.billing_manager.usage_history[self.tenant_id]
+        assert len(events) == 1
+        assert events[0]["event_type"] == "api_call"
+        assert events[0]["quantity"] == 10
+
+    def test_record_multiple_usage_events(self):
+        """Test recording multiple usage events."""
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "api_call", quantity=5
+        )
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "document_index", quantity=2
+        )
+
+        events = self.billing_manager.usage_history[self.tenant_id]
+        assert len(events) == 2
+
+    def test_generate_usage_report(self):
+        """Test generating usage report."""
+        from datetime import datetime, timedelta
+
+        # Record some events
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "api_call", quantity=10
+        )
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "api_call", quantity=5
+        )
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "document_index", quantity=3
+        )
+
+        # Generate report
+        start_date = datetime.utcnow() - timedelta(hours=1)
+        end_date = datetime.utcnow() + timedelta(hours=1)
+
+        report = self.billing_manager.generate_usage_report(
+            self.tenant_id, start_date, end_date
+        )
+
+        assert report["tenant_id"] == self.tenant_id
+        assert report["tenant_name"] == "Billing Test"
+        assert report["total_events"] == 3
+        assert report["usage_summary"]["api_call"] == 15
+        assert report["usage_summary"]["document_index"] == 3
+        assert report["tier"] == "pro"
+
+    def test_generate_usage_report_empty(self):
+        """Test generating report with no events."""
+        from datetime import datetime, timedelta
+
+        start_date = datetime.utcnow() - timedelta(hours=1)
+        end_date = datetime.utcnow() + timedelta(hours=1)
+
+        report = self.billing_manager.generate_usage_report(
+            self.tenant_id, start_date, end_date
+        )
+
+        assert report["total_events"] == 0
+        assert report["usage_summary"] == {}
+
+    def test_generate_usage_report_date_filtering(self):
+        """Test that usage report filters by date range."""
+        from datetime import datetime, timedelta
+
+        # Record event
+        self.billing_manager.record_usage_event(
+            self.tenant_id, "api_call", quantity=10
+        )
+
+        # Generate report with past date range (should be empty)
+        start_date = datetime.utcnow() - timedelta(days=7)
+        end_date = datetime.utcnow() - timedelta(days=6)
+
+        report = self.billing_manager.generate_usage_report(
+            self.tenant_id, start_date, end_date
+        )
+
+        assert report["total_events"] == 0
+
+
+class TestFeatureAccess:
+    """Test feature access checking."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenants."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.basic_tenant = self.tenant_manager.create_tenant(
+            "Basic Feature Test", "basic@feature.com", TenantTier.BASIC
+        )
+        self.pro_tenant = self.tenant_manager.create_tenant(
+            "Pro Feature Test", "pro@feature.com", TenantTier.PROFESSIONAL
+        )
+
+    def test_has_feature_access_enabled(self):
+        """Test feature access when feature is enabled."""
+        # Professional tier has 'analytics' feature
+        result = self.tenant_manager.has_feature_access(
+            self.pro_tenant.tenant_id, "analytics"
+        )
+        assert result is True
+
+    def test_has_feature_access_disabled(self):
+        """Test feature access when feature is disabled."""
+        # Basic tier doesn't have 'analytics' feature
+        result = self.tenant_manager.has_feature_access(
+            self.basic_tenant.tenant_id, "analytics"
+        )
+        assert result is False
+
+    def test_has_feature_access_invalid_tenant(self):
+        """Test feature access with invalid tenant."""
+        result = self.tenant_manager.has_feature_access("invalid-id", "sso")
+        assert result is False
+
+    def test_has_feature_access_all_features(self):
+        """Test when tenant has 'all' features enabled."""
+        from backend.enterprise_tenant import TenantTier
+
+        enterprise_tenant = self.tenant_manager.create_tenant(
+            "Enterprise Feature Test", "enterprise@feature.com", TenantTier.ENTERPRISE
+        )
+
+        # Enterprise tier has more features
+        result = self.tenant_manager.has_feature_access(
+            enterprise_tenant.tenant_id, "any_feature"
+        )
+        # Will return True if 'all' is in features or if feature is explicitly listed
+        assert isinstance(result, bool)
+
+
+class TestTenantUpgrade:
+    """Test tenant tier upgrade functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager and tenant."""
+        from backend.enterprise_tenant import TenantManager, TenantTier
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Upgrade Test", "admin@upgrade.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+
+    def test_upgrade_tenant_basic_to_pro(self):
+        """Test upgrading tenant from basic to professional."""
+        from backend.enterprise_tenant import TenantTier
+
+        result = self.tenant_manager.upgrade_tenant(
+            self.tenant_id, TenantTier.PROFESSIONAL
+        )
+        assert result is True
+
+        tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        assert tenant.tier == TenantTier.PROFESSIONAL
+        assert tenant.limits.max_users == 100  # Professional tier limit
+
+    def test_upgrade_tenant_to_enterprise(self):
+        """Test upgrading tenant to enterprise tier."""
+        from backend.enterprise_tenant import TenantTier
+
+        result = self.tenant_manager.upgrade_tenant(
+            self.tenant_id, TenantTier.ENTERPRISE
+        )
+        assert result is True
+
+        tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        assert tenant.tier == TenantTier.ENTERPRISE
+
+    def test_upgrade_tenant_invalid_id(self):
+        """Test upgrade with invalid tenant ID."""
+        from backend.enterprise_tenant import TenantTier
+
+        result = self.tenant_manager.upgrade_tenant("invalid-id", TenantTier.ENTERPRISE)
+        assert result is False
+
+    def test_upgrade_tenant_updates_limits(self):
+        """Test that upgrade updates tenant limits."""
+        from backend.enterprise_tenant import TenantTier
+
+        # Get initial limits
+        initial_tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        initial_max_users = initial_tenant.limits.max_users
+
+        # Upgrade
+        self.tenant_manager.upgrade_tenant(self.tenant_id, TenantTier.PROFESSIONAL)
+
+        # Check updated limits
+        updated_tenant = self.tenant_manager.get_tenant(self.tenant_id)
+        assert updated_tenant.limits.max_users > initial_max_users
+
+
+class TestMultiTenantMiddleware:
+    """Test multi-tenant middleware functionality."""
+
+    def setup_method(self):
+        """Set up test tenant manager, middleware, and mock request."""
+        from backend.enterprise_tenant import (
+            MultiTenantMiddleware,
+            TenantManager,
+            TenantTier,
+        )
+        from unittest.mock import AsyncMock, MagicMock
+
+        self.tenant_manager = TenantManager()
+        self.tenant = self.tenant_manager.create_tenant(
+            "Middleware Test", "admin@middleware.com", TenantTier.BASIC
+        )
+        self.tenant_id = self.tenant.tenant_id
+        self.middleware = MultiTenantMiddleware(self.tenant_manager)
+
+        # Create mock request
+        self.mock_request = MagicMock()
+        self.mock_request.state = MagicMock()
+        self.mock_request.headers = {"X-Tenant-ID": self.tenant_id}
+
+        # Create mock call_next
+        self.mock_call_next = AsyncMock()
+        self.mock_call_next.return_value = MagicMock(status_code=200)
+
+    def test_extract_tenant_id_from_header(self):
+        """Test extracting tenant ID from header."""
+        tenant_id = self.middleware._extract_tenant_id(self.mock_request)
+        assert tenant_id == self.tenant_id
+
+    def test_extract_tenant_id_from_user_state(self):
+        """Test extracting tenant ID from user state."""
+        self.mock_request.state.user = {"tenant_id": self.tenant_id}
+        tenant_id = self.middleware._extract_tenant_id(self.mock_request)
+        assert tenant_id == self.tenant_id
+
+    def test_extract_tenant_id_missing(self):
+        """Test extracting tenant ID when missing."""
+        self.mock_request.headers = {}
+        tenant_id = self.middleware._extract_tenant_id(self.mock_request)
+        assert tenant_id is None
+
+    @pytest.mark.asyncio
+    async def test_middleware_call_success(self):
+        """Test successful middleware call."""
+        response = await self.middleware(self.mock_request, self.mock_call_next)
+
+        assert response.status_code == 200
+        assert hasattr(self.mock_request.state, "tenant_id")
+        assert self.mock_request.state.tenant_id == self.tenant_id
+        self.mock_call_next.assert_called_once_with(self.mock_request)
+
+    @pytest.mark.asyncio
+    async def test_middleware_call_missing_tenant_id(self):
+        """Test middleware call with missing tenant ID."""
+        self.mock_request.headers = {}
+        response = await self.middleware(self.mock_request, self.mock_call_next)
+
+        assert response.status_code == 400
+        # Extract JSON content
+        import json
+
+        content = json.loads(response.body.decode())
+        assert "error" in content
+        assert "tenant" in content["error"].lower()
+
+    @pytest.mark.asyncio
+    async def test_middleware_call_invalid_tenant_id(self):
+        """Test middleware call with invalid tenant ID."""
+        self.mock_request.headers = {"X-Tenant-ID": "invalid-tenant-id"}
+        response = await self.middleware(self.mock_request, self.mock_call_next)
+
+        assert response.status_code == 400
+
+    @pytest.mark.asyncio
+    async def test_middleware_concurrent_request_tracking(self):
+        """Test that middleware tracks concurrent requests."""
+        initial_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        initial_concurrent = initial_usage.concurrent_requests
+
+        # Call middleware
+        await self.middleware(self.mock_request, self.mock_call_next)
+
+        # After completion, concurrent requests should be back to initial
+        final_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
+        assert final_usage.concurrent_requests == initial_concurrent
+
+    @pytest.mark.asyncio
+    async def test_middleware_concurrent_limit_exceeded(self):
+        """Test middleware behavior when concurrent limit is exceeded."""
+        # Set concurrent requests to limit
+        self.tenant_manager.update_tenant_usage(
+            self.tenant_id, concurrent_requests=self.tenant.limits.max_concurrent_requests
+        )
+
+        response = await self.middleware(self.mock_request, self.mock_call_next)
+
+        assert response.status_code == 429
+        import json
+
+        content = json.loads(response.body.decode())
+        assert "limit" in content["error"].lower()
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

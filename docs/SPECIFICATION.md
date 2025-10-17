@@ -782,7 +782,8 @@ Successful web indexing:
 
 ```json
 {
-    "answer": "This page discusses Python's json module, which provides methods to parse JSON data using json.loads() for strings and json.load() for files.",
+    "answer": "This page discusses Python's json module, which provides methods to parse JSON data using json.loads()
+for strings and json.load() for files.",
     "url_processed": "https://docs.python.org/3/library/json.html",
     "content_indexed": true,
     "processing_time": 3.21,
@@ -1095,13 +1096,13 @@ interface TranscribeResponse {
 
 1. Base64 decode audio data
 
-2. Format validation and conversion
+1. Format validation and conversion
 
-3. Speech recognition using Vosk or configured engine
+1. Speech recognition using Vosk or configured engine
 
-4. Post-processing and confidence scoring
+1. Post-processing and confidence scoring
 
-5. Response formatting and return
+1. Response formatting and return
 
 ---
 
@@ -1109,7 +1110,8 @@ interface TranscribeResponse {
 
 ### Pydantic Request Models
 
-The FastAPI backend uses Pydantic models for request validation, providing automatic type checking, data validation, and API documentation generation.
+The FastAPI backend uses Pydantic models for request validation, providing automatic type checking, data validation,
+and API documentation generation.
 
 #### AskRequest
 
@@ -1242,9 +1244,9 @@ FastAPI automatically generates OpenAPI 3.0 specifications accessible at:
 
 1. **Environment Variables** (highest priority)
 
-2. **backend/config.yaml** (medium priority)
+1. **backend/config.yaml** (medium priority)
 
-3. **Code Defaults** (lowest priority)
+1. **Code Defaults** (lowest priority)
 
 ### Settings Model
 
@@ -1808,7 +1810,8 @@ tox -e py310,py311,py312
 
 ### Security Architecture Overview
 
-The Obsidian AI Assistant implements a defense-in-depth security model with local-first processing, configurable network isolation, and comprehensive data protection mechanisms.
+The Obsidian AI Assistant implements a defense-in-depth security model with local-first processing, configurable
+network isolation, and comprehensive data protection mechanisms.
 
 #### Security Principles
 
@@ -2240,7 +2243,8 @@ class SecurityRiskAssessment:
 
 ### Performance Architecture
 
-The system is designed for optimal performance across different deployment scenarios, from resource-constrained development environments to high-performance production servers.
+The system is designed for optimal performance across different deployment scenarios, from resource-constrained
+development environments to high-performance production servers.
 
 #### Performance Design Principles
 
@@ -2729,7 +2733,8 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 # Download and run setup script
 
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.ps1" -OutFile "setup.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.ps1" -OutFile
+"setup.ps1"
 .\setup.ps1 -InstallType Production -EnableGPU $true
 
 # Verify installation
@@ -2743,7 +2748,8 @@ python -m backend.backend --version
 
 # Download and run setup script
 
-curl -fsSL https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.sh | bash -s -- --install-type=production --enable-gpu
+curl -fsSL https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.sh | bash -s --
+--install-type=production --enable-gpu
 
 # Verify installation
 
@@ -3170,7 +3176,8 @@ Resources:
                     systemctl enable docker
 
                     # Install Docker Compose
-                    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+                    curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname
+-s)-$(uname -m)" -o /usr/local/bin/docker-compose
                     chmod +x /usr/local/bin/docker-compose
 
                     # Clone repository
@@ -3752,16 +3759,16 @@ python -m backend.modelmanager verify --model llama-7b.gguf
 1. Check model file exists and has correct permissions:
     ls -la backend/models/llama-7b.gguf
 
-2. Verify model file integrity:
+1. Verify model file integrity:
    python -m backend.modelmanager checksum --model llama-7b.gguf
 
-3. Re-download model:
+1. Re-download model:
    python -m backend.modelmanager download --model llama-7b-chat --force
 
-4. Check available disk space:
+1. Check available disk space:
     df -h backend/models/
 
-5. Verify memory requirements:
+1. Verify memory requirements:
    python -c "import psutil; print(f'Available RAM: {psutil.virtual_memory().available / 1e9:.1f}GB')"
 ```
 
@@ -3783,13 +3790,13 @@ python -m backend.diagnostics memory-profile
    MODEL_BACKEND=llama_cpp
     MODEL_PATH=backend/models/llama-7b-q4.gguf  # Quantized version
 
-2. Lower concurrent request limits:
+1. Lower concurrent request limits:
    MAX_CONCURRENT_AI_REQUESTS=1
 
-3. Enable memory optimization:
+1. Enable memory optimization:
    ENABLE_MEMORY_OPTIMIZATION=true
 
-4. Clear caches:
+1. Clear caches:
    python -m backend.cache clear --all
 ```
 
@@ -3811,14 +3818,14 @@ python -m backend.diagnostics performance-profile --duration 300
    GPU=true
    pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-2. Optimize chunk size:
+1. Optimize chunk size:
    CHUNK_SIZE=512  # Smaller chunks for faster processing
 
-3. Enable caching:
+1. Enable caching:
    ENABLE_RESPONSE_CACHE=true
    CACHE_TTL=3600
 
-4. Use faster model:
+1. Use faster model:
     MODEL_PATH=backend/models/llama-7b-q4-fast.gguf
 ```
 

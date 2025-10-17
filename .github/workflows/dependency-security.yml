@@ -1,0 +1,360 @@
+name: Dependency Security Scan
+
+on:
+  schedule:
+    # Run weekly on Mondays at 8:00 AM UTC
+    - cron: '0 8 * * 1'
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'package*.json'
+      - '.github/workflows/dependency-security.yml'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'requirements*.txt'
+      - 'pyproject.toml'
+      - 'package*.json'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of scan to perform'
+        required: false
+        default: 'full'
+        type: choice
+        options:
+          - 'full'
+          - 'security-only'
+          - 'outdated-only'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  dependency-analysis:
+    name: Dependency Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      
+      - name: Create virtual environment
+        run: |
+          python -m venv venv
+          source venv/bin/activate
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+          echo "$VIRTUAL_ENV/bin" >> $GITHUB_PATH
+      
+      - name: Install base dependencies
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          python -m pip install safety bandit pip-audit pipdeptree packaging requests
+      
+      - name: Install project dependencies
+        run: |
+          if [ -f requirements.txt ]; then
+            python -m pip install -r requirements.txt
+          fi
+          if [ -f requirements-dev.txt ]; then
+            python -m pip install -r requirements-dev.txt
+          fi
+        continue-on-error: true  # Don't fail if some deps can't install
+      
+      - name: Create reports directory
+        run: mkdir -p reports
+      
+      - name: Run comprehensive dependency analysis
+        run: |
+          python scripts/dependency_manager.py --format json --output reports/dependency-analysis.json
+        continue-on-error: true
+      
+      - name: Run security-focused scan
+        run: |
+          python scripts/security_scanner.py --format json --output reports/security-scan.json
+        continue-on-error: true
+      
+      - name: Run Safety security scan
+        run: |
+          # Create a comprehensive requirements file
+          cat requirements*.txt > all-requirements.txt 2>/dev/null || true
+          
+          # Run safety check with JSON output
+          safety check -r all-requirements.txt --json --output reports/safety-report.json || true
+          
+          # Also generate human-readable report
+          safety check -r all-requirements.txt --output reports/safety-report.txt || echo "Safety scan completed with warnings"
+        continue-on-error: true
+      
+      - name: Run Bandit security scan
+        run: |
+          if [ -d backend ]; then
+            bandit -r backend/ -f json -o reports/bandit-report.json --skip B101 || true
+            bandit -r backend/ -f txt -o reports/bandit-report.txt --skip B101 || echo "Bandit scan completed with warnings"
+          fi
+        continue-on-error: true
+      
+      - name: Run pip-audit scan
+        run: |
+          pip-audit --format=json --output=reports/pip-audit.json || true
+          pip-audit --format=cyclonedx-json --output=reports/sbom.json || true
+        continue-on-error: true
+      
+      - name: Check for outdated packages
+        run: |
+          pip list --outdated --format=json > reports/outdated-packages.json || true
+        continue-on-error: true
+      
+      - name: Generate dependency tree
+        run: |
+          pipdeptree --json > reports/dependency-tree.json || true
+          pipdeptree --graph-output png > reports/dependency-graph.png || true
+        continue-on-error: true
+      
+      - name: Create SBOM (Software Bill of Materials)
+        run: |
+          pip-audit --format=cyclonedx-json --output=reports/sbom-cyclonedx.json || true
+          # Alternative: use syft if available
+          # syft packages dir:. -o spdx-json > reports/sbom-spdx.json || true
+        continue-on-error: true
+      
+      - name: Process scan results
+        id: process-results
+        run: |
+          # Process results and set outputs for later steps
+          CRITICAL_VULNS=0
+          HIGH_VULNS=0
+          TOTAL_ISSUES=0
+          
+          # Count vulnerabilities from safety report
+          if [ -f reports/safety-report.json ]; then
+            SAFETY_VULNS=$(python -c "
+          import json
+          try:
+              with open('reports/safety-report.json', 'r') as f:
+                  data = json.load(f)
+              print(len(data))
+          except:
+              print(0)
+          " 2>/dev/null || echo 0)
+            TOTAL_ISSUES=$((TOTAL_ISSUES + SAFETY_VULNS))
+          fi
+          
+          # Count issues from bandit report
+          if [ -f reports/bandit-report.json ]; then
+            BANDIT_ISSUES=$(python -c "
+          import json
+          try:
+              with open('reports/bandit-report.json', 'r') as f:
+                  data = json.load(f)
+              print(len(data.get('results', [])))
+          except:
+              print(0)
+          " 2>/dev/null || echo 0)
+            TOTAL_ISSUES=$((TOTAL_ISSUES + BANDIT_ISSUES))
+          fi
+          
+          echo "total_issues=$TOTAL_ISSUES" >> $GITHUB_OUTPUT
+          echo "critical_vulns=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+          echo "high_vulns=$HIGH_VULNS" >> $GITHUB_OUTPUT
+          
+          # Create summary
+          echo "## 🔍 Dependency Security Scan Results" > reports/summary.md
+          echo "" >> reports/summary.md
+          echo "- **Total Issues Found**: $TOTAL_ISSUES" >> reports/summary.md
+          echo "- **Safety Vulnerabilities**: ${SAFETY_VULNS:-0}" >> reports/summary.md
+          echo "- **Bandit Security Issues**: ${BANDIT_ISSUES:-0}" >> reports/summary.md
+          echo "" >> reports/summary.md
+          
+          if [ $TOTAL_ISSUES -eq 0 ]; then
+            echo "✅ **No critical security issues detected!**" >> reports/summary.md
+          else
+            echo "⚠️ **Security issues detected - review required**" >> reports/summary.md
+          fi
+      
+      - name: Upload scan reports as artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-security-reports-${{ matrix.python-version }}
+          path: reports/
+          retention-days: 30
+      
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() && (github.event_name == 'push' || github.event_name == 'schedule')
+        with:
+          sarif_file: reports/bandit-report.json
+        continue-on-error: true
+      
+      - name: Comment on PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let summary = '## 🔍 Dependency Security Scan Results\n\n';
+            
+            try {
+              const summaryContent = fs.readFileSync('reports/summary.md', 'utf8');
+              summary += summaryContent;
+            } catch (error) {
+              summary += '❌ Unable to read scan summary\n';
+            }
+            
+            // Add detailed breakdown if available
+            try {
+              const safetyReport = JSON.parse(fs.readFileSync('reports/safety-report.json', 'utf8'));
+              if (safetyReport.length > 0) {
+                summary += '\n### 🚨 Safety Vulnerabilities:\n';
+                safetyReport.slice(0, 5).forEach(vuln => {
+                  summary += `- **${vuln.package || 'Unknown'}**: ${vuln.vulnerability || 'Unknown vulnerability'}\n`;
+                });
+                if (safetyReport.length > 5) {
+                  summary += `\n_... and ${safetyReport.length - 5} more vulnerabilities_\n`;
+                }
+              }
+            } catch (error) {
+              // Safety report not available or empty
+            }
+            
+            summary += '\n📊 **Full reports available in workflow artifacts**';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+      
+      - name: Create issue for critical vulnerabilities
+        if: steps.process-results.outputs.total_issues != '0' && (github.event_name == 'schedule' || github.event_name == 'push')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const totalIssues = ${{ steps.process-results.outputs.total_issues }};
+            
+            const title = `🚨 Security vulnerabilities detected in dependencies (${totalIssues} issues)`;
+            const body = `
+            ## Security Scan Alert
+            
+            Our automated dependency security scan has detected **${totalIssues}** security issues that require attention.
+            
+            ### Quick Actions:
+            1. Review the detailed reports in the workflow artifacts
+            2. Update vulnerable dependencies using the recommendations
+            3. Run \`python scripts/dependency_manager.py\` locally for detailed analysis
+            4. Run \`python scripts/security_scanner.py\` for security-focused analysis
+            
+            ### Reports Available:
+            - Safety vulnerability scan
+            - Bandit code security analysis  
+            - Outdated packages report
+            - Dependency tree analysis
+            
+            **Workflow Run**: [#${{ github.run_number }}](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            
+            ---
+            *This issue was automatically created by the dependency security scan workflow.*
+            `;
+            
+            // Check if similar issue already exists
+            const existingIssues = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['security', 'dependencies', 'automated'],
+              state: 'open'
+            });
+            
+            const hasExistingIssue = existingIssues.data.some(issue => 
+              issue.title.includes('Security vulnerabilities detected')
+            );
+            
+            if (!hasExistingIssue) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: title,
+                body: body,
+                labels: ['security', 'dependencies', 'automated', 'priority-high']
+              });
+            }
+      
+      - name: Fail job if critical vulnerabilities found
+        if: steps.process-results.outputs.critical_vulns != '0'
+        run: |
+          echo "❌ Critical vulnerabilities detected! Job failing to prevent deployment."
+          exit 1
+
+  # Separate job for generating reports
+  generate-reports:
+    name: Generate Dependency Reports
+    needs: dependency-analysis
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download analysis artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dependency-security-reports-3.11
+          path: reports/
+      
+      - name: Generate consolidated report
+        run: |
+          echo "# Dependency Security Report" > DEPENDENCY_REPORT.md
+          echo "Generated: $(date)" >> DEPENDENCY_REPORT.md
+          echo "" >> DEPENDENCY_REPORT.md
+          
+          if [ -f reports/summary.md ]; then
+            cat reports/summary.md >> DEPENDENCY_REPORT.md
+          fi
+          
+          echo "" >> DEPENDENCY_REPORT.md
+          echo "## Available Reports" >> DEPENDENCY_REPORT.md
+          echo "" >> DEPENDENCY_REPORT.md
+          
+          for report in reports/*.json reports/*.txt; do
+            if [ -f "$report" ]; then
+              echo "- \`$(basename "$report")\`" >> DEPENDENCY_REPORT.md
+            fi
+          done
+      
+      - name: Commit report updates
+        if: github.event_name == 'schedule' || github.event_name == 'push'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          if [ -f DEPENDENCY_REPORT.md ]; then
+            git add DEPENDENCY_REPORT.md
+            git diff --staged --quiet || git commit -m "docs: update dependency security report [skip ci]"
+            git push origin HEAD:${{ github.ref_name }} || echo "No changes to commit"
+          fi

@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-obsidian-plugins-obsidian-ai-assistant-setup
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for SETUP.md
 

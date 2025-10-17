@@ -10,7 +10,8 @@
 
 Successfully implemented comprehensive automation for test metrics updates across project documentation, including:
 
-- **Automation Script**: Enhanced `scripts/update_test_metrics.py` with pytest runner, file updaters, and OpenSpec scaffolding
+- **Automation Script**: Enhanced `scripts/update_test_metrics.py` with pytest runner, file updaters, and OpenSpec
+scaffolding
 
 - **CI/CD Integration**: New GitHub Actions workflow for scheduled and manual updates
 
@@ -129,19 +130,19 @@ create-pr: boolean (default: true)
 
 1. Checkout repository with full history
 
-2. Set up Python 3.10 environment
+1. Set up Python 3.10 environment
 
-3. Install test dependencies (ML libraries mocked)
+1. Install test dependencies (ML libraries mocked)
 
-4. Prepare test environment (directories, test vault)
+1. Prepare test environment (directories, test vault)
 
-5. Run full pytest suite with parsing
+1. Run full pytest suite with parsing
 
-6. Update documentation via automation script
+1. Update documentation via automation script
 
-7. Create PR or commit directly based on `create-pr` flag
+1. Create PR or commit directly based on `create-pr` flag
 
-8. Generate workflow summary
+1. Generate workflow summary
 
 **PR Creation:**
 
@@ -240,7 +241,7 @@ create-pr: boolean (default: true)
 
 - Scenarios: 2 with GIVEN/WHEN/THEN format
 
-2. **update-doc-readme-latest-run**
+1. **update-doc-readme-latest-run**
 
 - Purpose: Govern README updates
 
@@ -250,7 +251,7 @@ create-pr: boolean (default: true)
 
 - Scenarios: 1 with GIVEN/WHEN/THEN format
 
-3. **add-feat-test-metrics-automation**
+1. **add-feat-test-metrics-automation**
 
 - Purpose: Govern automation implementation
 
@@ -308,13 +309,14 @@ Date: October 15, 2025
 
 - Validates: Change structure, proposal format, spec compliance, capability consistency
 
-2. **Automation Script Dry-Run**
+1. **Automation Script Dry-Run**
 
-- Command: `python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15`
+- Command: `python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date
+2025-10-15`
 
 - Result: ✅ Preview output validated for README, TEST_RESULTS, SYSTEM_STATUS
 
-3. **Unicode Escape Fix Validation**
+1. **Unicode Escape Fix Validation**
 
 - Before: `SyntaxError: (unicode error) 'unicodeescape' codec can't decode bytes`
 
@@ -343,21 +345,21 @@ Search & Embeddings: 89+ tests (100% pass)
 
 - Lines 118, 120: Ordered list numbering fixed (markdown lint)
 
-2. **docs/TEST_RESULTS_OCTOBER_2025.md**
+1. **docs/TEST_RESULTS_OCTOBER_2025.md**
 
 - Header date, test results, execution time updated
 
-3. **docs/SYSTEM_STATUS_OCTOBER_2025.md**
+1. **docs/SYSTEM_STATUS_OCTOBER_2025.md**
 
 - Test results line, latest update date modified
 
-4. **scripts/update_test_metrics.py**
+1. **scripts/update_test_metrics.py**
 
 - Line 1: Changed to raw string (`r"""...`) to fix Unicode escape
 
 - Lines 5-7: Changed `.\scripts\` to `scripts/` in examples
 
-5. **docs/TESTING_GUIDE.md**
+1. **docs/TESTING_GUIDE.md**
 
 - Added new section: "🤖 Test Metrics Automation" (~150 lines)
 
@@ -365,7 +367,7 @@ Search & Embeddings: 89+ tests (100% pass)
 
 ### Created Files
 
-6. **.github/workflows/update-test-metrics.yml** (NEW)
+1. **.github/workflows/update-test-metrics.yml** (NEW)
 
 - 171 lines of GitHub Actions YAML
 
@@ -373,7 +375,7 @@ Search & Embeddings: 89+ tests (100% pass)
 
 - Full CI/CD pipeline for test metrics updates
 
-7. **openspec/changes/update-doc-docs-test-results-october-2025/** (NEW)
+1. **openspec/changes/update-doc-docs-test-results-october-2025/** (NEW)
 
 - proposal.md (15 lines)
 
@@ -381,7 +383,7 @@ Search & Embeddings: 89+ tests (100% pass)
 
 - specs/project-documentation/spec.md (32 lines)
 
-8. **openspec/changes/update-doc-readme-latest-run/** (NEW)
+1. **openspec/changes/update-doc-readme-latest-run/** (NEW)
 
 - proposal.md (14 lines)
 
@@ -389,7 +391,7 @@ Search & Embeddings: 89+ tests (100% pass)
 
 - specs/project-documentation/spec.md (25 lines)
 
-9. **openspec/changes/add-feat-test-metrics-automation/** (NEW)
+1. **openspec/changes/add-feat-test-metrics-automation/** (NEW)
 
 - proposal.md (19 lines)
 
@@ -438,7 +440,7 @@ Total Lines Modified: ~20 lines
 
 - Solution: Use raw strings (`r"""..."""`) or forward slashes in docstrings
 
-2. **OpenSpec Governance Requirements**
+1. **OpenSpec Governance Requirements**
 
 - Proposals must explicitly declare capability: "Capability: project-documentation"
 
@@ -446,7 +448,7 @@ Total Lines Modified: ~20 lines
 
 - Scenarios must follow GIVEN/WHEN/THEN format
 
-3. **CI/CD Workflow Design**
+1. **CI/CD Workflow Design**
 
 - Scheduled runs reduce manual maintenance burden
 
@@ -456,7 +458,7 @@ Total Lines Modified: ~20 lines
 
 - Workflow summaries improve visibility
 
-4. **Automation Script Patterns**
+1. **Automation Script Patterns**
 
 - Dry-run mode (default) prevents accidental changes
 
@@ -470,11 +472,11 @@ Total Lines Modified: ~20 lines
 
 1. **OpenSpec First**: Create change directories early to track all work
 
-2. **Dry-Run Validation**: Always test automation in dry-run mode first
+1. **Dry-Run Validation**: Always test automation in dry-run mode first
 
-3. **Incremental Testing**: Run focused tests (OpenSpec) before full suite
+1. **Incremental Testing**: Run focused tests (OpenSpec) before full suite
 
-4. **Documentation as Code**: Automate doc updates to eliminate drift
+1. **Documentation as Code**: Automate doc updates to eliminate drift
 
 ---
 
@@ -490,7 +492,7 @@ Total Lines Modified: ~20 lines
 
 - Track test execution time trends over time
 
-2. **Notification System**
+1. **Notification System**
 
 - Slack/Discord notifications on metric changes
 
@@ -498,7 +500,7 @@ Total Lines Modified: ~20 lines
 
 - GitHub issue creation for significant regressions
 
-3. **Dashboard Integration**
+1. **Dashboard Integration**
 
 - Generate HTML/PDF test reports
 
@@ -506,7 +508,7 @@ Total Lines Modified: ~20 lines
 
 - Visualize test trends and coverage over time
 
-4. **Multi-Platform Support**
+1. **Multi-Platform Support**
 
 - Test on Windows, macOS, Linux in CI
 
@@ -514,7 +516,7 @@ Total Lines Modified: ~20 lines
 
 - Validate cross-platform automation script behavior
 
-5. **Advanced OpenSpec Integration**
+1. **Advanced OpenSpec Integration**
 
 - Automatic change archival after merge
 
@@ -602,15 +604,16 @@ Successfully implemented **comprehensive test metrics automation** with:
 
 - ✅ **Production ready**: Scheduled weekly updates, manual triggers available
 
-The automation reduces manual effort from ~15 minutes to <1 minute per update while ensuring consistency and OpenSpec governance compliance.
+The automation reduces manual effort from ~15 minutes to <1 minute per update while ensuring consistency and OpenSpec
+governance compliance.
 
 **Next Steps:**
 
 1. Monitor scheduled workflow runs (Sundays at 00:00 UTC)
 
-2. Use manual triggers for on-demand updates
+1. Use manual triggers for on-demand updates
 
-3. Consider future enhancements (metrics dashboard, notifications)
+1. Consider future enhancements (metrics dashboard, notifications)
 
 ---
 

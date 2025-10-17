@@ -74,10 +74,10 @@ class TestOpenSpecIntegration:
             if change_dir.is_dir() and change_dir.name != "archive":
                 change_id = change_dir.name
 
-                # Should start with 'update-doc-'
-                assert change_id.startswith(
-                    "update-doc-"
-                ), f"Change ID {change_id} should start with 'update-doc-'"
+                # Should start with 'update-doc-' (governance) or 'update-spec-' (spec modification)
+                assert (
+                    change_id.startswith("update-doc-") or change_id.startswith("update-spec-")
+                ), f"Change ID {change_id} should start with 'update-doc-' or 'update-spec-'"
 
                 # Should be kebab-case
                 assert all(

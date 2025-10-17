@@ -1,0 +1,499 @@
+name: Release Automation
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type (patch, minor, major)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  # Job 1: Version Detection and Validation
+  prepare-release:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      current_version: ${{ steps.version.outputs.current_version }}
+      new_version: ${{ steps.version.outputs.new_version }}
+      is_prerelease: ${{ steps.check.outputs.is_prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if release should be created
+        id: check
+        run: |
+          # Check if this is a manual dispatch or tag push
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "is_prerelease=${{ github.event.inputs.prerelease }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            if [[ "${{ github.ref }}" == *"-"* ]]; then
+              echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            else
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            fi
+          else
+            # Check if there are significant changes since last release
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            COMMITS_SINCE=$(git rev-list ${LAST_TAG}..HEAD --count)
+            echo "Commits since last release: $COMMITS_SINCE"
+            
+            if [[ $COMMITS_SINCE -gt 5 ]]; then
+              echo "should_release=true" >> $GITHUB_OUTPUT
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            else
+              echo "should_release=false" >> $GITHUB_OUTPUT
+              echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Determine version
+        id: version
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(jq -r '.version' package.json)
+          echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            # Manual release - use input type
+            RELEASE_TYPE="${{ github.event.inputs.release_type }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            # Tag-based release - extract version from tag
+            NEW_VERSION="${{ github.ref_name }}"
+            NEW_VERSION=${NEW_VERSION#v}  # Remove 'v' prefix
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            exit 0
+          else
+            # Auto-release - determine type from commits
+            LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline)
+            
+            if echo "$COMMITS" | grep -q "BREAKING CHANGE\|feat!:"; then
+              RELEASE_TYPE="major"
+            elif echo "$COMMITS" | grep -q "feat:"; then
+              RELEASE_TYPE="minor"
+            else
+              RELEASE_TYPE="patch"
+            fi
+          fi
+          
+          # Calculate new version
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          case $RELEASE_TYPE in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          NEW_VERSION="$major.$minor.$patch"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+  # Job 2: Run Tests Before Release
+  test-before-release:
+    needs: prepare-release
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx coverage
+          pip install -r requirements.txt
+
+      - name: Run comprehensive tests
+        run: |
+          python -m pytest tests/ -v --cov=backend --cov-fail-under=70 --cov-report=xml
+          
+      - name: Upload coverage to artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.python-version }}
+          path: coverage.xml
+
+  # Job 3: Update Version Files
+  update-version:
+    needs: [prepare-release, test-before-release]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Update package.json version
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          jq --arg version "$NEW_VERSION" '.version = $version' package.json > package.json.tmp
+          mv package.json.tmp package.json
+
+      - name: Update plugin manifest version
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          MANIFEST_PATH=".obsidian/plugins/obsidian-ai-assistant/manifest.json"
+          if [[ -f "$MANIFEST_PATH" ]]; then
+            jq --arg version "$NEW_VERSION" '.version = $version' "$MANIFEST_PATH" > "$MANIFEST_PATH.tmp"
+            mv "$MANIFEST_PATH.tmp" "$MANIFEST_PATH"
+          fi
+
+      - name: Update Python version if exists
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          if [[ -f "backend/__init__.py" ]]; then
+            sed -i "s/__version__ = .*/__version__ = \"$NEW_VERSION\"/" backend/__init__.py
+          fi
+          if [[ -f "setup.py" ]]; then
+            sed -i "s/version=.*/version=\"$NEW_VERSION\",/" setup.py
+          fi
+
+      - name: Commit version updates
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          git add .
+          git commit -m "🔖 Bump version to v$NEW_VERSION" || exit 0
+          git push origin main
+
+  # Job 4: Generate Changelog
+  generate-changelog:
+    needs: [prepare-release, test-before-release, update-version]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      changelog: ${{ steps.changelog.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          CURRENT_VERSION="${{ needs.prepare-release.outputs.current_version }}"
+          
+          # Get the last tag for comparison
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -z "$LAST_TAG" ]]; then
+            LAST_TAG=$(git rev-list --max-parents=0 HEAD)
+          fi
+          
+          echo "## 🚀 Release v$NEW_VERSION - $(date '+%Y-%m-%d')" > changelog.md
+          echo "" >> changelog.md
+          
+          # Get commits since last release
+          COMMITS=$(git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" --reverse)
+          
+          # Categorize commits
+          echo "### ✨ Features" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (feat|feature)" || echo "- No new features in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 🐛 Bug Fixes" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (fix|bugfix)" || echo "- No bug fixes in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 📚 Documentation" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (docs|doc)" || echo "- No documentation updates in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 🔧 Maintenance" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (chore|refactor|style|test)" || echo "- No maintenance updates in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 🔒 Security" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (security|sec)" || echo "- No security updates in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 📊 Performance" >> changelog.md
+          echo "$COMMITS" | grep -E "^- (perf|performance)" || echo "- No performance improvements in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "### 💥 Breaking Changes" >> changelog.md
+          echo "$COMMITS" | grep -E "BREAKING CHANGE|feat!:" || echo "- No breaking changes in this release" >> changelog.md
+          echo "" >> changelog.md
+          
+          # Add installation instructions
+          echo "### 📦 Installation" >> changelog.md
+          echo "" >> changelog.md
+          echo "#### Backend Server" >> changelog.md
+          echo '```bash' >> changelog.md
+          echo "git clone https://github.com/UndiFineD/obsidian-AI-assistant.git" >> changelog.md
+          echo "cd obsidian-AI-assistant" >> changelog.md
+          echo "./setup.ps1  # Windows" >> changelog.md
+          echo "./setup.sh   # Linux/macOS" >> changelog.md
+          echo '```' >> changelog.md
+          echo "" >> changelog.md
+          
+          echo "#### Obsidian Plugin" >> changelog.md
+          echo "1. Download the release assets below" >> changelog.md
+          echo "2. Extract to your vault's `.obsidian/plugins/obsidian-ai-assistant/` directory" >> changelog.md
+          echo "3. Enable the plugin in Obsidian settings" >> changelog.md
+          echo "" >> changelog.md
+          
+          # Add compatibility info
+          echo "### 🔧 Compatibility" >> changelog.md
+          echo "- **Python**: 3.10+" >> changelog.md
+          echo "- **Obsidian**: 0.15.0+" >> changelog.md
+          echo "- **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+" >> changelog.md
+          echo "" >> changelog.md
+          
+          # Add contributors
+          echo "### 👥 Contributors" >> changelog.md
+          git log ${LAST_TAG}..HEAD --pretty=format:"- @%an" | sort -u >> changelog.md
+          echo "" >> changelog.md
+          
+          # Output for next job
+          CHANGELOG_CONTENT=$(cat changelog.md)
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update CHANGELOG.md
+        run: |
+          if [[ -f "CHANGELOG.md" ]]; then
+            # Prepend new changelog to existing file
+            cat changelog.md CHANGELOG.md > CHANGELOG.md.tmp
+            mv CHANGELOG.md.tmp CHANGELOG.md
+          else
+            # Create new changelog file
+            cp changelog.md CHANGELOG.md
+          fi
+          
+          git add CHANGELOG.md
+          git commit -m "📝 Update CHANGELOG for v${{ needs.prepare-release.outputs.new_version }}" || exit 0
+          git push origin main
+
+  # Job 5: Build Release Assets
+  build-assets:
+    needs: [prepare-release, test-before-release, update-version]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main  # Get latest with version updates
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build wheel setuptools
+
+      - name: Create plugin release archive
+        run: |
+          mkdir -p release/obsidian-ai-assistant-plugin
+          
+          # Copy plugin files
+          if [[ -d ".obsidian/plugins/obsidian-ai-assistant" ]]; then
+            cp -r .obsidian/plugins/obsidian-ai-assistant/* release/obsidian-ai-assistant-plugin/
+          fi
+          
+          # Create plugin archive
+          cd release
+          zip -r obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip obsidian-ai-assistant-plugin/
+          cd ..
+
+      - name: Create backend distribution
+        run: |
+          # Create source distribution
+          mkdir -p release/backend-source
+          cp -r backend/ release/backend-source/
+          cp requirements.txt requirements-dev.txt setup.ps1 setup.sh README.md LICENSE release/backend-source/ 2>/dev/null || true
+          
+          cd release
+          tar -czf obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz backend-source/
+          cd ..
+
+      - name: Create complete release package
+        run: |
+          mkdir -p release/complete
+          cp -r . release/complete/obsidian-ai-assistant/
+          cd release/complete
+          
+          # Remove unnecessary files from complete package
+          rm -rf obsidian-ai-assistant/.git obsidian-ai-assistant/.github obsidian-ai-assistant/tests obsidian-ai-assistant/__pycache__ obsidian-ai-assistant/.pytest_cache
+          rm -rf obsidian-ai-assistant/htmlcov obsidian-ai-assistant/backend/__pycache__
+          
+          tar -czf ../obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz obsidian-ai-assistant/
+          cd ../..
+
+      - name: Upload release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets
+          path: |
+            release/*.zip
+            release/*.tar.gz
+
+  # Job 6: Create GitHub Release
+  create-release:
+    needs: [prepare-release, generate-changelog, build-assets]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Download release assets
+        uses: actions/download-artifact@v4
+        with:
+          name: release-assets
+          path: release/
+
+      - name: Create Git tag
+        run: |
+          NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
+          git push origin "v$NEW_VERSION"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ needs.prepare-release.outputs.new_version }}
+          release_name: "🚀 Obsidian AI Assistant v${{ needs.prepare-release.outputs.new_version }}"
+          body: ${{ needs.generate-changelog.outputs.changelog }}
+          draft: false
+          prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
+
+      - name: Upload Plugin Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
+          asset_name: obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload Backend Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_name: obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Complete Package
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_name: obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_content_type: application/gzip
+
+  # Job 7: Post-Release Actions
+  post-release:
+    needs: [prepare-release, create-release]
+    if: needs.prepare-release.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Create post-release issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const newVersion = '${{ needs.prepare-release.outputs.new_version }}';
+            const issueBody = `
+            ## 🎉 Release v${newVersion} Created Successfully!
+            
+            ### 📋 Post-Release Checklist
+            
+            - [ ] Verify release assets are downloadable
+            - [ ] Test plugin installation in Obsidian
+            - [ ] Update documentation if needed
+            - [ ] Announce release on social media/community
+            - [ ] Monitor for any critical issues
+            - [ ] Update any dependent projects
+            
+            ### 🔗 Release Links
+            
+            - **GitHub Release**: https://github.com/${{ github.repository }}/releases/tag/v${newVersion}
+            - **Plugin Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-assistant-plugin-v${newVersion}.zip
+            - **Backend Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-assistant-backend-v${newVersion}.tar.gz
+            
+            ### 📊 Release Stats
+            
+            - **Version**: v${newVersion}
+            - **Branch**: ${{ github.ref_name }}
+            - **Commit**: ${{ github.sha }}
+            - **Pre-release**: ${{ needs.prepare-release.outputs.is_prerelease }}
+            
+            This issue was automatically created by the release workflow.
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `📦 Release v${newVersion} - Post-Release Tasks`,
+              body: issueBody,
+              labels: ['release', 'maintenance']
+            });
+
+      - name: Update project boards if configured
+        run: |
+          echo "Release v${{ needs.prepare-release.outputs.new_version }} completed successfully!"
+          echo "Assets created and uploaded to GitHub Releases"
+          echo "Post-release issue created for follow-up tasks"

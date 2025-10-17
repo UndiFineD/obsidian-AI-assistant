@@ -1,7 +1,7 @@
 
 # Spec Delta: project-documentation / update-doc-openspec-governance-automation
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: OpenSpec Governance Automation
 

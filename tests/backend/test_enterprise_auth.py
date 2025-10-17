@@ -514,5 +514,342 @@ class TestSSOProviderHandlers:
             assert isinstance(result.roles, list)
 
 
+class TestEnterpriseAuthMiddlewareComplete:
+    """Complete test suite for EnterpriseAuthMiddleware authentication flow."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.config = SSOConfig(
+            provider=SSOProvider.AZURE_AD,
+            client_id="middleware_client",
+            client_secret="middleware_secret",
+            tenant_id="middleware_tenant",
+        )
+        self.sso_manager = SSOManager(self.config)
+        self.secret_key = "test_secret_key_12345"
+        self.middleware = EnterpriseAuthMiddleware(self.sso_manager, self.secret_key)
+
+    @pytest.mark.asyncio
+    async def test_middleware_with_valid_jwt_token(self):
+        """Test middleware with valid JWT token."""
+        # Generate valid token
+        user_info = UserInfo(
+            user_id="middleware_user",
+            email="user@middleware.com",
+            name="Middleware User",
+            groups=["TestGroup"],
+            roles=["user"],
+        )
+        token = self.sso_manager.generate_jwt_token(user_info, self.secret_key)
+
+        # Create mock request
+        from unittest.mock import MagicMock, AsyncMock
+
+        mock_request = MagicMock()
+        mock_request.url.path = "/api/protected"
+        mock_request.headers = {"Authorization": f"Bearer {token}"}
+        mock_request.state = MagicMock()
+
+        # Create mock call_next
+        mock_response = MagicMock()
+        mock_call_next = AsyncMock(return_value=mock_response)
+
+        # Execute middleware
+        result = await self.middleware(mock_request, mock_call_next)
+
+        # Verify user context was added
+        assert hasattr(mock_request.state, "user")
+        assert mock_request.state.user["email"] == "user@middleware.com"
+        assert result == mock_response
+        mock_call_next.assert_called_once_with(mock_request)
+
+    @pytest.mark.asyncio
+    async def test_middleware_with_expired_token(self):
+        """Test middleware with expired JWT token."""
+        from datetime import timedelta
+
+        # Generate expired token
+        user_info = UserInfo(
+            user_id="expired_user",
+            email="expired@test.com",
+            name="Expired User",
+            groups=["ExpiredGroup"],
+        )
+
+        # Create payload with expired time
+        payload = {
+            "user_id": user_info.user_id,
+            "email": user_info.email,
+            "name": user_info.name,
+            "groups": user_info.groups,
+            "roles": user_info.roles,
+            "tenant_id": user_info.tenant_id,
+            "exp": datetime.utcnow() - timedelta(hours=1),  # Expired 1 hour ago
+            "iat": datetime.utcnow() - timedelta(hours=25),
+            "iss": "obsidian-ai-assistant",
+        }
+        expired_token = jwt.encode(payload, self.secret_key, algorithm="HS256")
+
+        # Create mock request
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.url.path = "/api/protected"
+        mock_request.headers = {"Authorization": f"Bearer {expired_token}"}
+
+        mock_call_next = AsyncMock()
+
+        # Execute middleware
+        result = await self.middleware(mock_request, mock_call_next)
+
+        # Should return error for expired token
+        assert result["error"] == "Invalid or expired token"
+        assert result["status_code"] == 401
+        mock_call_next.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_middleware_with_malformed_bearer_token(self):
+        """Test middleware with malformed Bearer token."""
+        from unittest.mock import MagicMock
+
+        mock_request = MagicMock()
+        mock_request.url.path = "/api/protected"
+        mock_request.headers = {"Authorization": "BearerInvalidFormat"}
+
+        mock_call_next = AsyncMock()
+
+        result = await self.middleware(mock_request, mock_call_next)
+
+        assert result["error"] == "Authentication required"
+        assert result["status_code"] == 401
+        mock_call_next.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_middleware_public_endpoint_bypass(self):
+        """Test that public endpoints bypass authentication."""
+        from unittest.mock import MagicMock, AsyncMock
+
+        for endpoint in ["/health", "/status", "/", "/auth/login", "/auth/callback"]:
+            mock_request = MagicMock()
+            mock_request.url.path = endpoint
+            mock_request.headers = {}  # No auth header
+
+            mock_response = MagicMock()
+            mock_call_next = AsyncMock(return_value=mock_response)
+
+            result = await self.middleware(mock_request, mock_call_next)
+
+            assert result == mock_response
+            mock_call_next.assert_called_once_with(mock_request)
+
+
+class TestSSOEndpoints:
+    """Test suite for SSO API endpoints."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.config = SSOConfig(
+            provider=SSOProvider.AZURE_AD,
+            client_id="endpoint_client",
+            client_secret="endpoint_secret",
+            tenant_id="endpoint_tenant",
+        )
+        self.sso_manager = SSOManager(self.config)
+        self.secret_key = "endpoint_secret_key"
+
+    def test_sso_endpoints_initialization(self):
+        """Test that SSOEndpoints initializes correctly."""
+        from unittest.mock import MagicMock
+        from backend.enterprise_auth import SSOEndpoints
+
+        mock_app = MagicMock()
+        mock_app.get = MagicMock()
+        mock_app.post = MagicMock()
+
+        sso_endpoints = SSOEndpoints(mock_app, self.sso_manager, self.secret_key)
+
+        assert sso_endpoints.app == mock_app
+        assert sso_endpoints.sso_manager == self.sso_manager
+        assert sso_endpoints.secret_key == self.secret_key
+
+    def test_sso_endpoints_registers_routes(self):
+        """Test that SSOEndpoints registers all required routes."""
+        from unittest.mock import MagicMock
+        from backend.enterprise_auth import SSOEndpoints
+
+        mock_app = MagicMock()
+        mock_app.get = MagicMock()
+        mock_app.post = MagicMock()
+
+        SSOEndpoints(mock_app, self.sso_manager, self.secret_key)
+
+        # Verify that endpoints are registered
+        assert mock_app.get.called
+        assert mock_app.post.called
+
+        # Check registered route count
+        get_calls = mock_app.get.call_count
+        post_calls = mock_app.post.call_count
+
+        # Should have 2 GET and 2 POST endpoints
+        assert get_calls >= 2  # /auth/login/{provider}, /auth/user
+        assert post_calls >= 2  # /auth/callback, /auth/logout
+
+
+class TestHandlerRegistry:
+    """Test suite for _HandlerRegistry."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.config = SSOConfig(
+            provider=SSOProvider.AZURE_AD,
+            client_id="registry_client",
+            client_secret="registry_secret",
+        )
+        self.sso_manager = SSOManager(self.config)
+        self.registry = self.sso_manager.provider_handlers
+
+    def test_handler_registry_get_valid_provider(self):
+        """Test getting handler for valid provider."""
+        handler = self.registry.get(SSOProvider.AZURE_AD)
+        assert handler is not None
+        assert callable(handler)
+
+    def test_handler_registry_get_invalid_provider(self):
+        """Test getting handler for unsupported provider."""
+        from enum import Enum
+
+        class FakeProvider(Enum):
+            FAKE = "fake_provider"
+
+        handler = self.registry.get(FakeProvider.FAKE)
+        assert handler is None
+
+    def test_handler_registry_len(self):
+        """Test registry length."""
+        assert len(self.registry) == 5  # 5 providers
+
+    def test_handler_registry_contains(self):
+        """Test registry contains check."""
+        assert SSOProvider.AZURE_AD in self.registry
+        assert SSOProvider.GOOGLE_WORKSPACE in self.registry
+
+    def test_handler_registry_keys(self):
+        """Test registry keys."""
+        keys = list(self.registry.keys())
+        assert SSOProvider.AZURE_AD in keys
+        assert len(keys) == 5
+
+    def test_handler_registry_iter(self):
+        """Test registry iteration."""
+        providers = list(self.registry)
+        assert len(providers) == 5
+        assert SSOProvider.AZURE_AD in providers
+
+
+class TestAdditionalJWTScenarios:
+    """Additional JWT token test scenarios."""
+
+    def setup_method(self):
+        """Set up test fixtures."""
+        self.config = SSOConfig(
+            provider=SSOProvider.AZURE_AD,
+            client_id="jwt_client",
+            client_secret="jwt_secret",
+        )
+        self.sso_manager = SSOManager(self.config)
+        self.secret_key = "test_jwt_secret"
+
+    def test_jwt_token_refresh_scenario(self):
+        """Test JWT token refresh scenario."""
+        # Generate initial token
+        user_info = UserInfo(
+            user_id="refresh_user",
+            email="refresh@test.com",
+            name="Refresh User",
+            groups=["RefreshGroup"],
+        )
+
+        token1 = self.sso_manager.generate_jwt_token(
+            user_info, self.secret_key, expiry_hours=1
+        )
+
+        # Validate it
+        payload1 = self.sso_manager.validate_jwt_token(token1, self.secret_key)
+        assert payload1 is not None
+        assert payload1["email"] == "refresh@test.com"
+
+        # Generate new token (simulate refresh)
+        token2 = self.sso_manager.generate_jwt_token(
+            user_info, self.secret_key, expiry_hours=24
+        )
+
+        # Both tokens should be valid
+        payload2 = self.sso_manager.validate_jwt_token(token2, self.secret_key)
+        assert payload2 is not None
+        assert payload2["email"] == "refresh@test.com"
+
+        # Tokens should be different
+        assert token1 != token2
+
+    def test_jwt_token_with_tenant_id(self):
+        """Test JWT token generation and validation with tenant_id."""
+        user_info = UserInfo(
+            user_id="tenant_user",
+            email="tenant@test.com",
+            name="Tenant User",
+            groups=["TenantGroup"],
+            tenant_id="tenant_12345",
+        )
+
+        token = self.sso_manager.generate_jwt_token(user_info, self.secret_key)
+        payload = self.sso_manager.validate_jwt_token(token, self.secret_key)
+
+        assert payload is not None
+        assert payload["tenant_id"] == "tenant_12345"
+
+    def test_jwt_token_different_secret_keys(self):
+        """Test that tokens signed with different secrets don't validate."""
+        user_info = UserInfo(
+            user_id="secret_user",
+            email="secret@test.com",
+            name="Secret User",
+            groups=["SecretGroup"],
+        )
+
+        # Generate token with secret1
+        token = self.sso_manager.generate_jwt_token(user_info, "secret_key_1")
+
+        # Try to validate with secret2
+        payload = self.sso_manager.validate_jwt_token(token, "secret_key_2")
+
+        assert payload is None  # Should fail validation
+
+    def test_jwt_token_payload_structure(self):
+        """Test complete JWT token payload structure."""
+        user_info = UserInfo(
+            user_id="payload_user",
+            email="payload@test.com",
+            name="Payload User",
+            groups=["Group1", "Group2"],
+            roles=["admin", "user"],
+            tenant_id="payload_tenant",
+        )
+
+        token = self.sso_manager.generate_jwt_token(user_info, self.secret_key)
+        payload = self.sso_manager.validate_jwt_token(token, self.secret_key)
+
+        assert payload is not None
+        assert payload["user_id"] == "payload_user"
+        assert payload["email"] == "payload@test.com"
+        assert payload["name"] == "Payload User"
+        assert payload["groups"] == ["Group1", "Group2"]
+        assert payload["roles"] == ["admin", "user"]
+        assert payload["tenant_id"] == "payload_tenant"
+        assert "exp" in payload
+        assert "iat" in payload
+        assert payload["iss"] == "obsidian-ai-assistant"
+
+
 if __name__ == "__main__":
     pytest.main([__file__])

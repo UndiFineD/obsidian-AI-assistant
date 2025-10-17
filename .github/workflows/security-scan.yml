@@ -1,0 +1,462 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
+  actions: read
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Job 1: Python Dependency Security Scanning
+  python-security:
+    runs-on: ubuntu-latest
+    name: Python Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-security-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-security-
+          ${{ runner.os }}-pip-
+          
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        # Install security scanning tools
+        pip install safety bandit semgrep
+        
+    - name: Run Safety check (Python dependencies)
+      run: |
+        echo "Scanning Python dependencies for known vulnerabilities..."
+        safety check --json --output safety-report.json || true
+        safety check --short-report || true
+        
+    - name: Run Bandit security linter
+      run: |
+        echo "Running Bandit security analysis..."
+        bandit -r backend/ -f json -o bandit-report.json || true
+        bandit -r backend/ -f txt || true
+        
+    - name: Run Semgrep security analysis
+      run: |
+        echo "Running Semgrep security analysis..."
+        semgrep --config=auto backend/ --json --output=semgrep-report.json || true
+        semgrep --config=auto backend/ || true
+        
+    - name: Upload security artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: python-security-reports
+        path: |
+          safety-report.json
+          bandit-report.json
+          semgrep-report.json
+          
+    - name: Generate security summary
+      if: always()
+      run: |
+        echo "## Python Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Safety results
+        if [ -f safety-report.json ]; then
+          SAFETY_ISSUES=$(cat safety-report.json | jq length 2>/dev/null || echo "0")
+          echo "- **Safety (Dependencies)**: $SAFETY_ISSUES vulnerabilities found" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Bandit results
+        if [ -f bandit-report.json ]; then
+          BANDIT_ISSUES=$(cat bandit-report.json | jq '.results | length' 2>/dev/null || echo "0")
+          echo "- **Bandit (Code Analysis)**: $BANDIT_ISSUES security issues found" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Semgrep results
+        if [ -f semgrep-report.json ]; then
+          SEMGREP_ISSUES=$(cat semgrep-report.json | jq '.results | length' 2>/dev/null || echo "0")
+          echo "- **Semgrep (Pattern Analysis)**: $SEMGREP_ISSUES security patterns found" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Detailed reports available in job artifacts." >> $GITHUB_STEP_SUMMARY
+
+  # Job 2: Node.js/JavaScript Security (if applicable)
+  javascript-security:
+    runs-on: ubuntu-latest
+    name: JavaScript Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check for package.json
+      id: check-npm
+      run: |
+        if [ -f package.json ]; then
+          echo "has_npm=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_npm=false" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Set up Node.js
+      if: steps.check-npm.outputs.has_npm == 'true'
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install Node.js dependencies
+      if: steps.check-npm.outputs.has_npm == 'true'
+      run: npm ci
+      
+    - name: Run npm audit
+      if: steps.check-npm.outputs.has_npm == 'true'
+      run: |
+        echo "Scanning Node.js dependencies for vulnerabilities..."
+        npm audit --audit-level=moderate --json > npm-audit-report.json || true
+        npm audit --audit-level=moderate || true
+        
+    - name: Upload JavaScript security artifacts
+      if: steps.check-npm.outputs.has_npm == 'true'
+      uses: actions/upload-artifact@v3
+      with:
+        name: javascript-security-reports
+        path: npm-audit-report.json
+        
+    - name: Skip JavaScript scan
+      if: steps.check-npm.outputs.has_npm == 'false'
+      run: |
+        echo "No package.json found - skipping JavaScript security scan"
+        echo "## JavaScript Security Scan" >> $GITHUB_STEP_SUMMARY
+        echo "No Node.js dependencies detected - scan skipped." >> $GITHUB_STEP_SUMMARY
+
+  # Job 3: Snyk Comprehensive Security Scanning
+  snyk-security:
+    runs-on: ubuntu-latest
+    name: Snyk Security Scan
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Run Snyk to check for vulnerabilities
+      uses: snyk/actions/python@master
+      continue-on-error: true
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        args: --json-file-output=snyk-report.json
+        
+    - name: Upload Snyk report
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: snyk-security-report
+        path: snyk-report.json
+        
+    - name: Generate Snyk summary
+      if: always()
+      run: |
+        echo "## Snyk Security Analysis" >> $GITHUB_STEP_SUMMARY
+        if [ -f snyk-report.json ]; then
+          echo "Snyk scan completed - see artifacts for detailed report." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Snyk scan may require authentication token (SNYK_TOKEN secret)." >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Job 4: Security Policy and Configuration Check
+  security-config:
+    runs-on: ubuntu-latest
+    name: Security Configuration Check
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check security policies
+      run: |
+        echo "Checking security configuration..."
+        
+        # Check for security policy
+        if [ -f SECURITY.md ]; then
+          echo "SECURITY.md found"
+        else
+          echo "SECURITY.md not found"
+        fi
+        
+        # Check for dependabot configuration
+        if [ -f .github/dependabot.yml ]; then
+          echo "Dependabot configuration found"
+        else
+          echo "Dependabot configuration not found"
+        fi
+        
+        # Check for CodeQL configuration
+        if [ -f .github/workflows/codeql.yml ] || [ -f .github/workflows/codeql-analysis.yml ]; then
+          echo "CodeQL workflow found"
+        else
+          echo "CodeQL workflow not found"
+        fi
+        
+        # Check for secrets scanning
+        echo "GitHub secret scanning should be enabled in repository settings"
+        
+    - name: Generate security config summary
+      run: |
+        echo "## Security Configuration Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        if [ -f SECURITY.md ]; then
+          echo "- Security policy (SECURITY.md) present" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Security policy missing - consider adding SECURITY.md" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [ -f .github/dependabot.yml ]; then
+          echo "- Dependabot configuration present" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "- Dependabot configuration missing" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "- Enable GitHub secret scanning in repository settings" >> $GITHUB_STEP_SUMMARY
+        echo "- Enable GitHub dependency scanning in repository settings" >> $GITHUB_STEP_SUMMARY
+
+  # Job 5: Create Security Issues for High Severity Vulnerabilities
+  create-security-issues:
+    runs-on: ubuntu-latest
+    name: Create Security Issues
+    needs: [python-security, snyk-security]
+    if: github.event_name != 'pull_request' && (success() || failure())
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download security artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: security-reports
+        
+    - name: Process security reports and create issues
+      run: |
+        echo "Processing security reports for high-severity issues..."
+        
+        # Create a summary of all high-severity issues
+        SUMMARY_FILE="security-summary.md"
+        echo "# Security Scan Summary - $(date)" > $SUMMARY_FILE
+        echo "" >> $SUMMARY_FILE
+        
+        HIGH_SEVERITY_FOUND=false
+        
+        # Process Safety report
+        if [ -f security-reports/python-security-reports/safety-report.json ]; then
+          SAFETY_HIGH=$(cat security-reports/python-security-reports/safety-report.json | jq '[.[] | select(.severity == "high" or .severity == "critical")] | length' 2>/dev/null || echo "0")
+          if [ "$SAFETY_HIGH" -gt 0 ]; then
+            echo "## High/Critical Severity Dependencies ($SAFETY_HIGH found)" >> $SUMMARY_FILE
+            cat security-reports/python-security-reports/safety-report.json | jq -r '.[] | select(.severity == "high" or .severity == "critical") | "- " + .vulnerability + " in " + .package_name' >> $SUMMARY_FILE || true
+            echo "" >> $SUMMARY_FILE
+            HIGH_SEVERITY_FOUND=true
+          fi
+        fi
+        
+        # Process Bandit report
+        if [ -f security-reports/python-security-reports/bandit-report.json ]; then
+          BANDIT_HIGH=$(cat security-reports/python-security-reports/bandit-report.json | jq '[.results[] | select(.issue_severity == "HIGH")] | length' 2>/dev/null || echo "0")
+          if [ "$BANDIT_HIGH" -gt 0 ]; then
+            echo "## High Severity Code Issues ($BANDIT_HIGH found)" >> $SUMMARY_FILE
+            cat security-reports/python-security-reports/bandit-report.json | jq -r '.results[] | select(.issue_severity == "HIGH") | "- " + .test_name + " in " + .filename' >> $SUMMARY_FILE || true
+            echo "" >> $SUMMARY_FILE
+            HIGH_SEVERITY_FOUND=true
+          fi
+        fi
+        
+        if [ "$HIGH_SEVERITY_FOUND" = true ]; then
+          echo "High-severity security issues found!"
+          echo "SECURITY_ISSUES_FOUND=true" >> $GITHUB_ENV
+          
+          # Add remediation guidance
+          echo "## Recommended Actions" >> $SUMMARY_FILE
+          echo "1. Review the security reports in the workflow artifacts" >> $SUMMARY_FILE
+          echo "2. Update vulnerable dependencies to secure versions" >> $SUMMARY_FILE
+          echo "3. Fix high-severity code issues identified by Bandit" >> $SUMMARY_FILE
+          echo "4. Consider adding security tests to prevent regression" >> $SUMMARY_FILE
+          
+        else
+          echo "No high-severity security issues found"
+          echo "SECURITY_ISSUES_FOUND=false" >> $GITHUB_ENV
+        fi
+        
+        # Upload summary
+        cat $SUMMARY_FILE >> $GITHUB_STEP_SUMMARY
+        
+    - name: Create GitHub issue for security vulnerabilities
+      if: env.SECURITY_ISSUES_FOUND == 'true'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('security-summary.md', 'utf8');
+          
+          // Check if a recent security issue already exists
+          const issues = await github.rest.issues.listForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            labels: ['security', 'automated'],
+            state: 'open'
+          });
+          
+          const recentIssue = issues.data.find(issue => 
+            issue.created_at > new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+          );
+          
+          if (!recentIssue) {
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Security Vulnerabilities Detected - ${new Date().toISOString().split('T')[0]}`,
+              body: summary,
+              labels: ['security', 'automated', 'high-priority']
+            });
+            console.log('Created new security issue');
+          } else {
+            console.log('Recent security issue already exists, skipping creation');
+          }
+
+  # Job 6: PR Comment with Security Results
+  pr-comment:
+    runs-on: ubuntu-latest
+    name: PR Security Comment
+    needs: [python-security, javascript-security, snyk-security]
+    if: github.event_name == 'pull_request' && (success() || failure())
+    
+    steps:
+    - name: Download security artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: security-reports
+        
+    - name: Generate PR comment
+      id: generate-comment
+      run: |
+        COMMENT_FILE="pr-comment.md"
+        echo "## Security Scan Results" > $COMMENT_FILE
+        echo "" >> $COMMENT_FILE
+        
+        # Safety results
+        if [ -f security-reports/python-security-reports/safety-report.json ]; then
+          SAFETY_ISSUES=$(cat security-reports/python-security-reports/safety-report.json | jq length 2>/dev/null || echo "0")
+          if [ "$SAFETY_ISSUES" -eq 0 ]; then
+            echo "**Python Dependencies**: No vulnerabilities found" >> $COMMENT_FILE
+          else
+            echo "**Python Dependencies**: $SAFETY_ISSUES vulnerabilities found" >> $COMMENT_FILE
+          fi
+        else
+          echo "**Python Dependencies**: Scan failed or no report generated" >> $COMMENT_FILE
+        fi
+        
+        # Bandit results
+        if [ -f security-reports/python-security-reports/bandit-report.json ]; then
+          BANDIT_ISSUES=$(cat security-reports/python-security-reports/bandit-report.json | jq '.results | length' 2>/dev/null || echo "0")
+          if [ "$BANDIT_ISSUES" -eq 0 ]; then
+            echo "**Code Security**: No issues found" >> $COMMENT_FILE
+          else
+            echo "**Code Security**: $BANDIT_ISSUES issues found" >> $COMMENT_FILE
+          fi
+        else
+          echo "**Code Security**: Scan failed or no report generated" >> $COMMENT_FILE
+        fi
+        
+        # JavaScript results (if applicable)
+        if [ -f security-reports/javascript-security-reports/npm-audit-report.json ]; then
+          NPM_ISSUES=$(cat security-reports/javascript-security-reports/npm-audit-report.json | jq '.metadata.vulnerabilities.total' 2>/dev/null || echo "0")
+          if [ "$NPM_ISSUES" -eq 0 ]; then
+            echo "**JavaScript Dependencies**: No vulnerabilities found" >> $COMMENT_FILE
+          else
+            echo "**JavaScript Dependencies**: $NPM_ISSUES vulnerabilities found" >> $COMMENT_FILE
+          fi
+        fi
+        
+        echo "" >> $COMMENT_FILE
+        echo "**Detailed Reports**: Available in [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $COMMENT_FILE
+        echo "" >> $COMMENT_FILE
+        echo "**Next Steps**: If vulnerabilities are found, update dependencies and run security scans locally using:" >> $COMMENT_FILE
+        echo "```bash" >> $COMMENT_FILE
+        echo "safety check" >> $COMMENT_FILE
+        echo "bandit -r backend/" >> $COMMENT_FILE
+        echo "```" >> $COMMENT_FILE
+        
+        # Output for next step
+        echo "comment_body<<EOF" >> $GITHUB_OUTPUT
+        cat $COMMENT_FILE >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+        
+    - name: Comment on PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const commentBody = `${{ steps.generate-comment.outputs.comment_body }}`;
+          
+          // Find existing security comment
+          const comments = await github.rest.issues.listComments({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.issue.number
+          });
+          
+          const existingComment = comments.data.find(comment => 
+            comment.body.includes('Security Scan Results') && 
+            comment.user.login === 'github-actions[bot]'
+          );
+          
+          if (existingComment) {
+            // Update existing comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: existingComment.id,
+              body: commentBody
+            });
+          } else {
+            // Create new comment
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: commentBody
+            });
+          }

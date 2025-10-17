@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-plugin-integration-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for PLUGIN_INTEGRATION_SPECIFICATION.md
 

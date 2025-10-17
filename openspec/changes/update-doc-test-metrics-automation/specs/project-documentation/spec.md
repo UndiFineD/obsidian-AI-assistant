@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-test-metrics-automation
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Documentation clarity
 

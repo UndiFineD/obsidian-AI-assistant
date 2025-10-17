@@ -63,7 +63,7 @@
    - `tests/backend/test_https_utils.py` (0% → 85%)
    - `tests/backend/test_simple_backend.py` (0% → 85%)
 
-2. **Improve Near-Target Modules** 🟢
+1. **Improve Near-Target Modules** 🟢
    - `voice.py`: 86% → 90% (add error path tests)
    - `embeddings.py`: 86% → 90% (add edge case tests)
    - `settings.py`: 83% → 85% (test config updates)
@@ -72,7 +72,7 @@
 
 **Target**: Increase coverage from 70% → 80%
 
-3. **Backend.py Improvements** 🔴
+1. **Backend.py Improvements** 🔴
 
    - Current: 39% (573/941 lines uncovered)
    - Focus areas:
@@ -81,7 +81,7 @@
      - Error handling paths (lines 1397-1512)
    - Add integration tests for full request/response cycles
 
-4. **Performance.py Improvements** 🔴
+1. **Performance.py Improvements** 🔴
 
    - Current: 37% (298/474 lines uncovered)
    - Focus areas:
@@ -90,7 +90,7 @@
      - Async task queue
      - Performance monitoring
 
-5. **Rate Limiting Improvements** 🔴
+1. **Rate Limiting Improvements** 🔴
 
    - Current: 30% (104/148 lines uncovered)
    - Focus areas:
@@ -103,7 +103,7 @@
 
 **Target**: Increase coverage from 80% → 90%
 
-6. **OpenSpec Governance** 🔴
+1. **OpenSpec Governance** 🔴
 
    - Current: 12% (204/231 lines uncovered)
    - Create comprehensive test suite for:
@@ -112,7 +112,7 @@
      - Compliance checks
      - Integration with backend
 
-7. **Enterprise Admin** 🔴
+1. **Enterprise Admin** 🔴
 
    - Current: 25% (145/193 lines uncovered)
    - Test admin dashboard endpoints
@@ -120,7 +120,7 @@
    - Tenant management
    - Compliance reporting
 
-8. **Security Modules** 🔴
+1. **Security Modules** 🔴
 
    - `advanced_security.py`: 36% → 85%
    - `enterprise_gdpr.py`: 34% → 85%
@@ -129,7 +129,7 @@
 
 ## Test Creation Guidelines
 
-### For Each Module:
+### For Each Module
 
 1. **Unit Tests** (70% of coverage)
    - Test each function/method in isolation
@@ -137,13 +137,13 @@
    - Cover happy path and error paths
    - Test edge cases and boundary conditions
 
-2. **Integration Tests** (20% of coverage)
+1. **Integration Tests** (20% of coverage)
    - Test module interactions
    - Test with real dependencies where safe
    - Test configuration variations
    - Test state transitions
 
-3. **Error Path Tests** (10% of coverage)
+1. **Error Path Tests** (10% of coverage)
    - Exception handling
    - Invalid inputs
    - Resource exhaustion
@@ -189,17 +189,17 @@
 
 ### Short-term (Next 2 Sessions)
 
-5. Improve `embeddings.py` coverage (86% → 90%)
-6. Improve `settings.py` coverage (83% → 85%)
-7. Add backend.py integration tests
-8. Add performance.py unit tests
+1. Improve `embeddings.py` coverage (86% → 90%)
+2. Improve `settings.py` coverage (83% → 85%)
+3. Add backend.py integration tests
+4. Add performance.py unit tests
 
 ### Medium-term (Next 5 Sessions)
 
-9. Complete enterprise module coverage
-10. Complete security module coverage
-11. Complete openspec_governance coverage
-12. Achieve 90%+ overall coverage
+1. Complete enterprise module coverage
+2. Complete security module coverage
+3. Complete openspec_governance coverage
+4. Achieve 90%+ overall coverage
 
 ## Resources
 

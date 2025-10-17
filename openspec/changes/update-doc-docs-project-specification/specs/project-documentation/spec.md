@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-project-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for PROJECT_SPECIFICATION.md
 

@@ -64,7 +64,7 @@ Current state: Production ready
 
 1. **backend/utils.py:** `error_msg: str = None` → `error_msg: Optional[str] = None`
 
-2. **backend/security.py:** Added type annotation for `fernet: Optional[Fernet]`
+1. **backend/security.py:** Added type annotation for `fernet: Optional[Fernet]`
 
 #### ⚠️ Remaining Issues by Category
 

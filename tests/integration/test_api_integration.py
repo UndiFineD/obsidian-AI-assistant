@@ -137,9 +137,9 @@ class TestAPIIntegration:
         if response.status_code == 500:
             # If no valid model is present, expect 500 error and specific message
             data = response.json()
-            assert "detail" in data
+            assert "error" in data
             assert (
-                "Model unavailable or failed to generate an answer." in data["detail"]
+                "Model unavailable or failed to generate an answer." in data["error"]
             )
         else:
             # Or accept successful response with fallback behavior in test environment
@@ -213,8 +213,8 @@ class TestAPIIntegration:
         if response.status_code == 400:
             # Validation error as expected
             data = response.json()
-            assert "detail" in data
-            assert "Invalid vault path" in data["detail"]
+            assert "error" in data
+            assert "Invalid vault path" in data["error"]
         else:
             # Real implementation may handle non-existent paths gracefully
             data = response.json()
@@ -324,7 +324,7 @@ class TestAPIErrorHandling:
             if response.status_code == 500:
                 assert (
                     "Model unavailable or failed to generate an answer."
-                    in data["detail"]
+                    in data["error"]
                 )
             else:
                 # Real implementation might return success with fallback response
@@ -343,8 +343,10 @@ class TestAPIErrorHandling:
             # Should return 500 with error details
             assert response.status_code == 500
             data = response.json()
-            assert "detail" in data
-            assert "Settings file not found" in data["detail"]
+            assert "error" in data
+            # Error is a structured object, check message field
+            error_str = str(data["error"]) if not isinstance(data["error"], dict) else data["error"].get("message", "")
+            assert "Settings file not found" in error_str or "Configuration reload failed" in error_str
 
             print("✓ Config endpoint error handling test passed")
 

@@ -219,8 +219,8 @@ class TestCompleteWorkflows:
         if response.status_code == 200:
             assert "chunks_indexed" in pdf_result
         else:
-            # Error response should contain detail
-            assert "detail" in pdf_result
+                # Error response should contain error
+                assert "error" in pdf_result
 
     def test_configuration_and_settings_workflow(self, test_client_with_real_cache):
         """Test configuration management workflow"""

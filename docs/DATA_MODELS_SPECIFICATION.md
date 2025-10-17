@@ -1849,7 +1849,8 @@ invalid_settings = [
 
 - **API Contract Clarity**: Clear request/response contracts
 
-**The data models establish a comprehensive, type-safe foundation for the Obsidian AI Assistant, ensuring data integrity, security, and API contract compliance throughout the system.**
+**The data models establish a comprehensive, type-safe foundation for the Obsidian AI Assistant, ensuring data
+integrity, security, and API contract compliance throughout the system.**
 
 ---
 

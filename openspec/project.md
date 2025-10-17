@@ -1,75 +1,48 @@
-# Project Context
-
+# OpenSpec Governance Overview
 ## Purpose
+This document explains how OpenSpec governs documentation changes in this repository and how it integrates with our development workflow.
+OpenSpec is used to ensure our critical project documentation stays accurate, consistent, and auditable over time.
 
-This project is an Obsidian AI assistant that provides local LLM capabilities,
-semantic search, voice input, and comprehensive task management. The project is
-designed to be offline-first and privacy-focused.
+## What is Governed?
+Material changes to the following are governed by OpenSpec:
+- Top-level docs: `README.md`, `AGENTS.md`, `.github/copilot-instructions.md`, `CLAUDE.md`
+- Docs folder: Architecture, security, testing, performance, deployment, enterprise, and other files under `docs/`
+- OpenSpec content: This directory (`openspec/`), including specs, changes, archive, docs, and scripts
+See the authoritative baseline in `specs/project-documentation/spec.md`.
 
-## Tech Stack
+## Governance Lifecycle
+1. Propose: Create a change under `openspec/changes/<id>/` with `proposal.md`, `tasks.md`, and deltas in `specs/<capability>/spec.md`
+2. Validate: Run strict validation locally and in CI to ensure correctness
+3. Review: Submit a pull request for peer review and approval
+4. Apply: After merge, apply the change to the baseline spec (`openspec apply` or scripts)
+5. Archive: Move the completed change to `openspec/archive/<id>/` with automated backup
+Automation scripts in `openspec/scripts/` streamline each step (`create-change.ps1`, `validate-all.ps1`, `apply-change.ps1`, `archive-change.ps1`).
 
-- Python (FastAPI, pytest)
+## Success Metrics & SLAs
+- Onboarding: < 1 hour for first contribution (target achieved: ~15–30 minutes)
+- Validation: > 95% strict validation pass rate (current: 100%)
+- Review: < 24 hours to first review on business days
+- Availability: Docs remain accurate and consistent across files
 
-- JavaScript/TypeScript (Obsidian plugin)
+## Integration with Development Workflow
+- Governed docs must follow the OpenSpec process (proposal → validate → PR → apply → archive)
+- CI validates `openspec/**` changes using strict mode
+- Maintainers apply and archive changes post-merge (can be delegated using scripts)
 
-- Node.js (for plugin development)
+## Roles & Responsibilities
+- Contributors: Propose changes, ensure validation passes, respond to review
+- Reviewers: Verify deltas, scenarios, and adherence to governance
+- Maintainers: Apply to baseline, archive, and ensure overall quality
 
-- Shell scripts (for setup and testing)
+## Getting Started
+- Read: `openspec/README.md`, `openspec/docs/contributor-guide.md`
+- Use scripts: `openspec/scripts/create-change.ps1`, `validate-all.ps1`, `apply-change.ps1`, `archive-change.ps1`
+- Follow patterns: `openspec/docs/change-patterns.md`
+- Troubleshoot: `openspec/docs/troubleshooting.md`
 
-- Makefile
-
-## Project Conventions
-
-### Documentation Governance
-
-- The project uses OpenSpec for documentation governance to ensure consistency and quality
-
-- Material changes to documentation require OpenSpec change proposals
-
-- All documentation follows the project-documentation capability requirements
-
-### Code Style
-
-- Python: The project uses `ruff` for linting, with `black`-compatible formatting and import sorting
-
-- JavaScript: The project follows PEP8-inspired JavaScript conventions (4-space indentation, PascalCase classes, camelCase functions)
-
-### Architecture Patterns
-
-- The project is structured as a monorepo with a Python backend and a JavaScript/TypeScript frontend (Obsidian plugin).
-
-- The backend is a FastAPI application.
-
-- The plugin interacts with the backend through a REST API.
-
-### Testing Strategy
-
-- The project uses `pytest` for Python testing.
-
-- The project has a `tests` directory which contains unit, integration, and e2e tests.
-
-- The project has a comprehensive testing strategy, with a high level of test coverage.
-
-### Git Workflow
-
-- The project uses a standard Git workflow with feature branches.
-
-- Commit messages should be clear and concise.
-
-## Domain Context
-
-- The project is an Obsidian plugin, so it is important to understand the Obsidian API and plugin development.
-
-- The project uses local LLMs, so it is important to understand how to work with and manage these models.
-
-## Important Constraints
-
-- The project is designed to be offline-first, so all functionality should work without an internet connection.
-
-- The project is privacy-focused, so no user data should be sent to external services.
-
-## External Dependencies
-
-- The project uses Hugging Face for downloading and managing LLMs.
-
-- The project uses `pypdf` for reading PDF files.
+## References
+- Baseline spec: `openspec/specs/project-documentation/spec.md`
+- Patterns: `openspec/docs/change-patterns.md`
+- Onboarding: `openspec/docs/contributor-guide.md`
+- Troubleshooting: `openspec/docs/troubleshooting.md`
+- Scripts: `openspec/scripts/README.md`

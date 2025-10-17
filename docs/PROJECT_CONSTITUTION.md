@@ -26,7 +26,8 @@ language models, voice recognition, and knowledge management features.
 
 ## 4. Contribution Guidelines
 
-- All contributions must follow the [Code of Conduct](#5-code-of-conduct) and [Contribution Standards](#6-contribution-standards).
+- All contributions must follow the [Code of Conduct](#5-code-of-conduct) and [Contribution
+Standards](#6-contribution-standards).
 
 - Pull requests require at least one core maintainer review before merging.
 

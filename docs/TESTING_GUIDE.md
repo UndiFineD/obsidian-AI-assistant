@@ -53,7 +53,8 @@ tests/
 
 - ✅ **Async Test Classification**: Fixed sync/async test marker issues
 
-- ✅ **Request Routing Fixture**: Autouse fixture routes localhost:8000 HTTP requests to the in-process FastAPI TestClient for deterministic integration tests
+- ✅ **Request Routing Fixture**: Autouse fixture routes localhost:8000 HTTP requests to the in-process FastAPI
+TestClient for deterministic integration tests
 
 ---
 
@@ -322,7 +323,7 @@ class TestErrorHandling:
     'torch': MagicMock(),
     ```
 
-2. **Service Initialization Errors:**
+1. **Service Initialization Errors:**
 
     ```python
     # ❌ Problem: Real service called
@@ -332,7 +333,7 @@ class TestErrorHandling:
     backend.model_manager = mock_model
     ```
 
-3. **API Assertion Failures:**
+1. **API Assertion Failures:**
 
     ```python
     # ❌ Problem: Too strict assertions
@@ -449,7 +450,7 @@ pytest tests/ -v -n auto --asyncio-mode=auto --cov=backend --cov-report=term --t
 
 - Settings integration
 
-2. **Integration Tests:**
+1. **Integration Tests:**
 
 - End-to-end workflows
 
@@ -457,7 +458,7 @@ pytest tests/ -v -n auto --asyncio-mode=auto --cov=backend --cov-report=term --t
 
 - Real file processing scenarios
 
-3. **Performance Tests:**
+1. **Performance Tests:**
 
 - Load testing for endpoints
 
@@ -495,7 +496,8 @@ jobs:
 
 ### **Overview**
 
-The project includes comprehensive automation for updating test metrics across documentation files. This ensures consistency and reduces manual effort when test results change.
+The project includes comprehensive automation for updating test metrics across documentation files. This ensures
+consistency and reduces manual effort when test results change.
 
 ### **Local Usage**
 
@@ -516,7 +518,8 @@ python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --d
 python scripts/update_test_metrics.py --apply
 
 # Apply with explicit metrics
-python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15 --apply
+python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15
+--apply
 ```
 
 #### **Create OpenSpec Change Directory**
@@ -658,17 +661,18 @@ The key factors that made this testing strategy successful:
 
 1. **Early ML Library Mocking** - Solved import conflicts at the root
 
-2. **Service Instance Mocking** - Avoided complex initialization
+1. **Service Instance Mocking** - Avoided complex initialization
 
-3. **Flexible Assertions** - Accommodated backend's graceful error handling
+1. **Flexible Assertions** - Accommodated backend's graceful error handling
 
-4. **API Reality Alignment** - Tested actual endpoints, not assumptions
+1. **API Reality Alignment** - Tested actual endpoints, not assumptions
 
-5. **Comprehensive Coverage** - All endpoint categories and error paths
+1. **Comprehensive Coverage** - All endpoint categories and error paths
 
-6. **Proper Test Organization** - Clear structure and reusable patterns
+1. **Proper Test Organization** - Clear structure and reusable patterns
 
-This testing approach provides a solid foundation for maintaining code quality while allowing rapid development and refactoring.
+This testing approach provides a solid foundation for maintaining code quality while allowing rapid development and
+refactoring.
 
 ---
 

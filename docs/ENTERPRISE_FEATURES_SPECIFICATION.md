@@ -9,7 +9,8 @@ organizations ranging from small teams to large enterprises.
 
 ## 🎯 Enterprise Vision
 
-**Mission:** Enable organizations to leverage AI-powered knowledge management at scale while maintaining enterprise-grade security, compliance, and operational standards.
+**Mission:** Enable organizations to leverage AI-powered knowledge management at scale while maintaining
+enterprise-grade security, compliance, and operational standards.
 
 **Key Objectives:**
 

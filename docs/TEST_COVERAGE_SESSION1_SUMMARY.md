@@ -151,22 +151,22 @@
    - Test Vosk model loading failures
    - Test audio processing edge cases
 
-2. **Improve embeddings.py** (+4% needed)
+1. **Improve embeddings.py** (+4% needed)
    - Test sentence transformer initialization
    - Test vector DB connection errors
    - Add edge case tests
 
 ### Short-term (Next 2-3 Sessions)
 
-   - **Improve settings.py** (+2% needed)
-   - **Add backend.py integration tests** (+46% needed)
-   - **Add performance.py unit tests** (+48% needed)
+- **Improve settings.py** (+2% needed)
+- **Add backend.py integration tests** (+46% needed)
+- **Add performance.py unit tests** (+48% needed)
 
 ### Medium-term (Next 5-8 Sessions)
 
-   - Complete enterprise module coverage
-   - Complete security module coverage
-   - Complete openspec_governance coverage
+- Complete enterprise module coverage
+- Complete security module coverage
+- Complete openspec_governance coverage
 
 ## 🏆 Success Metrics Met
 

@@ -27,7 +27,7 @@ jobs:
             - name: Install dependencies
               run: |
                   python -m pip install --upgrade pip
-                  pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx
+                  pip install pytest pytest-cov pytest-asyncio pytest-xdist fastapi httpx coverage
                   # Install only testing dependencies, ML libs are mocked
                   if [ -f requirements.txt ]; then
                     # Install only non-ML dependencies for testing
@@ -43,24 +43,85 @@ jobs:
                   echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
               shell: bash
 
-            - name: Run backend tests (full suite)
+            - name: Run backend tests with coverage
               run: |
-                  # Run the comprehensive test suite
-                  python -m pytest tests/ -v -n auto --asyncio-mode=auto --tb=short
+                  # Run the comprehensive test suite with coverage
+                  python -m pytest tests/ -v -n auto --asyncio-mode=auto --tb=short \
+                    --cov=backend \
+                    --cov-report=xml \
+                    --cov-report=html \
+                    --cov-report=term-missing \
+                    --cov-fail-under=85
               env:
                   PYTHONPATH: ${{ github.workspace }}
 
-            - name: Generate coverage report
-              run: |
-                  python -m pytest tests/ --cov=backend --cov-report=xml --cov-report=html --cov-report=term
-              continue-on-error: true
-
-            - name: Upload coverage to artifacts
+            - name: Upload coverage reports
               uses: actions/upload-artifact@v4
               with:
                   name: coverage-report-python-${{ matrix.python-version }}
-                  path: htmlcov/
+                  path: |
+                    htmlcov/
+                    coverage.xml
               if: always()
+
+            - name: Coverage comment (PR only)
+              if: github.event_name == 'pull_request'
+              uses: actions/github-script@v6
+              with:
+                  script: |
+                    const fs = require('fs');
+                    
+                    // Read coverage.xml to get coverage percentage
+                    let coveragePercent = 'Unknown';
+                    try {
+                      const coverageXml = fs.readFileSync('coverage.xml', 'utf8');
+                      const match = coverageXml.match(/line-rate="([^"]+)"/);
+                      if (match) {
+                        coveragePercent = Math.round(parseFloat(match[1]) * 100) + '%';
+                      }
+                    } catch (error) {
+                      console.log('Could not read coverage.xml:', error.message);
+                    }
+                    
+                    const comment = `## 📊 Code Coverage Report
+                    
+                    **Coverage**: ${coveragePercent}
+                    **Target**: 85%
+                    **Python Version**: ${{ matrix.python-version }}
+                    
+                    ${coveragePercent !== 'Unknown' && parseFloat(coveragePercent) >= 85 ? '✅' : '⚠️'} Coverage ${parseFloat(coveragePercent) >= 85 ? 'meets' : 'below'} target threshold
+                    
+                    📁 **Detailed Report**: Available in [workflow artifacts](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+                    
+                    💡 **Improve Coverage**: Focus on untested modules and edge cases`;
+                    
+                    // Find existing coverage comment
+                    const comments = await github.rest.issues.listComments({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      issue_number: context.issue.number
+                    });
+                    
+                    const existingComment = comments.data.find(comment => 
+                      comment.body.includes('📊 Code Coverage Report') && 
+                      comment.user.login === 'github-actions[bot]'
+                    );
+                    
+                    if (existingComment) {
+                      await github.rest.issues.updateComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        comment_id: existingComment.id,
+                        body: comment
+                      });
+                    } else {
+                      await github.rest.issues.createComment({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: context.issue.number,
+                        body: comment
+                      });
+                    }
 
     test-summary:
         runs-on: ubuntu-latest
@@ -68,11 +129,24 @@ jobs:
         if: always()
 
         steps:
+            - name: Download coverage artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: coverage-report-python-*
+                  merge-multiple: true
+                  
             - name: Test Summary
               run: |
                   echo "## Test Results Summary" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "✅ Full test suite executed (backend, plugin, integration, performance)" >> $GITHUB_STEP_SUMMARY
-                  echo "📊 Coverage report uploaded as artifact (htmlcov)" >> $GITHUB_STEP_SUMMARY
+                  echo "✅ Full test suite executed with coverage enforcement" >> $GITHUB_STEP_SUMMARY
+                  echo "🎯 **Coverage Target**: 85% (enforced via --cov-fail-under)" >> $GITHUB_STEP_SUMMARY
+                  echo "📊 Coverage reports uploaded as artifacts (htmlcov + coverage.xml)" >> $GITHUB_STEP_SUMMARY
                   echo "🔧 ML libraries mocked; tests run with --asyncio-mode=auto" >> $GITHUB_STEP_SUMMARY
-                  echo "🎯 Goal: 100% pass; failures will block PRs" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "### Coverage Enforcement" >> $GITHUB_STEP_SUMMARY
+                  echo "- ❌ **Builds will fail** if coverage drops below 85%" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📈 **PR comments** show coverage percentage and target status" >> $GITHUB_STEP_SUMMARY
+                  echo "- 📁 **Detailed reports** available in workflow artifacts" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "💡 **Tip**: Use \`python -m pytest --cov=backend --cov-report=html\` locally to see coverage details"

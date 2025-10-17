@@ -1,6 +1,7 @@
 # 🚀 Obsidian AI Assistant - Complete Setup Guide
 
-This guide provides comprehensive setup instructions for the Obsidian AI Assistant, including automated scripts, manual installation, and advanced configuration options.
+This guide provides comprehensive setup instructions for the Obsidian AI Assistant, including automated scripts, manual
+installation, and advanced configuration options.
 
 ## 🎯 Quick Start Options
 
@@ -133,9 +134,9 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 1. Double-click `setup-plugin.bat`
 
-2. Choose your setup option (1-4)
+1. Choose your setup option (1-4)
 
-3. Follow the prompts
+1. Follow the prompts
 
 ### `setup-config.ps1` - Configuration File
 
@@ -159,11 +160,11 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 1. **Double-click** `setup-plugin.bat`
 
-2. **Choose option 1** (Full Setup)
+1. **Choose option 1** (Full Setup)
 
-3. **Select your vault** from the list or enter custom path
+1. **Select your vault** from the list or enter custom path
 
-4. **Wait for completion** - the script handles everything!
+1. **Wait for completion** - the script handles everything!
 
 ### For Advanced Users
 
@@ -312,13 +313,13 @@ pip install fastapi uvicorn python-multipart
 
 1. Open Obsidian Settings
 
-2. Go to Community Plugins
+1. Go to Community Plugins
 
-3. Turn OFF "Safe mode"
+1. Turn OFF "Safe mode"
 
-4. Click "Refresh"
+1. Click "Refresh"
 
-5. Enable "AI Assistant" plugin
+1. Enable "AI Assistant" plugin
 
 ### Backend Connection Issues
 
@@ -387,25 +388,25 @@ pip install fastapi uvicorn python-multipart
 
 1. Open Obsidian
 
-2. Settings → Community Plugins
+1. Settings → Community Plugins
 
-3. Turn OFF "Safe mode"
+1. Turn OFF "Safe mode"
 
-4. Click "Refresh"
+1. Click "Refresh"
 
-5. Enable "AI Assistant"
+1. Enable "AI Assistant"
 
-6. Look for 🧠 brain icon in ribbon
+1. Look for 🧠 brain icon in ribbon
 
 ### Test the Plugin
 
 1. Click the brain icon (🧠)
 
-2. Ask a question
+1. Ask a question
 
-3. Check task queue in right panel
+1. Check task queue in right panel
 
-4. Try voice input (if supported)
+1. Try voice input (if supported)
 
 ### Backend Server Management
 
@@ -428,8 +429,8 @@ If you encounter issues:
 
 1. Check the troubleshooting section above
 
-2. Review the setup logs for error details
+1. Review the setup logs for error details
 
-3. Verify all prerequisites are met
+1. Verify all prerequisites are met
 
-4. Try running setup with `-Force` parameter
+1. Try running setup with `-Force` parameter

@@ -1,0 +1,218 @@
+version: 2
+updates:
+  # Python dependencies - Production
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 15
+    target-branch: "main"
+    reviewers:
+      - "UndiFineD"
+      - "kdejo"
+    labels:
+      - "dependencies"
+      - "security"
+      - "automated"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+    
+    # Enhanced dependency grouping
+    groups:
+      # Core FastAPI stack with Pydantic
+      fastapi-group:
+        patterns:
+          - "fastapi*"
+          - "uvicorn*"
+          - "starlette*"
+          - "pydantic*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Machine Learning and AI stack
+      ml-ai-group:
+        patterns:
+          - "torch*"
+          - "transformers*"
+          - "sentence-transformers*"
+          - "chromadb*"
+          - "numpy*"
+          - "scipy*"
+          - "scikit-learn*"
+          - "openai*"
+          - "langchain*"
+        update-types:
+          - "patch"  # Conservative updates for ML libraries
+          - "security"
+      
+      # Security-critical dependencies (expanded)
+      security-group:
+        patterns:
+          - "cryptography*"
+          - "pyjwt*"
+          - "passlib*"
+          - "bcrypt*"
+          - "requests*"
+          - "urllib3*"
+          - "certifi*"
+          - "pyopenssl*"
+          - "paramiko*"
+        update-types:
+          - "security"
+          - "patch"
+          - "minor"
+      
+      # Testing and code quality tools
+      testing-group:
+        patterns:
+          - "pytest*"
+          - "coverage*"
+          - "black*"
+          - "mypy*"
+          - "bandit*"
+          - "safety*"
+          - "ruff*"
+          - "pre-commit*"
+          - "*test*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Database and caching
+      database-group:
+        patterns:
+          - "sqlalchemy*"
+          - "alembic*"
+          - "redis*"
+          - "psycopg*"
+          - "pymongo*"
+        update-types:
+          - "minor"
+          - "patch"
+      
+      # Documentation and utilities
+      utilities-group:
+        patterns:
+          - "click*"
+          - "pyyaml*"
+          - "jinja2*"
+          - "markupsafe*"
+          - "python-dateutil*"
+          - "six*"
+          - "pillow*"
+          - "aiofiles*"
+        update-types:
+          - "minor"
+          - "patch"
+    
+    # Enhanced allow/ignore rules
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "direct"
+        update-type: "patch"
+      - dependency-type: "indirect"
+        update-type: "security"
+      - dependency-type: "indirect"
+        update-type: "patch"
+    
+    ignore:
+      # Ignore major version updates for critical dependencies
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "fastapi"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "torch"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "transformers"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "chromadb"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "numpy"
+        update-types: ["version-update:semver-major"]
+      
+      # Ignore known problematic versions
+      - dependency-name: "pillow"
+        versions: ["9.0.0", "9.0.1"]  # Known security issues
+      - dependency-name: "urllib3"
+        versions: ["2.0.0"]  # Breaking changes
+  
+  # Node.js dependencies (if package.json exists)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "UndiFineD"
+    labels:
+      - "dependencies"
+      - "javascript"
+      - "automated"
+    commit-message:
+      prefix: "deps(js)"
+      include: "scope"
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "direct"
+        update-type: "patch"
+      - dependency-type: "indirect"
+        update-type: "security"
+  
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    reviewers:
+      - "UndiFineD"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "automated"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "direct"
+        update-type: "minor"
+      - dependency-type: "direct"
+        update-type: "patch"
+  
+  # Docker dependencies (if Dockerfile exists)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    target-branch: "main"
+    reviewers:
+      - "UndiFineD"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "automated"
+    commit-message:
+      prefix: "docker"
+      include: "scope"
+    allow:
+      - dependency-type: "direct"
+        update-type: "security"
+      - dependency-type: "direct"
+        update-type: "patch"

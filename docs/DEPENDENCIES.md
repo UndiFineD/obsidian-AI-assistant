@@ -124,9 +124,9 @@ If you encounter issues with PyTorch installation, try:
 
 1. Uninstall existing PyTorch: `pip uninstall torch torchvision torchaudio`
 
-2. Clear pip cache: `pip cache purge`
+1. Clear pip cache: `pip cache purge`
 
-3. Reinstall with specific index URL as shown above
+1. Reinstall with specific index URL as shown above
 
 ### Memory Issues
 

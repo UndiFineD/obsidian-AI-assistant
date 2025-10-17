@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-system-architecture-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for SYSTEM_ARCHITECTURE_SPECIFICATION.md
 

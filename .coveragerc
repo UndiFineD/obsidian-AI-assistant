@@ -1,0 +1,107 @@
+# Coverage.py configuration for Obsidian AI Assistant
+# https://coverage.readthedocs.io/en/latest/config.html
+
+[run]
+# Specify the source directory for coverage measurement
+source = backend/
+
+# Files to omit from coverage measurement
+omit = 
+    tests/*
+    */.venv/*
+    */venv/*
+    */env/*
+    */__pycache__/*
+    */migrations/*
+    */node_modules/*
+    setup.py
+    conftest.py
+    */test_*
+    *_test.py
+    backend/test_*
+
+# Branch coverage (measure both line and branch coverage)
+branch = true
+
+# Parallel processing support
+parallel = true
+
+# Include source code in coverage data
+include = backend/*
+
+[report]
+# Exclude specific lines from coverage reporting
+exclude_lines =
+    # Standard pragmas
+    pragma: no cover
+    
+    # Don't complain about missing debug-only code
+    def __repr__
+    if self\.debug
+    if settings\.DEBUG
+    
+    # Don't complain if tests don't hit defensive assertion code
+    raise AssertionError
+    raise NotImplementedError
+    
+    # Don't complain if non-runnable code isn't run
+    if 0:
+    if False:
+    if __name__ == .__main__.:
+    
+    # Don't complain about abstract methods
+    @(abc\.)?abstractmethod
+    
+    # Don't complain about Protocol classes
+    class .*\bProtocol\):
+    
+    # Don't complain about platform-specific code
+    except ImportError:
+    
+    # Don't complain about type checking blocks
+    if TYPE_CHECKING:
+
+# Show missing line numbers in terminal output
+show_missing = true
+
+# Skip files with no executable code
+skip_empty = true
+
+# Skip covered files in terminal output (only show files that need work)
+skip_covered = false
+
+# Precision for coverage percentages
+precision = 1
+
+# Sort files by coverage percentage (lowest first)
+sort = Cover
+
+[html]
+# HTML output directory
+directory = htmlcov
+
+# Show contexts in HTML report (requires --context flag)
+show_contexts = true
+
+# Title for HTML report
+title = Obsidian AI Assistant - Coverage Report
+
+[xml]
+# XML output file
+output = coverage.xml
+
+[json]
+# JSON output file (useful for programmatic processing)
+output = coverage.json
+
+# Pretty-print JSON output
+pretty_print = true
+
+# Include file paths in JSON output
+show_contexts = true
+
+[paths]
+# Map source paths for coverage combination
+source =
+    backend/
+    */site-packages/backend/

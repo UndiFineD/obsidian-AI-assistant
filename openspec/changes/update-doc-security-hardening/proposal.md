@@ -36,6 +36,8 @@ Recent review identified areas for improvement in input validation, authenticati
 
 - CI/CD and dependency management
 
+- Target file: `docs/SECURITY_SPECIFICATION.md`
+
 ## Reference
 
 This change affects the **project-documentation** capability described in `AGENTS.md`, `project.md`, and `backend/settings.py` for OpenSpec conventions and integration points.

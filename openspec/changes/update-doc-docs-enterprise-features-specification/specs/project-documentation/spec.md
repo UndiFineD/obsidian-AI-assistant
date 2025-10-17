@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-enterprise-features-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for ENTERPRISE_FEATURES_SPECIFICATION.md
 

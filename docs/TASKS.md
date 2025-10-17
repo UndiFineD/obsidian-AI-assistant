@@ -1,6 +1,7 @@
 # Tasks: Add Unit Tests (002-add-unit-tests)
 
-**IMPORTANT:** All test scaffolding, execution, and reporting must use the './tests/' folder. Never create or reference './test/'.
+**IMPORTANT:** All test scaffolding, execution, and reporting must use the './tests/' folder. Never create or reference
+'./test/'.
 
 **Input**: Design documents from `docs/`
 **Date:** 2025-10-05
@@ -47,9 +48,11 @@
 
 ### Phase 3: Write Failing Tests (TDD) [P]
 
-- [ ] T008 [P] For each backend module, write at least one failing pytest test per major function/class in `tests/test_<module>.py`
+- [ ] T008 [P] For each backend module, write at least one failing pytest test per major function/class in
+`tests/test_<module>.py`
 
-- [ ] T009 [P] For each plugin module, write at least one failing Jest test per major function/class in `tests/<module>.test.ts`
+- [ ] T009 [P] For each plugin module, write at least one failing Jest test per major function/class in `tests/<module>
+.test.ts`
 
 - [ ] T010 [P] For each contract, write at least one failing contract test in `tests/contract/`
 
@@ -61,7 +64,8 @@
 
 - [ ] T013 [P] Implement security-focused tests for sensitive modules in their respective test files
 
-- [ ] T014 [P] For legacy modules, incrementally add tests and document coverage improvement in `docs/legacy-coverage.md`
+- [ ] T014 [P] For legacy modules, incrementally add tests and document coverage improvement in `docs/legacy-coverage
+.md`
 
 ### Phase 5: Reporting & Validation
 

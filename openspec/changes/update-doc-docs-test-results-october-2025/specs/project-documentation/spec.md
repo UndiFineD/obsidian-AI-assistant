@@ -1,8 +1,8 @@
 # Spec Delta: project-documentation / update-doc-docs-test-results-october-2025
 
-## MODIFIED Requirements
+## ADDED Requirements
 
-### Requirement: Governance for SYSTEM_STATUS_OCTOBER_2025.md
+### Requirement: Governance for TEST_RESULTS_OCTOBER_2025.md
 
 The project SHALL govern material changes to `docs/SYSTEM_STATUS_OCTOBER_2025.md` via OpenSpec change proposals to maintain consistency and review.
 

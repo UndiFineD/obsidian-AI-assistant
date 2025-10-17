@@ -216,7 +216,8 @@ validation, API security, privacy controls, and compliance requirements.
 
 - **Prompt Sanitization**: AI prompts filtered for dangerous patterns, escaped, and length-limited
 
-- **Automated Security Testing**: Test suite covers authentication, RBAC, input validation, rate limiting, file validation, tenant isolation, prompt sanitization
+- **Automated Security Testing**: Test suite covers authentication, RBAC, input validation, rate limiting, file
+validation, tenant isolation, prompt sanitization
 
 ### **Compliance Requirements**
 

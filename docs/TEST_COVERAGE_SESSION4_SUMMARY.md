@@ -9,10 +9,10 @@
 
 ## Actions
 - Added tests for:
-  - Exception branches in _coerce_value_for_field (invalid int, float, bool, unknown field)
-  - Edge cases in _load_yaml_config (non-dict YAML, unknown keys, file read errors)
-  - Environment variable handling (empty string, missing keys)
-  - update_settings error handling (invalid type coercion, file write errors)
+    - Exception branches in _coerce_value_for_field (invalid int, float, bool, unknown field)
+    - Edge cases in _load_yaml_config (non-dict YAML, unknown keys, file read errors)
+    - Environment variable handling (empty string, missing keys)
+    - update_settings error handling (invalid type coercion, file write errors)
 - Total tests for settings.py: 20 (all passing)
 
 ## Results

@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
-[![Tests](https://img.shields.io/badge/tests-686%20passed%20%7C%200%20skipped-brightgreen)](#9-testing--quality-assurance)
+[![Tests](https://img.shields.io/badge/tests-785%20passed%20%7C%202%20skipped-brightgreen)](#9-testing--quality-assurance)
 [![Coverage](https://img.shields.io/badge/coverage-85%25%2B_backend-blue)](#9-testing--quality-assurance)
 [![Quality](https://img.shields.io/badge/code%20quality-production%20ready-green)](#8-code-quality-standards)
 [![OpenSpec](https://img.shields.io/badge/openspec-100%25%20passed-blue)](#12-documentation-governance)
@@ -61,7 +61,7 @@ Run `python -m pytest ./tests/ -v` to validate documentation governance
 
 - All OpenSpec documentation tests must pass for compliance
 
-- Latest test run (2025-10-15): 686 passed, 0 skipped, 0 failed 🎯
+- Latest test run (2025-10-16): 785 passed, 2 skipped, 0 failed 🎯
 
 - **Test Files**: 46 Python test files (optimized, duplicates removed)
 See `.github/copilot-instructions.md` and `AGENTS.md` for agent and contributor guidelines
@@ -658,11 +658,11 @@ demonstrating production-ready stability.
 | ├─ Change Proposal System     | 34        | 100%          | ✅ Spec compliance  |
 | ├─ CLI Tools & Validation     | 28        | 100%          | ✅ Workflow mgmt    |
 | └─ Archive & Integration      | 28        | 100%          | ✅ Change lifecycle |
-| **📊 TOTAL**                  | **686**   | **100% (0 failures)** 🏆   | ✅ **Production**   |
+| **📊 TOTAL**                  | **785**   | **99.7% (2 skipped)** 🏆   | ✅ **Production**   |
 
 #### **Key Achievements & Quality Metrics**
 
-- **🎯 Zero Failures**: 589/589 tests passed - perfect reliability across all systems
+- **🎯 Zero Failures**: 785/787 tests passed - excellent reliability across all systems
 
 - **🚀 Production Ready**: All mission-critical components (backend, AI, security, search) fully validated
 
@@ -707,13 +707,13 @@ tests/
 └── comprehensive_async_test_runner.py # Multi-worker test runner
 ```
 
-#### **Latest Test Run Statistics (2025-10-15)**
+#### **Latest Test Run Statistics (2025-10-16)**
 
-- **Success Rate**: 100.0% pass (686 passed, 0 failed, 0 skipped)
+- **Success Rate**: 99.7% pass (785 passed, 0 failed, 2 skipped)
 
-- **Total Tests**: 686 collected (includes skipped and failed)
+- **Total Tests**: 787 collected
 
-- **Execution Time**: ~120.31s on Windows (Python 3.14)
+- **Execution Time**: ~153.85s on Windows (Python 3.14)
 **Coverage**: 100%
 
 - **Code Quality**: Trunk linting framework with ruff, black, prettier, markdownlint, checkov, actionlint
@@ -1016,6 +1016,12 @@ GET /api/enterprise/compliance/gdpr  # GDPR compliance status
 GET /api/enterprise/compliance/soc2  # SOC2 compliance status
 GET /api/enterprise/admin/metrics    # Admin dashboard metrics
 ```
+
+**Performance Benchmarking:**
+
+- **Benchmark Guide**: See [`docs/PERFORMANCE_BENCHMARKS.md`](docs/PERFORMANCE_BENCHMARKS.md) for automated benchmarking workflow, SLA targets (Tier 1-5), and result interpretation
+- **Performance Requirements**: See [`docs/PERFORMANCE_REQUIREMENTS_SPECIFICATION.md`](docs/PERFORMANCE_REQUIREMENTS_SPECIFICATION.md) for detailed SLA commitments and optimization strategies
+- **Automated Workflow**: `.github/workflows/benchmark.yml` runs weekly performance benchmarks
 
 ---
 

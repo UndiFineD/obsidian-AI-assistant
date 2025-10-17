@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-agents
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for AGENTS.md
 

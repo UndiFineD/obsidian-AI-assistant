@@ -47,7 +47,8 @@ components, and lifecycle management.
 
 ### **Event System**
 
-- **Supported Events**: `onInit`, `onActivate`, `onDeactivate`, `onSettingsChange`, `onTaskComplete`, `onVoiceInput`, `onError`
+- **Supported Events**: `onInit`, `onActivate`, `onDeactivate`, `onSettingsChange`, `onTaskComplete`, `onVoiceInput`,
+`onError`
 
 - **Custom Events**: Extendable for analytics, task queue, and voice modules
 

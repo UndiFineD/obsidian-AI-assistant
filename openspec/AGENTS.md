@@ -1,3 +1,340 @@
+# OpenSpec Governance Guide
+
+## 🚀 Quick Start for Contributors
+
+### First-Time Contributors (< 15 minutes to first proposal)
+
+1. **Read this guide**: Understand the governance workflow (you're here!)
+2. **Check existing work**: Run `openspec list` and `openspec list --specs` to see what exists
+3. **Review the README**: See [`README.md`](./README.md) for directory structure and validation commands
+4. **Pick a simple first change**: Start with typo fixes or small documentation updates
+5. **Follow the workflow below**: Create proposal → validate → submit for review
+
+### Experienced Contributors
+
+1. **Decide scope:** New capability or modify existing (see `openspec/specs/project-documentation/spec.md`).
+2. **Scaffold change:** Create `proposal.md`, `tasks.md`, and delta spec under `openspec/changes/<change-id>/specs/<capability>/spec.md`.
+3. **Write delta:** Use `## ADDED|MODIFIED|REMOVED Requirements` and include at least one `#### Scenario:` per requirement.
+4. **Validate:** Run `openspec validate <change-id> --strict` and resolve issues (format, scenarios, headings).
+5. **Request approval:** Do not implement until proposal is approved.
+
+## 📋 Governance Workflow
+
+### Step 1: Understand What You're Changing
+
+```bash
+# List all existing capabilities
+openspec list --specs
+
+# Show a specific capability
+openspec show project-documentation --type spec
+
+# Search for specific content
+rg "Backend agent" openspec/specs/
+```
+
+**Decision point**: Am I adding a new capability or modifying an existing one?
+
+### Step 2: Create Your Change Proposal
+
+```bash
+# Choose a unique change ID (kebab-case, verb-led)
+CHANGE_ID="update-doc-readme"
+
+# Create the change directory structure
+mkdir -p openspec/changes/$CHANGE_ID/specs/project-documentation
+```
+
+### Step 3: Write Your Proposal Files
+
+#### Create `proposal.md`
+
+```markdown
+## Why
+
+[Explain the problem or opportunity in 1-2 sentences]
+
+## What Changes
+
+- [List specific changes]
+- [Mark breaking changes with **BREAKING**]
+
+## Impact
+
+- Affected specs: project-documentation
+- Affected files: README.md
+- Users impacted: All contributors
+- Review priority: Medium
+```
+
+#### Create `tasks.md`
+
+```markdown
+## 1. Documentation Updates
+
+- [ ] 1.1 Update README.md with new content
+- [ ] 1.2 Add cross-references to related docs
+- [ ] 1.3 Update table of contents
+
+## 2. Validation
+
+- [ ] 2.1 Run `openspec validate --strict`
+- [ ] 2.2 Check markdown formatting
+- [ ] 2.3 Verify all links work
+
+## 3. Review
+
+- [ ] 3.1 Self-review for clarity
+- [ ] 3.2 Submit for team review
+- [ ] 3.3 Address feedback
+```
+
+#### Create Delta Spec: `specs/project-documentation/spec.md`
+
+For **MODIFIED** requirements (changing existing content):
+
+```markdown
+## MODIFIED Requirements
+
+### Requirement: Governance for README.md
+
+The project SHALL govern material changes to `README.md` via OpenSpec change proposals to maintain consistency and review.
+
+#### Scenario: Material change to README.md requires proposal
+
+- **WHEN** a contributor plans a material update to `README.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+
+#### Scenario: Minor typos can bypass proposal process
+
+- **WHEN** a contributor fixes a typo or formatting issue in `README.md`
+- **THEN** they MAY commit directly without a change proposal
+```
+
+For **ADDED** requirements (new content):
+
+```markdown
+## ADDED Requirements
+
+### Requirement: Automated validation in CI
+
+The system SHALL automatically validate all OpenSpec changes in the CI/CD pipeline.
+
+#### Scenario: Pull request validation
+
+- **WHEN** a pull request includes OpenSpec changes
+- **THEN** the CI system SHALL run `openspec validate --strict` and report results
+```
+
+### Step 4: Validate Your Change
+
+```bash
+# Validate your specific change
+openspec validate $CHANGE_ID --strict
+
+# Check JSON output for details
+openspec validate $CHANGE_ID --strict --json
+
+# Validate all pending changes
+openspec validate --strict --changes
+```
+
+**Common validation errors and fixes:**
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| "Requirement must contain SHALL or MUST" | Missing normative keyword | Add SHALL/MUST to first sentence after heading |
+| "Requirement must have at least one scenario" | No scenarios or wrong format | Add `#### Scenario:` with WHEN/THEN |
+| "Change must have at least one delta" | No ADDED/MODIFIED/REMOVED sections | Add operation header |
+| MD022/MD032 linting errors | Blank line issues | Check `.markdownlint.json` for disabled rules |
+
+### Step 5: Submit for Review
+
+1. **Self-review checklist:**
+   - [ ] All validation errors resolved
+   - [ ] Proposal clearly explains Why and What
+   - [ ] Tasks are specific and measurable
+   - [ ] Scenarios follow WHEN/THEN format
+   - [ ] Cross-references are accurate
+
+2. **Create pull request** (or notify reviewers)
+
+3. **Address review feedback**
+
+4. **Wait for approval** before implementation
+
+### Step 6: Implement (After Approval)
+
+```bash
+# Track tasks as you complete them
+# Update tasks.md: - [ ] → - [x]
+
+# Keep validating as you work
+openspec validate $CHANGE_ID --strict
+
+# Ensure all tasks complete before final review
+```
+
+### Step 7: Archive (After Deployment)
+
+```bash
+# Archive the completed change
+openspec archive $CHANGE_ID
+
+# For non-interactive/automation
+openspec archive $CHANGE_ID --yes
+
+# Validate the archive succeeded
+openspec validate --strict
+```
+
+## 🎯 Success Criteria
+
+Your change proposal is ready when:
+
+- ✅ `openspec validate --strict` passes with 0 errors
+- ✅ `proposal.md` clearly explains Why and What
+- ✅ `tasks.md` has ≥3 specific, measurable tasks
+- ✅ Delta spec has ≥1 scenario per requirement
+- ✅ All scenarios use `#### Scenario:` format with WHEN/THEN
+- ✅ MODIFIED deltas include full updated requirement text
+- ✅ File paths and references are accurate
+
+## 📚 Learning Path
+
+### Level 1: First Contribution (Typo Fix)
+
+**Goal**: Make your first successful change
+
+**Steps**:
+1. Find a typo in any governed documentation
+2. Create change proposal with MODIFIED delta
+3. Run validation and fix any errors
+4. Submit for review
+
+**Expected time**: 30 minutes
+
+### Level 2: Documentation Update
+
+**Goal**: Add meaningful content to documentation
+
+**Steps**:
+1. Identify a documentation gap
+2. Create comprehensive change proposal
+3. Write clear ADDED or MODIFIED requirements
+4. Add multiple scenarios to cover edge cases
+5. Validate and submit
+
+**Expected time**: 1-2 hours
+
+### Level 3: Cross-Cutting Change
+
+**Goal**: Update multiple related documents
+
+**Steps**:
+1. Plan changes across multiple files
+2. Create multi-delta proposal
+3. Coordinate cross-references
+4. Ensure consistency across all changes
+5. Comprehensive validation
+
+**Expected time**: 2-4 hours
+
+### Level 4: New Capability
+
+**Goal**: Propose an entirely new governed capability
+
+**Steps**:
+1. Research and justify new capability
+2. Design capability structure
+3. Write comprehensive requirements and scenarios
+4. Create example change deltas
+5. Document governance workflows
+
+**Expected time**: 4-8 hours
+
+## 🔧 Pro Tips
+
+### Efficiency Hacks
+
+- **Use templates**: Copy from `changes/update-doc-readme/` as a starting point
+- **Validate early**: Run `openspec validate --strict` after every file creation
+- **JSON debugging**: Use `--json` flag to parse errors programmatically
+- **Batch operations**: Validate all changes at once with `openspec validate --strict --changes`
+
+### Quality Shortcuts
+
+- **Scenario coverage**: Write scenarios before requirement text to ensure completeness
+- **Cross-reference check**: Use `rg "file-name"` to find all mentions before updating
+- **Markdown preview**: Use VS Code or similar to preview formatting before validating
+
+### Collaboration Tips
+
+- **Check active changes**: Run `openspec list` before starting to avoid conflicts
+- **Coordinate deltas**: If multiple people editing same capability, sync early
+- **Review others' work**: Learn patterns from approved changes in `archive/`
+
+## 🆘 Getting Help
+
+### Self-Service Resources
+
+1. **Troubleshooting guide**: See [`docs/troubleshooting.md`](./docs/troubleshooting.md) _(planned)_
+2. **Change patterns**: Review [`docs/change-patterns.md`](./docs/change-patterns.md) _(planned)_
+3. **Existing examples**: Browse `openspec/changes/` for successful patterns
+4. **Validation output**: Use `--json` flag to get detailed error information
+
+### Ask for Help
+
+- **GitHub Issues**: For questions about governance workflow
+- **Pull Request Comments**: For specific change feedback
+- **Team Chat**: For real-time guidance (if available)
+
+## 📊 Governance Metrics
+
+Track your progress:
+
+- **First proposal**: Time from start to first validated proposal
+- **Validation success rate**: Proposals passing strict validation on first try
+- **Review cycles**: Number of iterations before approval
+- **Contribution velocity**: Changes per month
+
+**Project targets:**
+- First proposal: < 1 hour
+- Validation success: > 95%
+- Review cycles: < 2 iterations
+- Time to approval: < 24 hours
+
+---
+
+## How to Propose and Validate Documentation Changes (Legacy Quickstart)
+
+1. **Decide scope:** New capability or modify existing (see `openspec/specs/project-documentation/spec.md`).
+2. **Scaffold change:** Create `proposal.md`, `tasks.md`, and delta spec under `openspec/changes/<change-id>/specs/<capability>/spec.md`.
+3. **Write delta:** Use `## ADDED|MODIFIED|REMOVED Requirements` and include at least one `#### Scenario:` per requirement.
+4. **Validate:** Run `openspec validate <change-id> --strict` and resolve issues (format, scenarios, headings).
+5. **Request approval:** Do not implement until proposal is approved.
+
+### Example: Compliant MODIFIED Delta
+
+See: [System Architecture Spec Delta](openspec/changes/update-doc-docs-system-architecture-specification/specs/project-documentation/spec.md)
+
+### Common Pitfalls
+- Missing or misformatted scenario headers (`#### Scenario:` required)
+- Delta type mismatch (use MODIFIED for changes to existing requirements, ADDED for new ones)
+- Incomplete requirement content in MODIFIED deltas (must paste full updated requirement)
+- Duplicate headings (violates markdown lint)
+
+### Governed Files and Change History (Summary)
+
+| File/Artifact                              | Governance Requirement | Last Change Delta Example |
+|--------------------------------------------|------------------------|--------------------------|
+| docs/SYSTEM_ARCHITECTURE_SPECIFICATION.md  | Yes                    | update-doc-docs-system-architecture-specification |
+| docs/SECURITY_SPECIFICATION.md             | Yes                    | update-doc-docs-security-specification           |
+| README.md                                  | Yes                    | update-doc-readme                                 |
+| AGENTS.md                                  | Yes                    | update-doc-agents                                 |
+| .github/copilot-instructions.md            | Yes                    | update-doc-copilot-instructions                   |
+| ... (see spec.md for full list)            | Yes                    | ...                                              |
+
 # Backend as Modular AI Agent
 
 ## OpenSpec Instructions

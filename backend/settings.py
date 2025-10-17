@@ -108,6 +108,7 @@ _ALLOWED_UPDATE_KEYS = {
     "vault_path",
     "models_dir",
     "cache_dir",
+    "log_dir",
     "model_backend",
     "model_path",
     "embed_model",
@@ -123,6 +124,35 @@ _ALLOWED_UPDATE_KEYS = {
     "text_max_size_mb",
     "archive_max_size_mb",
     "file_validation_enabled",
+    "log_level",
+    "log_format",
+    "log_include_pii",
+    "log_console_enabled",
+    "log_file_enabled",
+    "log_audit_enabled",
+    "log_security_enabled",
+    "log_performance_enabled",
+    "log_max_file_size",
+    "log_backup_count",
+    "log_cleanup_days",
+    # Security hardening settings
+    "security_level",
+    "session_timeout_hours",
+    "session_idle_timeout_hours",
+    "max_sessions_per_user",
+    "api_key_rate_limit",
+    "threat_detection_enabled",
+    "auto_block_threshold",
+    "behavioral_analysis_enabled",
+    "request_signing_enabled",
+    "security_headers_enabled",
+    # Authentication settings
+    "jwt_secret_key",
+    "jwt_expiry_hours",
+    "password_min_length",
+    "require_mfa",
+    "lockout_attempts",
+    "lockout_duration_minutes",
 }
 
 
@@ -140,6 +170,7 @@ class Settings(BaseModel):
     vault_path: str = "vault"
     models_dir: str = "backend/models"
     cache_dir: str = "backend/cache"
+    log_dir: str = "backend/logs"
 
     # LLM / embeddings / vector DB
     model_backend: str = "llama_cpp"
@@ -175,6 +206,39 @@ class Settings(BaseModel):
     csrf_enabled: bool = True
     csrf_secret: str = os.getenv("CSRF_SECRET", "change-me")
 
+    # Logging Configuration
+    log_level: str = os.getenv("LOG_LEVEL", "INFO")
+    log_format: str = os.getenv("LOG_FORMAT", "structured")  # 'structured' or 'text'
+    log_include_pii: bool = os.getenv("LOG_INCLUDE_PII", "false").lower() in ("true", "1", "yes")
+    log_console_enabled: bool = os.getenv("LOG_CONSOLE_ENABLED", "true").lower() in ("true", "1", "yes")
+    log_file_enabled: bool = os.getenv("LOG_FILE_ENABLED", "true").lower() in ("true", "1", "yes")
+    log_audit_enabled: bool = os.getenv("LOG_AUDIT_ENABLED", "true").lower() in ("true", "1", "yes")
+    log_security_enabled: bool = os.getenv("LOG_SECURITY_ENABLED", "true").lower() in ("true", "1", "yes")
+    log_performance_enabled: bool = os.getenv("LOG_PERFORMANCE_ENABLED", "true").lower() in ("true", "1", "yes")
+    log_max_file_size: int = int(os.getenv("LOG_MAX_FILE_SIZE", str(50 * 1024 * 1024)))  # 50MB
+    log_backup_count: int = int(os.getenv("LOG_BACKUP_COUNT", "5"))
+    log_cleanup_days: int = int(os.getenv("LOG_CLEANUP_DAYS", "30"))
+    
+    # Security Hardening Configuration
+    security_level: str = os.getenv("SECURITY_LEVEL", "standard")  # minimal, standard, enhanced, maximum
+    session_timeout_hours: int = int(os.getenv("SESSION_TIMEOUT_HOURS", "24"))
+    session_idle_timeout_hours: int = int(os.getenv("SESSION_IDLE_TIMEOUT_HOURS", "2"))
+    max_sessions_per_user: int = int(os.getenv("MAX_SESSIONS_PER_USER", "5"))
+    api_key_rate_limit: int = int(os.getenv("API_KEY_RATE_LIMIT", "100"))
+    threat_detection_enabled: bool = os.getenv("THREAT_DETECTION_ENABLED", "true").lower() in ("true", "1", "yes")
+    auto_block_threshold: float = float(os.getenv("AUTO_BLOCK_THRESHOLD", "20.0"))
+    behavioral_analysis_enabled: bool = os.getenv("BEHAVIORAL_ANALYSIS_ENABLED", "true").lower() in ("true", "1", "yes")
+    request_signing_enabled: bool = os.getenv("REQUEST_SIGNING_ENABLED", "false").lower() in ("true", "1", "yes")
+    security_headers_enabled: bool = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() in ("true", "1", "yes")
+    
+    # Authentication Configuration
+    jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "")
+    jwt_expiry_hours: int = int(os.getenv("JWT_EXPIRY_HOURS", "24"))
+    password_min_length: int = int(os.getenv("PASSWORD_MIN_LENGTH", "8"))
+    require_mfa: bool = os.getenv("REQUIRE_MFA", "false").lower() in ("true", "1", "yes")
+    lockout_attempts: int = int(os.getenv("LOCKOUT_ATTEMPTS", "5"))
+    lockout_duration_minutes: int = int(os.getenv("LOCKOUT_DURATION_MINUTES", "15"))
+
     # Derived
     @property
     def base_dir(self) -> Path:
@@ -194,6 +258,49 @@ class Settings(BaseModel):
     def abs_cache_dir(self) -> Path:
         p = Path(self.cache_dir)
         return p if p.is_absolute() else self.base_dir / p
+
+    @property
+    def abs_log_dir(self) -> Path:
+        p = Path(self.log_dir)
+        return p if p.is_absolute() else self.base_dir / p
+
+    def get_logging_config(self) -> dict:
+        """Get logging configuration dictionary"""
+        return {
+            'level': self.log_level,
+            'format': self.log_format,
+            'include_pii': self.log_include_pii,
+            'log_dir': str(self.abs_log_dir),
+            'console_enabled': self.log_console_enabled,
+            'file_enabled': self.log_file_enabled,
+            'audit_enabled': self.log_audit_enabled,
+            'security_enabled': self.log_security_enabled,
+            'performance_enabled': self.log_performance_enabled,
+            'max_file_size': self.log_max_file_size,
+            'backup_count': self.log_backup_count,
+            'cleanup_days': self.log_cleanup_days,
+        }
+    
+    def get_security_config(self) -> dict:
+        """Get security configuration dictionary"""
+        return {
+            'security_level': self.security_level,
+            'session_timeout_hours': self.session_timeout_hours,
+            'session_idle_timeout_hours': self.session_idle_timeout_hours,
+            'max_sessions_per_user': self.max_sessions_per_user,
+            'api_key_rate_limit': self.api_key_rate_limit,
+            'threat_detection_enabled': self.threat_detection_enabled,
+            'auto_block_threshold': self.auto_block_threshold,
+            'behavioral_analysis_enabled': self.behavioral_analysis_enabled,
+            'request_signing_enabled': self.request_signing_enabled,
+            'security_headers_enabled': self.security_headers_enabled,
+            'jwt_secret_key': '***' if self.jwt_secret_key else '',  # Redacted
+            'jwt_expiry_hours': self.jwt_expiry_hours,
+            'password_min_length': self.password_min_length,
+            'require_mfa': self.require_mfa,
+            'lockout_attempts': self.lockout_attempts,
+            'lockout_duration_minutes': self.lockout_duration_minutes
+        }
 
 
 def _load_yaml_config() -> dict:

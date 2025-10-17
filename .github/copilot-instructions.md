@@ -48,6 +48,16 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 
 - `POST /api/index_pdf`: Indexes a PDF for semantic search.
 
+### Health Monitoring Endpoints
+
+- `GET /api/health/detailed`: Enhanced health with service status, system metrics, alert summary
+
+- `GET /api/health/metrics`: Aggregated metrics over configurable time windows
+
+- `GET /api/health/alerts`: Active and resolved alerts with severity levels
+
+- `POST /api/health/alerts/{alert_id}/acknowledge`: Acknowledge alert awareness
+
 ### Enterprise Endpoints (if enabled)
 
 - `GET /api/enterprise/status`: Returns enterprise feature status.
@@ -90,9 +100,29 @@ This is a **modular, service-oriented offline-first AI assistant** for Obsidian 
 
 - Real-time metrics: `/api/performance/metrics` (cache, pools, queue)
 
+- Health monitoring: `/api/health/detailed` (service status, system metrics, alerts)
+
 - SLA targets: <100ms health, <500ms cached, <2s AI, <10s complex, <60s batch
 
 - Availability: 95% dev, 99% prod, 99.9% mission critical
+
+### Health Monitoring System
+
+- **Service Health Checks**: Monitors model_manager, embeddings, cache with timeout protection
+
+- **System Metrics**: CPU, memory, disk usage, network connections, process count
+
+- **Alert Management**: Threshold-based alerts (CPU 70/85/95%, memory 75/90/95%, disk 80/90/95%)
+
+- **Alert Lifecycle**: Generation → Acknowledgement → Resolution
+
+- **Metrics History**: 1000-entry rolling history for trending and aggregation
+
+- **Status Levels**: HEALTHY, DEGRADED, UNHEALTHY, UNKNOWN
+
+- **Consecutive Failures**: Tracks failure sequences for severity escalation (1→WARNING, 2→ERROR, 3→CRITICAL)
+
+See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 ## Testing Strategy & Quality Gates
 

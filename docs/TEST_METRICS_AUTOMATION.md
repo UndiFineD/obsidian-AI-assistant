@@ -2,7 +2,8 @@
 
 ## Overview
 
-The test metrics automation system automatically updates test results, coverage, benchmarks, and execution trends across all project documentation while maintaining OpenSpec governance compliance.
+The test metrics automation system automatically updates test results, coverage, benchmarks, and execution trends
+across all project documentation while maintaining OpenSpec governance compliance.
 
 ## Key Features
 
@@ -59,7 +60,8 @@ Runs pytest, collects metrics, and updates all documentation.
 ### Manual Metrics Entry
 
 ```powershell
-python scripts/update_test_metrics.py --apply --skip-pytest --passed 686 --skipped 0 --duration 120.31s --date 2025-10-15 --coverage 100.0
+python scripts/update_test_metrics.py --apply --skip-pytest --passed 686 --skipped 0 --duration 120.31s --date
+2025-10-15 --coverage 100.0
 ```
 Updates documentation with provided metrics without running pytest.
 
@@ -171,9 +173,9 @@ Each metrics update creates:
 
 1. **proposal.md**: Change rationale and impact
 
-2. **tasks.md**: Implementation and validation checklist
+1. **tasks.md**: Implementation and validation checklist
 
-3. **spec.md**: ADDED requirements with scenarios
+1. **spec.md**: ADDED requirements with scenarios
 
 ### Validation
 
@@ -318,19 +320,19 @@ git diff openspec/changes/
 
 1. Add extraction function in metrics extraction section
 
-2. Update `main()` to call new function
+1. Update `main()` to call new function
 
-3. Add documentation update logic
+1. Add documentation update logic
 
-4. Update this documentation
+1. Update this documentation
 
 ### Modifying OpenSpec Structure
 
 1. Update `scaffold_openspec_change()` function
 
-2. Test with `openspec validate`
+1. Test with `openspec validate`
 
-3. Update compliance documentation
+1. Update compliance documentation
 
 ## Support
 

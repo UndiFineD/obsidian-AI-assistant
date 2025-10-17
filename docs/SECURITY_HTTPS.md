@@ -2,7 +2,8 @@
 
 ## Overview
 
-All backend API traffic must use HTTPS. HTTP requests are automatically redirected to HTTPS. SSL certificate and key paths are configured via environment variables.
+All backend API traffic must use HTTPS. HTTP requests are automatically redirected to HTTPS. SSL certificate and key
+paths are configured via environment variables.
 
 ## Configuration
 
@@ -21,7 +22,8 @@ Example (PowerShell):
 $env:SSL_CERTFILE = "C:/path/to/cert.pem"
 $env:SSL_KEYFILE = "C:/path/to/key.pem"
 $env:FORCE_HTTPS = "true"
-python -m uvicorn backend.backend:app --host 0.0.0.0 --port 8000 --ssl-keyfile $env:SSL_KEYFILE --ssl-certfile $env:SSL_CERTFILE
+python -m uvicorn backend.backend:app --host 0.0.0.0 --port 8000 --ssl-keyfile $env:SSL_KEYFILE --ssl-certfile $env
+:SSL_CERTFILE
 ```
 
 ## Plugin Requirements

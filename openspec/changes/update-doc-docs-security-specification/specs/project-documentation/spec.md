@@ -1,6 +1,6 @@
 # Spec Delta: project-documentation / update-doc-docs-security-specification
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for SECURITY_SPECIFICATION.md
 

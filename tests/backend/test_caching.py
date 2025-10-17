@@ -128,6 +128,63 @@ def test_none_values():
         assert result is None
 
 
+def test_cache_ttl_expiration():
+    """Test that cache entries expire after TTL."""
+    import time
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create cache with very short TTL (1 second)
+        cache_mgr = CacheManager(cache_dir=temp_dir, ttl=1)
+        question = "Test TTL question"
+        answer = "Test TTL answer"
+        
+        # Store answer
+        cache_mgr.store_answer(question, answer)
+        
+        # Should be available immediately
+        assert cache_mgr.get_cached_answer(question) == answer
+        
+        # Wait for TTL to expire
+        time.sleep(1.1)
+        
+        # Should be expired and return None
+        result = cache_mgr.get_cached_answer(question)
+        assert result is None
+
+
+def test_cache_ttl_not_expired():
+    """Test that cache entries are available before TTL expires."""
+    import time
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create cache with longer TTL (10 seconds)
+        cache_mgr = CacheManager(cache_dir=temp_dir, ttl=10)
+        question = "Test TTL not expired"
+        answer = "Test answer still valid"
+        
+        # Store answer
+        cache_mgr.store_answer(question, answer)
+        
+        # Wait a short time (less than TTL)
+        time.sleep(0.1)
+        
+        # Should still be available
+        result = cache_mgr.get_cached_answer(question)
+        assert result == answer
+
+
+def test_cache_entry_without_timestamp():
+    """Test cache entry that doesn't have a timestamp field."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        cache_mgr = CacheManager(cache_dir=temp_dir, ttl=3600)
+        
+        # Manually create a cache entry without timestamp
+        question = "Test question"
+        key = cache_mgr._hash_question(question)
+        cache_mgr.cache[key] = {"answer": "Test answer"}  # No timestamp field
+        
+        # Should still return the answer (no TTL check without timestamp)
+        result = cache_mgr.get_cached_answer(question)
+        assert result == "Test answer"
+
 class TestEmbeddingCache:
     """Test EmbeddingCache class specifically."""
 

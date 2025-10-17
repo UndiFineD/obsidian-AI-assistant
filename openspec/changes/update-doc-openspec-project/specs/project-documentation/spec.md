@@ -1,7 +1,7 @@
 
 # Spec Delta: project-documentation / update-doc-openspec-project
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Governance for project.md
 

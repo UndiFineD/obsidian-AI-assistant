@@ -2,7 +2,8 @@
 
 ## 📋 **Overview**
 
-This document addresses common confusion points, provides clear explanations of project structure, and offers solutions to frequent issues encountered during development and testing.
+This document addresses common confusion points, provides clear explanations of project structure, and offers solutions
+to frequent issues encountered during development and testing.
 
 ---
 
@@ -24,7 +25,7 @@ This document addresses common confusion points, provides clear explanations of 
     TestClient          # Missing from fastapi.testclient
     ```
 
-2. **Undefined Variables**:
+1. **Undefined Variables**:
 
     ```python
     # These appear without definition:
@@ -32,7 +33,7 @@ This document addresses common confusion points, provides clear explanations of 
     backend_module.model_manager      # backend_module is undefined
     ```
 
-3. **Circular Import Issues**:
+1. **Circular Import Issues**:
 
     ```python
     # This pattern causes issues:
@@ -206,9 +207,9 @@ Environment Variables  (highest priority)
 
 1. **`backend/settings.py`** - Pydantic models with defaults
 
-2. **`backend/config.yaml`** - Runtime configuration
+1. **`backend/config.yaml`** - Runtime configuration
 
-3. **Environment variables** - Override everything
+1. **Environment variables** - Override everything
 
 **🔧 Configuration Endpoints:**
 
@@ -438,7 +439,7 @@ def mock_services():
     touch backend/__init__.py
     ```
 
-2. **Fix Test Imports**:
+1. **Fix Test Imports**:
 
     ```python
     # Replace problematic imports in test files
@@ -453,7 +454,7 @@ def mock_services():
             return backend.backend
     ```
 
-3. **Standardize Mock Pattern**:
+1. **Standardize Mock Pattern**:
 
     ```python
     # Use this in conftest.py
@@ -488,7 +489,7 @@ def mock_services():
     "
     ```
 
-2. **Update Test Expectations**:
+1. **Update Test Expectations**:
 
     ```python
     # Use actual endpoints, not assumed ones
@@ -566,21 +567,21 @@ def fully_mocked_backend():
 
 1. **Setup Scripts**: Comprehensive PowerShell/Bash setup with excellent test coverage
 
-2. **Configuration System**: Robust three-tier configuration with runtime updates
+1. **Configuration System**: Robust three-tier configuration with runtime updates
 
-3. **Security Module**: Encryption/decryption working well with good tests
+1. **Security Module**: Encryption/decryption working well with good tests
 
-4. **Project Structure**: Well-organized with clear separation of concerns
+1. **Project Structure**: Well-organized with clear separation of concerns
 
 ### **🔧 What Needs Attention**
 
 1. **Test Import Issues**: Missing `__init__.py`, incorrect imports, undefined variables
 
-2. **API Endpoint Mismatches**: Tests assume wrong endpoint paths
+1. **API Endpoint Mismatches**: Tests assume wrong endpoint paths
 
-3. **Service Mocking**: Inconsistent mocking strategies causing failures
+1. **Service Mocking**: Inconsistent mocking strategies causing failures
 
-4. **PyTorch Conflicts**: ML library imports breaking test execution
+1. **PyTorch Conflicts**: ML library imports breaking test execution
 
 ### **🎯 Priority Actions**
 
@@ -592,7 +593,7 @@ def fully_mocked_backend():
 
 - Standardize mocking approach
 
-2. **Short-term** (1-2 hours):
+1. **Short-term** (1-2 hours):
 
 - Align test expectations with actual API
 
@@ -600,7 +601,7 @@ def fully_mocked_backend():
 
 - Get basic endpoint tests passing
 
-3. **Medium-term** (1 day):
+1. **Medium-term** (1 day):
 
 - Expand test coverage for working modules
 
@@ -612,13 +613,13 @@ def fully_mocked_backend():
 
 1. **Always Mock ML Libraries**: Use `patch.dict('sys.modules', ...)` pattern
 
-2. **Mock Services, Not Classes**: Mock global service instances, not their classes
+1. **Mock Services, Not Classes**: Mock global service instances, not their classes
 
-3. **Be Flexible with Assertions**: Use status code ranges (`[200, 400, 500]`) instead of exact codes
+1. **Be Flexible with Assertions**: Use status code ranges (`[200, 400, 500]`) instead of exact codes
 
-4. **Test Endpoint Existence**: Focus on "does it respond" rather than "exact behavior"
+1. **Test Endpoint Existence**: Focus on "does it respond" rather than "exact behavior"
 
-5. **Isolate Test Data**: Use temporary files and cleanup fixtures
+1. **Isolate Test Data**: Use temporary files and cleanup fixtures
 
 ---
 
@@ -628,11 +629,11 @@ If you encounter issues not covered here:
 
 1. **Check Existing Tests**: Look at `test_security.py` for working patterns
 
-2. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures
+1. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures
 
-3. **Test One Module**: Start with a single working test file and expand
+1. **Test One Module**: Start with a single working test file and expand
 
-4. **Use Mock Liberally**: When in doubt, mock external dependencies
+1. **Use Mock Liberally**: When in doubt, mock external dependencies
 
 ---
 
