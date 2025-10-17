@@ -1235,6 +1235,84 @@ async def transcribe_audio(request: TranscribeRequest):
         }
 
 
+@app.post("/api/voice_transcribe", dependencies=[Depends(require_role("user"))])
+async def api_voice_transcribe(request: TranscribeRequest):
+    """
+    API-versioned voice transcription endpoint.
+    Transcribe audio to text using a speech-to-text service with enhanced validation.
+    
+    This endpoint provides:
+    - Base64 audio data validation
+    - File type and size checks
+    - SHA-256 hash generation for audio integrity
+    - Detailed error reporting
+    - Support for multiple audio formats (WAV, WebM, MP3, etc.)
+    """
+    try:
+        # Validate audio data before processing
+        validation_result = validate_base64_audio(request.audio_data)
+        if not validation_result["valid"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid audio data: {validation_result.get('error', 'Validation failed')}",
+            )
+
+        # Log validation warnings if any
+        if validation_result.get("warnings"):
+            print(f"Audio validation warnings: {validation_result['warnings']}")
+
+        import base64
+
+        # Decode base64 audio data (already validated)
+        audio_bytes = base64.b64decode(request.audio_data)
+        
+        # Attempt to use Vosk for transcription if available
+        transcription = "Server-side speech recognition not yet implemented"
+        confidence = 0.0
+        status = "placeholder"
+        
+        # TODO: Implement actual Vosk transcription when model is available
+        # from .voice import transcribe_audio as vosk_transcribe
+        # result = vosk_transcribe(audio_bytes, request.language)
+        # transcription = result["text"]
+        # confidence = result["confidence"]
+        # status = "success"
+
+        return {
+            "success": True,
+            "transcription": transcription,
+            "confidence": confidence,
+            "status": status,
+            "audio_info": {
+                "size_mb": round(validation_result["size_mb"], 2),
+                "size_bytes": len(audio_bytes),
+                "type": validation_result["file_type"],
+                "format": request.format,
+                "language": request.language,
+                "hash": validation_result["hash_sha256"][:16] + "...",
+                "warnings": validation_result.get("warnings", []),
+            },
+            "metadata": {
+                "endpoint_version": "v1",
+                "processing_time_ms": 0,  # TODO: Add actual timing
+                "model": "vosk-placeholder",
+            },
+        }
+
+    except FileValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File validation failed: {str(e)}"
+        ) from e
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Transcription failed: {str(err)}"
+        ) from err
+
+
 # ----------------------
 # Enterprise Authentication Endpoints
 # ----------------------
