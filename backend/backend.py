@@ -413,6 +413,14 @@ except Exception as e:
 setup_exception_handlers(app)
 app.add_middleware(RequestTrackingMiddleware)
 
+# Add request tracing middleware for performance monitoring
+try:
+    from .request_tracing import RequestTracingMiddleware
+    app.add_middleware(RequestTracingMiddleware)
+    app_logger.info("Request tracing middleware enabled")
+except Exception as e:
+    app_logger.warning(f"Request tracing middleware not available: {e}")
+
 # Include routers
 app.include_router(cache_router)
 app.include_router(log_router)
@@ -2033,6 +2041,88 @@ async def get_performance_trends(hours: int = 24):
         raise HTTPException(
             status_code=500,
             detail="Failed to generate performance trends due to an internal error.",
+        ) from err
+
+
+@app.get("/api/performance/tracing/summary")
+async def get_tracing_summary():
+    """Get request tracing summary with slow requests and endpoint stats"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        summary = tracer.get_summary()
+        slow_requests = tracer.get_slow_requests(limit=10)
+        endpoint_stats = tracer.get_endpoint_stats()
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": summary,
+            "slow_requests": slow_requests,
+            "endpoint_stats": endpoint_stats,
+        }
+    except Exception as err:
+        logger.error(f"Tracing summary error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve tracing summary"
+        ) from err
+
+
+@app.get("/api/performance/tracing/slow-requests")
+async def get_slow_requests(limit: int = 20):
+    """Get recent slow requests for analysis"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        slow_requests = tracer.get_slow_requests(limit=limit)
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "slow_threshold_ms": tracer.slow_threshold,
+            "very_slow_threshold_ms": tracer.very_slow_threshold,
+            "count": len(slow_requests),
+            "slow_requests": slow_requests,
+        }
+    except Exception as err:
+        logger.error(f"Slow requests error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve slow requests"
+        ) from err
+
+
+@app.get("/api/performance/tracing/endpoint/{endpoint:path}")
+async def get_endpoint_performance(endpoint: str):
+    """Get performance statistics for a specific endpoint"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        stats = tracer.get_endpoint_stats(endpoint)
+        
+        if not stats:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No statistics found for endpoint: {endpoint}"
+            )
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "endpoint": endpoint,
+            "statistics": stats,
+        }
+    except HTTPException:
+        raise
+    except Exception as err:
+        logger.error(f"Endpoint performance error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve endpoint performance"
         ) from err
 
 
