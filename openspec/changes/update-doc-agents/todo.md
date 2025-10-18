@@ -2,6 +2,7 @@
 
 ## Workflow Progress
 - [x] 0. Create TODOs
+- [ ] 1. Increment Release Version [HARD REQUIREMENT]
 - [x] 2. Proposal
 - [x] 3. Specification
 - [x] 4. Task Breakdown
