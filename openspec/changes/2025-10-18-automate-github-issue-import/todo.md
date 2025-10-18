@@ -10,73 +10,73 @@
 
 ## Workflow Progress
 
-- [ ] **0. Create TODOs**
+- [x] **0. Create TODOs**
     - Created this file
     - Defined workflow checklist
 
 - [ ] **1. Increment Release Version**
-    - [ ] Create new release branch (e.g., `release-x.y.z`)
+    - [ ] Create new release branch (e.g., `release-0.1.3`)
     - [ ] Update version in `CHANGELOG.md`
     - [ ] Update version in `README.md`
     - [ ] Update version in `package.json`
     - [ ] Document version increment
 
-- [ ] **2. Proposal**
-    - [ ] Create `proposal.md`
-    - [ ] Define problem statement
-    - [ ] Document rationale and alternatives
-    - [ ] Impact analysis completed
+- [x] **2. Proposal**
+    - [x] Create `proposal.md`
+    - [x] Define problem statement
+    - [x] Document rationale and alternatives
+    - [x] Impact analysis completed
 
-- [ ] **3. Specification**
-    - [ ] Create `spec.md`
-    - [ ] Define acceptance criteria
-    - [ ] Document data models (if applicable)
-    - [ ] Define API changes (if applicable)
-    - [ ] Security/privacy review
-    - [ ] Performance requirements defined
+- [x] **3. Specification**
+    - [x] Create `spec.md`
+    - [x] Define acceptance criteria
+    - [x] Document data models (if applicable)
+    - [x] Define API changes (if applicable)
+    - [x] Security/privacy review
+    - [x] Performance requirements defined
 
-- [ ] **4. Task Breakdown**
-    - [ ] Create `tasks.md`
-    - [ ] Break down into actionable tasks
-    - [ ] Define task dependencies
-    - [ ] Estimate effort for each task
-    - [ ] Assign tasks (if team project)
+- [x] **4. Task Breakdown**
+    - [x] Create `tasks.md`
+    - [x] Break down into actionable tasks
+    - [x] Define task dependencies
+    - [x] Estimate effort for each task
+    - [x] Assign tasks (if team project)
 
-- [ ] **5. Test Definition**
-    - [ ] Create `test_plan.md`
-    - [ ] Define unit tests
-    - [ ] Define integration tests
-    - [ ] Define performance tests (if applicable)
-    - [ ] Define security tests (if applicable)
-    - [ ] Set coverage goals
+- [x] **5. Test Definition**
+    - [x] Create `test_plan.md`
+    - [x] Define unit tests
+    - [x] Define integration tests
+    - [x] Define performance tests (if applicable)
+    - [x] Define security tests (if applicable)
+    - [x] Set coverage goals
 
-- [ ] **6. Script & Tooling**
-    - [ ] Update/create setup scripts
-    - [ ] Update automation scripts
-    - [ ] Update CI/CD configuration
-    - [ ] Document new tooling
+- [x] **6. Script & Tooling**
+    - [x] Update/create setup scripts
+    - [x] Update automation scripts
+    - [x] Update CI/CD configuration
+    - [x] Document new tooling
 
-- [ ] **7. Implementation**
-    - [ ] Implement backend changes
-    - [ ] Implement plugin changes
-    - [ ] Implement test changes
-    - [ ] Code review completed
-    - [ ] All tasks from tasks.md completed
+- [x] **7. Implementation**
+    - [x] Implement backend changes
+    - [x] Implement plugin changes
+    - [x] Implement test changes
+    - [x] Code review completed
+    - [x] All tasks from tasks.md completed
 
-- [ ] **8. Test Run & Validation**
-    - [ ] Run unit tests (`python -m pytest tests/ -v`)
-    - [ ] Run integration tests
-    - [ ] Run security scans (`bandit`)
-    - [ ] Check code coverage
-    - [ ] Validate acceptance criteria
-    - [ ] Document test results
+- [x] **8. Test Run & Validation**
+    - [x] Run unit tests (`python -m pytest tests/ -v`)
+    - [x] Run integration tests
+    - [x] Run security scans (`bandit`)
+    - [x] Check code coverage
+    - [x] Validate acceptance criteria
+    - [x] Document test results
 
-- [ ] **9. Documentation Update**
-    - [ ] Update `README.md`
-    - [ ] Update relevant docs in `docs/`
-    - [ ] Update API documentation
-    - [ ] Update `CHANGELOG.md`
-    - [ ] Update OpenSpec documentation
+- [x] **9. Documentation Update**
+    - [x] Update `README.md`
+    - [x] Update relevant docs in `docs/`
+    - [x] Update API documentation
+    - [x] Update `CHANGELOG.md`
+    - [x] Update OpenSpec documentation
 
 - [ ] **10. Git Operations**
     - [ ] Stage changes (`git add`)

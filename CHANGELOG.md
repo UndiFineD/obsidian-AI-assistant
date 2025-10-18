@@ -1,4 +1,11 @@
 # 📝 CHANGELOG
+## v0.1.3 (2025-10-18)
+- **GitHub Issue Import**: Implemented `scripts/import_github_issue.py` to automate OpenSpec change creation from GitHub issues
+- **Testing**: Added comprehensive tests for GitHub issue import functionality
+- **Documentation**: Updated OPEN_SPEC_TOOLS.md with GitHub issue import usage
+
+Generated from OpenSpec change proposals.
+
 ## v0.1.2 (2025-10-18)
 - **Version Management**: Bumped version to 0.1.2 across package.json and README.md
 - **Pre-Commit Validation**: Added markdown TODO validator for OpenSpec files
