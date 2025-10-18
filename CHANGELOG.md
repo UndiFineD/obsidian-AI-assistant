@@ -1,6 +1,7 @@
 # 📝 CHANGELOG
 ## v0.1.1 (2025-10-18)
-- Security Audit & Hardening: Universal security headers (HSTS, X-Content-Type-Options, X-Frame-Options, X-XSS-Protection, Referrer-Policy, CSP, Permissions-Policy) enforced for all responses and OPTIONS requests.
+- Security Audit & Hardening: Universal security headers (HSTS, X-Content-Type-Options, X-Frame-Options,
+  X-XSS-Protection, Referrer-Policy, CSP, Permissions-Policy) enforced for all responses and OPTIONS requests.
 - API key rotation endpoints added; improved authentication lifecycle.
 - Performance: Stabilized /status endpoint timing in test mode; reduced variance for health checks.
 - Async task queue: Fixed unawaited coroutine warnings in optimization endpoint by closing unscheduled coroutine objects.
@@ -9,6 +10,8 @@
 - Pydantic compatibility: No deprecated min_items/json_encoders usage; min_length used for validation.
 - Coverage: Full test suite passes (1131 passed, 20 skipped); backend coverage ~65% (reporting only).
 - Documentation: Updated README and package.json to 0.1.1; coverage threshold temporarily relaxed.
+- **Requirements Management**: Merged requirements.txt, requirements-dev.txt, and requirements-ml.txt into single requirements.txt with categorical organization and deduplication (openspec/changes/2025-10-18-merge-requirements/).
+- **Project Workflow**: Added standardized workflow documentation (openspec/PROJECT_WORKFLOW.md) for proposal → spec → tasks → tests → implementation → docs → git operations.
 
 Generated from OpenSpec change proposals.
 
@@ -49,7 +52,7 @@ Generated from OpenSpec change proposals.
   _File: proposal.md_
 - **Change Proposal: update-doc-docs-enterprise-features-clean** (update-doc-docs-enterprise-features-clean, None)
   _File: proposal.md_
-- **Change Proposal: update-doc-docs-enterprise-features-specification** (update-doc-docs-enterprise-features-specification, None)
+- **Change Proposal: update-doc-docs-enterprise-features-specification* (update-doc-docs-enterprise-features-specification, None)
   _File: proposal.md_
 - **Change Proposal: update-doc-docs-enterprise-summary** (update-doc-docs-enterprise-summary, None)
   _File: proposal.md_
