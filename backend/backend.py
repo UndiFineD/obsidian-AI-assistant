@@ -450,7 +450,7 @@ class _FailSafeResponseMiddleware(BaseHTTPMiddleware):
                     status_code=500, content={"detail": "Internal Server Error"}
                 )
             return _attach_security_headers(response)
-        except BaseException:
+        except Exception:
             # As a last resort, return a generic 500 JSON response with security headers
             response = JSONResponse(
                 status_code=500, content={"detail": "Internal Server Error"}
@@ -2941,11 +2941,11 @@ async def archive_openspec_change(change_id: str, create_timestamp: bool = True)
 
 
 @app.post("/api/openspec/validate-bulk")
-async def bulk_validate_openspec_changes(request: BulkValidateRequest):
+async def bulk_validate_openspec_changes(payload: BulkValidateRequest):
     """Validate multiple OpenSpec changes in bulk"""
     try:
         governance = get_openspec_governance()
-        results = governance.bulk_validate(request.change_ids)
+        results = governance.bulk_validate(payload.change_ids)
         return {"success": True, "validation_results": results}
     except Exception as e:
         raise HTTPException(
