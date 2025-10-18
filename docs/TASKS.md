@@ -1,5 +1,9 @@
 # Tasks: Add Unit Tests (002-add-unit-tests)
 
+> Governance: Material updates to this document are governed by OpenSpec
+> change proposals under the `project-documentation` capability. See
+> `openspec/PROJECT_WORKFLOW.md` and related archived changes for reference.
+
 **IMPORTANT:** All test scaffolding, execution, and reporting must use the './tests/' folder. Never create or reference
 './test/'.
 
