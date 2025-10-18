@@ -168,11 +168,21 @@ The project SHALL provide automated tools for tracking, validating, applying, an
 - **THEN** all existing URLs SHALL continue to work without modification
 
 ### Requirement: Governance for CLAUDE.md
-The project SHALL govern material changes to `CLAUDE.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `docs/CLAUDE.md` via OpenSpec
+change proposals to maintain consistency, review, and auditability. In
+addition, such changes SHALL document proposal content, tasks, a delta spec,
+and a validation command.
 
-#### Scenario: Material change to CLAUDE.md requires proposal
-- **WHEN** a contributor plans a material update to `CLAUDE.md`
-- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+#### Scenario: Proposal content and validation requirements
+
+- **WHEN** a contributor creates a change for updating `CLAUDE.md`
+- **THEN** the change SHALL include:
+    - A `proposal.md` with a Why section and capability reference
+    - A `tasks.md` with three or more actionable checklist items and a validation step
+        - A delta spec at
+            `changes/update-doc-claude/specs/project-documentation/spec.md` using valid
+            ADDED/MODIFIED/REMOVED sections
+    - A documented validation command: `openspec validate update-doc-claude --strict`
 
 ### Requirement: Governance for SPECIFICATION_SUMMARY.md
 The project SHALL govern material changes to `docs/SPECIFICATION_SUMMARY.md` via OpenSpec change proposals to maintain consistency and review.
@@ -280,10 +290,13 @@ The project SHALL govern material changes to `docs/CLARIFICATION.md` via OpenSpe
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 ### Requirement: Governance for CONSTITUTION.md
+
 The project SHALL govern material changes to `docs/CONSTITUTION.md` via OpenSpec change proposals to maintain consistency and review.
 
-#### Scenario: Material change to CONSTITUTION.md requires proposal
+#### Scenario: Material change requires proposal
+
 - **WHEN** a contributor plans a material update to `docs/CONSTITUTION.md`
+
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 ### Requirement: Governance for PROJECT_CLARIFICATION.md
