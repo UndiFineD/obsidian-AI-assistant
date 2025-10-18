@@ -1,0 +1,342 @@
+name: Nightly Comprehensive CI
+
+permissions:
+  contents: read
+  issues: write
+
+on:
+  schedule:
+    # Run at 2 AM UTC every day
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      run_performance_regression:
+        description: 'Run performance regression tests'
+        required: false
+        default: true
+        type: boolean
+
+concurrency:
+  group: nightly-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Full cross-platform test matrix
+  comprehensive-tests:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.11']
+
+    name: Comprehensive Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            ~/Library/Caches/pip
+            ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.python-version }}-pip-
+            ${{ runner.os }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist pytest-benchmark fastapi httpx
+          # Create filtered requirement files excluding heavy ML libs
+          python -c "import os; ex=('torch','transformers','sentence-transformers','llama-cpp','vosk','chromadb');
+          fn='requirements.txt'
+          lines=[]
+          if os.path.exists(fn):
+              with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()
+          with open('filtered-requirements.txt','w',encoding='utf-8') as f:
+              f.writelines([l for l in lines if not any(x in l for x in ex)])
+          fn='requirements-dev.txt'
+          lines=[]
+          if os.path.exists(fn):
+              with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()
+          with open('filtered-requirements-dev.txt','w',encoding='utf-8') as f:
+              f.writelines([l for l in lines if not any(x in l for x in ex)])"
+          pip install -r filtered-requirements.txt || true
+          pip install -r filtered-requirements-dev.txt || true
+        shell: bash
+
+      - name: Create Test Environment
+        run: |
+          python -c "import pathlib; [pathlib.Path(p).mkdir(parents=True, exist_ok=True) for p in ['backend/cache', 'backend/logs', 'backend/models', 'backend/vector_db', 'test_vault']]"
+        shell: bash
+
+      - name: Set environment variables
+        run: |
+          echo "BACKEND_URL=http://127.0.0.1:8000" >> "$GITHUB_ENV"
+          echo "VAULT_PATH=./test_vault" >> "$GITHUB_ENV"
+          echo "MODELS_DIR=./backend/models" >> "$GITHUB_ENV"
+          echo "CACHE_DIR=./backend/cache" >> "$GITHUB_ENV"
+        shell: bash
+
+      - name: Run Full Test Suite (including comprehensive)
+        run: |
+          pytest tests/ -v -n auto --asyncio-mode=auto --tb=short \
+            --cov=backend \
+            --cov-report=xml \
+            --cov-report=html \
+            --cov-report=term-missing \
+            --durations=20
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        shell: bash
+
+      - name: Upload Coverage Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ matrix.os }}-${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            coverage.xml
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.11'
+        continue-on-error: true
+        with:
+          files: ./coverage.xml
+          flags: nightly-full
+          name: nightly-comprehensive
+
+  # Performance regression tests
+  performance-regression:
+    runs-on: ubuntu-latest
+    name: Performance Regression Tests
+    if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && github.event.inputs.run_performance_regression == 'true')
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-pip-perf-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.PYTHON_VERSION }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-benchmark psutil memory-profiler
+          python -c "import os; ex=('torch','transformers','sentence-transformers','llama-cpp','vosk','chromadb');
+          fn='requirements.txt'
+          lines=[]
+          if os.path.exists(fn):
+              with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()
+          with open('filtered-requirements.txt','w',encoding='utf-8') as f:
+              f.writelines([l for l in lines if not any(x in l for x in ex)])"
+          pip install -r filtered-requirements.txt || true
+
+      - name: Create Test Environment
+        run: |
+          mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
+
+      - name: Run Performance Regression Tests
+        run: |
+          pytest tests/ -v -m performance_regression --benchmark-only \
+            --benchmark-autosave \
+            --benchmark-save-data \
+            --benchmark-compare
+        continue-on-error: true
+
+      - name: Upload Benchmark Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: .benchmarks/
+
+  # Voice processing tests (if applicable)
+  voice-tests:
+    runs-on: ubuntu-latest
+    name: Voice Processing Tests
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-${{ env.PYTHON_VERSION }}-pip-voice-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ env.PYTHON_VERSION }}-pip-
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-asyncio
+          python -c "import os; ex=('torch','transformers','sentence-transformers','llama-cpp','chromadb');
+          fn='requirements.txt'
+          lines=[]
+          if os.path.exists(fn):
+              with open(fn,'r',encoding='utf-8') as f: lines=f.readlines()
+          with open('filtered-requirements.txt','w',encoding='utf-8') as f:
+              f.writelines([l for l in lines if not any(x in l for x in ex)])"
+          pip install -r filtered-requirements.txt || true
+
+      - name: Create Test Environment
+        run: |
+          mkdir -p backend/cache backend/logs backend/models backend/vector_db test_vault
+
+      - name: Run Voice Tests
+        run: |
+          pytest tests/ -v -m voice --tb=short
+        continue-on-error: true
+
+  # Security and dependency audit
+  security-audit:
+    runs-on: ubuntu-latest
+    name: Security Audit
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Security Tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit safety pip-audit
+
+      - name: Run Bandit Security Scan
+        run: |
+          bandit -r backend/ -f json -o bandit-nightly.json
+        continue-on-error: true
+
+      - name: Run Safety Check
+        run: |
+          safety check --json --output safety-nightly.json || true
+        continue-on-error: true
+
+      - name: Run pip-audit
+        run: |
+          pip-audit --format json --output pip-audit-nightly.json || true
+        continue-on-error: true
+
+      - name: Upload Security Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports-nightly
+          path: |
+            bandit-nightly.json
+            safety-nightly.json
+            pip-audit-nightly.json
+
+  # Report results
+  report:
+    runs-on: ubuntu-latest
+    name: Generate Report
+    needs: [comprehensive-tests, performance-regression, voice-tests, security-audit]
+    if: always()
+
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Generate Summary Report
+        run: |
+          echo "# 🌙 Nightly Comprehensive CI Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Run Date**: $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## 📊 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Comprehensive Tests | ${{ needs.comprehensive-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Performance Regression | ${{ needs.performance-regression.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Voice Tests | ${{ needs.voice-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security Audit | ${{ needs.security-audit.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine overall status
+          if [ "${{ needs.comprehensive-tests.result }}" == "success" ] && \
+             [ "${{ needs.security-audit.result }}" == "success" ]; then
+            echo "✅ **Overall Status**: PASSED" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Overall Status**: FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- Coverage reports for all OS/Python combinations" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance benchmark results" >> $GITHUB_STEP_SUMMARY
+          echo "- Security audit reports" >> $GITHUB_STEP_SUMMARY
+
+      - name: Create Issue on Failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = `🚨 Nightly CI Failed - ${new Date().toISOString().split('T')[0]}`;
+            const body = `## Nightly Comprehensive CI Failure Report
+            
+            **Run**: ${context.runId}
+            **Workflow**: ${context.workflow}
+            **Date**: ${new Date().toISOString()}
+            
+            ### Failed Jobs
+            - Comprehensive Tests: ${{ needs.comprehensive-tests.result }}
+            - Performance Regression: ${{ needs.performance-regression.result }}
+            - Voice Tests: ${{ needs.voice-tests.result }}
+            - Security Audit: ${{ needs.security-audit.result }}
+            
+            ### Action Required
+            Please review the [workflow run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}) for details.
+            
+            ---
+            *This issue was automatically created by the nightly CI workflow.*`;
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body,
+              labels: ['ci', 'nightly-failure', 'automated']
+            });

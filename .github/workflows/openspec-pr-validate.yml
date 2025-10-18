@@ -20,6 +20,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-openspec-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-openspec-
+            ${{ runner.os }}-pip-
+
       - name: Install OpenSpec CLI
         shell: pwsh
         run: |
