@@ -3,6 +3,10 @@
 ## MODIFIED Requirements
 
 ### Requirement: Governance for CLAUDE.md
+The project SHALL govern material changes to `docs/CLAUDE.md` via OpenSpec
+change proposals to maintain consistency, review, and auditability. In
+addition, such changes SHALL document proposal content, tasks, a delta spec,
+and a validation command.
 
 #### Scenario: Proposal content and validation requirements
 
