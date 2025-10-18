@@ -128,8 +128,8 @@ def test_none_values():
         assert result is None
 
 
-def test_cache_ttl_expiration():
-    """Test that cache entries expire after TTL."""
+def test_cache_ttl_expiration(monkeypatch):
+    """Test that cache entries expire after TTL without sleeping by mocking time."""
     import time
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -138,22 +138,30 @@ def test_cache_ttl_expiration():
         question = "Test TTL question"
         answer = "Test TTL answer"
 
-        # Store answer
+        # Control time.time via a mutable base
+        base = {"t": time.time()}
+
+        def fake_time():
+            return base["t"]
+
+        monkeypatch.setattr("time.time", fake_time)
+
+        # Store answer at t0
         cache_mgr.store_answer(question, answer)
 
-        # Should be available immediately
+        # Should be available immediately at t0
         assert cache_mgr.get_cached_answer(question) == answer
 
-        # Wait for TTL to expire
-        time.sleep(1.1)
+        # Advance time past TTL
+        base["t"] += 1.1
 
         # Should be expired and return None
         result = cache_mgr.get_cached_answer(question)
         assert result is None
 
 
-def test_cache_ttl_not_expired():
-    """Test that cache entries are available before TTL expires."""
+def test_cache_ttl_not_expired(monkeypatch):
+    """Test that cache entries are available before TTL expires without sleep."""
     import time
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -162,11 +170,18 @@ def test_cache_ttl_not_expired():
         question = "Test TTL not expired"
         answer = "Test answer still valid"
 
-        # Store answer
+        base = {"t": time.time()}
+
+        def fake_time():
+            return base["t"]
+
+        monkeypatch.setattr("time.time", fake_time)
+
+        # Store answer at t0
         cache_mgr.store_answer(question, answer)
 
-        # Wait a short time (less than TTL)
-        time.sleep(0.1)
+        # Advance time by 0.1s (< TTL)
+        base["t"] += 0.1
 
         # Should still be available
         result = cache_mgr.get_cached_answer(question)
