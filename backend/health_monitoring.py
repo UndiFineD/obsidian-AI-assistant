@@ -19,6 +19,11 @@ import psutil
 from pydantic import BaseModel, Field
 
 
+def utc_now() -> datetime:
+    """Return current UTC time as a timezone-aware datetime."""
+    return datetime.now(timezone.utc)
+
+
 class ServiceStatus(str, Enum):
     """Service health status levels"""
 
@@ -45,7 +50,7 @@ class HealthCheckResult(BaseModel):
     response_time_ms: float
     message: Optional[str] = None
     details: Dict[str, Any] = Field(default_factory=dict)
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
     last_check: Optional[datetime] = None
     consecutive_failures: int = 0
 
@@ -60,7 +65,7 @@ class SystemMetrics(BaseModel):
     network_connections: int
     process_count: int
     uptime_seconds: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
 
 
 class Alert(BaseModel):
@@ -72,7 +77,7 @@ class Alert(BaseModel):
     message: str
     threshold_value: Optional[float] = None
     current_value: Optional[float] = None
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=utc_now)
     acknowledged: bool = False
     resolved: bool = False
 
@@ -399,7 +404,14 @@ class HealthMonitor:
             }
 
         cutoff_time = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
-        recent_metrics = [m for m in self.metrics_history if m.timestamp >= cutoff_time]
+
+        # Normalize timestamps to be timezone-aware (assume naive timestamps are UTC)
+        def _aware(ts: datetime) -> datetime:
+            return ts if ts.tzinfo is not None else ts.replace(tzinfo=timezone.utc)
+
+        recent_metrics = [
+            m for m in self.metrics_history if _aware(m.timestamp) >= cutoff_time
+        ]
 
         if not recent_metrics:
             recent_metrics = self.metrics_history[-10:]  # Use last 10 if no recent data

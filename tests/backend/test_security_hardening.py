@@ -10,7 +10,7 @@ import hmac
 import json
 import secrets
 import time
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, Mock, patch
 
 import jwt
@@ -318,7 +318,8 @@ def test_security_context_timestamp_recent(mock_request):
     """Test that timestamp is recent"""
     context = SecurityContext(mock_request)
 
-    now = datetime.utcnow()
+    # Use timezone-aware UTC to match SecurityContext implementation
+    now = datetime.now(timezone.utc)
     diff = (now - context.timestamp).total_seconds()
 
     # Timestamp should be within 1 second
