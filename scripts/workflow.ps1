@@ -566,12 +566,15 @@ function Invoke-Step10 {
         git add .
         
         # Commit
-        $commitMessage = Read-Host "Enter commit message (or press Enter for default)"
-        if ([string]::IsNullOrWhiteSpace($commitMessage)) {
-            $commitMessage = "chore(openspec): Complete workflow for $changeId`n`nOpenSpec Change: $changeId`nRef: openspec/PROJECT_WORKFLOW.md"
+        $userMessage = Read-Host "Enter commit message (or press Enter to auto-generate from docs)"
+        if ([string]::IsNullOrWhiteSpace($userMessage)) {
+            $doc = Get-ChangeDocInfo -ChangePath $ChangePath
+            $autoMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc
+            Write-Info "Using auto-generated commit message from documentation"
+            git commit -m $autoMsg
+        } else {
+            git commit -m $userMessage
         }
-        
-        git commit -m $commitMessage
         
         # Push
         $branch = git rev-parse --abbrev-ref HEAD
@@ -613,9 +616,11 @@ function Invoke-Step11 {
         Remove-Item -Path $ChangePath -Recurse -Force
         Write-Success "Removed from active changes"
         
-        # Commit archive operation
-        git add .
-        git commit -m "chore(openspec): Archive $changeId`n`nOpenSpec Change: $changeId`nAction: Archive completed change`n`nRef: openspec/PROJECT_WORKFLOW.md step 11"
+    # Commit archive operation (auto-generate from docs)
+    git add .
+    $doc = Get-ChangeDocInfo -ChangePath $archivePath
+    $archiveMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc -Archive
+    git commit -m $archiveMsg
         
         $branch = git rev-parse --abbrev-ref HEAD
         git push origin $branch
@@ -677,6 +682,85 @@ function Update-TodoFile {
     
     Set-Content -Path $todoPath -Value $content -Encoding UTF8
     Write-Success "Updated todo.md for step $CompletedStep"
+}
+
+# Extract metadata from change documentation (proposal.md, etc.)
+function Get-ChangeDocInfo {
+    param(
+        [string]$ChangePath
+    )
+
+    $doc = [pscustomobject]@{
+        Title         = $null
+        Why           = $null
+        AffectedSpecs = $null
+        AffectedFiles = $null
+        ProposalPath  = $null
+    }
+
+    try {
+        $proposalPath = Join-Path $ChangePath "proposal.md"
+        $doc.ProposalPath = $proposalPath
+        if (Test-Path $proposalPath) {
+            $content = Get-Content $proposalPath -Raw
+
+            # Title: from "# Proposal: <Title>"
+            $m = [regex]::Match($content, '(?m)^#\s*Proposal:\s*(.+)')
+            if ($m.Success) { $doc.Title = $m.Groups[1].Value.Trim() }
+
+            # Why: text under "## Why" until next heading
+            $m = [regex]::Match($content, '(?s)##\s*Why\s*(.+?)(?:\r?\n##\s|\Z)')
+            if ($m.Success) { $doc.Why = ($m.Groups[1].Value.Trim() -replace '\r?\n', ' ') }
+
+            # Affected specs/files (if present in Impact section)
+            $m = [regex]::Match($content, '(?m)^-\s*\*\*Affected specs\*\*:\s*(.+)')
+            if ($m.Success) { $doc.AffectedSpecs = $m.Groups[1].Value.Trim() }
+
+            $m = [regex]::Match($content, '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)')
+            if ($m.Success) { $doc.AffectedFiles = $m.Groups[1].Value.Trim() }
+        }
+    } catch {
+        Write-Warning "Unable to parse proposal.md for commit message generation: $_"
+    }
+
+    return $doc
+}
+
+# Build a commit message from documentation metadata
+function New-CommitMessageFromDocs {
+    param(
+        [string]$ChangeId,
+        [psobject]$DocInfo,
+        [switch]$Archive
+    )
+
+    $titlePart = if ($DocInfo.Title) { $DocInfo.Title } else { "Complete workflow for $ChangeId" }
+    $firstLine = "chore(openspec): $titlePart ($ChangeId)"
+
+    $lines = New-Object System.Collections.Generic.List[string]
+    $lines.Add($firstLine) | Out-Null
+    $lines.Add("") | Out-Null
+    $lines.Add("OpenSpec Change: $ChangeId") | Out-Null
+
+    if ($DocInfo.Why) {
+        $why = $DocInfo.Why
+        if ($why.Length -gt 240) { $why = $why.Substring(0, 237) + '...' }
+        $lines.Add("Why: $why") | Out-Null
+    }
+
+    if ($DocInfo.AffectedSpecs) { $lines.Add("Affected specs: $($DocInfo.AffectedSpecs)") | Out-Null }
+    if ($DocInfo.AffectedFiles) { $lines.Add("Affected files: $($DocInfo.AffectedFiles)") | Out-Null }
+
+    # Doc links
+    $relativePath = if ($Archive) { "openspec/archive/$ChangeId/proposal.md" } else { "openspec/changes/$ChangeId/proposal.md" }
+    if ($DocInfo.ProposalPath) { $lines.Add("Docs: $relativePath") | Out-Null }
+
+    if ($Archive) { $lines.Add("Action: Archive completed change") | Out-Null }
+
+    $lines.Add("") | Out-Null
+    $lines.Add("Ref: openspec/PROJECT_WORKFLOW.md") | Out-Null
+
+    return ($lines -join "`n")
 }
 
 # Main workflow execution
