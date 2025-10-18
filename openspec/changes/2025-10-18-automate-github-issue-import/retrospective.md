@@ -74,6 +74,20 @@
 - **Tests Added**: 28 new tests
 - **Documentation Updates**: 2 files (OPEN_SPEC_TOOLS.md, CHANGELOG.md)
 
+### Validation Metrics (Real-World Testing)
+- **Test Issues**: 4 issues tested (microsoft/vscode #1, #50, #100000, #99999999)
+- **Scenarios Tested**:
+    - ✅ Empty issue body (issue #1)
+    - ✅ Emoji in title (issue #100000)
+    - ✅ Issue with description (issue #50)
+    - ✅ 404 error handling (issue #99999999)
+    - ✅ Dry-run mode (issues #1, #50, #100000)
+    - ✅ Real import creation (issue #1)
+- **Success Rate**: 100% (all tests passed)
+- **Files Generated**: 5/5 correct (todo.md, proposal.md, spec.md, tasks.md, test_plan.md)
+- **Template Replacement**: 100% (title, change-id, date, owner, GitHub link)
+- **API Rate Limit**: No issues (unauthenticated, 60/hour)
+
 ---
 
 ## Improvements for Next Time 💡
@@ -88,6 +102,7 @@
 - 🔄 **Token validation**: Add `GET /user` check to validate GitHub token
 - 🔄 **Rich output**: Consider using `rich` library for better CLI formatting
 - 🔄 **Config file support**: Allow `.openspecrc` for default owner/repo
+- 🔄 **Short format support**: Accept `owner/repo#number` format in addition to full URLs
 
 ### 3. **Testing Improvements**
 - ✅ **Good coverage**: 28 tests cover main paths and edge cases
