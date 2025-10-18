@@ -28,35 +28,50 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 
 Use `import_github_issue.py` to automatically create an OpenSpec change from an existing GitHub issue:
 
+### Supported Formats
+
+The tool accepts three input formats:
+
+| Format | Example | Use Case |
+|--------|---------|----------|
+| **Full URL** | `https://github.com/owner/repo/issues/123` | Copied from browser address bar |
+| **Short format** | `owner/repo#123` | From commit messages, PR comments, GitHub discussions |
+| **Number only** | `123 --owner owner --repo repo` | When working with a specific repository |
+
+All formats produce identical results.
+
 ### Basic Usage
 
 ```bash
 # Import by full URL
 python scripts/import_github_issue.py https://github.com/owner/repo/issues/42
 
+# Import by short format (NEW in v0.1.4)
+python scripts/import_github_issue.py owner/repo#42
+
 # Import by number (requires --owner and --repo)
 python scripts/import_github_issue.py 42 --owner owner --repo repo
 
 # Preview without creating files
-python scripts/import_github_issue.py <URL> --dry-run
+python scripts/import_github_issue.py owner/repo#42 --dry-run
 ```
 
 ### Advanced Options
 
 ```bash
 # Custom change ID
-python scripts/import_github_issue.py <URL> --id my-custom-id
+python scripts/import_github_issue.py owner/repo#42 --id my-custom-id
 
 # Custom owner
-python scripts/import_github_issue.py <URL> --owner-name @myhandle
+python scripts/import_github_issue.py owner/repo#42 --owner-name @myhandle
 
 # Overwrite existing directory
-python scripts/import_github_issue.py <URL> --force
+python scripts/import_github_issue.py owner/repo#42 --force
 
 # Use GitHub token for higher rate limits
 export GITHUB_TOKEN=your_token_here  # Linux/macOS
 $env:GITHUB_TOKEN="your_token_here"  # PowerShell
-python scripts/import_github_issue.py <URL>
+python scripts/import_github_issue.py owner/repo#42
 ```
 
 ### What It Does

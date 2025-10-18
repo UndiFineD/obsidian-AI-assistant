@@ -83,6 +83,43 @@ class TestParseIssueUrl:
     def test_invalid_issue_number(self):
         with pytest.raises(ValueError, match="Invalid issue number"):
             parse_issue_url("https://github.com/owner/repo/issues/not-a-number")
+    
+    # Short format tests
+    def test_parse_short_format_basic(self):
+        """Test basic short format: owner/repo#number"""
+        owner, repo, number = parse_issue_url("microsoft/vscode#1000")
+        assert owner == "microsoft"
+        assert repo == "vscode"
+        assert number == 1000
+    
+    def test_parse_short_format_with_dash(self):
+        """Test short format with dashes in repo name"""
+        owner, repo, number = parse_issue_url("owner/repo-name#42")
+        assert owner == "owner"
+        assert repo == "repo-name"
+        assert number == 42
+    
+    def test_parse_short_format_large_number(self):
+        """Test short format with large issue number"""
+        owner, repo, number = parse_issue_url("test/project#999999")
+        assert owner == "test"
+        assert repo == "project"
+        assert number == 999999
+    
+    def test_parse_short_format_missing_hash(self):
+        """Test error for short format missing # and number"""
+        with pytest.raises(ValueError, match="Invalid issue format"):
+            parse_issue_url("owner/repo")
+    
+    def test_parse_short_format_missing_repo(self):
+        """Test error for short format with only owner#number"""
+        with pytest.raises(ValueError, match="Invalid issue format"):
+            parse_issue_url("owner#123")
+    
+    def test_parse_short_format_only_hash(self):
+        """Test error for short format with only #number"""
+        with pytest.raises(ValueError, match="Invalid issue format"):
+            parse_issue_url("#123")
 
 
 class TestFetchGitHubIssue:
