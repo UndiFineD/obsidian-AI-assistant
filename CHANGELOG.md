@@ -1,4 +1,12 @@
 # 📝 CHANGELOG
+## v0.1.6 (2025-10-18)
+- **Backlog Management Tool**: Implemented `scripts/list_openspec_changes.py` for analyzing active changes
+- **ASCII Burndown Chart**: Added terminal-based burndown visualization showing progress over time
+- **Change Analytics**: List, filter, and sort active OpenSpec changes with detailed statistics
+- **Summary Reports**: Generate reports on change status, age, and completion velocity
+
+Generated from OpenSpec change proposals.
+
 ## v0.1.5 (2025-10-18)
 - **Scaffold Script Fix**: Fixed date prefix duplication bug in `openspec_new_change.py`
 - **Smart Detection**: Script now detects and strips existing date prefixes from input
