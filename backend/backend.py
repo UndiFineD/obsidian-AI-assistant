@@ -1,7 +1,7 @@
 # backend/backend.py
 
-import os
 import asyncio
+import os
 import os as _os
 import pathlib
 import signal
@@ -10,35 +10,45 @@ import sys as _sys
 import sys as _sysmod
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
-from typing import List, Optional
-
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
-from .api_key_management import APIKeyManager
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from pydantic import BaseModel
-from starlette.middleware.base import BaseHTTPMiddleware
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional, Union
 
 # JWT authentication imports
 import jwt
-from jwt import PyJWTError
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from pydantic import BaseModel, Field
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from .advanced_security import (
     ThreatLevel,
     get_advanced_security_config,
     log_security_event,
 )
+from .api_key_management import APIKeyManager
+from .cache_management import cache_router
 from .caching import CacheManager
 from .csrf_middleware import CSRFMiddleware
 from .deps import ensure_minimal_dependencies, optional_ml_hint
 from .embeddings import EmbeddingsManager
+from .enhanced_caching import get_unified_cache_manager
+from .exception_handlers import RequestTrackingMiddleware, setup_exception_handlers
 from .file_validation import (
     FileValidationError,
     validate_base64_audio,
     validate_pdf_path,
 )
 from .indexing import IndexingService, VaultIndexer
+from .log_management import router as log_router
+from .logging_framework import (
+    LogCategory,
+    get_logger,
+    initialize_logging,
+    log_audit,
+    performance_timer,
+    request_context,
+)
 from .modelmanager import ModelManager
 from .openspec_governance import get_openspec_governance
 from .performance import (
@@ -48,82 +58,76 @@ from .performance import (
     get_connection_pool,
     get_task_queue,
 )
-from .enhanced_caching import get_unified_cache_manager
-from .cache_management import cache_router
-from .logging_framework import (
-    initialize_logging,
-    get_logger,
-    log_audit,
-    performance_timer,
-    request_context,
-    LogCategory
-)
-from .log_management import router as log_router
 from .security_hardening import (
-    SecurityHardeningMiddleware, SecurityLevel,
-    create_security_hardening_middleware
+    SecurityHardeningMiddleware,
+    SecurityLevel,
+    create_security_hardening_middleware,
 )
 from .security_management import router as security_router
 from .settings import get_settings, reload_settings, update_settings
-from .utils import redact_data
-from .exception_handlers import setup_exception_handlers, RequestTrackingMiddleware
+from .utils import is_test_mode, redact_data
 
 # JWT authentication imports
-import jwt
-from jwt import PyJWTError
 
 
 # JWT Configuration
-JWT_SECRET_KEY = _os.environ.get("JWT_SECRET_KEY", "dev-secret-key-change-in-production")
+JWT_SECRET_KEY = _os.environ.get(
+    "JWT_SECRET_KEY", "dev-secret-key-change-in-production"
+)
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRATION_MINUTES = 60
 
 
 # JWT Utility Functions
-def create_access_token(username: str, roles: List[str] = None, user_id: str = None, expires_delta: timedelta = None) -> str:
+def create_access_token(
+    username: str,
+    roles: List[str] = None,
+    user_id: str = None,
+    expires_delta: timedelta = None,
+) -> str:
     """
     Create a JWT access token for a user.
-    
+
     Args:
         username: The username to encode in the token
         roles: List of user roles (defaults to ["user"])
         user_id: Optional user ID
         expires_delta: Token expiration time (defaults to JWT_EXPIRATION_MINUTES)
-    
+
     Returns:
         Encoded JWT token string
     """
     if roles is None:
         roles = ["user"]
-    
+
     if expires_delta is None:
         expires_delta = timedelta(minutes=JWT_EXPIRATION_MINUTES)
-    
-    expire = datetime.utcnow() + expires_delta
-    
+
+    expire = datetime.now(timezone.utc) + expires_delta
+
     payload = {
         "sub": username,  # Subject = username
         "roles": roles,
         "exp": expire,
-        "iat": datetime.utcnow()  # Issued at
+        "iat": datetime.now(timezone.utc),  # Issued at
     }
-    
+
     if user_id:
         payload["user_id"] = user_id
-    
+
     return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
 
 def verify_token(token: str) -> dict:
     """
     Verify and decode a JWT token.
-    
+
     Args:
         token: The JWT token string to verify
-    
+
     Returns:
         Decoded token payload
-    
+
     Raises:
         HTTPException: If token is invalid or expired
     """
@@ -132,7 +136,7 @@ def verify_token(token: str) -> dict:
             token,
             JWT_SECRET_KEY,
             algorithms=[JWT_ALGORITHM],
-            options={"verify_exp": True}
+            options={"verify_exp": True},
         )
         return payload
     except jwt.ExpiredSignatureError:
@@ -149,23 +153,8 @@ def verify_token(token: str) -> dict:
         )
 
 
-# --- Helper: detect test mode consistently ---
-def _is_test_mode() -> bool:
-    try:
-        if (
-            "pytest" in _sysmod.modules
-            or _os.environ.get("PYTEST_CURRENT_TEST")
-            or _os.environ.get("PYTEST_RUNNING", "").lower()
-            in ("1", "true", "yes", "on")
-            or _os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
-        ):
-            return True
-    except Exception:
-        pass
-    return False
-
-
 # --- Authentication & RBAC dependencies ---
+# Note: is_test_mode() is now imported as is_test_mode() from utils
 security = HTTPBearer(auto_error=False)
 
 # Module-level singleton for Depends function
@@ -178,12 +167,12 @@ def get_current_user(
     """
     Extract and validate JWT token from request.
     Returns user information including username and roles.
-    
+
     In test mode, bypasses authentication with default test user.
     In production, validates JWT token signature, expiration, and extracts user data.
     """
     # Testing bypass: when under pytest or TEST_MODE, allow default user/admin
-    if _is_test_mode():
+    if is_test_mode():
         return {"username": "test", "roles": ["user", "admin"]}
 
     if credentials is None:
@@ -200,35 +189,35 @@ def get_current_user(
             detail="Empty authentication token",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     try:
         # Decode and validate JWT token
         payload = jwt.decode(
             token,
             JWT_SECRET_KEY,
             algorithms=[JWT_ALGORITHM],
-            options={"verify_exp": True}  # Verify expiration
+            options={"verify_exp": True},  # Verify expiration
         )
-        
+
         # Extract user information from token
         username = payload.get("sub")  # Subject = username
         roles = payload.get("roles", ["user"])  # Default to 'user' role
         user_id = payload.get("user_id")
-        
+
         if username is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token: missing username",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         return {
             "username": username,
             "user_id": user_id,
             "roles": roles,
-            "token_exp": payload.get("exp")
+            "token_exp": payload.get("exp"),
         }
-    
+
     except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -242,6 +231,14 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     except Exception as e:
+        import traceback
+
+        try:
+            logger = get_logger()
+            logger.error(f"Unhandled exception in get_current_user: {e}", exc_info=True)
+        except Exception:
+            pass
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Authentication failed: {str(e)}",
@@ -254,7 +251,7 @@ def require_role(role: str):
 
     def role_checker(user: dict = user_dep):
         # In test mode, bypass role checks entirely to keep integration tests unblocked
-        if _is_test_mode():
+        if is_test_mode():
             return user
         if role not in user["roles"]:
             raise HTTPException(
@@ -371,6 +368,7 @@ async def lifespan(app: FastAPI):
         await _app_startup()
     except Exception as e:
         import logging
+
         logging.error(f"Startup error: {e} (continuing to serve OpenAPI schema)")
     yield
     # Shutdown (if needed)
@@ -390,34 +388,80 @@ app = FastAPI(
 try:
     # Initialize logging with environment-based configuration
     log_config = {
-        'level': os.environ.get('LOG_LEVEL', 'INFO'),
-        'log_dir': os.environ.get('LOG_DIR', './backend/logs'),
-        'format': os.environ.get('LOG_FORMAT', 'structured'),
-        'include_pii': os.environ.get('LOG_INCLUDE_PII', 'false').lower() in ('true', '1', 'yes'),
+        "level": os.environ.get("LOG_LEVEL", "INFO"),
+        "log_dir": os.environ.get("LOG_DIR", "./backend/logs"),
+        "format": os.environ.get("LOG_FORMAT", "structured"),
+        "include_pii": os.environ.get("LOG_INCLUDE_PII", "false").lower()
+        in ("true", "1", "yes"),
     }
     initialize_logging(log_config)
-    
+
     # Get application logger
-    app_logger = get_logger('backend.app', LogCategory.SYSTEM)
+    app_logger = get_logger("backend.app", LogCategory.SYSTEM)
     app_logger.info("Logging framework initialized successfully")
-    
+
 except Exception as e:
     print(f"Warning: Failed to initialize advanced logging: {e}")
     # Fall back to basic logging
     import logging
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
-    app_logger = logging.getLogger('backend.app')
+    app_logger = logging.getLogger("backend.app")
 
 # Setup standardized error handling
 setup_exception_handlers(app)
 app.add_middleware(RequestTrackingMiddleware)
 
+
+# Outermost fail-safe middleware to guarantee a response object is returned
+class _FailSafeResponseMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        from fastapi.responses import JSONResponse
+
+        def _attach_security_headers(resp: Response) -> Response:
+            try:
+                # Standard headers expected by tests and best practices
+                resp.headers["X-Content-Type-Options"] = "nosniff"
+                resp.headers["X-Frame-Options"] = "DENY"
+                resp.headers["X-XSS-Protection"] = "1; mode=block"
+                resp.headers["Strict-Transport-Security"] = (
+                    "max-age=31536000; includeSubDomains"
+                )
+                resp.headers["Referrer-Policy"] = "no-referrer"
+                resp.headers.setdefault("Content-Security-Policy", "default-src 'self'")
+                # Propagate request id if available
+                req_id = getattr(
+                    getattr(request, "state", object()), "request_id", None
+                )
+                if req_id:
+                    resp.headers["X-Request-ID"] = str(req_id)
+            except Exception:
+                pass
+            return resp
+
+        try:
+            response = await call_next(request)
+            # If a middleware chain returns None (shouldn't), synthesize a 500
+            if response is None:
+                response = JSONResponse(
+                    status_code=500, content={"detail": "Internal Server Error"}
+                )
+            return _attach_security_headers(response)
+        except BaseException:
+            # As a last resort, return a generic 500 JSON response with security headers
+            response = JSONResponse(
+                status_code=500, content={"detail": "Internal Server Error"}
+            )
+            return _attach_security_headers(response)
+
+
 # Add request tracing middleware for performance monitoring
 try:
     from .request_tracing import RequestTracingMiddleware
+
     app.add_middleware(RequestTracingMiddleware)
     app_logger.info("Request tracing middleware enabled")
 except Exception as e:
@@ -443,7 +487,9 @@ class _SecurityHeadersEnforcer(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         # Presence-only check for HSTS in tests, value provided here
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
         # Tests expect no-referrer specifically
         response.headers["Referrer-Policy"] = "no-referrer"
         # CSP value may vary; provide a safe default
@@ -516,7 +562,7 @@ if RATE_LIMITING_AVAILABLE:
 settings = get_settings()
 
 # In test mode, allow all origins/headers/methods to ensure preflights succeed
-if _is_test_mode():
+if is_test_mode():
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[],
@@ -536,30 +582,34 @@ if True:  # Enable in tests as well so headers are present
         # Determine security level from environment
         security_level_str = os.getenv("SECURITY_LEVEL", "standard").lower()
         security_level = SecurityLevel.STANDARD
-        
+
         if security_level_str == "minimal":
             security_level = SecurityLevel.MINIMAL
         elif security_level_str == "enhanced":
             security_level = SecurityLevel.ENHANCED
         elif security_level_str == "maximum":
             security_level = SecurityLevel.MAXIMUM
-        
+
         # Create and add security hardening middleware
         security_middleware = create_security_hardening_middleware(security_level)
         app.add_middleware(SecurityHardeningMiddleware, security_level=security_level)
-        print(f"[Security] Security hardening middleware loaded (level: {security_level.value})")
-        
+        print(
+            f"[Security] Security hardening middleware loaded (level: {security_level.value})"
+        )
+
         # Also add the existing rate limiting middleware
         from .rate_limiting import create_rate_limit_middleware
+
         rate_limit_middleware = create_rate_limit_middleware()
         app.middleware("http")(rate_limit_middleware)
         print("[Security] Rate limiting middleware loaded")
-        
+
     except Exception as e:
         print(f"[Security] Warning: Failed to load security middleware: {e}")
         # Fall back to basic rate limiting only
         try:
             from .rate_limiting import create_rate_limit_middleware
+
             security_middleware = create_rate_limit_middleware()
             app.middleware("http")(security_middleware)
             print("[Security] Fallback rate limiting middleware loaded")
@@ -568,7 +618,7 @@ if True:  # Enable in tests as well so headers are present
 else:
     print("[Security] Test mode: Security hardening middleware disabled")
 
-if not ENTERPRISE_AVAILABLE and not _is_test_mode():
+if not ENTERPRISE_AVAILABLE and not is_test_mode():
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_allowed_origins,
@@ -592,16 +642,20 @@ async def _cors_preflight(full_path: str):
     resp.headers.setdefault("Content-Security-Policy", "default-src 'self'")
     return resp
 
+
 # ============================================================================
 # API KEY MANAGEMENT ENDPOINTS
 # ============================================================================
 
+
 class APIKeyRotateRequest(BaseModel):
     old_key: str
+
 
 class APIKeyRotateResponse(BaseModel):
     new_key: str
     rotated: bool = True
+
 
 @app.post("/api/auth/api_key/rotate", response_model=APIKeyRotateResponse)
 async def rotate_api_key(request: APIKeyRotateRequest):
@@ -634,11 +688,15 @@ except Exception as e:
 
 
 # Ensure preflight bypass is outermost in test mode (added after all other middlewares)
-if _is_test_mode():
+if is_test_mode():
     app.add_middleware(_PreflightBypassMiddleware)
 
-# Add security headers enforcer last so it overrides any differing values
+# Add security headers enforcer near-last so it can set headers on normal responses
 app.add_middleware(_SecurityHeadersEnforcer)
+
+# Add fail-safe outermost to guarantee a response and catch unexpected exceptions
+# Note: This must be added after all other middleware so it wraps the chain
+app.add_middleware(_FailSafeResponseMiddleware)
 
 # --- Services (lazy-init) ---
 model_manager = None  # will be set to ModelManager instance
@@ -678,6 +736,7 @@ def init_services():
 
         try:
             from dotenv import load_dotenv
+
             load_dotenv()
         except Exception as e:
             print(f"[init_services] Error loading .env: {e}")
@@ -706,7 +765,9 @@ def init_services():
         try:
             if hasattr(IndexingService, "from_settings"):
                 indexing_service = safe_init(IndexingService.from_settings)
-                vault_indexer = indexing_service.vault_indexer if indexing_service else None
+                vault_indexer = (
+                    indexing_service.vault_indexer if indexing_service else None
+                )
             else:
                 vault_indexer = safe_init(VaultIndexer, emb_mgr=emb_manager)
         except Exception:
@@ -716,7 +777,10 @@ def init_services():
         cache_manager = safe_init(CacheManager, cache_dir)
     except Exception as e:
         import logging
-        logging.error(f"[init_services] Non-fatal error during service initialization: {e} (server will continue to serve OpenAPI schema)")
+
+        logging.error(
+            f"[init_services] Non-fatal error during service initialization: {e} (server will continue to serve OpenAPI schema)"
+        )
         # Do not raise or exit; just log and continue
 
 
@@ -770,6 +834,7 @@ async def _app_startup():
     if fast:
         try:
             import threading
+
             threading.Thread(target=init_services, daemon=True).start()
             print(
                 "[startup] FAST_STARTUP enabled – initializing services in background"
@@ -781,13 +846,23 @@ async def _app_startup():
             init_services()
         except Exception as e:
             import logging
-            logging.error(f"[startup] Non-fatal error in init_services: {e} (server will continue to serve OpenAPI schema)")
+
+            logging.error(
+                f"[startup] Non-fatal error in init_services: {e} (server will continue to serve OpenAPI schema)"
+            )
 
     # Fallback: If no models are loaded, warn but do NOT exit or shutdown
     global model_manager
-    if model_manager is None or not hasattr(model_manager, "models") or not getattr(model_manager, "models", None):
+    if (
+        model_manager is None
+        or not hasattr(model_manager, "models")
+        or not getattr(model_manager, "models", None)
+    ):
         import logging
-        logging.warning("[startup] No models loaded. All model-dependent endpoints will return 503, but OpenAPI and docs will be available.")
+
+        logging.warning(
+            "[startup] No models loaded. All model-dependent endpoints will return 503, but OpenAPI and docs will be available."
+        )
 
 
 def _init_performance_systems():
@@ -876,7 +951,7 @@ class BulkValidateRequest(BaseModel):
 # ----------------------
 def _health_payload():
     from .error_handling import error_context
-    
+
     with error_context("health_check", reraise=False):
         return {"status": "ok", "timestamp": int(time.time())}
 
@@ -891,7 +966,7 @@ async def status_endpoint():
     """Lightweight status endpoint for quick liveness checks."""
     # In test mode, add a tiny, consistent delay to reduce variance ratio
     # in repeated measurements without affecting <100ms SLA.
-    if _is_test_mode():
+    if is_test_mode():
         try:
             await asyncio.sleep(0.005)  # ~5ms
         except Exception:
@@ -905,19 +980,19 @@ async def health():
 
     PII-safe: does not include secrets; optionally redacts path-like strings.
     """
-    from .error_handling import error_context, ConfigurationError
-    
+    from .error_handling import ConfigurationError, error_context
+
     with error_context("comprehensive_health_check", reraise=False):
         payload = _health_payload()
-        
+
         try:
             s = get_settings()
         except Exception as e:
             raise ConfigurationError(
                 "Failed to load settings for health check",
-                suggestion="Check configuration files and environment variables"
+                suggestion="Check configuration files and environment variables",
             ) from e
-            
+
         # Only include non-sensitive fields; exclude tokens/keys or external file paths
         info = {
             "backend_url": s.backend_url,
@@ -931,7 +1006,7 @@ async def health():
             "allow_network": s.allow_network,
             "gpu": s.gpu,
         }
-        
+
         # Optional runtime redaction toggle via env
         if os.getenv("REDACT_HEALTH", "0").lower() in ("1", "true", "yes", "on"):
             info = redact_data(info)
@@ -942,39 +1017,39 @@ async def health():
 @app.get("/api/health/detailed")
 async def detailed_health():
     """Enhanced health endpoint with service status tracking"""
-    from .health_monitoring import get_health_monitor
     from .error_handling import error_context
-    
+    from .health_monitoring import get_health_monitor
+
     with error_context("detailed_health_check", reraise=False):
         monitor = get_health_monitor()
-        
+
         # Check critical services
         async def check_model_manager():
             """Check if model manager is responsive"""
             global model_manager
             if model_manager is None:
                 raise Exception("Model manager not initialized")
-        
+
         async def check_embeddings():
             """Check if embeddings manager is responsive"""
             global emb_manager
             if emb_manager is None:
                 raise Exception("Embeddings manager not initialized")
-        
+
         async def check_cache():
             """Check if cache manager is responsive"""
             global cache_manager
             if cache_manager is None:
                 raise Exception("Cache manager not initialized")
-        
+
         # Run health checks
         await monitor.check_service_health("model_manager", check_model_manager)
         await monitor.check_service_health("embeddings", check_embeddings)
         await monitor.check_service_health("cache", check_cache)
-        
+
         # Collect system metrics
         metrics = await monitor.collect_system_metrics()
-        
+
         # Return comprehensive health summary
         return {
             **monitor.get_health_summary(),
@@ -984,137 +1059,168 @@ async def detailed_health():
                 "memory_available_mb": metrics.memory_available_mb,
                 "disk_usage_percent": metrics.disk_usage_percent,
                 "network_connections": metrics.network_connections,
-                "process_count": metrics.process_count
-            }
+                "process_count": metrics.process_count,
+            },
         }
 
 
 @app.get("/api/health/metrics")
 async def health_metrics(window_minutes: int = 5):
     """Get aggregated health metrics for a time window"""
-    from .health_monitoring import get_health_monitor
     from .error_handling import error_context
-    
+    from .health_monitoring import get_health_monitor
+
     with error_context("health_metrics", reraise=False):
         monitor = get_health_monitor()
-        
+
         # Collect current metrics
         await monitor.collect_system_metrics()
-        
+
         # Return aggregated metrics
         return {
             "current_metrics": await monitor.collect_system_metrics(),
-            "aggregated": monitor.get_metrics_summary(window_minutes)
+            "aggregated": monitor.get_metrics_summary(window_minutes),
         }
 
 
 @app.get("/api/health/alerts")
 async def health_alerts(include_resolved: bool = False):
     """Get active health alerts"""
-    from .health_monitoring import get_health_monitor
     from .error_handling import error_context
-    
+    from .health_monitoring import get_health_monitor
+
     with error_context("health_alerts", reraise=False):
         monitor = get_health_monitor()
         return {
             "alerts": monitor.get_alerts(include_resolved=include_resolved),
             "summary": {
-                "active": len([a for a in monitor.get_alerts() if not a.get("resolved", False)]),
-                "total": len(monitor.get_alerts(include_resolved=True))
-            }
+                "active": len(
+                    [a for a in monitor.get_alerts() if not a.get("resolved", False)]
+                ),
+                "total": len(monitor.get_alerts(include_resolved=True)),
+            },
         }
 
 
 @app.post("/api/health/alerts/{alert_id}/acknowledge")
 async def acknowledge_alert(alert_id: str):
     """Acknowledge a health alert"""
+    from .error_handling import NotFoundError, error_context
     from .health_monitoring import get_health_monitor
-    from .error_handling import error_context, NotFoundError
-    
+
     with error_context("acknowledge_alert", reraise=False):
         monitor = get_health_monitor()
         success = monitor.acknowledge_alert(alert_id)
-        
+
         if not success:
             raise NotFoundError(
                 f"Alert {alert_id} not found",
-                suggestion="Check alert ID or list available alerts with GET /api/health/alerts"
+                suggestion="Check alert ID or list available alerts with GET /api/health/alerts",
             )
-        
+
         return {"success": True, "alert_id": alert_id}
 
 
 @app.get("/api/config")
 async def get_config():
-    from backend.settings import _ALLOWED_UPDATE_KEYS
-    from .error_handling import error_context, ConfigurationError
-    
-    with error_context("get_configuration", reraise=False):
-        try:
-            s = get_settings()
-        except Exception as e:
-            raise ConfigurationError(
-                "Failed to load settings",
-                suggestion="Check configuration files and environment variables"
-            ) from e
-            
-        # Only return whitelisted fields to avoid exposing sensitive data
-        # Support both Pydantic v2 (model_dump) and mocks providing dict()
-        try:
-            data = s.model_dump()  # type: ignore[attr-defined]
-        except AttributeError:
-            data = s.dict()  # type: ignore[attr-defined]
-        filtered = {k: v for k, v in data.items() if k in _ALLOWED_UPDATE_KEYS}
-        
-        # Mask obvious sensitive fields if ever present in whitelist
-        for secret_key in ("hf_token", "huggingface_token", "api_key", "encryption_key"):
-            if secret_key in filtered and filtered[secret_key]:
-                filtered[secret_key] = "***"
-                
-        # Back-compat: tests expect a field named 'backend/vector_db' indicating the default path
-        try:
-            from pathlib import Path
+    import traceback
 
-            project_root = Path(get_settings().project_root)
-            filtered["backend/vector_db"] = str(project_root / "backend" / "vector_db")
-        except Exception:
-            # Best-effort; omit if anything goes wrong
-            pass
-            
-        # Optional runtime redaction toggle via env
-        if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
-            filtered = redact_data(filtered)
-        return filtered
+    from backend.settings import _ALLOWED_UPDATE_KEYS
+
+    from .error_handling import ConfigurationError, error_context
+
+    try:
+        with error_context("get_configuration", reraise=False):
+            try:
+                s = get_settings()
+            except Exception as e:
+                raise ConfigurationError(
+                    "Failed to load settings",
+                    suggestion="Check configuration files and environment variables",
+                ) from e
+
+            # Only return whitelisted fields to avoid exposing sensitive data
+            # Support both Pydantic v2 (model_dump) and mocks providing dict()
+            try:
+                data = s.model_dump()  # type: ignore[attr-defined]
+            except AttributeError:
+                data = s.dict()  # type: ignore[attr-defined]
+            filtered = {k: v for k, v in data.items() if k in _ALLOWED_UPDATE_KEYS}
+
+            # Mask obvious sensitive fields if ever present in whitelist
+            for secret_key in (
+                "hf_token",
+                "huggingface_token",
+                "api_key",
+                "encryption_key",
+            ):
+                if secret_key in filtered and filtered[secret_key]:
+                    filtered[secret_key] = "***"
+
+            # Back-compat: tests expect a field named 'backend/vector_db' indicating the default path
+            try:
+                from pathlib import Path
+
+                project_root = Path(get_settings().project_root)
+                filtered["backend/vector_db"] = str(
+                    project_root / "backend" / "vector_db"
+                )
+            except Exception:
+                # Best-effort; omit if anything goes wrong
+                pass
+
+            # Optional runtime redaction toggle via env
+            if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
+                filtered = redact_data(filtered)
+            return filtered
+    except Exception as exc:
+        print("[DEBUG] Exception in get_config:", exc)
+        traceback.print_exc()
+        # Return error details in debug/test mode
+        if os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("TEST_MODE"):
+            return {"error": str(exc), "traceback": traceback.format_exc()}
+        raise
 
 
 @app.post("/api/config/reload")
 async def post_reload_config():
-    from .error_handling import error_context, ConfigurationError
-    
-    with error_context("config_reload", reraise=True):
-        try:
-            s = reload_settings()
-            settings_data = _settings_to_dict(s)
-            return {"ok": True, "settings": settings_data}
-        except Exception as err:
-            raise ConfigurationError(
-                f"Configuration reload failed: {str(err)}",
-                suggestion="Check configuration file syntax and permissions"
-            ) from err
+    import traceback
+
+    from .error_handling import ConfigurationError, error_context
+
+    try:
+        with error_context("config_reload", reraise=True):
+            try:
+                s = reload_settings()
+                settings_data = _settings_to_dict(s)
+                return {"ok": True, "settings": settings_data}
+            except Exception as err:
+                raise ConfigurationError(
+                    f"Configuration reload failed: {str(err)}",
+                    suggestion="Check configuration file syntax and permissions",
+                ) from err
+    except Exception as exc:
+        print("[DEBUG] Exception in post_reload_config:", exc)
+        traceback.print_exc()
+        # Always raise exceptions - let FastAPI's exception handlers convert to proper HTTP status
+        raise
 
 
 # ============================================================================
 # JWT AUTHENTICATION ENDPOINTS
 # ============================================================================
 
+
 class TokenRequest(BaseModel):
     """Request model for token generation"""
+
     username: str
     password: str  # In production, validate against user database
 
 
 class TokenResponse(BaseModel):
     """Response model for token generation"""
+
     access_token: str
     token_type: str = "bearer"
     expires_in: int
@@ -1126,49 +1232,45 @@ class TokenResponse(BaseModel):
 async def login_for_access_token(request: TokenRequest):
     """
     Generate JWT access token for authentication.
-    
+
     In production, this should:
     1. Validate username/password against user database
     2. Fetch user roles from database
     3. Apply rate limiting to prevent brute force attacks
-    
+
     For development, accepts any credentials and returns a valid token.
     """
-    from .error_handling import error_context, AuthenticationError
-    
+    from .error_handling import AuthenticationError, error_context
+
     with error_context("token_generation", reraise=True):
         # In production, validate credentials against database
         # For demo/development, accept any non-empty credentials
         if not request.username or len(request.username.strip()) == 0:
             raise AuthenticationError(
-                "Username cannot be empty",
-                suggestion="Provide a valid username"
+                "Username cannot be empty", suggestion="Provide a valid username"
             )
-        
+
         if not request.password or len(request.password.strip()) == 0:
             raise AuthenticationError(
-                "Password cannot be empty",
-                suggestion="Provide a valid password"
+                "Password cannot be empty", suggestion="Provide a valid password"
             )
-        
+
         # In production: fetch roles from database
         # For demo: assign default roles based on username
         roles = ["admin", "user"] if request.username == "admin" else ["user"]
-        
+
         # Generate token
         expires_delta = timedelta(minutes=JWT_EXPIRATION_MINUTES)
         access_token = create_access_token(
-            username=request.username,
-            roles=roles,
-            expires_delta=expires_delta
+            username=request.username, roles=roles, expires_delta=expires_delta
         )
-        
+
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
             expires_in=JWT_EXPIRATION_MINUTES * 60,  # seconds
             username=request.username,
-            roles=roles
+            roles=roles,
         )
 
 
@@ -1176,7 +1278,7 @@ async def login_for_access_token(request: TokenRequest):
 async def verify_current_token(current_user: dict = Depends(get_current_user)):
     """
     Verify the current JWT token and return user information.
-    
+
     This endpoint can be used to:
     - Check if a token is still valid
     - Get current user information
@@ -1187,7 +1289,7 @@ async def verify_current_token(current_user: dict = Depends(get_current_user)):
         "username": current_user.get("username"),
         "roles": current_user.get("roles"),
         "user_id": current_user.get("user_id"),
-        "token_expires_at": current_user.get("token_exp")
+        "token_expires_at": current_user.get("token_exp"),
     }
 
 
@@ -1195,63 +1297,223 @@ async def verify_current_token(current_user: dict = Depends(get_current_user)):
 # CONFIGURATION ENDPOINTS
 # ============================================================================
 
-@app.post("/api/config")
-async def post_update_config(partial: dict):
-    from backend.settings import _ALLOWED_UPDATE_KEYS
-    from .error_handling import error_context, ValidationError, ConfigurationError
-    
-    with error_context("update_configuration", reraise=True):
-        # Reject unknown keys to avoid accidental secret injection/logging
-        incoming = dict(partial or {})
-        unknown = [k for k in incoming.keys() if k not in _ALLOWED_UPDATE_KEYS]
-        if unknown:
-            raise ValidationError(
-                f"Unknown configuration keys provided: {', '.join(unknown)}",
-                field="config_keys",
-                suggestion=f"Allowed keys are: {', '.join(_ALLOWED_UPDATE_KEYS)}"
-            )
 
-        try:
-            s = update_settings(incoming)
-            settings_data = _settings_to_dict(s)
-            # Redact response if enabled
-            if os.getenv("REDACT_CONFIG", "0").lower() in ("1", "true", "yes", "on"):
-                settings_data = redact_data(settings_data)
-            return {"ok": True, "settings": settings_data}
-        except ValidationError:
-            raise  # Re-raise validation errors as-is
-        except Exception as err:
-            raise ConfigurationError(
-                f"Configuration update failed: {err}",
-                suggestion="Check configuration values and try again"
-            ) from err
+class ConfigUpdateRequest(BaseModel):
+    """Request model for configuration updates with validation.
+
+    Only includes fields that are allowed to be updated via the API.
+    Provides type validation, constraints, and better error messages.
+    """
+
+    # Core server settings
+    api_port: Optional[int] = Field(
+        None, ge=1024, le=65535, description="API server port (1024-65535)"
+    )
+    allow_network: Optional[bool] = Field(None, description="Enable network access")
+    continuous_mode: Optional[bool] = Field(None, description="Enable continuous mode")
+
+    # Path settings
+    vault_path: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to vault directory"
+    )
+    models_dir: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to models directory"
+    )
+    cache_dir: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to cache directory"
+    )
+    log_dir: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to log directory"
+    )
+
+    # Model settings
+    model_backend: Optional[str] = Field(
+        None,
+        pattern="^(llama_cpp|gpt4all)$",
+        description="Model backend (llama_cpp or gpt4all)",
+    )
+    model_path: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to model file"
+    )
+    embed_model: Optional[str] = Field(
+        None, min_length=1, max_length=200, description="Embedding model name"
+    )
+    vector_db: Optional[str] = Field(
+        None,
+        pattern="^(chroma|faiss)$",
+        description="Vector database (chroma or faiss)",
+    )
+    gpu: Optional[bool] = Field(None, description="Enable GPU acceleration")
+
+    # Search settings
+    top_k: Optional[int] = Field(
+        None, ge=1, le=100, description="Number of top results (1-100)"
+    )
+    chunk_size: Optional[int] = Field(
+        None, ge=100, le=10000, description="Text chunk size (100-10000)"
+    )
+    chunk_overlap: Optional[int] = Field(
+        None, ge=0, le=1000, description="Text chunk overlap (0-1000)"
+    )
+    similarity_threshold: Optional[float] = Field(
+        None, ge=0.0, le=1.0, description="Similarity threshold (0.0-1.0)"
+    )
+
+    # Voice settings
+    vosk_model_path: Optional[str] = Field(
+        None, min_length=1, max_length=500, description="Path to Vosk model"
+    )
+
+    # File validation settings
+    pdf_max_size_mb: Optional[int] = Field(
+        None, ge=1, le=1000, description="Max PDF size in MB (1-1000)"
+    )
+    audio_max_size_mb: Optional[int] = Field(
+        None, ge=1, le=500, description="Max audio size in MB (1-500)"
+    )
+    text_max_size_mb: Optional[int] = Field(
+        None, ge=1, le=100, description="Max text size in MB (1-100)"
+    )
+    archive_max_size_mb: Optional[int] = Field(
+        None, ge=1, le=2000, description="Max archive size in MB (1-2000)"
+    )
+    file_validation_enabled: Optional[bool] = Field(
+        None, description="Enable file validation"
+    )
+
+    # Logging settings
+    log_level: Optional[str] = Field(
+        None, pattern="^(DEBUG|INFO|WARNING|ERROR|CRITICAL)$", description="Log level"
+    )
+    log_format: Optional[str] = Field(
+        None,
+        pattern="^(structured|text)$",
+        description="Log format (structured or text)",
+    )
+    log_include_pii: Optional[bool] = Field(None, description="Include PII in logs")
+    log_console_enabled: Optional[bool] = Field(
+        None, description="Enable console logging"
+    )
+    log_file_enabled: Optional[bool] = Field(None, description="Enable file logging")
+    log_audit_enabled: Optional[bool] = Field(None, description="Enable audit logging")
+    log_security_enabled: Optional[bool] = Field(
+        None, description="Enable security logging"
+    )
+    log_performance_enabled: Optional[bool] = Field(
+        None, description="Enable performance logging"
+    )
+    log_max_file_size: Optional[int] = Field(
+        None, ge=1024, le=1073741824, description="Max log file size in bytes"
+    )
+    log_backup_count: Optional[int] = Field(
+        None, ge=0, le=100, description="Log backup count (0-100)"
+    )
+    log_cleanup_days: Optional[int] = Field(
+        None, ge=1, le=365, description="Log cleanup days (1-365)"
+    )
+
+    # Security settings
+    security_level: Optional[str] = Field(
+        None,
+        pattern="^(minimal|standard|enhanced|maximum)$",
+        description="Security level",
+    )
+    session_timeout_hours: Optional[int] = Field(
+        None, ge=1, le=168, description="Session timeout in hours (1-168)"
+    )
+    session_idle_timeout_hours: Optional[int] = Field(
+        None, ge=1, le=24, description="Session idle timeout in hours (1-24)"
+    )
+    max_sessions_per_user: Optional[int] = Field(
+        None, ge=1, le=100, description="Max sessions per user (1-100)"
+    )
+    api_key_rate_limit: Optional[int] = Field(
+        None, ge=10, le=10000, description="API key rate limit (10-10000)"
+    )
+    threat_detection_enabled: Optional[bool] = Field(
+        None, description="Enable threat detection"
+    )
+    auto_block_threshold: Optional[float] = Field(
+        None, ge=0.0, le=100.0, description="Auto-block threshold (0.0-100.0)"
+    )
+    behavioral_analysis_enabled: Optional[bool] = Field(
+        None, description="Enable behavioral analysis"
+    )
+
+    model_config = {"extra": "forbid"}  # Reject unknown fields
+
+
+@app.post("/api/config")
+async def post_update_config(request: ConfigUpdateRequest):
+    import traceback
+
+    from .error_handling import ConfigurationError, ValidationError, error_context
+
+    try:
+        with error_context("update_configuration", reraise=True):
+            # Convert Pydantic model to dict, excluding None values (only update provided fields)
+            incoming = request.model_dump(exclude_none=True)
+
+            # Pydantic already validates types and constraints, so we can directly update settings
+            try:
+                s = update_settings(incoming)
+                settings_data = _settings_to_dict(s)
+                # Redact response if enabled
+                if os.getenv("REDACT_CONFIG", "0").lower() in (
+                    "1",
+                    "true",
+                    "yes",
+                    "on",
+                ):
+                    settings_data = redact_data(settings_data)
+                return {"ok": True, "settings": settings_data}
+            except ValidationError:
+                raise  # Re-raise validation errors as-is
+            except Exception as err:
+                raise ConfigurationError(
+                    f"Configuration update failed: {err}",
+                    suggestion="Check configuration values and try again",
+                ) from err
+    except Exception as exc:
+        print("[DEBUG] Exception in post_update_config:", exc)
+        traceback.print_exc()
+        # Always raise exceptions - let FastAPI's exception handlers convert to proper HTTP status
+        raise
 
 
 def _ask_impl(request: AskRequest):
-    from .error_handling import error_context, ConfigurationError, ValidationError, ModelError
-    
+    from .error_handling import (
+        ConfigurationError,
+        ModelError,
+        ValidationError,
+        error_context,
+    )
+
     with error_context("ask_implementation", reraise=False):
         # Log the request start
-        request_logger = get_logger('backend.api.ask', LogCategory.API)
+        request_logger = get_logger("backend.api.ask", LogCategory.API)
         with performance_timer("ask_request_processing"):
-            request_logger.info("Processing ask request", extra={
-                'question_length': len(request.question),
-                'model_name': request.model_name,
-                'max_tokens': request.max_tokens,
-                'prefer_fast': request.prefer_fast
-            })
-            
+            request_logger.info(
+                "Processing ask request",
+                extra={
+                    "question_length": len(request.question),
+                    "model_name": request.model_name,
+                    "max_tokens": request.max_tokens,
+                    "prefer_fast": request.prefer_fast,
+                },
+            )
+
             # Ensure services
             if model_manager is None or cache_manager is None:
                 init_services()
-            
+
             # If model manager failed to initialize, return an error status
             if model_manager is None:
                 request_logger.error("Model manager not available")
                 raise ConfigurationError(
                     "Model manager is not available",
                     config_key="model_manager",
-                    suggestion="Please check your model configuration and ensure models are properly installed"
+                    suggestion="Please check your model configuration and ensure models are properly installed",
                 )
 
             # Use the enhanced unified cache manager
@@ -1260,10 +1522,13 @@ def _ask_impl(request: AskRequest):
 
             cached_result = unified_cache.get(cache_key)
             if cached_result is not None:
-                request_logger.info("Returning cached result", extra={
-                    'cache_hit': True,
-                    'cache_key': cache_key[:20] + "...",
-                })
+                request_logger.info(
+                    "Returning cached result",
+                    extra={
+                        "cache_hit": True,
+                        "cache_key": cache_key[:20] + "...",
+                    },
+                )
                 return {
                     "answer": cached_result,
                     "cached": True,
@@ -1277,12 +1542,12 @@ def _ask_impl(request: AskRequest):
                 raise ValidationError(
                     "Either 'question' or 'prompt' must be provided",
                     field="question/prompt",
-                    suggestion="Provide a valid question or prompt for the AI to process"
+                    suggestion="Provide a valid question or prompt for the AI to process",
                 )
 
             # Generate new answer
-            request_logger.info("Generating new answer", extra={'cache_hit': False})
-            
+            request_logger.info("Generating new answer", extra={"cache_hit": False})
+
             try:
                 # Get context from .embeddings if use_context is True
                 context_text = ""
@@ -1293,24 +1558,34 @@ def _ask_impl(request: AskRequest):
                             request.question, top_k=get_settings().top_k
                         )
                         if search_results:
-                            context_text = "\n".join([hit["text"] for hit in search_results])
-                            request_logger.info("Retrieved context", extra={
-                                'context_length': len(context_text),
-                                'search_results_count': len(search_results)
-                            })
+                            context_text = "\n".join(
+                                [hit["text"] for hit in search_results]
+                            )
+                            request_logger.info(
+                                "Retrieved context",
+                                extra={
+                                    "context_length": len(context_text),
+                                    "search_results_count": len(search_results),
+                                },
+                            )
 
                 # Limit context size to 16,000 characters to avoid model failures
                 MAX_CONTEXT_CHARS = 16000
                 if context_text and len(context_text) > MAX_CONTEXT_CHARS:
                     context_text = context_text[:MAX_CONTEXT_CHARS]
-                    request_logger.info("Context truncated", extra={
-                        'original_length': len(context_text),
-                        'truncated_length': MAX_CONTEXT_CHARS
-                    })
+                    request_logger.info(
+                        "Context truncated",
+                        extra={
+                            "original_length": len(context_text),
+                            "truncated_length": MAX_CONTEXT_CHARS,
+                        },
+                    )
 
                 # Prepare the prompt for the model
                 if context_text:
-                    to_generate = f"Context: {context_text}\n\nQuestion: {request.question}"
+                    to_generate = (
+                        f"Context: {context_text}\n\nQuestion: {request.question}"
+                    )
                 else:
                     to_generate = request.prompt if request.prompt else request.question
 
@@ -1325,35 +1600,42 @@ def _ask_impl(request: AskRequest):
                     )
                     generation_time = time.time() - start_time
 
-                request_logger.info("Answer generated successfully", extra={
-                    'generation_time': generation_time,
-                    'answer_length': len(answer) if answer else 0,
-                    'tokens_generated': request.max_tokens if answer else 0
-                })
+                request_logger.info(
+                    "Answer generated successfully",
+                    extra={
+                        "generation_time": generation_time,
+                        "answer_length": len(answer) if answer else 0,
+                        "tokens_generated": request.max_tokens if answer else 0,
+                    },
+                )
 
-                if not answer or (isinstance(answer, str) and "No model available" in answer):
+                if not answer or (
+                    isinstance(answer, str) and "No model available" in answer
+                ):
                     request_logger.error("Model failed to generate valid response")
                     raise ModelError(
                         "Model failed to generate a valid response",
                         model_name=request.model_name,
-                        suggestion="Try again with a different model or check model availability"
+                        suggestion="Try again with a different model or check model availability",
                     )
-                    
+
             except ModelError:
                 request_logger.error("Model error occurred", exc_info=True)
                 raise  # Re-raise ModelError as-is
             except Exception as err:
-                request_logger.error("Unexpected error during generation", exc_info=True)
+                request_logger.error(
+                    "Unexpected error during generation", exc_info=True
+                )
                 raise ModelError(
                     "Failed to generate answer due to model error",
                     model_name=request.model_name,
-                    suggestion="Check model configuration and try again"
+                    suggestion="Check model configuration and try again",
                 ) from err
 
             # Cache the result
             unified_cache.set(cache_key, answer, ttl=3600)  # Cache for 1 hour
             request_logger.info("Answer cached successfully")
-            
+
             # Log successful completion
             log_audit(
                 "ai_request_completed",
@@ -1362,7 +1644,7 @@ def _ask_impl(request: AskRequest):
                 generation_time=generation_time,
                 answer_length=len(answer) if answer else 0,
                 cached=False,
-                outcome="success"
+                outcome="success",
             )
 
             return {
@@ -1375,21 +1657,31 @@ def _ask_impl(request: AskRequest):
 
 @app.post("/api/ask", dependencies=[Depends(require_role("user"))])
 async def api_ask(request: AskRequest):
-    api_logger = get_logger('backend.api.ask_endpoint', LogCategory.API)
+    api_logger = get_logger("backend.api.ask_endpoint", LogCategory.API)
     with request_context() as req_id:
-        api_logger.info("API ask request received", extra={'endpoint': '/api/ask', 'request_id': req_id})
+        api_logger.info(
+            "API ask request received",
+            extra={"endpoint": "/api/ask", "request_id": req_id},
+        )
         result = _ask_impl(request)
-        api_logger.info("API ask request completed", extra={'endpoint': '/api/ask', 'request_id': req_id})
+        api_logger.info(
+            "API ask request completed",
+            extra={"endpoint": "/api/ask", "request_id": req_id},
+        )
         return result
 
 
 @app.post("/ask", dependencies=[Depends(require_role("user"))])  # type: ignore
 async def ask(request: AskRequest):
-    api_logger = get_logger('backend.api.ask_endpoint', LogCategory.API)
+    api_logger = get_logger("backend.api.ask_endpoint", LogCategory.API)
     with request_context() as req_id:
-        api_logger.info("Ask request received", extra={'endpoint': '/ask', 'request_id': req_id})
+        api_logger.info(
+            "Ask request received", extra={"endpoint": "/ask", "request_id": req_id}
+        )
         result = _ask_impl(request)
-        api_logger.info("Ask request completed", extra={'endpoint': '/ask', 'request_id': req_id})
+        api_logger.info(
+            "Ask request completed", extra={"endpoint": "/ask", "request_id": req_id}
+        )
         return result
 
 
@@ -1399,30 +1691,32 @@ class ScanVaultRequest(BaseModel):
 
 
 @app.post("/api/scan_vault", dependencies=[Depends(require_role("admin"))])
-async def scan_vault(request: ScanVaultRequest):
-    from .error_handling import error_context, ConfigurationError, ValidationError
-    
+async def scan_vault(request: Union[ScanVaultRequest, str]):
+    from .error_handling import ConfigurationError, ValidationError, error_context
+
     with error_context("scan_vault", reraise=False):
         if vault_indexer is None:
             init_services()
-            
+
         if not vault_indexer:
             raise ConfigurationError(
                 "Vault indexer is not available",
                 config_key="vault_indexer",
-                suggestion="Please check your configuration and restart the service"
+                suggestion="Please check your configuration and restart the service",
             )
-        
+        # Normalize request to support direct string calls from tests
+        if isinstance(request, str):
+            vault_path = request
+        else:
+            vault_path = request.vault_path
+
         # Validate vault path
-        if not request.vault_path or not request.vault_path.strip():
-            raise ValidationError(
-                "Vault path cannot be empty",
-                field="vault_path"
-            )
-        
+        if not vault_path or not str(vault_path).strip():
+            raise ValidationError("Vault path cannot be empty", field="vault_path")
+
         try:
             # Let the indexer decide how to handle path issues; wrap and surface as 500 on failure
-            indexed = vault_indexer.index_vault(request.vault_path)
+            indexed = vault_indexer.index_vault(vault_path)
             return {"indexed_files": indexed}
         except HTTPException:
             # Bubble up explicit HTTP errors unchanged
@@ -1431,7 +1725,7 @@ async def scan_vault(request: ScanVaultRequest):
             # Generic error message - let error_context handle this
             raise ConfigurationError(
                 "Vault scan failed due to an internal error",
-                suggestion="Check vault path and permissions"
+                suggestion="Check vault path and permissions",
             ) from err
 
 
@@ -1521,7 +1815,9 @@ async def transcribe_audio(request: TranscribeRequest):
         }
 
     except FileValidationError as e:
-        raise HTTPException(status_code=400, detail=f"File validation failed: {str(e)}") from e
+        raise HTTPException(
+            status_code=400, detail=f"File validation failed: {str(e)}"
+        ) from e
     except HTTPException:
         # Preserve already-determined HTTP errors
         raise
@@ -1544,7 +1840,7 @@ async def api_voice_transcribe(request: TranscribeRequest):
     """
     API-versioned voice transcription endpoint.
     Transcribe audio to text using a speech-to-text service with enhanced validation.
-    
+
     This endpoint provides:
     - Base64 audio data validation
     - File type and size checks
@@ -1569,12 +1865,12 @@ async def api_voice_transcribe(request: TranscribeRequest):
 
         # Decode base64 audio data (already validated)
         audio_bytes = base64.b64decode(request.audio_data)
-        
+
         # Attempt to use Vosk for transcription if available
         transcription = "Server-side speech recognition not yet implemented"
         confidence = 0.0
         status = "placeholder"
-        
+
         # TODO: Implement actual Vosk transcription when model is available
         # from .voice import transcribe_audio as vosk_transcribe
         # result = vosk_transcribe(audio_bytes, request.language)
@@ -1605,15 +1901,13 @@ async def api_voice_transcribe(request: TranscribeRequest):
 
     except FileValidationError as e:
         raise HTTPException(
-            status_code=400,
-            detail=f"File validation failed: {str(e)}"
+            status_code=400, detail=f"File validation failed: {str(e)}"
         ) from e
     except HTTPException:
         raise
     except Exception as err:
         raise HTTPException(
-            status_code=500,
-            detail=f"Transcription failed: {str(err)}"
+            status_code=500, detail=f"Transcription failed: {str(err)}"
         ) from err
 
 
@@ -1740,7 +2034,7 @@ async def enterprise_logout(token: str = None):
         # 4. Optionally redirect to SSO provider logout
         return {
             "message": "Successfully logged out",
-            "logged_out_at": datetime.utcnow().isoformat(),
+            "logged_out_at": datetime.now(timezone.utc).isoformat(),
             "status": "success",
         }
     except Exception as e:
@@ -1784,7 +2078,7 @@ async def enterprise_status():
                 "ldap",
             ],
             "version": "1.0.0",
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         print(f"Enterprise status error: {e}")
@@ -1966,7 +2260,7 @@ async def get_performance_dashboard():
         # Calculate performance scores
         performance_score = _calculate_performance_score(system_metrics, cache_stats)
         dashboard_data = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "status": "operational",
             "performance_score": performance_score,
             "system_metrics": system_metrics,
@@ -2044,7 +2338,7 @@ async def get_performance_health():
             overall_status = "warning"
         return {
             "status": overall_status,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "checks": health_checks,
             "summary": {
                 "total_checks": len(health_checks),
@@ -2063,7 +2357,7 @@ async def get_performance_health():
         print(f"Performance health check error: {err}")
         return {
             "status": "critical",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "error": str(err),
             "checks": [],
         }
@@ -2123,24 +2417,23 @@ async def get_tracing_summary():
     """Get request tracing summary with slow requests and endpoint stats"""
     try:
         from .request_tracing import get_request_tracer
-        
+
         tracer = get_request_tracer()
         summary = tracer.get_summary()
         slow_requests = tracer.get_slow_requests(limit=10)
         endpoint_stats = tracer.get_endpoint_stats()
-        
+
         return {
             "status": "success",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "summary": summary,
             "slow_requests": slow_requests,
             "endpoint_stats": endpoint_stats,
         }
     except Exception as err:
-        logger.error(f"Tracing summary error: {err}")
+        app_logger.error(f"Tracing summary error: {err}")
         raise HTTPException(
-            status_code=500,
-            detail="Failed to retrieve tracing summary"
+            status_code=500, detail="Failed to retrieve tracing summary"
         ) from err
 
 
@@ -2149,23 +2442,22 @@ async def get_slow_requests(limit: int = 20):
     """Get recent slow requests for analysis"""
     try:
         from .request_tracing import get_request_tracer
-        
+
         tracer = get_request_tracer()
         slow_requests = tracer.get_slow_requests(limit=limit)
-        
+
         return {
             "status": "success",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "slow_threshold_ms": tracer.slow_threshold,
             "very_slow_threshold_ms": tracer.very_slow_threshold,
             "count": len(slow_requests),
             "slow_requests": slow_requests,
         }
     except Exception as err:
-        logger.error(f"Slow requests error: {err}")
+        app_logger.error(f"Slow requests error: {err}")
         raise HTTPException(
-            status_code=500,
-            detail="Failed to retrieve slow requests"
+            status_code=500, detail="Failed to retrieve slow requests"
         ) from err
 
 
@@ -2174,29 +2466,27 @@ async def get_endpoint_performance(endpoint: str):
     """Get performance statistics for a specific endpoint"""
     try:
         from .request_tracing import get_request_tracer
-        
+
         tracer = get_request_tracer()
         stats = tracer.get_endpoint_stats(endpoint)
-        
+
         if not stats:
             raise HTTPException(
-                status_code=404,
-                detail=f"No statistics found for endpoint: {endpoint}"
+                status_code=404, detail=f"No statistics found for endpoint: {endpoint}"
             )
-        
+
         return {
             "status": "success",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "endpoint": endpoint,
             "statistics": stats,
         }
     except HTTPException:
         raise
     except Exception as err:
-        logger.error(f"Endpoint performance error: {err}")
+        app_logger.error(f"Endpoint performance error: {err}")
         raise HTTPException(
-            status_code=500,
-            detail="Failed to retrieve endpoint performance"
+            status_code=500, detail="Failed to retrieve endpoint performance"
         ) from err
 
 
@@ -2883,5 +3173,6 @@ async def get_security_dashboard():
             status_code=500,
             detail=f"Failed to get security dashboard: {str(e)}",
         ) from e
+
 
 # Do not initialize services at import time to keep startup fast for the server

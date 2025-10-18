@@ -1,5 +1,7 @@
 # Obsidian AI Assistant
 
+> **Version:** 0.1.7 (Unreleased)
+
 [![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
 [![Tests](https://img.shields.io/badge/tests-1021%20passed%20%7C%202%20skipped-brightgreen)](#testing--quality-assurance)

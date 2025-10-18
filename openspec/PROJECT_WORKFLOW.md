@@ -38,7 +38,7 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 
 ## Artifacts Created
 - [ ] `proposal.md`
-- [ ] `spec.md`
+- [ ] `specs/spec.md`
 - [ ] `tasks.md`
 - [ ] `test_plan.md`
 - [ ] `retrospective.md`
@@ -72,7 +72,7 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 **Purpose:** Define and implement tests before or alongside code changes.
 **Artifacts:** `tests/`, `docs/TESTING_GUIDE.md`, `openspec/changes/<change-id>/test_plan.md`
 **Contents:** Unit, integration, performance, and security tests; coverage goals; validation steps.
- - markdownlint all created .md files in `openspec/changes/<change-id>/`
+    - markdownlint all created .md files in `openspec/changes/<change-id>/`
 
 ### 6. Script & Tooling
 **Purpose:** Add or update scripts for setup, validation, automation, and developer experience.
@@ -107,23 +107,39 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 **Artifacts:** `README.md`, `docs/`, `openspec/`, `CHANGELOG.md`, API docs.
 **Contents:** Usage, architecture, API, workflow docs, changelog entries.
 
-### 10. Workflow Improvement
-**Purpose:** Capture lessons learned and propose improvements to the workflow and process.
-**Artifacts:** `openspec/changes/<change-id>/retrospective.md` (optional)
-**Contents:** What worked, what didn't, improvement proposals, metrics, action items.
-
-### 11. Git Operations
+### 10. Git Operations
 **Purpose:** Commit, tag, and push changes with traceable metadata and OpenSpec references.
-**Artifacts:** Git commits, tags, PRs, branch updates.
-**Contents:** `git add`, `git commit`, `git tag`, `git push`,
-```bash
-# Move completed change to archive
-git mv openspec/changes/<change-id> openspec/changes/archive/<change-id>
-git commit -m "chore: archive completed change <change-id>"
-```
-Pull Request (PR) description linking to OpenSpec, merge strategy.
+**Artifacts:** Git commits, tags, branch updates.
+**Contents:**
+- Stage and commit your changes:
+  ```bash
+  git add .
+  git commit -m "feat: implement <change-title> (<change-id>) [OpenSpec]"
+  ```
+- Tag the release (if applicable):
+  ```bash
+  git tag v<new-version>
+  ```
+- Push your branch and tags:
+  ```bash
+  git push origin <branch-name>
+  git push origin --tags
+  ```
+- Move completed change to archive after merge:
+  ```bash
+  git mv openspec/changes/<change-id> openspec/changes/archive/<change-id>
+  git commit -m "chore: archive completed change <change-id>"
+  git push origin <branch-name>
+  ```
 
-
+### 11. Create Pull Request (PR)
+**Purpose:** Open a Pull Request on GitHub to review and merge the change.
+**Artifacts:** Pull Request on GitHub, linked to the change directory.
+**Contents:**
+- Reference the OpenSpec change directory in the PR description (e.g., `Implements openspec/changes/<change-id>`)
+- Link to proposal/spec/tasks as needed
+- Use a clear merge strategy (e.g., squash, rebase, or merge commit)
+- Ensure all checks pass before merging
 
 ### 12. Archive Completed Change
 **Purpose:** Move completed and merged changes to the archive to keep the active changes directory clean and focused.

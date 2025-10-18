@@ -36,7 +36,6 @@ For end-to-end governance workflow, examples, and troubleshooting, see:
 - Contributor onboarding: [openspec/docs/contributor-guide.md](../../docs/contributor-guide.md)
 - Troubleshooting validation: [openspec/docs/troubleshooting.md](../../docs/troubleshooting.md)
 - Automation scripts guide: [openspec/scripts/README.md](../../scripts/README.md)
-
 ## Requirements
 ### Requirement: Backend agent orchestration and extensibility
 
@@ -140,19 +139,33 @@ The project SHALL govern material changes to key documentation files via OpenSpe
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 ### Requirement: OpenSpec Governance Automation
-The system SHALL provide comprehensive OpenSpec change management capabilities including automated validation, application, and archiving of specification changes.
 
-#### Scenario: Automated change management and validation
-- **WHEN** a user needs to manage multiple OpenSpec changes efficiently
-- **THEN** the system provides automated tools for tracking, validating, applying, and archiving changes
+The project SHALL provide automated tools for tracking, validating, applying, and archiving OpenSpec changes, including support for importing GitHub issues with flexible reference formats.
 
-#### Scenario: Governance oversight and audit trails
-- **WHEN** administrators need visibility into specification change processes
-- **THEN** the system provides dashboards, metrics, and audit logging for all governance operations
+#### Scenario: Import GitHub issue using full URL format
 
-#### Scenario: Bulk operations for change management
-- **WHEN** there are many pending changes to process
-- **THEN** the system supports bulk validation, application, and archiving operations
+- **WHEN** a contributor runs python scripts/import_github_issue.py with a full GitHub URL
+- **THEN** the tool SHALL parse the URL and import the issue successfully
+
+#### Scenario: Import GitHub issue using short format
+
+- **WHEN** a contributor runs python scripts/import_github_issue.py with owner/repo#number format
+- **THEN** the tool SHALL parse the short format reference and import the issue successfully
+
+#### Scenario: Short format with repository containing dashes
+
+- **WHEN** a contributor provides a reference like microsoft/vscode-docs#456
+- **THEN** the parser SHALL correctly extract owner repository name with dashes and issue number
+
+#### Scenario: Invalid format provides helpful error message
+
+- **WHEN** a contributor provides an invalid format like microsoft/vscode without issue number
+- **THEN** the tool SHALL display an error message explaining both valid formats
+
+#### Scenario: Backward compatibility maintained
+
+- **WHEN** existing automation scripts use full GitHub URLs
+- **THEN** all existing URLs SHALL continue to work without modification
 
 ### Requirement: Governance for CLAUDE.md
 The project SHALL govern material changes to `CLAUDE.md` via OpenSpec change proposals to maintain consistency and review.
@@ -366,3 +379,113 @@ The project SHALL govern material changes to `docs/TASKS.md` via OpenSpec change
 - **WHEN** a contributor plans a material update to `docs/TASKS.md`
 
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+
+### Requirement: OpenSpec Change Scaffolding CLI
+
+The project SHALL provide a CLI tool to scaffold a new OpenSpec change directory with the correct structure and placeholders.
+
+#### Scenario: Scaffold with title only
+- WHEN a contributor runs `python scripts/openspec_new_change.py "My New Change"`
+- THEN the tool SHALL create `openspec/changes/YYYY-MM-DD-my-new-change/` with required files
+
+#### Scenario: Scaffold with explicit change ID
+- WHEN a contributor runs `python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My New Change"`
+- THEN the tool SHALL use the provided ID and create the directory and files accordingly
+
+#### Scenario: Dry run does not create files
+- WHEN a contributor runs `python scripts/openspec_new_change.py "My New Change" --dry-run`
+- THEN the tool SHALL print the intended actions and SHALL NOT create any files
+
+#### Scenario: Placeholder replacement in todo.md
+- WHEN a change is scaffolded
+- THEN the tool SHALL replace placeholders in `todo.md` with title, change-id, date, and owner (if provided)
+
+#### Scenario: Force overwrite existing directory
+- WHEN a target change directory already exists and the user provides `--force`
+- THEN the tool SHALL overwrite the directory contents safely
+
+#### Scenario: Prevent overwrite by default
+- WHEN a target change directory already exists and no `--force` flag is provided
+- THEN the tool SHALL abort with a clear error message
+
+### Requirement: Review and address all 29 reported security vulnerabilities in dependencies
+The project SHALL review and address all 29 reported security vulnerabilities in dependencies.
+
+#### Scenario: Security Scan Review
+- **WHEN** a security scan (Safety, Bandit) is run on project dependencies
+- **THEN** all 29 reported vulnerabilities are listed and reviewed by a maintainer
+
+### Requirement: Update or replace affected packages to resolve critical vulnerabilities
+The project SHALL update or replace affected packages to resolve all critical vulnerabilities.
+
+#### Scenario: Critical Vulnerability Remediation
+- **WHEN** a list of critical vulnerabilities is identified
+- **THEN** the affected packages are updated or replaced and the vulnerabilities are no longer reported by security tools
+
+### Requirement: Document mitigation plans for non-critical vulnerabilities
+The project SHALL document mitigation plans for all non-critical vulnerabilities that cannot be immediately resolved.
+
+#### Scenario: Mitigation Documentation
+- **WHEN** non-critical vulnerabilities are found that cannot be immediately resolved
+- **THEN** a mitigation plan is created and documented in project documentation and referenced in the security report
+
+### Requirement: Audit all dependencies using Safety and Bandit
+The project SHALL audit all dependencies using Safety and Bandit.
+
+#### Scenario: Dependency Audit
+- **WHEN** Safety and Bandit are run on the full list of project dependencies
+- **THEN** the audit results are reviewed and any issues are addressed or documented
+
+### Requirement: Ensure no new vulnerabilities are introduced
+The project SHALL ensure no new vulnerabilities are introduced after updates.
+
+#### Scenario: Regression Prevention
+- **WHEN** a new security scan is run after dependency updates
+- **THEN** no new vulnerabilities are reported compared to the previous baseline
+
+### Requirement: Update documentation to reflect changes
+The project SHALL update documentation to reflect all changes to dependencies or mitigations.
+
+#### Scenario: Documentation Update
+- **WHEN** changes to dependencies or mitigations occur
+- **THEN** all relevant changes are documented in CHANGELOG.md and security notes
+
+### Requirement: Merge all requirements files into one
+The project SHALL merge requirements.txt, requirements-dev.txt, and requirements-ml.txt into a single requirements.txt file.
+
+#### Scenario: Successful merge
+- **WHEN** the merge script is run
+- **THEN** all packages from the three files are present in the new requirements.txt
+
+### Requirement: Deduplicate and categorize packages
+The project SHALL deduplicate all package entries and organize them by category with clear comments.
+
+#### Scenario: Deduplication and categorization
+- **WHEN** the merged requirements.txt is generated
+- **THEN** no duplicate packages exist, all version pins are preserved, and packages are grouped by category
+
+### Requirement: Remove obsolete requirements files
+The project SHALL remove requirements-dev.txt and requirements-ml.txt after merging.
+
+#### Scenario: Obsolete file removal
+- **WHEN** the merge is complete
+- **THEN** requirements-dev.txt and requirements-ml.txt no longer exist in the repository
+
+### Requirement: Governance for AGENTS.md
+
+The project SHALL govern material changes to `AGENTS.md` via OpenSpec change proposals to maintain consistency and review.
+
+#### Scenario: Material change requires proposal
+
+- **WHEN** a contributor plans a material update to `AGENTS.md`
+- **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
+
+#### Scenario: Proposal content and validation requirements
+
+- **WHEN** a contributor creates a change for updating `AGENTS.md`
+- **THEN** the change SHALL include:
+	- A `proposal.md` with a Why section and capability reference
+	- A `tasks.md` with three or more actionable checklist items and a validation step
+	- A delta spec at `changes/update-doc-agents/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
+	- A documented validation command: `openspec validate update-doc-agents --strict`
+

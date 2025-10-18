@@ -138,9 +138,7 @@ class TestAPIIntegration:
             # If no valid model is present, expect 500 error and specific message
             data = response.json()
             assert "error" in data
-            assert (
-                "Model unavailable or failed to generate an answer." in data["error"]
-            )
+            assert "Model unavailable or failed to generate an answer." in data["error"]
         else:
             # Or accept successful response with fallback behavior in test environment
             assert response.status_code == 200
@@ -250,18 +248,18 @@ class TestAPIIntegration:
             # Configure settings mock
             updated_settings = Mock()
             updated_settings.dict.return_value = {
-                "model_backend": "claude-3",
+                "model_backend": "gpt4all",
                 "allow_network": True,
             }
             mock_update.return_value = updated_settings
-            update_data = {"model_backend": "claude-3", "allow_network": True}
+            update_data = {"model_backend": "gpt4all", "allow_network": True}
             response = await client.post("/api/config", json=update_data)
             assert response.status_code == 200
             data = response.json()
             # Verify update response
             assert data["ok"] is True
             assert "settings" in data
-            assert data["settings"]["model_backend"] == "claude-3"
+            assert data["settings"]["model_backend"] == "gpt4all"
             # Verify update was called with correct data
             mock_update.assert_called_once_with(update_data)
             print("✓ Config update endpoint integration test passed")
@@ -345,8 +343,15 @@ class TestAPIErrorHandling:
             data = response.json()
             assert "error" in data
             # Error is a structured object, check message field
-            error_str = str(data["error"]) if not isinstance(data["error"], dict) else data["error"].get("message", "")
-            assert "Settings file not found" in error_str or "Configuration reload failed" in error_str
+            error_str = (
+                str(data["error"])
+                if not isinstance(data["error"], dict)
+                else data["error"].get("message", "")
+            )
+            assert (
+                "Settings file not found" in error_str
+                or "Configuration reload failed" in error_str
+            )
 
             print("✓ Config endpoint error handling test passed")
 

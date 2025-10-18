@@ -19,7 +19,9 @@ except ImportError:  # pragma: no cover
 
 try:
     RequestsError = requests.RequestException  # type: ignore[attr-defined]
-    if not isinstance(RequestsError, type) or not issubclass(RequestsError, BaseException):
+    if not isinstance(RequestsError, type) or not issubclass(
+        RequestsError, BaseException
+    ):
         RequestsError = Exception
 except AttributeError:
     RequestsError = Exception
@@ -52,14 +54,18 @@ def _extract_status_code(response: Any) -> Optional[int]:
         return None
 
 
-def _exercise_backend_via_test_client(endpoint: str, method: str = "get", payload: Optional[dict] = None) -> Any:
+def _exercise_backend_via_test_client(
+    endpoint: str, method: str = "get", payload: Optional[dict] = None
+) -> Any:
     """Fallback to FastAPI TestClient when real HTTP access is unavailable."""
     from fastapi.testclient import TestClient
 
     try:
         from backend.backend import app
     except Exception as import_error:
-        raise AssertionError("Backend application import failed during fallback") from import_error
+        raise AssertionError(
+            "Backend application import failed during fallback"
+        ) from import_error
 
     with TestClient(app) as client:
         if method.lower() == "post":
@@ -253,7 +259,9 @@ def test_backend_endpoints():
             print(f"✅ Fallback /ask response: {preview[:50]}...")
         else:
             data = fallback_response.json()
-            print("⚠️  Fallback /ask response indicates missing model (expected in tests)")
+            print(
+                "⚠️  Fallback /ask response indicates missing model (expected in tests)"
+            )
             assert "detail" in data
 
     except Exception as e:

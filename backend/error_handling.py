@@ -12,15 +12,15 @@ This module provides a comprehensive, consistent error handling framework with:
 import logging
 import sys
 import traceback
-from contextlib import contextmanager
-from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Type, Union
-from datetime import datetime
 import uuid
+from contextlib import contextmanager
+from datetime import datetime, timezone
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Union
 
-from fastapi import HTTPException, Request, status
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException, status
 from pydantic import BaseModel, Field
+
 try:
     from pydantic import ConfigDict
 except ImportError:  # pragma: no cover - fallback for older pydantic
@@ -35,46 +35,56 @@ except ImportError:
 # Error severity levels
 class ErrorSeverity(str, Enum):
     """Error severity classification."""
-    CRITICAL = "critical"    # System failure, immediate attention required
-    HIGH = "high"           # Major functionality impacted, urgent fix needed
-    MEDIUM = "medium"       # Feature degradation, should be fixed soon
-    LOW = "low"            # Minor issues, cosmetic problems
-    INFO = "info"          # Informational, not actually an error
+
+    CRITICAL = "critical"  # System failure, immediate attention required
+    HIGH = "high"  # Major functionality impacted, urgent fix needed
+    MEDIUM = "medium"  # Feature degradation, should be fixed soon
+    LOW = "low"  # Minor issues, cosmetic problems
+    INFO = "info"  # Informational, not actually an error
 
 
 # Error categories for better organization
 class ErrorCategory(str, Enum):
     """Error category classification."""
-    AUTHENTICATION = "authentication"      # Auth, authorization, access control
-    VALIDATION = "validation"             # Input validation, data format errors
-    BUSINESS_LOGIC = "business_logic"     # Application logic errors
-    EXTERNAL_SERVICE = "external_service" # Third-party service failures
-    SYSTEM = "system"                     # System-level errors (file I/O, network)
-    SECURITY = "security"                 # Security-related errors
-    PERFORMANCE = "performance"           # Performance degradation, timeouts
-    DATA = "data"                        # Database, data consistency errors
-    CONFIGURATION = "configuration"       # Configuration, setup errors
-    UNKNOWN = "unknown"                   # Unclassified errors
+
+    AUTHENTICATION = "authentication"  # Auth, authorization, access control
+    VALIDATION = "validation"  # Input validation, data format errors
+    BUSINESS_LOGIC = "business_logic"  # Application logic errors
+    EXTERNAL_SERVICE = "external_service"  # Third-party service failures
+    SYSTEM = "system"  # System-level errors (file I/O, network)
+    SECURITY = "security"  # Security-related errors
+    PERFORMANCE = "performance"  # Performance degradation, timeouts
+    DATA = "data"  # Database, data consistency errors
+    CONFIGURATION = "configuration"  # Configuration, setup errors
+    UNKNOWN = "unknown"  # Unclassified errors
 
 
 # Standardized error response model
 class ErrorDetail(BaseModel):
     """Detailed error information."""
+
     code: str = Field(..., description="Error code for programmatic handling")
     message: str = Field(..., description="Human-readable error message")
     severity: ErrorSeverity = Field(default=ErrorSeverity.MEDIUM)
     category: ErrorCategory = Field(default=ErrorCategory.UNKNOWN)
-    context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context")
+    context: Optional[Dict[str, Any]] = Field(
+        default=None, description="Additional context"
+    )
     suggestion: Optional[str] = Field(default=None, description="Suggested resolution")
-    documentation_url: Optional[str] = Field(default=None, description="Link to relevant documentation")
+    documentation_url: Optional[str] = Field(
+        default=None, description="Link to relevant documentation"
+    )
 
 
 class ErrorResponse(BaseModel):
     """Standardized API error response."""
+
     error: ErrorDetail
     request_id: str = Field(..., description="Unique request identifier for tracking")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    debug_info: Optional[Dict[str, Any]] = Field(default=None, description="Debug information (dev mode only)")
+    debug_info: Optional[Dict[str, Any]] = Field(
+        default=None, description="Debug information (dev mode only)"
+    )
 
     # Pydantic v2 serializer for datetime
     @staticmethod
@@ -87,7 +97,7 @@ class ErrorResponse(BaseModel):
 # Custom exception classes
 class ObsidianAIError(Exception):
     """Base exception for all Obsidian AI Assistant errors."""
-    
+
     def __init__(
         self,
         message: str,
@@ -97,7 +107,7 @@ class ObsidianAIError(Exception):
         context: Optional[Dict[str, Any]] = None,
         suggestion: Optional[str] = None,
         documentation_url: Optional[str] = None,
-        original_exception: Optional[Exception] = None
+        original_exception: Optional[Exception] = None,
     ):
         super().__init__(message)
         self.message = message
@@ -109,12 +119,12 @@ class ObsidianAIError(Exception):
         self.documentation_url = documentation_url
         self.original_exception = original_exception
         self.request_id = str(uuid.uuid4())
-        self.timestamp = datetime.utcnow()
+        self.timestamp = datetime.now(timezone.utc)
 
 
 class ValidationError(ObsidianAIError):
     """Input validation errors."""
-    
+
     def __init__(self, message: str, field: str = None, **kwargs):
         combined_context: Dict[str, Any] = {}
         extra_context = kwargs.pop("context", None) or {}
@@ -129,26 +139,26 @@ class ValidationError(ObsidianAIError):
             severity=ErrorSeverity.MEDIUM,
             category=ErrorCategory.VALIDATION,
             context=context_value,
-            **kwargs
+            **kwargs,
         )
 
 
 class AuthenticationError(ObsidianAIError):
     """Authentication and authorization errors."""
-    
+
     def __init__(self, message: str, **kwargs):
         super().__init__(
             message=message,
             code="AUTH_ERROR",
             severity=ErrorSeverity.HIGH,
             category=ErrorCategory.AUTHENTICATION,
-            **kwargs
+            **kwargs,
         )
 
 
 class ExternalServiceError(ObsidianAIError):
     """External service integration errors."""
-    
+
     def __init__(self, message: str, service: str = None, **kwargs):
         super().__init__(
             message=message,
@@ -156,13 +166,13 @@ class ExternalServiceError(ObsidianAIError):
             severity=ErrorSeverity.MEDIUM,
             category=ErrorCategory.EXTERNAL_SERVICE,
             context={"service": service} if service else None,
-            **kwargs
+            **kwargs,
         )
 
 
 class ModelError(ObsidianAIError):
     """AI model related errors."""
-    
+
     def __init__(self, message: str, model_name: str = None, **kwargs):
         super().__init__(
             message=message,
@@ -170,13 +180,13 @@ class ModelError(ObsidianAIError):
             severity=ErrorSeverity.HIGH,
             category=ErrorCategory.SYSTEM,
             context={"model": model_name} if model_name else None,
-            **kwargs
+            **kwargs,
         )
 
 
 class ConfigurationError(ObsidianAIError):
     """Configuration and setup errors."""
-    
+
     def __init__(self, message: str, config_key: str = None, **kwargs):
         super().__init__(
             message=message,
@@ -184,64 +194,79 @@ class ConfigurationError(ObsidianAIError):
             severity=ErrorSeverity.HIGH,
             category=ErrorCategory.CONFIGURATION,
             context={"config_key": config_key} if config_key else None,
-            **kwargs
+            **kwargs,
         )
 
 
 class SecurityError(ObsidianAIError):
     """Security-related errors."""
-    
+
     def __init__(self, message: str, **kwargs):
+        # Extract known ObsidianAIError parameters
+        context = kwargs.pop("context", None) or {}
+        suggestion = kwargs.pop("suggestion", None)
+        documentation_url = kwargs.pop("documentation_url", None)
+        original_exception = kwargs.pop("original_exception", None)
+
+        # Add any extra kwargs to context instead of passing them to parent
+        for key, value in kwargs.items():
+            context[key] = value
+
         super().__init__(
             message=message,
             code="SECURITY_ERROR",
             severity=ErrorSeverity.CRITICAL,
             category=ErrorCategory.SECURITY,
-            **kwargs
+            context=context if context else None,
+            suggestion=suggestion,
+            documentation_url=documentation_url,
+            original_exception=original_exception,
         )
 
 
 class PerformanceError(ObsidianAIError):
     """Performance and timeout errors."""
-    
-    def __init__(self, message: str, operation: str = None, duration: float = None, **kwargs):
+
+    def __init__(
+        self, message: str, operation: str = None, duration: float = None, **kwargs
+    ):
         context = {}
         if operation:
             context["operation"] = operation
         if duration:
             context["duration_seconds"] = duration
-            
+
         super().__init__(
             message=message,
             code="PERFORMANCE_ERROR",
             severity=ErrorSeverity.MEDIUM,
             category=ErrorCategory.PERFORMANCE,
             context=context if context else None,
-            **kwargs
+            **kwargs,
         )
 
 
 class DataError(ObsidianAIError):
     """Data integrity and database errors."""
-    
+
     def __init__(self, message: str, **kwargs):
         super().__init__(
             message=message,
             code="DATA_ERROR",
             severity=ErrorSeverity.HIGH,
             category=ErrorCategory.DATA,
-            **kwargs
+            **kwargs,
         )
 
 
 # Error handler singleton
 class ErrorHandler:
     """Centralized error handling and logging."""
-    
+
     def __init__(self, debug_mode: bool = False):
         self.debug_mode = debug_mode
         self.logger = logging.getLogger(__name__)
-        
+
         # Error message templates for common scenarios
         self.error_templates = {
             "MODEL_LOADING_FAILED": "Failed to load AI model '{model}'. Please check the model file exists and is valid.",
@@ -253,7 +278,7 @@ class ErrorHandler:
             "RATE_LIMIT_EXCEEDED": "Too many requests. Please wait before trying again.",
             "SYSTEM_OVERLOADED": "System is currently overloaded. Please try again in a few minutes.",
         }
-        
+
         # Default suggestions for common error patterns
         self.default_suggestions = {
             ErrorCategory.AUTHENTICATION: "Please verify your credentials and try again.",
@@ -263,15 +288,15 @@ class ErrorHandler:
             ErrorCategory.SYSTEM: "Please check system resources and try again.",
             ErrorCategory.PERFORMANCE: "Please try reducing the request size or wait before retrying.",
         }
-    
+
     def create_error_detail(
         self,
         error: Union[Exception, ObsidianAIError],
         context: Optional[Dict[str, Any]] = None,
-        user_message: Optional[str] = None
+        user_message: Optional[str] = None,
     ) -> ErrorDetail:
         """Create standardized error detail from an exception."""
-        
+
         if isinstance(error, ObsidianAIError):
             # Use the structured error information
             return ErrorDetail(
@@ -280,84 +305,109 @@ class ErrorHandler:
                 severity=error.severity,
                 category=error.category,
                 context=redact_data({**(error.context or {}), **(context or {})}),
-                suggestion=error.suggestion or self.default_suggestions.get(error.category),
-                documentation_url=error.documentation_url
+                suggestion=error.suggestion
+                or self.default_suggestions.get(error.category),
+                documentation_url=error.documentation_url,
             )
         else:
             # Handle generic exceptions
             error_type = type(error).__name__
-            message = user_message or str(error) or f"An unexpected {error_type} occurred"
-            
+            message = (
+                user_message or str(error) or f"An unexpected {error_type} occurred"
+            )
+
             # Classify common exception types
             category = self._classify_exception(error)
             severity = self._determine_severity(error, category)
-            
+
             return ErrorDetail(
                 code=f"GENERIC_{error_type.upper()}",
                 message=message,
                 severity=severity,
                 category=category,
                 context=redact_data(context or {}),
-                suggestion=self.default_suggestions.get(category)
+                suggestion=self.default_suggestions.get(category),
             )
-    
+
     def _classify_exception(self, error: Exception) -> ErrorCategory:
         """Classify generic exceptions into categories."""
         error_type = type(error).__name__.lower()
-        
-        if any(auth_term in error_type for auth_term in ['auth', 'permission', 'forbidden', 'unauthorized']):
+
+        if any(
+            auth_term in error_type
+            for auth_term in ["auth", "permission", "forbidden", "unauthorized"]
+        ):
             return ErrorCategory.AUTHENTICATION
-        elif any(val_term in error_type for val_term in ['validation', 'value', 'type', 'format']):
+        elif any(
+            val_term in error_type
+            for val_term in ["validation", "value", "type", "format"]
+        ):
             return ErrorCategory.VALIDATION
-        elif any(net_term in error_type for net_term in ['connection', 'timeout', 'network', 'http']):
+        elif any(
+            net_term in error_type
+            for net_term in ["connection", "timeout", "network", "http"]
+        ):
             return ErrorCategory.EXTERNAL_SERVICE
-        elif any(io_term in error_type for io_term in ['io', 'file', 'path', 'directory']):
+        elif any(
+            io_term in error_type for io_term in ["io", "file", "path", "directory"]
+        ):
             return ErrorCategory.SYSTEM
-        elif any(data_term in error_type for data_term in ['database', 'sql', 'integrity']):
+        elif any(
+            data_term in error_type for data_term in ["database", "sql", "integrity"]
+        ):
             return ErrorCategory.DATA
         else:
             return ErrorCategory.UNKNOWN
-    
-    def _determine_severity(self, error: Exception, category: ErrorCategory) -> ErrorSeverity:
+
+    def _determine_severity(
+        self, error: Exception, category: ErrorCategory
+    ) -> ErrorSeverity:
         """Determine error severity based on exception type and category."""
         error_type = type(error).__name__.lower()
-        
+
         # Critical errors that require immediate attention
-        if any(critical_term in error_type for critical_term in ['security', 'corrupt', 'fatal']):
+        if any(
+            critical_term in error_type
+            for critical_term in ["security", "corrupt", "fatal"]
+        ):
             return ErrorSeverity.CRITICAL
-        
+
         # High severity errors
-        if category in [ErrorCategory.AUTHENTICATION, ErrorCategory.DATA, ErrorCategory.CONFIGURATION]:
+        if category in [
+            ErrorCategory.AUTHENTICATION,
+            ErrorCategory.DATA,
+            ErrorCategory.CONFIGURATION,
+        ]:
             return ErrorSeverity.HIGH
-        
+
         # Low severity for validation and formatting issues
         if category in [ErrorCategory.VALIDATION]:
             return ErrorSeverity.LOW
-        
+
         # Default to medium severity
         return ErrorSeverity.MEDIUM
-    
+
     def log_error(
         self,
         error: Union[Exception, ObsidianAIError],
         request_id: Optional[str] = None,
         user_id: Optional[str] = None,
         operation: Optional[str] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Log error with structured information."""
-        
+
         log_context = {
             "request_id": request_id,
             "user_id": user_id,
             "operation": operation,
             "error_type": type(error).__name__,
-            **(context or {})
+            **(context or {}),
         }
-        
+
         # Redact sensitive information
         log_context = redact_data(log_context)
-        
+
         if isinstance(error, ObsidianAIError):
             self.logger.error(
                 f"[{error.severity.upper()}] {error.category}: {error.message}",
@@ -365,48 +415,47 @@ class ErrorHandler:
                     "error_code": error.code,
                     "severity": error.severity,
                     "category": error.category,
-                    **log_context
+                    **log_context,
                 },
-                exc_info=error.original_exception
+                exc_info=error.original_exception,
             )
         else:
             self.logger.error(
-                f"Unhandled exception: {error}",
-                extra=log_context,
-                exc_info=True
+                f"Unhandled exception: {error}", extra=log_context, exc_info=True
             )
-    
+
     def create_http_exception(
         self,
         error: Union[Exception, ObsidianAIError],
         status_code: Optional[int] = None,
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> HTTPException:
         """Create FastAPI HTTPException from error."""
-        
+
         error_detail = self.create_error_detail(error, context)
-        
+
         # Determine HTTP status code
         if status_code is None:
             if isinstance(error, ObsidianAIError):
                 status_code = self._get_http_status_code(error.category, error.severity)
             else:
                 status_code = self._get_http_status_code_from_exception(error)
-        
+
         response = ErrorResponse(
             error=error_detail,
-            request_id=getattr(error, 'request_id', str(uuid.uuid4())),
-            debug_info=self._get_debug_info(error) if self.debug_mode else None
+            request_id=getattr(error, "request_id", str(uuid.uuid4())),
+            debug_info=self._get_debug_info(error) if self.debug_mode else None,
         )
-        
+
         return HTTPException(
-            status_code=status_code,
-            detail=response.model_dump(mode="json")
+            status_code=status_code, detail=response.model_dump(mode="json")
         )
-    
-    def _get_http_status_code(self, category: ErrorCategory, severity: ErrorSeverity) -> int:
+
+    def _get_http_status_code(
+        self, category: ErrorCategory, severity: ErrorSeverity
+    ) -> int:
         """Map error category and severity to HTTP status code."""
-        
+
         if category == ErrorCategory.AUTHENTICATION:
             return status.HTTP_401_UNAUTHORIZED
         elif category == ErrorCategory.VALIDATION:
@@ -421,38 +470,42 @@ class ErrorHandler:
             return status.HTTP_500_INTERNAL_SERVER_ERROR
         else:
             return status.HTTP_500_INTERNAL_SERVER_ERROR
-    
+
     def _get_http_status_code_from_exception(self, error: Exception) -> int:
         """Determine HTTP status code from exception type."""
         error_type = type(error).__name__.lower()
-        
-        if 'permission' in error_type or 'forbidden' in error_type:
+
+        if "permission" in error_type or "forbidden" in error_type:
             return status.HTTP_403_FORBIDDEN
-        elif 'auth' in error_type or 'unauthorized' in error_type:
+        elif "auth" in error_type or "unauthorized" in error_type:
             return status.HTTP_401_UNAUTHORIZED
-        elif 'validation' in error_type or 'value' in error_type:
+        elif "validation" in error_type or "value" in error_type:
             return status.HTTP_422_UNPROCESSABLE_CONTENT
-        elif 'timeout' in error_type:
+        elif "timeout" in error_type:
             return status.HTTP_504_GATEWAY_TIMEOUT
-        elif 'notfound' in error_type or 'filenotfound' in error_type:
+        elif "notfound" in error_type or "filenotfound" in error_type:
             return status.HTTP_404_NOT_FOUND
         else:
             return status.HTTP_500_INTERNAL_SERVER_ERROR
-    
+
     def _get_debug_info(self, error: Exception) -> Dict[str, Any]:
         """Get debug information for development mode."""
         debug_info = {
             "exception_type": type(error).__name__,
             "exception_args": list(error.args),
-            "traceback": traceback.format_tb(error.__traceback__) if error.__traceback__ else None
+            "traceback": (
+                traceback.format_tb(error.__traceback__)
+                if error.__traceback__
+                else None
+            ),
         }
-        
+
         if isinstance(error, ObsidianAIError) and error.original_exception:
             debug_info["original_exception"] = {
                 "type": type(error.original_exception).__name__,
-                "args": list(error.original_exception.args)
+                "args": list(error.original_exception.args),
             }
-        
+
         return debug_info
 
 
@@ -465,9 +518,8 @@ def get_error_handler() -> ErrorHandler:
     global _error_handler
     if _error_handler is None:
         # Check if we're in debug mode
-        debug_mode = (
-            "pytest" in sys.modules or
-            any(arg.startswith("--debug") for arg in sys.argv)
+        debug_mode = "pytest" in sys.modules or any(
+            arg.startswith("--debug") for arg in sys.argv
         )
         _error_handler = ErrorHandler(debug_mode=debug_mode)
     return _error_handler
@@ -478,34 +530,34 @@ def handle_errors(
     operation: str = None,
     reraise: bool = False,
     default_return: Any = None,
-    log_errors: bool = True
+    log_errors: bool = True,
 ):
     """Decorator for consistent error handling in functions."""
-    
+
     def decorator(func: Callable) -> Callable:
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except Exception as e:
                 handler = get_error_handler()
-                
+
                 if log_errors:
                     handler.log_error(
                         error=e,
                         operation=operation or func.__name__,
-                        context={"args": str(args)[:100], "kwargs": str(kwargs)[:100]}
+                        context={"args": str(args)[:100], "kwargs": str(kwargs)[:100]},
                     )
-                
+
                 if reraise:
                     raise
-                
+
                 return default_return
-        
+
         # Preserve function metadata
         wrapper.__name__ = func.__name__
         wrapper.__doc__ = func.__doc__
         return wrapper
-    
+
     return decorator
 
 
@@ -516,11 +568,11 @@ def error_context(
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
     reraise: bool = True,
-    context: Optional[Dict[str, Any]] = None
+    context: Optional[Dict[str, Any]] = None,
 ):
     """Context manager for comprehensive error handling."""
     handler = get_error_handler()
-    
+
     try:
         yield
     except Exception as e:
@@ -529,9 +581,9 @@ def error_context(
             operation=operation,
             user_id=user_id,
             request_id=request_id,
-            context=context
+            context=context,
         )
-        
+
         if reraise:
             raise
 
@@ -541,23 +593,23 @@ def validate_required_fields(data: Dict[str, Any], required_fields: List[str]) -
     """Validate that required fields are present and non-empty."""
     missing_fields = []
     empty_fields = []
-    
+
     for field in required_fields:
         if field not in data:
             missing_fields.append(field)
         elif not data[field]:
             empty_fields.append(field)
-    
+
     if missing_fields:
         raise ValidationError(
             f"Missing required fields: {', '.join(missing_fields)}",
-            context={"missing_fields": missing_fields}
+            context={"missing_fields": missing_fields},
         )
-    
+
     if empty_fields:
         raise ValidationError(
             f"Empty required fields: {', '.join(empty_fields)}",
-            context={"empty_fields": empty_fields}
+            context={"empty_fields": empty_fields},
         )
 
 
@@ -579,6 +631,6 @@ def graceful_shutdown(reason: str = "System shutdown requested") -> None:
     """Initiate graceful shutdown with proper error logging."""
     handler = get_error_handler()
     handler.logger.info(f"Graceful shutdown initiated: {reason}")
-    
+
     # Add cleanup logic here as needed
     sys.exit(0)

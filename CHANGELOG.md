@@ -1,9 +1,14 @@
 # 📝 CHANGELOG
+## v0.1.7 (Unreleased)
+- _Next release cycle initialized._
+
 ## v0.1.6 (2025-10-18)
 - **Backlog Management Tool**: Implemented `scripts/list_openspec_changes.py` for analyzing active changes
 - **ASCII Burndown Chart**: Added terminal-based burndown visualization showing progress over time
 - **Change Analytics**: List, filter, and sort active OpenSpec changes with detailed statistics
 - **Summary Reports**: Generate reports on change status, age, and completion velocity
+- **Security Vulnerabilities Remediation**: Reviewed and resolved 29 dependency security issues, updated affected packages, and audited with Safety and Bandit ([2025-10-18-Security-Vulnerabilities-Detected-in-Dependencies](openspec/changes/2025-10-18-Security-Vulnerabilities-Detected-in-Dependencies/))
+- **Requirements Management**: Merged requirements.txt, requirements-dev.txt, and requirements-ml.txt into single requirements.txt with categorical organization and deduplication ([2025-10-18-merge-requirements](openspec/changes/2025-10-18-merge-requirements/)).
 
 Generated from OpenSpec change proposals.
 

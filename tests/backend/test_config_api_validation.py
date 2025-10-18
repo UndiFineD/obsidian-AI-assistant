@@ -10,19 +10,24 @@ Tests the /api/config endpoint with focus on new fields:
 
 Also tests validation logic for all configurable fields.
 """
+
 import json
-import pytest
 import tempfile
 from pathlib import Path
-from fastapi.testclient import TestClient
 from unittest import mock
 
+import pytest
+from fastapi.testclient import TestClient
+
 # Mock ML dependencies before importing backend
-with mock.patch.dict('sys.modules', {
-    'torch': mock.MagicMock(),
-    'transformers': mock.MagicMock(),
-    'sentence_transformers': mock.MagicMock(),
-}):
+with mock.patch.dict(
+    "sys.modules",
+    {
+        "torch": mock.MagicMock(),
+        "transformers": mock.MagicMock(),
+        "sentence_transformers": mock.MagicMock(),
+    },
+):
     from backend.backend import app
     from backend.settings import (
         get_settings,
@@ -73,28 +78,30 @@ class TestCORSOriginsValidation:
         new_origins = [
             "https://app1.example.com",
             "https://app2.example.com",
-            "https://localhost:3000"
+            "https://localhost:3000",
         ]
-        
+
         response = client.post(
-            "/api/config",
-            json={"cors_allowed_origins": new_origins}
+            "/api/config", json={"cors_allowed_origins": new_origins}
         )
-        
+
         # Should succeed or return validation error
         assert response.status_code in [200, 400, 422, 500]
 
     def test_update_cors_origins_wildcard_warning(self, caplog):
         """Test that wildcard CORS origin triggers warning."""
         import logging
+
         caplog.set_level(logging.WARNING)
-        
+
         wildcard_origins = ["*"]
-        
+
         try:
             update_settings({"cors_allowed_origins": wildcard_origins})
             # Check if warning was logged
-            assert any("wildcard" in record.message.lower() for record in caplog.records)
+            assert any(
+                "wildcard" in record.message.lower() for record in caplog.records
+            )
         except Exception:
             # Settings update may fail in test environment, that's okay
             pass
@@ -102,13 +109,14 @@ class TestCORSOriginsValidation:
     def test_update_cors_origins_invalid_pattern(self, caplog):
         """Test that invalid CORS origins are rejected."""
         import logging
+
         caplog.set_level(logging.ERROR)
-        
+
         invalid_origins = ["not-a-url", "invalid://test"]
-        
+
         # Should log validation error but not raise (graceful handling)
         result = update_settings({"cors_allowed_origins": invalid_origins})
-        
+
         # Check that validation error was logged
         assert any("cors" in record.message.lower() for record in caplog.records)
 
@@ -121,7 +129,7 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".pem", delete=False) as f:
             cert_path = f.name
             f.write(b"fake cert content")
-        
+
         try:
             assert validate_ssl_file(cert_path, [".pem", ".crt", ".cert"]) is True
         finally:
@@ -132,7 +140,7 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".key", delete=False) as f:
             key_path = f.name
             f.write(b"fake key content")
-        
+
         try:
             assert validate_ssl_file(key_path, [".pem", ".key"]) is True
         finally:
@@ -143,7 +151,7 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".txt", delete=False) as f:
             txt_path = f.name
             f.write(b"not a cert")
-        
+
         try:
             assert validate_ssl_file(txt_path, [".pem", ".crt"]) is False
         finally:
@@ -164,12 +172,9 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".pem", delete=False) as f:
             cert_path = f.name
             f.write(b"fake cert")
-        
+
         try:
-            response = client.post(
-                "/api/config",
-                json={"ssl_certfile": cert_path}
-            )
+            response = client.post("/api/config", json={"ssl_certfile": cert_path})
             assert response.status_code in [200, 400, 422, 500]
         finally:
             Path(cert_path).unlink()
@@ -177,13 +182,14 @@ class TestSSLFileValidation:
     def test_update_ssl_certfile_invalid(self, caplog):
         """Test that invalid cert path is rejected."""
         import logging
+
         caplog.set_level(logging.ERROR)
-        
+
         invalid_path = "/nonexistent/cert.pem"
-        
+
         # Should log validation error but not raise (graceful handling)
         result = update_settings({"ssl_certfile": invalid_path})
-        
+
         # Check that validation error was logged
         assert any("ssl" in record.message.lower() for record in caplog.records)
 
@@ -192,12 +198,9 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".key", delete=False) as f:
             key_path = f.name
             f.write(b"fake key")
-        
+
         try:
-            response = client.post(
-                "/api/config",
-                json={"ssl_keyfile": key_path}
-            )
+            response = client.post("/api/config", json={"ssl_keyfile": key_path})
             assert response.status_code in [200, 400, 422, 500]
         finally:
             Path(key_path).unlink()
@@ -205,13 +208,14 @@ class TestSSLFileValidation:
     def test_update_ssl_keyfile_invalid(self, caplog):
         """Test that invalid key path is rejected."""
         import logging
+
         caplog.set_level(logging.ERROR)
-        
+
         invalid_path = "/nonexistent/key.key"
-        
+
         # Should log validation error but not raise (graceful handling)
         result = update_settings({"ssl_keyfile": invalid_path})
-        
+
         # Check that validation error was logged
         assert any("ssl" in record.message.lower() for record in caplog.records)
 
@@ -220,12 +224,9 @@ class TestSSLFileValidation:
         with tempfile.NamedTemporaryFile(suffix=".crt", delete=False) as f:
             ca_path = f.name
             f.write(b"fake CA bundle")
-        
+
         try:
-            response = client.post(
-                "/api/config",
-                json={"ssl_ca_certs": ca_path}
-            )
+            response = client.post("/api/config", json={"ssl_ca_certs": ca_path})
             assert response.status_code in [200, 400, 422, 500]
         finally:
             Path(ca_path).unlink()
@@ -233,15 +234,19 @@ class TestSSLFileValidation:
     def test_update_ssl_ca_certs_invalid(self, caplog):
         """Test that invalid CA certs path is rejected."""
         import logging
+
         caplog.set_level(logging.ERROR)
-        
+
         invalid_path = "/nonexistent/ca-bundle.crt"
-        
+
         # Should log validation error but not raise (graceful handling)
         result = update_settings({"ssl_ca_certs": invalid_path})
-        
+
         # Check that validation error was logged
-        assert any("ca" in record.message.lower() or "ssl" in record.message.lower() for record in caplog.records)
+        assert any(
+            "ca" in record.message.lower() or "ssl" in record.message.lower()
+            for record in caplog.records
+        )
 
 
 class TestCSRFToggle:
@@ -249,17 +254,15 @@ class TestCSRFToggle:
 
     def test_csrf_enabled_boolean_true(self):
         """Test enabling CSRF with boolean."""
-        response = client.post(
-            "/api/config",
-            json={"csrf_enabled": True}
-        )
+        response = client.post("/api/config", json={"csrf_enabled": True})
         assert response.status_code in [200, 400, 422, 500]
 
     def test_csrf_enabled_boolean_false(self, caplog):
         """Test disabling CSRF triggers warning."""
         import logging
+
         caplog.set_level(logging.WARNING)
-        
+
         try:
             update_settings({"csrf_enabled": False})
             # Check if warning was logged
@@ -270,21 +273,20 @@ class TestCSRFToggle:
 
     def test_csrf_enabled_string_coercion(self):
         """Test string to boolean coercion for csrf_enabled."""
-        response = client.post(
-            "/api/config",
-            json={"csrf_enabled": "true"}
-        )
+        response = client.post("/api/config", json={"csrf_enabled": "true"})
         assert response.status_code in [200, 400, 422, 500]
 
     def test_csrf_disabled_warning_message(self, caplog):
         """Test that disabling CSRF logs appropriate warning."""
         import logging
+
         caplog.set_level(logging.WARNING)
-        
+
         try:
             update_settings({"csrf_enabled": False})
             warning_messages = [
-                record.message.lower() for record in caplog.records
+                record.message.lower()
+                for record in caplog.records
                 if record.levelname == "WARNING"
             ]
             assert any("csrf" in msg for msg in warning_messages)
@@ -300,8 +302,7 @@ class TestProtectedFields:
         # Should be rejected by /api/config endpoint as unknown key
         try:
             response = client.post(
-                "/api/config",
-                json={"backend_url": "http://malicious.com:9999"}
+                "/api/config", json={"backend_url": "http://malicious.com:9999"}
             )
             # Should return error (unknown key)
             assert response.status_code in [400, 422, 500]
@@ -314,8 +315,7 @@ class TestProtectedFields:
         # Should be rejected by /api/config endpoint as unknown key
         try:
             response = client.post(
-                "/api/config",
-                json={"project_root": "/malicious/path"}
+                "/api/config", json={"project_root": "/malicious/path"}
             )
             # Should return error (unknown key)
             assert response.status_code in [400, 422, 500]
@@ -327,10 +327,7 @@ class TestProtectedFields:
         """Test that csrf_secret cannot be updated (use rotation endpoint)."""
         # Should be rejected by /api/config endpoint as unknown key
         try:
-            response = client.post(
-                "/api/config",
-                json={"csrf_secret": "hacked-secret"}
-            )
+            response = client.post("/api/config", json={"csrf_secret": "hacked-secret"})
             # Should return error (unknown key)
             assert response.status_code in [400, 422, 500]
         except Exception:
@@ -343,13 +340,8 @@ class TestConfigurationAPIIntegration:
 
     def test_update_multiple_fields_valid(self):
         """Test updating multiple valid fields at once."""
-        updates = {
-            "chunk_size": 1000,
-            "gpu": True,
-            "log_level": "DEBUG",
-            "top_k": 15
-        }
-        
+        updates = {"chunk_size": 1000, "gpu": True, "log_level": "DEBUG", "top_k": 15}
+
         response = client.post("/api/config", json=updates)
         assert response.status_code in [200, 400, 422, 500]
 
@@ -358,14 +350,14 @@ class TestConfigurationAPIIntegration:
         with tempfile.NamedTemporaryFile(suffix=".pem", delete=False) as f:
             valid_cert = f.name
             f.write(b"cert")
-        
+
         try:
             updates = {
                 "ssl_certfile": valid_cert,  # Valid
                 "ssl_keyfile": "/nonexistent/key.key",  # Invalid
-                "chunk_size": 1200  # Valid
+                "chunk_size": 1200,  # Valid
             }
-            
+
             response = client.post("/api/config", json=updates)
             # Should handle validation errors gracefully
             assert response.status_code in [200, 400, 422, 500]
@@ -375,7 +367,7 @@ class TestConfigurationAPIIntegration:
     def test_get_config_redacts_sensitive_fields(self):
         """Test that GET /api/config redacts sensitive values."""
         response = client.get("/api/config")
-        
+
         if response.status_code == 200:
             config = response.json()
             # JWT secret should be redacted or not present
@@ -396,7 +388,7 @@ class TestFieldTypeValidation:
         # Valid integer
         response1 = client.post("/api/config", json={"chunk_size": 1000})
         assert response1.status_code in [200, 400, 422, 500]
-        
+
         # String coercion to integer
         response2 = client.post("/api/config", json={"chunk_size": "1500"})
         assert response2.status_code in [200, 400, 422, 500]
@@ -406,7 +398,7 @@ class TestFieldTypeValidation:
         # Valid boolean
         response1 = client.post("/api/config", json={"gpu": True})
         assert response1.status_code in [200, 400, 422, 500]
-        
+
         # String coercion to boolean
         response2 = client.post("/api/config", json={"gpu": "true"})
         assert response2.status_code in [200, 400, 422, 500]
@@ -416,7 +408,7 @@ class TestFieldTypeValidation:
         # Valid float
         response1 = client.post("/api/config", json={"similarity_threshold": 0.85})
         assert response1.status_code in [200, 400, 422, 500]
-        
+
         # String coercion to float
         response2 = client.post("/api/config", json={"similarity_threshold": "0.75"})
         assert response2.status_code in [200, 400, 422, 500]
@@ -429,8 +421,7 @@ class TestFieldTypeValidation:
     def test_list_field_validation(self):
         """Test list field type validation."""
         response = client.post(
-            "/api/config",
-            json={"cors_allowed_origins": ["https://app.example.com"]}
+            "/api/config", json={"cors_allowed_origins": ["https://app.example.com"]}
         )
         assert response.status_code in [200, 400, 422, 500]
 

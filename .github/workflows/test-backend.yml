@@ -6,10 +6,14 @@ permissions:
 name: Backend Tests
 
 on:
-    push:
-        branches: [main, develop]
-    pull_request:
-        branches: [main]
+  push:
+    branches: [main, develop, "release-*", "feature/*"]
+  pull_request:
+    branches: [main, develop]
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
     test:
