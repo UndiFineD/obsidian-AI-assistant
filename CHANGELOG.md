@@ -1,4 +1,11 @@
 # 📝 CHANGELOG
+## v0.1.5 (2025-10-18)
+- **Scaffold Script Fix**: Fixed date prefix duplication bug in `openspec_new_change.py`
+- **Smart Detection**: Script now detects and strips existing date prefixes from input
+- **Developer Experience**: Prevents `2025-10-18-2025-10-18-*` directory names
+
+Generated from OpenSpec change proposals.
+
 ## v0.1.4 (2025-10-18)
 - **Short Format Support**: Enhanced GitHub issue import to support `owner/repo#number` format in addition to full URLs
 - **Parser Improvement**: Updated `parse_issue_url()` to handle both URL and short notation formats
