@@ -51,15 +51,41 @@ const BackendClient = require('./backendClient.js');
 // Enterprise components
 let EnterpriseAuth, EnterpriseAdminDashboard, EnterpriseConfig;
 let ENTERPRISE_AVAILABLE = false;
+let ENTERPRISE_LOAD_ERRORS = [];
 
 try {
     // These may not exist; try-catch handles absence
     EnterpriseAuth = require('./enterpriseAuth.js');
-    EnterpriseAdminDashboard = require('./adminDashboard.js');
-    EnterpriseConfig = require('./enterpriseConfig.js');
-    ENTERPRISE_AVAILABLE = true;
+    console.log('AI Assistant: EnterpriseAuth module loaded successfully');
 } catch (error) {
-    console.log('Enterprise features not available:', error.message);
+    console.log('AI Assistant: EnterpriseAuth not available:', error.message);
+    ENTERPRISE_LOAD_ERRORS.push({ module: 'EnterpriseAuth', error: error.message });
+}
+
+try {
+    EnterpriseAdminDashboard = require('./adminDashboard.js');
+    console.log('AI Assistant: EnterpriseAdminDashboard module loaded successfully');
+} catch (error) {
+    console.log('AI Assistant: EnterpriseAdminDashboard not available:', error.message);
+    ENTERPRISE_LOAD_ERRORS.push({ module: 'EnterpriseAdminDashboard', error: error.message });
+}
+
+try {
+    EnterpriseConfig = require('./enterpriseConfig.js');
+    console.log('AI Assistant: EnterpriseConfig module loaded successfully');
+} catch (error) {
+    console.log('AI Assistant: EnterpriseConfig not available:', error.message);
+    ENTERPRISE_LOAD_ERRORS.push({ module: 'EnterpriseConfig', error: error.message });
+}
+
+// Only mark as available if ALL enterprise modules loaded successfully
+ENTERPRISE_AVAILABLE = EnterpriseAuth && EnterpriseAdminDashboard && EnterpriseConfig;
+
+if (ENTERPRISE_AVAILABLE) {
+    console.log('AI Assistant: All enterprise features loaded successfully');
+} else if (ENTERPRISE_LOAD_ERRORS.length > 0) {
+    console.log('AI Assistant: Enterprise features partially or fully unavailable');
+    console.log('AI Assistant: Missing modules:', ENTERPRISE_LOAD_ERRORS.map(e => e.module).join(', '));
 }
 
 const DEFAULT_SETTINGS = {
@@ -93,6 +119,61 @@ function loadPluginConfigFile(app) {
     } catch (_) {}
     return null;
 }
+
+/**
+* User-friendly error modal with actionable steps
+*/
+class ErrorModal extends Modal {
+    constructor(app, title, message, actionableSteps = []) {
+        super(app);
+        this.errorTitle = title;
+        this.errorMessage = message;
+        this.actionableSteps = actionableSteps;
+    }
+
+    onOpen() {
+        const { contentEl } = this;
+        contentEl.empty();
+        contentEl.addClass('ai-assistant-error-modal');
+
+        // Title with icon
+        const titleEl = contentEl.createEl('h2', {
+            text: `⚠️ ${this.errorTitle}`,
+            attr: { style: 'color: var(--text-error); margin-bottom: 16px;' }
+        });
+
+        // Error message
+        const messageEl = contentEl.createEl('p', {
+            text: this.errorMessage,
+            attr: { style: 'margin-bottom: 20px; color: var(--text-muted);' }
+        });
+
+        // Actionable steps
+        if (this.actionableSteps && this.actionableSteps.length > 0) {
+            contentEl.createEl('h3', {
+                text: 'Steps to resolve:',
+                attr: { style: 'margin-bottom: 10px;' }
+            });
+
+            const stepsList = contentEl.createEl('ol', {
+                attr: { style: 'margin-bottom: 20px; padding-left: 20px;' }
+            });
+
+            this.actionableSteps.forEach(step => {
+                stepsList.createEl('li', {
+                    text: step,
+                    attr: { style: 'margin-bottom: 8px;' }
+                });
+            });
+        }
+
+        // Close button
+        const closeButton = contentEl.createEl('button', { text: 'Close' });
+        closeButton.onclick = () => this.close();
+        closeButton.setAttribute('style', 'margin-top: 10px;');
+    }
+}
+
 class AIModal extends Modal {
     constructor(app, plugin) {
         super(app);
@@ -123,31 +204,80 @@ class AIModal extends Modal {
         statusDiv.empty();
         let statusText = 'Checking backend...';
         let offline = false;
+        let errorDetails = null;
 
         const backendClient = new BackendClient(this.plugin.settings.backendUrl);
 
         try {
-            await backendClient.get('/status');
-            statusText = 'Backend is online';
+            const response = await backendClient.get('/status');
+            if (response && response.ok) {
+                statusText = '✅ Backend is online';
+            } else {
+                statusText = '⚠️ Backend responded with errors';
+                offline = true;
+                errorDetails = {
+                    status: response.status,
+                    message: response.data?.detail || 'Unknown error'
+                };
+            }
         } catch (e) {
-            statusText = 'Backend is offline';
+            statusText = '❌ Backend is offline';
             offline = true;
+            errorDetails = {
+                error: String(e),
+                url: this.plugin.settings.backendUrl
+            };
         }
-        statusDiv.createEl('span', { text: statusText });
+
+        statusDiv.createEl('span', {
+            text: statusText,
+            attr: { style: offline ? 'color: var(--text-error);' : 'color: var(--text-success);' }
+        });
+
         if (offline) {
-            const reloadBtn = statusDiv.createEl('button', { text: 'Reload config' });
+            // Show detailed error button
+            const detailsBtn = statusDiv.createEl('button', {
+                text: 'Show Details',
+                attr: { style: 'margin-left: 10px;' }
+            });
+            detailsBtn.onclick = () => {
+                const actionableSteps = [
+                    `Check that the backend server is running at ${this.plugin.settings.backendUrl}`,
+                    'Verify the backend URL in plugin settings is correct',
+                    'Start the backend with: cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000',
+                    'Check backend logs for any startup errors',
+                    'Ensure no firewall is blocking localhost connections'
+                ];
+
+                const errorMsg = errorDetails?.error
+                    ? `Connection error: ${errorDetails.error}`
+                    : `Backend returned status ${errorDetails?.status}: ${errorDetails?.message}`;
+
+                new ErrorModal(
+                    this.app,
+                    'Backend Connection Failed',
+                    errorMsg,
+                    actionableSteps
+                ).open();
+            };
+
+            const reloadBtn = statusDiv.createEl('button', { text: 'Retry Connection' });
             reloadBtn.onclick = async () => {
                 reloadBtn.disabled = true;
-                reloadBtn.textContent = 'Reloading...';
+                reloadBtn.textContent = 'Connecting...';
                 // Call backend config reload to validate connectivity
                 try {
-                    await backendClient.post('/api/config/reload', {});
-                    new Notice('Backend config reloaded.');
+                    const response = await backendClient.post('/api/config/reload', {});
+                    if (response && response.ok) {
+                        new Notice('✅ Backend connection restored!');
+                    } else {
+                        new Notice('⚠️ Backend is still offline. See details for help.');
+                    }
                 } catch (err) {
-                    new Notice('Backend is offline. Please start the server.');
+                    new Notice('❌ Backend is offline. Click "Show Details" for troubleshooting steps.');
                 }
                 reloadBtn.disabled = false;
-                reloadBtn.textContent = 'Reload config';
+                reloadBtn.textContent = 'Retry Connection';
                 await this.checkBackendStatus(statusDiv);
             };
         }
@@ -170,10 +300,35 @@ class ObsidianAIAssistant extends Plugin {
             await this.saveSettings();
         }
 
-        // Enforce HTTPS for backend URL
+        // Enforce HTTPS for backend URL (with helpful error modal)
         if (!/^https:/.test(this.settings.backendUrl)) {
-            new Notice('AI Assistant: Backend URL must use HTTPS for security. Please update your settings.');
-            throw new Error('Backend URL must use HTTPS');
+            const isLocalhost = this.settings.backendUrl.includes('localhost') ||
+                this.settings.backendUrl.includes('127.0.0.1');
+
+            if (!isLocalhost) {
+                // Non-localhost must use HTTPS
+                const actionableSteps = [
+                    'Open AI Assistant plugin settings',
+                    'Update "Backend URL" to use https:// instead of http://',
+                    'Save settings and reload Obsidian',
+                    '',
+                    'Alternative: Set up a reverse proxy with SSL (nginx, caddy, or cloudflare tunnel)'
+                ];
+
+                new ErrorModal(
+                    this.app,
+                    'Insecure Backend Connection',
+                    `Backend URL "${this.settings.backendUrl}" must use HTTPS for security. HTTP is only allowed for localhost development.`,
+                    actionableSteps
+                ).open();
+
+                console.error('AI Assistant: Backend URL must use HTTPS for non-localhost connections');
+                return; // Don't load plugin with insecure connection
+            } else {
+                // Localhost HTTP is allowed but show warning
+                console.warn('AI Assistant: Using HTTP with localhost. This is acceptable for development but not recommended for production.');
+                new Notice('⚠️ AI Assistant: Using insecure HTTP connection (localhost only)', 5000);
+            }
         }
 
         // Initialize enterprise features if available

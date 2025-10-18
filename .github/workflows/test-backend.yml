@@ -102,8 +102,8 @@ jobs:
                       issue_number: context.issue.number
                     });
                     
-                    const existingComment = comments.data.find(comment => 
-                      comment.body.includes('📊 Code Coverage Report') && 
+                    const existingComment = comments.data.find(comment =>
+                      comment.body.includes('📊 Code Coverage Report') &&
                       comment.user.login === 'github-actions[bot]'
                     );
                     

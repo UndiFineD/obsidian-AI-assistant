@@ -9,7 +9,7 @@ import sys as _sys
 import sys as _sysmod
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
@@ -17,6 +17,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 from starlette.middleware.base import BaseHTTPMiddleware
+
+# JWT authentication imports
+import jwt
+from jwt import PyJWTError
 
 from .advanced_security import (
     ThreatLevel,
@@ -42,25 +46,105 @@ from .performance import (
     get_connection_pool,
     get_task_queue,
 )
-from .enhanced_caching import get_unified_cache_manager, cached_with_intelligence
+from .enhanced_caching import get_unified_cache_manager
 from .cache_management import cache_router
 from .logging_framework import (
-    initialize_logging, 
-    get_logger, 
-    log_audit, 
-    log_security, 
-    performance_timer, 
+    initialize_logging,
+    get_logger,
+    log_audit,
+    performance_timer,
     request_context,
     LogCategory
 )
 from .log_management import router as log_router
 from .security_hardening import (
-    SecurityHardeningMiddleware, SecurityLevel, 
+    SecurityHardeningMiddleware, SecurityLevel,
     create_security_hardening_middleware
 )
 from .security_management import router as security_router
 from .settings import get_settings, reload_settings, update_settings
 from .utils import redact_data
+from .exception_handlers import setup_exception_handlers, RequestTrackingMiddleware
+
+# JWT authentication imports
+import jwt
+from jwt import PyJWTError
+
+
+# JWT Configuration
+JWT_SECRET_KEY = _os.environ.get("JWT_SECRET_KEY", "dev-secret-key-change-in-production")
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_MINUTES = 60
+
+
+# JWT Utility Functions
+def create_access_token(username: str, roles: List[str] = None, user_id: str = None, expires_delta: timedelta = None) -> str:
+    """
+    Create a JWT access token for a user.
+    
+    Args:
+        username: The username to encode in the token
+        roles: List of user roles (defaults to ["user"])
+        user_id: Optional user ID
+        expires_delta: Token expiration time (defaults to JWT_EXPIRATION_MINUTES)
+    
+    Returns:
+        Encoded JWT token string
+    """
+    if roles is None:
+        roles = ["user"]
+    
+    if expires_delta is None:
+        expires_delta = timedelta(minutes=JWT_EXPIRATION_MINUTES)
+    
+    expire = datetime.utcnow() + expires_delta
+    
+    payload = {
+        "sub": username,  # Subject = username
+        "roles": roles,
+        "exp": expire,
+        "iat": datetime.utcnow()  # Issued at
+    }
+    
+    if user_id:
+        payload["user_id"] = user_id
+    
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
+
+
+def verify_token(token: str) -> dict:
+    """
+    Verify and decode a JWT token.
+    
+    Args:
+        token: The JWT token string to verify
+    
+    Returns:
+        Decoded token payload
+    
+    Raises:
+        HTTPException: If token is invalid or expired
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"verify_exp": True}
+        )
+        return payload
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 # --- Helper: detect test mode consistently ---
@@ -89,26 +173,78 @@ _security_dependency = Depends(security)
 def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = _security_dependency,
 ):
-    # Example: decode JWT and extract user info
-    # In production, validate token, check expiry, etc.
+    """
+    Extract and validate JWT token from request.
+    Returns user information including username and roles.
+    
+    In test mode, bypasses authentication with default test user.
+    In production, validates JWT token signature, expiration, and extracts user data.
+    """
     # Testing bypass: when under pytest or TEST_MODE, allow default user/admin
     if _is_test_mode():
         return {"username": "test", "roles": ["user", "admin"]}
 
     if credentials is None:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     token = credentials.credentials
-    # For demo, accept any non-empty token and assign 'user' role
     if not token:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing token"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Empty authentication token",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    # TODO: Replace with real JWT decoding and role extraction
-    user = {"username": "demo", "roles": ["user"]}
-    return user
+    
+    try:
+        # Decode and validate JWT token
+        payload = jwt.decode(
+            token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"verify_exp": True}  # Verify expiration
+        )
+        
+        # Extract user information from token
+        username = payload.get("sub")  # Subject = username
+        roles = payload.get("roles", ["user"])  # Default to 'user' role
+        user_id = payload.get("user_id")
+        
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: missing username",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        return {
+            "username": username,
+            "user_id": user_id,
+            "roles": roles,
+            "token_exp": payload.get("exp")
+        }
+    
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Authentication failed: {str(e)}",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def require_role(role: str):
@@ -274,9 +410,16 @@ except Exception as e:
     app_logger = logging.getLogger('backend.app')
 
 # Setup standardized error handling
-from .exception_handlers import setup_exception_handlers, RequestTrackingMiddleware
 setup_exception_handlers(app)
 app.add_middleware(RequestTrackingMiddleware)
+
+# Add request tracing middleware for performance monitoring
+try:
+    from .request_tracing import RequestTracingMiddleware
+    app.add_middleware(RequestTracingMiddleware)
+    app_logger.info("Request tracing middleware enabled")
+except Exception as e:
+    app_logger.warning(f"Request tracing middleware not available: {e}")
 
 # Include routers
 app.include_router(cache_router)
@@ -892,6 +1035,98 @@ async def post_reload_config():
             ) from err
 
 
+# ============================================================================
+# JWT AUTHENTICATION ENDPOINTS
+# ============================================================================
+
+class TokenRequest(BaseModel):
+    """Request model for token generation"""
+    username: str
+    password: str  # In production, validate against user database
+
+
+class TokenResponse(BaseModel):
+    """Response model for token generation"""
+    access_token: str
+    token_type: str = "bearer"
+    expires_in: int
+    username: str
+    roles: List[str]
+
+
+@app.post("/api/auth/token", response_model=TokenResponse)
+async def login_for_access_token(request: TokenRequest):
+    """
+    Generate JWT access token for authentication.
+    
+    In production, this should:
+    1. Validate username/password against user database
+    2. Fetch user roles from database
+    3. Apply rate limiting to prevent brute force attacks
+    
+    For development, accepts any credentials and returns a valid token.
+    """
+    from .error_handling import error_context, AuthenticationError
+    
+    with error_context("token_generation", reraise=True):
+        # In production, validate credentials against database
+        # For demo/development, accept any non-empty credentials
+        if not request.username or len(request.username.strip()) == 0:
+            raise AuthenticationError(
+                "Username cannot be empty",
+                suggestion="Provide a valid username"
+            )
+        
+        if not request.password or len(request.password.strip()) == 0:
+            raise AuthenticationError(
+                "Password cannot be empty",
+                suggestion="Provide a valid password"
+            )
+        
+        # In production: fetch roles from database
+        # For demo: assign default roles based on username
+        roles = ["admin", "user"] if request.username == "admin" else ["user"]
+        
+        # Generate token
+        expires_delta = timedelta(minutes=JWT_EXPIRATION_MINUTES)
+        access_token = create_access_token(
+            username=request.username,
+            roles=roles,
+            expires_delta=expires_delta
+        )
+        
+        return TokenResponse(
+            access_token=access_token,
+            token_type="bearer",
+            expires_in=JWT_EXPIRATION_MINUTES * 60,  # seconds
+            username=request.username,
+            roles=roles
+        )
+
+
+@app.get("/api/auth/verify")
+async def verify_current_token(current_user: dict = Depends(get_current_user)):
+    """
+    Verify the current JWT token and return user information.
+    
+    This endpoint can be used to:
+    - Check if a token is still valid
+    - Get current user information
+    - Verify token hasn't expired
+    """
+    return {
+        "valid": True,
+        "username": current_user.get("username"),
+        "roles": current_user.get("roles"),
+        "user_id": current_user.get("user_id"),
+        "token_expires_at": current_user.get("token_exp")
+    }
+
+
+# ============================================================================
+# CONFIGURATION ENDPOINTS
+# ============================================================================
+
 @app.post("/api/config")
 async def post_update_config(partial: dict):
     from backend.settings import _ALLOWED_UPDATE_KEYS
@@ -930,7 +1165,7 @@ def _ask_impl(request: AskRequest):
     with error_context("ask_implementation", reraise=False):
         # Log the request start
         request_logger = get_logger('backend.api.ask', LogCategory.API)
-        with performance_timer("ask_request_processing") as timer_id:
+        with performance_timer("ask_request_processing"):
             request_logger.info("Processing ask request", extra={
                 'question_length': len(request.question),
                 'model_name': request.model_name,
@@ -1012,7 +1247,7 @@ def _ask_impl(request: AskRequest):
                     to_generate = request.prompt if request.prompt else request.question
 
                 # Generate answer with performance tracking
-                with performance_timer("model_generation") as gen_timer_id:
+                with performance_timer("model_generation"):
                     start_time = time.time()
                     answer = model_manager.generate(
                         to_generate,
@@ -1234,6 +1469,84 @@ async def transcribe_audio(request: TranscribeRequest):
                 "warnings": [str(err)],
             },
         }
+
+
+@app.post("/api/voice_transcribe", dependencies=[Depends(require_role("user"))])
+async def api_voice_transcribe(request: TranscribeRequest):
+    """
+    API-versioned voice transcription endpoint.
+    Transcribe audio to text using a speech-to-text service with enhanced validation.
+    
+    This endpoint provides:
+    - Base64 audio data validation
+    - File type and size checks
+    - SHA-256 hash generation for audio integrity
+    - Detailed error reporting
+    - Support for multiple audio formats (WAV, WebM, MP3, etc.)
+    """
+    try:
+        # Validate audio data before processing
+        validation_result = validate_base64_audio(request.audio_data)
+        if not validation_result["valid"]:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid audio data: {validation_result.get('error', 'Validation failed')}",
+            )
+
+        # Log validation warnings if any
+        if validation_result.get("warnings"):
+            print(f"Audio validation warnings: {validation_result['warnings']}")
+
+        import base64
+
+        # Decode base64 audio data (already validated)
+        audio_bytes = base64.b64decode(request.audio_data)
+        
+        # Attempt to use Vosk for transcription if available
+        transcription = "Server-side speech recognition not yet implemented"
+        confidence = 0.0
+        status = "placeholder"
+        
+        # TODO: Implement actual Vosk transcription when model is available
+        # from .voice import transcribe_audio as vosk_transcribe
+        # result = vosk_transcribe(audio_bytes, request.language)
+        # transcription = result["text"]
+        # confidence = result["confidence"]
+        # status = "success"
+
+        return {
+            "success": True,
+            "transcription": transcription,
+            "confidence": confidence,
+            "status": status,
+            "audio_info": {
+                "size_mb": round(validation_result["size_mb"], 2),
+                "size_bytes": len(audio_bytes),
+                "type": validation_result["file_type"],
+                "format": request.format,
+                "language": request.language,
+                "hash": validation_result["hash_sha256"][:16] + "...",
+                "warnings": validation_result.get("warnings", []),
+            },
+            "metadata": {
+                "endpoint_version": "v1",
+                "processing_time_ms": 0,  # TODO: Add actual timing
+                "model": "vosk-placeholder",
+            },
+        }
+
+    except FileValidationError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"File validation failed: {str(e)}"
+        ) from e
+    except HTTPException:
+        raise
+    except Exception as err:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Transcription failed: {str(err)}"
+        ) from err
 
 
 # ----------------------
@@ -1728,6 +2041,88 @@ async def get_performance_trends(hours: int = 24):
         raise HTTPException(
             status_code=500,
             detail="Failed to generate performance trends due to an internal error.",
+        ) from err
+
+
+@app.get("/api/performance/tracing/summary")
+async def get_tracing_summary():
+    """Get request tracing summary with slow requests and endpoint stats"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        summary = tracer.get_summary()
+        slow_requests = tracer.get_slow_requests(limit=10)
+        endpoint_stats = tracer.get_endpoint_stats()
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "summary": summary,
+            "slow_requests": slow_requests,
+            "endpoint_stats": endpoint_stats,
+        }
+    except Exception as err:
+        logger.error(f"Tracing summary error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve tracing summary"
+        ) from err
+
+
+@app.get("/api/performance/tracing/slow-requests")
+async def get_slow_requests(limit: int = 20):
+    """Get recent slow requests for analysis"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        slow_requests = tracer.get_slow_requests(limit=limit)
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "slow_threshold_ms": tracer.slow_threshold,
+            "very_slow_threshold_ms": tracer.very_slow_threshold,
+            "count": len(slow_requests),
+            "slow_requests": slow_requests,
+        }
+    except Exception as err:
+        logger.error(f"Slow requests error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve slow requests"
+        ) from err
+
+
+@app.get("/api/performance/tracing/endpoint/{endpoint:path}")
+async def get_endpoint_performance(endpoint: str):
+    """Get performance statistics for a specific endpoint"""
+    try:
+        from .request_tracing import get_request_tracer
+        
+        tracer = get_request_tracer()
+        stats = tracer.get_endpoint_stats(endpoint)
+        
+        if not stats:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No statistics found for endpoint: {endpoint}"
+            )
+        
+        return {
+            "status": "success",
+            "timestamp": datetime.utcnow().isoformat(),
+            "endpoint": endpoint,
+            "statistics": stats,
+        }
+    except HTTPException:
+        raise
+    except Exception as err:
+        logger.error(f"Endpoint performance error: {err}")
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to retrieve endpoint performance"
         ) from err
 
 

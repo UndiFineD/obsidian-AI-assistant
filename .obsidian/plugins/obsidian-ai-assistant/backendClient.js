@@ -12,6 +12,20 @@ class BackendClient {
         this.token = options.token || null;
         this._pollers = new Map(); // id -> interval handle
         this._nextPollerId = 1;
+
+        // Retry configuration - only for connection errors, not AI queries
+        this.retryDelay = options.retryDelay || 1000; // Delay before retry in ms
+
+        // Endpoints that are safe to retry (non-AI, idempotent operations)
+        this.retryableEndpoints = [
+            '/health',
+            '/status',
+            '/api/health',
+            '/api/status',
+            '/api/config',
+            '/api/performance/metrics',
+            '/api/auth/verify'
+        ];
     }
 
     setAuthToken(token) {
@@ -29,6 +43,22 @@ class BackendClient {
             'aborted' in obj &&
             typeof obj.addEventListener === 'function'
         );
+    }
+
+    /**
+    * Check if an endpoint is safe to retry (non-AI, idempotent)
+    */
+    isRetryableEndpoint(endpoint) {
+        return this.retryableEndpoints.some(pattern => endpoint.includes(pattern));
+    }
+
+    /**
+    * Check if an error is a connection error (not a server error response)
+    */
+    isConnectionError(error) {
+        // Connection errors: fetch failed, timeout, network error
+        // These have status 0 and an error message
+        return error && error.status === 0 && error.error;
     }
 
     async request(method, endpoint, body = null, headers = {}, signal) {
@@ -79,7 +109,39 @@ class BackendClient {
                 url,
             };
         } catch (error) {
-            return { ok: false, status: 0, error: String(error), data: null };
+            const errorResponse = { ok: false, status: 0, error: String(error), data: null };
+
+            // Only retry connection errors on retryable endpoints
+            if (this.isConnectionError(errorResponse) && this.isRetryableEndpoint(endpoint)) {
+                console.log(`Backend connection failed, retrying in ${this.retryDelay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+
+                try {
+                    const retryRes = await fetch(url, {
+                        method,
+                        headers: finalHeaders,
+                        body: body ? JSON.stringify(body) : null,
+                        signal: signal || controller.signal,
+                    });
+                    const retryText = await retryRes.text();
+                    let retryData = null;
+                    try {
+                        retryData = retryText ? JSON.parse(retryText) : null;
+                    } catch (_) {}
+                    return {
+                        ok: retryRes.ok,
+                        status: retryRes.status,
+                        data: retryData,
+                        raw: retryText,
+                        url,
+                    };
+                } catch (retryError) {
+                    // Return original error if retry fails
+                    return errorResponse;
+                }
+            }
+
+            return errorResponse;
         } finally {
             clearTimeout(id);
         }
