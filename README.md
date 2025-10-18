@@ -878,7 +878,7 @@ We welcome contributions! Please follow these guidelines:
 4. Run tests: `pytest tests/ -v`
 5. Commit with clear messages: `git commit -m "feat: Add amazing feature"`
 6. Push to your fork: `git push origin feature/amazing-feature`
-7. Open a Pull Request
+7. Open a Pull Request (PR)
 
 ### Development Guidelines
 
@@ -890,7 +890,7 @@ We welcome contributions! Please follow these guidelines:
 
 ### Code Review Process
 
-1. All PRs require at least one review
+1. All Pull Requests (PRs) require at least one review
 2. All tests must pass
 3. Code coverage should not decrease
 4. Documentation must be updated
@@ -920,7 +920,7 @@ This project builds on excellent open-source tools:
 ---
 
 **Status**: Production Ready ✅  
-**Version**: 0.1.1  
+**Version**: 0.1.2  
 **Last Updated**: October 18, 2025  
 **Test Coverage**: 1131 passed, 20 skipped  
 **Backend Coverage**: ~65% (reporting only; threshold temporarily not enforced)

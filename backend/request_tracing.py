@@ -14,7 +14,7 @@ import logging
 import time
 import uuid
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from fastapi import Request, Response
@@ -82,7 +82,7 @@ class RequestTracer:
             "client_ip": request.client.host if request.client else "unknown",
             "user_agent": request.headers.get("user-agent", "unknown"),
             "start_time": start_time,
-            "start_timestamp": datetime.utcnow().isoformat(),
+            "start_timestamp": datetime.now(timezone.utc).isoformat(),
         }
         
         # Store in request state for access in handlers
@@ -127,7 +127,7 @@ class RequestTracer:
         request_record = {
             **context,
             "end_time": end_time,
-            "end_timestamp": datetime.utcnow().isoformat(),
+            "end_timestamp": datetime.now(timezone.utc).isoformat(),
             "duration_ms": duration_ms,
             "status_code": response.status_code if response else 500,
             "success": exception is None and (response and 200 <= response.status_code < 300),

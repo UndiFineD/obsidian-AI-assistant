@@ -101,7 +101,7 @@ class SecurityConfigUpdate(BaseModel):
 class CreateAPIKeyRequest(BaseModel):
     """Request to create new API key"""
     name: str = Field(..., min_length=1, max_length=100)
-    permissions: List[str] = Field(..., min_items=1)
+    permissions: List[str] = Field(..., min_length=1)
     expires_in_days: Optional[int] = Field(None, ge=1, le=3650)  # Max 10 years
     rate_limit: int = Field(100, ge=10, le=10000)
     allowed_ips: Optional[List[str]] = None
