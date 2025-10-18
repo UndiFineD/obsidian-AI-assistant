@@ -7,7 +7,7 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 
 ## Workflow Stages
 
-### 0. Create TODOs
+### 0. Create TODOs [HARD REQUIREMENT]
 **Purpose:** Make it visible what we are going to do and track our progress through the workflow.
 
 **Best Practices:**
@@ -44,8 +44,10 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 - [ ] `retrospective.md`
 ```
 
-### 1. Increment Release Version (+0.0.1)
+
+### 1. Increment Release Version (+0.0.1) [HARD REQUIREMENT]
 **Purpose:** Prepare the next development cycle by incrementing the release version (e.g., 0.1.1 → 0.1.2), ensuring all new work is tracked on a future version branch while the current release remains stable.
+**Hard Requirement:** This step MUST be completed for every change. No workflow is considered valid or complete unless the release version is incremented and documented.
 **Best Practices:**
 - Create a new branch for the next release (e.g., `release-0.1.2`) after tagging the current release.
 - Update version numbers in `CHANGELOG.md`, `README.md`, and config files.
@@ -53,28 +55,28 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 - Document the version increment in the OpenSpec change log.
 **Artifacts:** Updated branch, versioned files, OpenSpec log entry.
 
-### 2. Proposal
+### 2. Proposal [HARD REQUIREMENT]
 **Purpose:** Capture the motivation, context, and high-level goals for a change (feature, fix, refactor, or issue).
 **Artifacts:** `openspec/changes/<change-id>/proposal.md`
 **Contents:** Problem statement, rationale, alternatives, impact analysis, links to related issues or PRs.
 
-### 3. Specification
+### 3. Specification [HARD REQUIREMENT]
 **Purpose:** Define the technical and functional requirements for the change.
 **Artifacts:** `openspec/changes/<change-id>/spec.md`
 **Contents:** Acceptance criteria, data models, API changes, diagrams, security/privacy notes, performance requirements.
 
-### 4. Task Breakdown
+### 4. Task Breakdown [HARD REQUIREMENT]
 **Purpose:** Decompose the specification into actionable tasks and dependencies.
 **Artifacts:** `openspec/changes/<change-id>/tasks.md`
 **Contents:** Task list, dependencies, test plan, assignment, estimated effort.
 
-### 5. Test Definition
+### 5. Test Definition [HARD REQUIREMENT]
 **Purpose:** Define and implement tests before or alongside code changes.
 **Artifacts:** `tests/`, `docs/TESTING_GUIDE.md`, `openspec/changes/<change-id>/test_plan.md`
 **Contents:** Unit, integration, performance, and security tests; coverage goals; validation steps.
     - markdownlint all created .md files in `openspec/changes/<change-id>/`
 
-### 6. Script & Tooling
+### 6. Script & Tooling [HARD REQUIREMENT]
 **Purpose:** Add or update scripts for setup, validation, automation, and developer experience.
 **Artifacts:** `scripts/`, `setup.ps1`, `setup.sh`, `Makefile`, etc.
 **Contents:** Reusable scripts, automation, developer tools, CI/CD updates.
@@ -92,22 +94,22 @@ python scripts/openspec_new_change.py "My New Change" --owner @yourhandle
 python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My New Change"
 ```
 
-### 7. Implementation
+### 7. Implementation [HARD REQUIREMENT]
 **Purpose:** Make code changes as defined in the spec and tasks.
 **Artifacts:** `backend/`, `plugin/`, `tests/`, etc.
 **Contents:** Code, refactors, documentation updates, commit messages.
 
-### 8. Test Run & Validation
+### 8. Test Run & Validation [HARD REQUIREMENT]
 **Purpose:** Run all tests and validate acceptance criteria and quality gates.
 **Artifacts:** `docs/TEST_RESULTS_*.md`, `htmlcov/`, `bandit_report.json`, CI/CD logs.
 **Contents:** Test results, coverage, security scan outputs, performance benchmarks.
 
-### 9. Documentation Update
+### 9. Documentation Update [HARD REQUIREMENT]
 **Purpose:** Update documentation to reflect changes and ensure maintainability.
 **Artifacts:** `README.md`, `docs/`, `openspec/`, `CHANGELOG.md`, API docs.
 **Contents:** Usage, architecture, API, workflow docs, changelog entries.
 
-### 10. Git Operations
+### 10. Git Operations [HARD REQUIREMENT]
 **Purpose:** Commit, tag, and push changes with traceable metadata and OpenSpec references.
 **Artifacts:** Git commits, tags, branch updates.
 **Contents:**
@@ -132,7 +134,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
   git push origin <branch-name>
   ```
 
-### 11. Create Pull Request (PR)
+### 11. Create Pull Request (PR) [HARD REQUIREMENT]
 **Purpose:** Open a Pull Request on GitHub to review and merge the change.
 **Artifacts:** Pull Request on GitHub, linked to the change directory.
 **Contents:**
@@ -141,7 +143,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 - Use a clear merge strategy (e.g., squash, rebase, or merge commit)
 - Ensure all checks pass before merging
 
-### 12. Archive Completed Change
+### 12. Archive Completed Change [HARD REQUIREMENT]
 **Purpose:** Move completed and merged changes to the archive to keep the active changes directory clean and focused.
 **Best Practices:**
 - Only archive changes after the Pull Request (PR) has been merged to main
