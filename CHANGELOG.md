@@ -1,6 +1,9 @@
 # 📝 CHANGELOG
-## v0.1.7 (Unreleased)
+## v0.1.8 (Unreleased)
 - _Next release cycle initialized._
+
+## v0.1.7 (2025-10-18)
+- Documentation Governance: Govern material changes to `docs/CONSTITUTION.md` via OpenSpec proposals (openspec/changes/update-doc-docs-constitution/)
 
 ## v0.1.6 (2025-10-18)
 - **Backlog Management Tool**: Implemented `scripts/list_openspec_changes.py` for analyzing active changes
