@@ -42,8 +42,13 @@ class ChangeSpec:
 def build_change_id(title: str, date: Optional[str] = None, explicit_id: Optional[str] = None) -> str:
     if explicit_id:
         return explicit_id
+    
+    # Strip existing date prefix (YYYY-MM-DD-) if present to avoid duplication
+    date_pattern = r'^\d{4}-\d{2}-\d{2}-'
+    clean_title = re.sub(date_pattern, '', title)
+    
     date_str = date or dt.date.today().isoformat()
-    return f"{date_str}-{slugify(title)}"
+    return f"{date_str}-{slugify(clean_title)}"
 
 
 def replace_placeholders(text: str, spec: ChangeSpec) -> str:
