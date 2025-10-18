@@ -1,8 +1,5 @@
 # TODO: Update Documentation Spec Governance (update-doc-docs-spec)
 
-
-
-
 ## Workflow Progress
 - [x] 0. Create TODOs
 - [x] 1. Increment Release Version
@@ -22,5 +19,5 @@
 - [x] proposal.md
 - [x] specs/project-documentation/spec.md
 - [x] tasks.md
-- [ ] test_plan.md
-- [ ] retrospective.md
+- [x] test_plan.md
+- [x] retrospective.md

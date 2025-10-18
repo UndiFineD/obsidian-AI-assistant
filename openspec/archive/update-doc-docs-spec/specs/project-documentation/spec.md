@@ -9,5 +9,4 @@ The project SHALL govern material changes to `docs/spec.md` via OpenSpec change 
 #### Scenario: Material change requires proposal
 
 - **WHEN** a contributor plans a material update to `docs/spec.md`
-
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
