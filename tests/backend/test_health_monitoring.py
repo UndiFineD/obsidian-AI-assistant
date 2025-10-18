@@ -444,6 +444,7 @@ def test_get_health_monitor_singleton():
 
 
 @pytest.mark.asyncio
+@pytest.mark.slow
 async def test_slow_response_time_degraded_status(health_monitor):
     """Test that slow response times result in degraded status"""
 
