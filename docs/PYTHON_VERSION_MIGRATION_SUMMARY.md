@@ -130,12 +130,12 @@ Completed comprehensive migration from Python 3.10 to Python 3.11 across all CI/
 
 ### Pytest Configuration
 - `pytest.ini` and `tests/pytest.ini`: `minversion = 3.10`
-  - **Reason**: This is pytest's minimum version requirement (plugin compatibility), not Python's version
-  - **Note**: pytest 3.10 = pytest version, not Python version
+    - **Reason**: This is pytest's minimum version requirement (plugin compatibility), not Python's version
+    - **Note**: pytest 3.10 = pytest version, not Python version
 
 ### Test Results
 - `tests/comprehensive_test_results.json`: Numeric values like "13.105..." are test durations in seconds
-  - **Reason**: Unrelated to Python version; these are timing measurements
+    - **Reason**: Unrelated to Python version; these are timing measurements
 
 ## Verification
 
