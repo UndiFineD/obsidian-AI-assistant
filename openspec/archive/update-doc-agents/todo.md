@@ -1,11 +1,11 @@
-# TODO: Update Claude Documentation (update-doc-claude)
+# TODO: Update AGENTS Documentation (update-doc-agents)
 
 ## Workflow Progress
-- [ ] 0. Create TODOs
-- [x] 1. Increment Release Version
-- [ ] 2. Proposal
-- [ ] 3. Specification
-- [ ] 4. Task Breakdown
+- [x] 0. Create TODOs
+- [ ] 1. Increment Release Version [HARD REQUIREMENT]
+- [x] 2. Proposal
+- [x] 3. Specification
+- [x] 4. Task Breakdown
 - [ ] 5. Test Definition
 - [ ] 6. Script & Tooling
 - [ ] 7. Implementation
@@ -14,15 +14,13 @@
 - [ ] 10. Git Operations
 - [ ] 11. Create Pull Request (PR)
 - [ ] 12. Archive Completed Change
-- [ ] 13. Workflow Improvement
 
 ## Artifacts Created
 - [x] proposal.md
-- [x] specs/project-documentation/spec.md
 - [x] tasks.md
+- [ ] specs/project-documentation/spec.md
 - [ ] test_plan.md
 - [ ] retrospective.md
-
 
 
 

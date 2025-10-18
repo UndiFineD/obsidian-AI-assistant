@@ -63,6 +63,95 @@ python scripts/validate_security_hardening.py
 ### OpenSpec Scripts
 
 - **`openspec-validate.ps1`** - PowerShell script to validate OpenSpec changes
+- **`workflow.ps1`** - Comprehensive OpenSpec workflow automation (see below)
+
+## OpenSpec Workflow Automation (`workflow.ps1`)
+
+Automates the 13-stage OpenSpec workflow for change management.
+
+### Quick Start
+
+```powershell
+# List all active changes
+.\scripts\workflow.ps1 -List
+
+# Create a new change and run interactively
+.\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Title "Update README.md" -Owner "@johndoe"
+
+# Run a specific workflow step
+.\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Step 8
+
+# Validate a change structure
+.\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Validate
+
+# Archive a completed change
+.\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Archive
+
+# Dry run (preview without making changes)
+.\scripts\workflow.ps1 -ChangeId "my-change" -DryRun
+```
+
+### Workflow Steps
+
+The script implements all 13 stages defined in `openspec/PROJECT_WORKFLOW.md`:
+
+0. **Create TODOs** - Initialize workflow tracking
+1. **Increment Release Version** - Update version numbers [HARD REQUIREMENT]
+2. **Proposal** - Create proposal.md with problem statement
+3. **Specification** - Define technical requirements
+4. **Task Breakdown** - Create tasks.md with actionable items
+5. **Test Definition** - Create test_plan.md
+6. **Script & Tooling** - Update automation scripts
+7. **Implementation** - Execute the changes
+8. **Test Run & Validation** - Run tests and validate
+9. **Documentation Update** - Update docs and changelog
+10. **Git Operations** - Commit and push changes
+11. **Archive Completed Change** - Move to archive/
+12. **Create Pull Request** - Open PR on GitHub
+
+### Parameters
+
+- **`-ChangeId`**: Unique identifier for the change (kebab-case)
+- **`-Title`**: Human-readable title (auto-generated if not provided)
+- **`-Owner`**: GitHub handle (auto-detected from git config if not provided)
+- **`-Step`**: Execute a specific step (0-12)
+- **`-DryRun`**: Preview actions without making changes
+- **`-Validate`**: Check change structure
+- **`-Archive`**: Archive a completed change
+- **`-List`**: Show all active changes with progress
+
+### Examples
+
+```powershell
+# Create and run full workflow
+.\scripts\workflow.ps1 -ChangeId "add-new-feature" -Title "Add New Feature" -Owner "@me"
+
+# Resume from step 8 (Test Run & Validation)
+.\scripts\workflow.ps1 -ChangeId "add-new-feature" -Step 8
+
+# Check progress of all changes
+.\scripts\workflow.ps1 -List
+
+# Archive a completed change
+.\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Archive
+```
+
+### Features
+
+- **Template Generation**: Auto-creates proposal.md, tasks.md, test_plan.md from templates
+- **Progress Tracking**: Updates todo.md checkboxes automatically
+- **Git Integration**: Automates git add, commit, push operations
+- **Color-Coded Output**: Clear visual feedback (✓ success, ⚠ warning, ✗ error)
+- **Error Handling**: Validates inputs and provides helpful error messages
+- **Dry Run Mode**: Preview actions without making changes
+- **Flexible Execution**: Run full workflow or individual steps
+
+### Related Documentation
+
+- `openspec/PROJECT_WORKFLOW.md` - Complete workflow specification
+- `openspec/AGENTS.md` - Governance guide
+- `openspec/README.md` - OpenSpec overview
+- `.github/copilot-instructions.md` - AI agent instructions
 
 ## Note on Validation vs. Testing
 

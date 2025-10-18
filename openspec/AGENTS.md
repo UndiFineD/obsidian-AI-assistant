@@ -1,5 +1,9 @@
 # OpenSpec Governance Guide
 
+> **Governance:** Material updates to this document are governed by OpenSpec
+> change proposals under the `project-documentation` capability. See
+> `openspec/PROJECT_WORKFLOW.md` and related archived changes for reference.
+
 ## 🚀 Quick Start for Contributors
 
 ### First-Time Contributors (< 15 minutes to first proposal)
