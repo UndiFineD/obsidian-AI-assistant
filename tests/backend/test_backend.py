@@ -258,6 +258,11 @@ class TestConfigAndPerformanceEndpoints:
 
             async def submit_task(self, coro, priority=1):
                 self._count += 1
+                # Properly await and close the coroutine to avoid warnings
+                try:
+                    await coro
+                except Exception:
+                    pass  # Ignore errors in test tasks
                 return True
 
             def get_stats(self):

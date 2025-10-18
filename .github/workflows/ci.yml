@@ -162,6 +162,7 @@ jobs:
         runs-on: ubuntu-latest
         name: End-to-End Integration Tests
         needs: [backend-tests]
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
         services:
             # Optional: Add any external services needed for E2E tests
@@ -281,6 +282,7 @@ jobs:
         runs-on: ubuntu-latest
         name: Performance Benchmarks
         needs: [backend-tests]
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
         steps:
             - name: Checkout Code
@@ -363,6 +365,7 @@ jobs:
         runs-on: ubuntu-latest
         name: Build and Package
         needs: [code-quality, backend-tests]
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
@@ -428,6 +431,7 @@ jobs:
         runs-on: ubuntu-latest
         name: Deploy to Staging
         needs: [build-package, e2e-tests, performance-benchmarks]
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
         steps:
             - name: Download Release Artifact
               uses: actions/download-artifact@v4
@@ -459,6 +463,7 @@ jobs:
         runs-on: ubuntu-latest
         name: Notify Results
         needs: [code-quality, backend-tests, e2e-tests, performance-benchmarks]
+        if: always()
         steps:
             - name: Workflow Summary
               if: always()

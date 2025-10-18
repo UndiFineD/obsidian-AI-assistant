@@ -2191,24 +2191,25 @@ async def trigger_optimization(background_tasks: BackgroundTasks):
     try:
         task_queue = await get_task_queue()
 
-        # Schedule optimization tasks
-        optimization_tasks = [
-            _cleanup_expired_cache(),
-            _optimize_connection_pools(),
-            _collect_performance_metrics(),
-        ]
-
+        # Schedule optimization tasks - create coroutines inline to avoid warnings
         scheduled_count = 0
-        for task in optimization_tasks:
-            success = await task_queue.submit_task(task, priority=1)
+        
+        # Submit each task individually
+        tasks_to_schedule = [
+            ("cleanup_cache", _cleanup_expired_cache),
+            ("optimize_pools", _optimize_connection_pools),
+            ("collect_metrics", _collect_performance_metrics),
+        ]
+        
+        for task_name, task_func in tasks_to_schedule:
+            # Create coroutine and immediately submit
+            coro = task_func()
+            success = await task_queue.submit_task(coro, priority=1)
             if success:
                 scheduled_count += 1
             else:
-                # Avoid "coroutine was never awaited" warnings if not queued
-                try:
-                    task.close()  # type: ignore[attr-defined]
-                except Exception:
-                    pass
+                # Properly close unscheduled coroutine to avoid warning
+                coro.close()
 
         return {
             "status": "success",
