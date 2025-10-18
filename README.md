@@ -839,6 +839,7 @@ gpu_layers: 20  # Load fewer layers to GPU
 ## Documentation Governance
 
 This project uses **OpenSpec** for documentation governance to ensure
+Cross‑reference: Archived change for `docs/TASKS.md` governance — see `openspec/archive/update-doc-docs-tasks/`.
 consistency, quality, and proper review of material documentation changes.
 
 ### OpenSpec Structure
