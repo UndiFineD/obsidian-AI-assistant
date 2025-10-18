@@ -127,7 +127,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
   ```
 - Move completed change to archive after merge:
   ```bash
-  git mv openspec/changes/<change-id> openspec/changes/archive/<change-id>
+  git mv openspec/changes/<change-id> openspec/archive/<change-id>
   git commit -m "chore: archive completed change <change-id>"
   git push origin <branch-name>
   ```
@@ -148,7 +148,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 - Preserve all artifacts (proposal, spec, tasks, tests, retrospective)
 - Maintain the same directory structure in the archive
 - Update any references in documentation to point to archived location
-**Artifacts:** All change files moved to `openspec/changes/archive/<change-id>/`
+**Artifacts:** All change files moved to `openspec/archive/<change-id>/`
 
 ---
 

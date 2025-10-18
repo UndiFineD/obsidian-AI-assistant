@@ -492,7 +492,7 @@ Track these steps as TODOs and complete them one by one.
 
 After deployment, create separate PR to:
 
-- Move `changes/[name]/` → `changes/archive/YYYY-MM-DD-[name]/`
+- Move `changes/[name]/` → `archive/YYYY-MM-DD-[name]/`
 
 - Update `specs/` if capabilities changed
 
