@@ -61,9 +61,15 @@ jobs:
               raise SystemExit(f"Smoke check failed: {e}")
           PY
 
-      - name: Optional quick pytest subset
+      - name: Run fast OpenSpec tests only
         run: |
           if [ -d tests ]; then
-            # Run a very small subset to keep CI fast; ignore slow/integration
-            pytest -k "openspec or final or metrics" -q || true
+            python -m pytest \
+              tests/test_openspec_cli.py \
+              tests/test_openspec_integration.py \
+              tests/test_openspec_changes.py \
+              tests/test_openspec_workflow.py \
+              -q
           fi
+        env:
+          PYTHONPATH: ${{ github.workspace }}

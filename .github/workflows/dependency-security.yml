@@ -1,22 +1,9 @@
-name: Dependency Security Scan
+name: Dependency Security Scan (scheduled/on-demand)
 
 on:
   schedule:
     # Run weekly on Mondays at 8:00 AM UTC
     - cron: '0 8 * * 1'
-  push:
-    branches: [ main, develop ]
-    paths:
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - 'package*.json'
-      - '.github/workflows/dependency-security.yml'
-  pull_request:
-    branches: [ main, develop ]
-    paths:
-      - 'requirements*.txt'
-      - 'pyproject.toml'
-      - 'package*.json'
   workflow_dispatch:
     inputs:
       scan_type:
@@ -34,6 +21,10 @@ permissions:
   security-events: write
   pull-requests: write
   issues: write
+
+concurrency:
+  group: dependency-security-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   dependency-analysis:

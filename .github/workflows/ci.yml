@@ -3,11 +3,9 @@ permissions:
   contents: read
 
 on:
-  # Keep comprehensive CI off by default for PRs; run on demand or on main
+  # Run comprehensive CI on main only, or manually
   push:
     branches: [main]
-  pull_request:
-    branches: [] # disabled for PRs to reduce flakiness and runtime
   workflow_dispatch:
 
 concurrency:
