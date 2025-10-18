@@ -78,11 +78,11 @@
     - [x] Update `CHANGELOG.md`
     - [x] Update OpenSpec documentation
 
-- [ ] **10. Git Operations**
-    - [ ] Stage changes (`git add`)
-    - [ ] Commit with descriptive message
-    - [ ] Tag release (if applicable)
-    - [ ] Push to origin
+- [x] **10. Git Operations**
+    - [x] Stage changes (`git add`)
+    - [x] Commit with descriptive message
+    - [x] Tag release (if applicable)
+    - [x] Push to origin
     - [ ] Create Pull Request (PR)
     - [ ] Link PR to OpenSpec change
     - [ ] Merge PR
