@@ -1,4 +1,11 @@
 # 📝 CHANGELOG
+## v0.1.4 (2025-10-18)
+- **Short Format Support**: Enhanced GitHub issue import to support `owner/repo#number` format in addition to full URLs
+- **Parser Improvement**: Updated `parse_issue_url()` to handle both URL and short notation formats
+- **Documentation**: Added short format examples to OPEN_SPEC_TOOLS.md
+
+Generated from OpenSpec change proposals.
+
 ## v0.1.3 (2025-10-18)
 - **GitHub Issue Import**: Implemented `scripts/import_github_issue.py` to automate OpenSpec change creation from GitHub issues
 - **Testing**: Added comprehensive tests for GitHub issue import functionality

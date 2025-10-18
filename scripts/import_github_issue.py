@@ -38,10 +38,15 @@ def slugify(text: str, max_length: int = 50) -> str:
 def parse_issue_url(url_or_number: str, default_owner: Optional[str] = None,
                     default_repo: Optional[str] = None) -> Tuple[str, str, int]:
     """
-    Parse GitHub issue URL or number.
+    Parse GitHub issue URL, short format, or number.
+    
+    Supports three formats:
+    - Full URL: https://github.com/owner/repo/issues/123
+    - Short format: owner/repo#123
+    - Number only: 123 (requires --owner and --repo flags)
     
     Args:
-        url_or_number: Full URL or just issue number
+        url_or_number: Full URL, short format, or just issue number
         default_owner: Default repository owner
         default_repo: Default repository name
         
@@ -67,20 +72,35 @@ def parse_issue_url(url_or_number: str, default_owner: Optional[str] = None,
         
         return owner, repo, issue_number
     
+    # Try parsing as short format: owner/repo#number
+    short_pattern = r'^([^/]+)/([^/#]+)#(\d+)$'
+    short_match = re.match(short_pattern, url_or_number)
+    
+    if short_match:
+        owner, repo, number_str = short_match.groups()
+        issue_number = int(number_str)
+        return owner, repo, issue_number
+    
     # Try parsing as just a number
     try:
         issue_number = int(url_or_number)
         if not default_owner or not default_repo:
             raise ValueError(
                 "Issue number provided without URL. "
-                "Use --owner and --repo flags or provide full URL."
+                "Use --owner and --repo flags or provide full URL/short format."
             )
         return default_owner, default_repo, issue_number
     except ValueError as e:
         # Re-raise if it's already our custom error
         if "Issue number provided without URL" in str(e):
             raise
-        raise ValueError(f"Invalid issue format: {url_or_number}")
+        raise ValueError(
+            f"Invalid issue format: {url_or_number}\n"
+            f"Expected formats:\n"
+            f"  - Full URL: https://github.com/owner/repo/issues/123\n"
+            f"  - Short format: owner/repo#123\n"
+            f"  - Number only: 123 (with --owner and --repo flags)"
+        )
 
 
 def fetch_github_issue(owner: str, repo: str, issue_number: int,
@@ -363,27 +383,30 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Import by URL
+  # Import by full URL
   python scripts/import_github_issue.py https://github.com/owner/repo/issues/42
+  
+  # Import by short format
+  python scripts/import_github_issue.py owner/repo#42
   
   # Import by number (requires --owner and --repo)
   python scripts/import_github_issue.py 42 --owner owner --repo repo
   
   # Custom change ID and owner
-  python scripts/import_github_issue.py <URL> --id my-custom-id --owner @myhandle
+  python scripts/import_github_issue.py owner/repo#42 --id my-custom-id --owner @myhandle
   
   # Dry run (preview only)
-  python scripts/import_github_issue.py <URL> --dry-run
+  python scripts/import_github_issue.py owner/repo#42 --dry-run
   
   # Use GitHub token for authentication
   export GITHUB_TOKEN=your_token_here
-  python scripts/import_github_issue.py <URL>
+  python scripts/import_github_issue.py owner/repo#42
 """
     )
     
     parser.add_argument(
         'issue',
-        help='GitHub issue URL or number'
+        help='GitHub issue URL, short format (owner/repo#number), or number only'
     )
     parser.add_argument(
         '--owner',

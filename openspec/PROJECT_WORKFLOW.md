@@ -72,6 +72,7 @@ This OpenSpec defines the standardized workflow for all major changes and contri
 **Purpose:** Define and implement tests before or alongside code changes.
 **Artifacts:** `tests/`, `docs/TESTING_GUIDE.md`, `openspec/changes/<change-id>/test_plan.md`
 **Contents:** Unit, integration, performance, and security tests; coverage goals; validation steps.
+ - markdownlint all created .md files in `openspec/changes/<change-id>/`
 
 ### 6. Script & Tooling
 **Purpose:** Add or update scripts for setup, validation, automation, and developer experience.
