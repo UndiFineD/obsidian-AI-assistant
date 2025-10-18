@@ -2,7 +2,7 @@
 
 ## Workflow Progress
 - [ ] 0. Create TODOs
-- [ ] 1. Increment Release Version
+- [x] 1. Increment Release Version
 - [ ] 2. Proposal
 - [ ] 3. Specification
 - [ ] 4. Task Breakdown
@@ -22,3 +22,7 @@
 - [x] tasks.md
 - [ ] test_plan.md
 - [ ] retrospective.md
+
+
+
+
