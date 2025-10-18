@@ -1,5 +1,6 @@
 # TODO: Update Constitution Documentation (update-doc-docs-constitution)
 
+
 ## Workflow Progress
 - [x] 0. Create TODOs
 - [ ] 1. Increment Release Version
@@ -9,7 +10,7 @@
 - [x] 5. Test Definition
 - [x] 6. Script & Tooling
 - [x] 7. Implementation
-- [ ] 8. Test Run & Validation
+- [x] 8. Test Run & Validation
 - [x] 9. Documentation Update
 - [ ] 10. Git Operations
 - [ ] 11. Create Pull Request (PR)
