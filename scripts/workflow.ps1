@@ -695,6 +695,7 @@ function Get-ChangeDocInfo {
         Why           = $null
         AffectedSpecs = $null
         AffectedFiles = $null
+        AffectedCode  = $null
         ProposalPath  = $null
     }
 
@@ -704,8 +705,8 @@ function Get-ChangeDocInfo {
         if (Test-Path $proposalPath) {
             $content = Get-Content $proposalPath -Raw
 
-            # Title: from "# Proposal: <Title>"
-            $m = [regex]::Match($content, '(?m)^#\s*Proposal:\s*(.+)')
+            # Title: from "# Proposal: <Title>" or "# Change Proposal: <Title>"
+            $m = [regex]::Match($content, '(?m)^#\s*(?:Change\s+)?Proposal:\s*(.+)')
             if ($m.Success) { $doc.Title = $m.Groups[1].Value.Trim() }
 
             # Why: text under "## Why" until next heading
@@ -718,6 +719,10 @@ function Get-ChangeDocInfo {
 
             $m = [regex]::Match($content, '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)')
             if ($m.Success) { $doc.AffectedFiles = $m.Groups[1].Value.Trim() }
+
+            # Some proposals may use "Affected code" instead of "Affected files"
+            $m = [regex]::Match($content, '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)')
+            if ($m.Success) { $doc.AffectedCode = $m.Groups[1].Value.Trim() }
         }
     } catch {
         Write-Warning "Unable to parse proposal.md for commit message generation: $_"
@@ -750,6 +755,7 @@ function New-CommitMessageFromDocs {
 
     if ($DocInfo.AffectedSpecs) { $lines.Add("Affected specs: $($DocInfo.AffectedSpecs)") | Out-Null }
     if ($DocInfo.AffectedFiles) { $lines.Add("Affected files: $($DocInfo.AffectedFiles)") | Out-Null }
+    if ($DocInfo.AffectedCode)  { $lines.Add("Affected code: $($DocInfo.AffectedCode)")   | Out-Null }
 
     # Doc links
     $relativePath = if ($Archive) { "openspec/archive/$ChangeId/proposal.md" } else { "openspec/changes/$ChangeId/proposal.md" }

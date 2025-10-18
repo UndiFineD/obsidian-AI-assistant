@@ -1,9 +1,40 @@
-# Test Plan: update-doc-agents
+# Test Plan: 
 
-## Goals
-- Validate governance for `openspec/AGENTS.md` updates
+## Test Strategy
 
-## Checks
-- [ ] Lint markdown files under this change directory
-- [ ] Run validation: `openspec validate update-doc-agents --strict`
-- [ ] Confirm CI passes for PR
+### Unit Tests
+- [List unit test requirements]
+- Coverage goal: XX%
+
+### Integration Tests
+- [List integration test scenarios]
+
+### Performance Tests
+- [List performance benchmarks, if applicable]
+
+### Security Tests
+- [List security validation, if applicable]
+
+## Test Execution
+
+```bash
+# Run unit tests
+pytest tests/ -v
+
+# Run with coverage
+pytest --cov=backend --cov-report=html --cov-report=term
+
+# Run security scan
+bandit -r backend/ -f json -o tests/bandit_report.json
+```
+
+## Acceptance Criteria
+
+- [ ] All tests pass
+- [ ] Coverage meets or exceeds goal
+- [ ] No new security vulnerabilities
+- [ ] Performance benchmarks met
+
+## Test Results
+
+[Document test results after execution]
