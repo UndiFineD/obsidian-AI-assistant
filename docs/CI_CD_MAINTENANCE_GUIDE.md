@@ -119,7 +119,7 @@ jobs:
 ```yaml
 strategy:
   matrix:
-    python-version: ['3.10', '3.11']
+    python-version: ['3.11']
     os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest", "windows-latest", "macos-latest"]') }}
 ```
 
