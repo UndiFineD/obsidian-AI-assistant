@@ -109,6 +109,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 **Artifacts:** `README.md`, `docs/`, `openspec/`, `CHANGELOG.md`, API docs.
 **Contents:** Usage, architecture, API, workflow docs, changelog entries.
 
+
 ### 10. Git Operations [HARD REQUIREMENT]
 **Purpose:** Commit, tag, and push changes with traceable metadata and OpenSpec references.
 **Artifacts:** Git commits, tags, branch updates.
@@ -127,30 +128,24 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
   git push origin <branch-name>
   git push origin --tags
   ```
-- Move completed change to archive after merge:
-  ```bash
-  git mv openspec/changes/<change-id> openspec/archive/<change-id>
-  git commit -m "chore: archive completed change <change-id>"
-  git push origin <branch-name>
-  ```
 
-### 11. Create Pull Request (PR) [HARD REQUIREMENT]
-**Purpose:** Open a Pull Request on GitHub to review and merge the change.
-**Artifacts:** Pull Request on GitHub, linked to the change directory.
-**Contents:**
-- Reference the OpenSpec change directory in the PR description (e.g., `Implements openspec/changes/<change-id>`)
-- Link to proposal/spec/tasks as needed
-- Use a clear merge strategy (e.g., squash, rebase, or merge commit)
-- Ensure all checks pass before merging
-
-### 12. Archive Completed Change [HARD REQUIREMENT]
-**Purpose:** Move completed and merged changes to the archive to keep the active changes directory clean and focused.
+### 11. Archive Completed Change [HARD REQUIREMENT]
+**Purpose:** Move completed change to the archive before opening the Pull Request, to keep the active changes directory clean and focused.
 **Best Practices:**
-- Only archive changes after the Pull Request (PR) has been merged to main
+- Archive changes before opening the PR for review
 - Preserve all artifacts (proposal, spec, tasks, tests, retrospective)
 - Maintain the same directory structure in the archive
 - Update any references in documentation to point to archived location
 **Artifacts:** All change files moved to `openspec/archive/<change-id>/`
+
+### 12. Create Pull Request (PR) [HARD REQUIREMENT]
+**Purpose:** Open a Pull Request on GitHub to review and merge the change.
+**Artifacts:** Pull Request on GitHub, linked to the archived change directory.
+**Contents:**
+- Reference the OpenSpec archived change directory in the PR description (e.g., `Implements openspec/archive/<change-id>`)
+- Link to proposal/spec/tasks as needed
+- Use a clear merge strategy (e.g., squash, rebase, or merge commit)
+- Ensure all checks pass before merging
 
 ---
 
