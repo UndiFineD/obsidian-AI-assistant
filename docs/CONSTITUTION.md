@@ -617,3 +617,23 @@ herein.
 **Next Review**: January 6, 2026
 
 > "Excellence is not a skill, it's an attitude. This Constitution embodies our unwavering commitment to that attitude."
+
+---
+
+## Governance (OpenSpec)
+
+Material changes to this Constitution are governed by OpenSpec to ensure consistency, review, and auditability.
+
+- When planning a material update to `docs/CONSTITUTION.md`, create or update an OpenSpec change under `openspec/changes/`.
+- Include at minimum:
+    - `proposal.md` with a clear Why and capability reference (project-documentation)
+    - `tasks.md` with three or more actionable checklist items and a validation step
+    - A delta spec at `openspec/changes/<change-id>/specs/project-documentation/spec.md` using ADDED/MODIFIED/REMOVED sections
+    - A documented validation command
+- Validate the change before PR:
+
+```bash
+openspec validate <change-id> --strict
+```
+
+Reference: `openspec/specs/project-documentation/spec.md` (CONSTITUTION.md governance requirement)
