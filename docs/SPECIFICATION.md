@@ -1636,7 +1636,7 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             matrix:
-                python-version: [3.10, 3.11, 3.12]
+                python-version: [3.11]
 
         steps:
 
@@ -1688,7 +1688,7 @@ repos:
       hooks:
 
 - id: black
-            language_version: python3.10
+            language_version: python3.11
 
 - repo: https://github.com/PyCQA/flake8
       rev: 6.0.0
@@ -1767,7 +1767,7 @@ pytest -n auto --dist=loadscope
 
 # Test with specific Python version
 
-tox -e py310,py311,py312
+tox -e py311
 ```
 
 ### Continuous Quality Assurance
@@ -2705,7 +2705,7 @@ patterns.
 | **CPU**     | 2 cores, 2.0 GHz                         | Intel/AMD x64 or ARM64             |
 | **Memory**  | 4GB RAM                                  | 8GB+ recommended for larger models |
 | **Storage** | 5GB free space                           | SSD recommended for performance    |
-| **Python**  | 3.10+                                    | 3.11+ recommended                  |
+| **Python**  | 3.11+                                    | Standardized across CI             |
 | **OS**      | Windows 10+, Ubuntu 20.04+, macOS 10.15+ | 64-bit required                    |
 | **Network** | Internet connection                      | For model downloads and updates    |
 

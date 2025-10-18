@@ -5,8 +5,14 @@ permissions:
 on:
   push:
     branches: [main, develop, "release-*", "feature/*"]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - 'docs/**'
+      - '**/*.md'
   workflow_dispatch:
 
 concurrency:
@@ -83,15 +89,16 @@ jobs:
         runs-on: ${{ matrix.os }}
         strategy:
             matrix:
-                os: [ubuntu-latest, windows-latest, macos-latest]
+                os: ${{ fromJSON(github.event_name == 'pull_request' && '["ubuntu-latest"]' || '["ubuntu-latest","windows-latest","macos-latest"]') }}
                 python-version: ['3.11']
                 exclude:
                     - os: windows-latest
-                      python-version: '3.10'
+                      python-version: '3.11'
                     - os: macos-latest
-                      python-version: '3.10'
+                      python-version: '3.11'
 
         name: Backend Tests (Python ${{ matrix.python-version }}, ${{ matrix.os }})
+        # On PRs, matrix is reduced to Ubuntu only; on push/dispatch full matrix runs
 
         steps:
             - name: Checkout Code

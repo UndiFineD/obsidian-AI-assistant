@@ -580,7 +580,7 @@ The project includes `.github/workflows/update-test-metrics.yml` for automated t
 **Workflow Steps:**
 
 1. Checkout repository
-2. Set up Python 3.10 environment
+2. Set up Python 3.11 environment
 3. Install test dependencies (ML libraries mocked)
 4. Prepare test environment (directories, vault)
 5. Run full test suite with `pytest`

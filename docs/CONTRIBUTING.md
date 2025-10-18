@@ -7,7 +7,7 @@ fixing bugs, adding features, or improving documentation.
 
 ### Prerequisites
 
-- **Python 3.10+** (Python 3.11+ recommended)
+- **Python 3.11+**
 - **Git** for version control
 - **Obsidian** (automatically installed by setup script if missing)
 - **Windows PowerShell** (for Windows users) or **Bash** (for Linux/macOS users)
@@ -528,7 +528,7 @@ Brief description of changes.
 #### Setup Problems
 ```bash
 # Python version issues
-python --version  # Should be 3.10+
+python --version  # Should be 3.11+
 
 # Virtual environment issues
 rm -rf venv

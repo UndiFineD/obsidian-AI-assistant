@@ -36,7 +36,7 @@ Complete overhaul of CI/CD pipeline to optimize for speed, reliability, and comp
   - Enables PR-fast runs to skip intentionally slow tests
 
 ### Test Backend Workflow Updates
-- Removed Python 3.12 from matrix (aligned to 3.10/3.11)
+- Removed Python 3.12 from matrix (standardized to 3.11)
 - Split PR-fast vs push-full test runs:
   - **PR-fast**: Excludes comprehensive/performance_regression/voice + slow markers
   - **Push-full**: Runs complete suite with 85% coverage enforcement
@@ -80,7 +80,7 @@ Complete overhaul of CI/CD pipeline to optimize for speed, reliability, and comp
 
 #### Jobs
 1. **comprehensive-tests**
-   - Matrix: Python 3.10/3.11 × ubuntu/windows/macOS
+   - Matrix: Python 3.11 × ubuntu/windows/macOS
    - Full test suite including comprehensive/slow tests
    - Coverage enforcement with 85% threshold
    - Durations reporting (top 20)
@@ -196,7 +196,7 @@ key: ${{ runner.os }}-pip-openspec-${{ hashFiles('**/requirements*.txt') }}
 - ❌ No dependency caching (slow installs)
 
 ### Post-Optimization
-- ✅ Python 3.10/3.11 only (aligned to project)
+- ✅ Python 3.11 only (aligned to project)
 - ✅ 1021/1042 passing (98.2% success)
 - ✅ Zero warnings in test output
 - ✅ Fast PR subset, full push validation

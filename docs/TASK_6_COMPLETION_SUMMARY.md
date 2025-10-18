@@ -232,7 +232,7 @@ All endpoints meet SLA targets with significant margin.
 ## Deployment Considerations
 
 ### Requirements
-- Python 3.10+
+- Python 3.11+
 - psutil library (already in requirements.txt)
 - pydantic (already in requirements.txt)
 - FastAPI (already in requirements.txt)

@@ -127,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.11']
+        python-version: ['3.11']
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
@@ -278,7 +278,7 @@ jobs:
           
           # Add compatibility info
           echo "### 🔧 Compatibility" >> changelog.md
-          echo "- **Python**: 3.10+" >> changelog.md
+          echo "- **Python**: 3.11+" >> changelog.md
           echo "- **Obsidian**: 0.15.0+" >> changelog.md
           echo "- **OS**: Windows 10+, macOS 10.15+, Ubuntu 18.04+" >> changelog.md
           echo "" >> changelog.md

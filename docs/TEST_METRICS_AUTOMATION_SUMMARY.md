@@ -130,7 +130,7 @@ create-pr: boolean (default: true)
 
 1. Checkout repository with full history
 
-1. Set up Python 3.10 environment
+1. Set up Python 3.11 environment
 
 1. Install test dependencies (ML libraries mocked)
 

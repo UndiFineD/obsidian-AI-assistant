@@ -37,7 +37,7 @@ and robust production architecture.
 
 ### **Technology Stack**
 
-- **Backend**: FastAPI (Python 3.10+), ChromaDB, Vosk
+- **Backend**: FastAPI (Python 3.11+), ChromaDB, Vosk
 
 - **Frontend**: TypeScript (Obsidian Plugin)
 
@@ -167,7 +167,7 @@ http://localhost:8000/health  # System health check
 
 #### **System Requirements** (Minimal)
 
-- **Python**: 3.10+
+- **Python**: 3.11+
 
 - **Memory**: 4GB RAM minimum, 8GB recommended
 
@@ -389,7 +389,7 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 
 **Answer**: **Minimal requirements, works on most modern systems**:
 
-- Python 3.10+ (auto-installed by setup script)
+- Python 3.11+ (auto-installed by setup script)
 
 - 4GB RAM minimum, 8GB recommended
 

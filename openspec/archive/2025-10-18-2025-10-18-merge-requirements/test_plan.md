@@ -8,7 +8,7 @@
 
 ## Test Environment
 - OS: Windows 10+
-- Python: 3.10+
+- Python: 3.11+
 - Virtual environment: .venv
 
 ## Test Cases

@@ -252,7 +252,7 @@ curl http://localhost:8000/health
 
 # Multi-stage build for production
 
-FROM python:3.10-slim as backend
+FROM python:3.11-slim as backend
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
@@ -1108,7 +1108,7 @@ enterprise:
 
 - **Storage**: 2GB SSD
 
-- **Python**: 3.10+
+- **Python**: 3.11+
 
 ### Production Environment
 

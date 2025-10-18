@@ -176,7 +176,7 @@ Commits are automatically categorized using conventional commit patterns:
 [Installation instructions]
 
 ### 🔧 Compatibility
-- Python: 3.10+
+- Python: 3.11+
 - Obsidian: 0.15.0+
 - OS: Windows 10+, macOS 10.15+, Ubuntu 18.04+
 
@@ -210,7 +210,7 @@ Before any release, the system runs comprehensive tests:
 
 ```yaml
 # Test matrix
-python-version: ['3.10', '3.11']
+python-version: ['3.11']
 
 # Test commands
 pytest tests/ -v --cov=backend --cov-fail-under=70 --cov-report=xml

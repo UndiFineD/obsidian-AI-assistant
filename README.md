@@ -59,7 +59,7 @@
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - Obsidian 1.5 or higher
 - 4GB RAM minimum (8GB recommended)
 - Optional: CUDA-capable GPU for faster inference

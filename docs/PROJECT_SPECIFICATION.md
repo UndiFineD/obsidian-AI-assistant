@@ -740,7 +740,7 @@ class TestConfig:
 
 - **Operating System**: Windows 10+, macOS 10.15+, Ubuntu 18.04+
 
-- **Python Version**: 3.10+
+- **Python Version**: 3.11+
 
 - **Memory**: 4GB RAM
 
@@ -885,7 +885,7 @@ repos:
     hooks:
 
 - id: black
-        language_version: python3.10
+    language_version: python3.11
 
 - repo: https://github.com/pycqa/isort
     rev: 5.12.0
@@ -1009,7 +1009,7 @@ jobs:
 
 - uses: actions/setup-python@v4
               with:
-                  python-version: '3.10'
+                  python-version: '3.11'
 
 - run: pip install -r requirements-test.txt
 
