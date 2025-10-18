@@ -303,7 +303,17 @@ class OpenSpecGovernance:
                 }
             )
 
-        return sorted(changes, key=lambda x: x["modified"], reverse=True)
+        # Sort deterministically by numeric part of change_id ascending (change-001, change-002, ...)
+        def _change_sort_key(item: Dict[str, Any]):
+            cid = item.get("change_id", "")
+            try:
+                # Extract numeric suffix, default to large number if not present
+                part = cid.split("-")[-1]
+                return int(part)
+            except Exception:
+                return 10**9
+
+        return sorted(changes, key=_change_sort_key)
 
     def get_change_details(self, change_id: str) -> Dict[str, Any]:
         """Get detailed information about a specific change"""

@@ -71,11 +71,17 @@ class ErrorDetail(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Standardized API error response."""
-    model_config = ConfigDict(json_encoders={datetime: lambda value: value.isoformat()})
     error: ErrorDetail
     request_id: str = Field(..., description="Unique request identifier for tracking")
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     debug_info: Optional[Dict[str, Any]] = Field(default=None, description="Debug information (dev mode only)")
+
+    # Pydantic v2 serializer for datetime
+    @staticmethod
+    def _serialize_datetime(value: datetime) -> str:
+        return value.isoformat()
+
+    model_config = ConfigDict(ser_json_timedelta="iso8601")
 
 
 # Custom exception classes
@@ -404,7 +410,7 @@ class ErrorHandler:
         if category == ErrorCategory.AUTHENTICATION:
             return status.HTTP_401_UNAUTHORIZED
         elif category == ErrorCategory.VALIDATION:
-            return status.HTTP_422_UNPROCESSABLE_ENTITY
+            return status.HTTP_422_UNPROCESSABLE_CONTENT
         elif category == ErrorCategory.SECURITY:
             return status.HTTP_403_FORBIDDEN
         elif category == ErrorCategory.EXTERNAL_SERVICE:
@@ -425,7 +431,7 @@ class ErrorHandler:
         elif 'auth' in error_type or 'unauthorized' in error_type:
             return status.HTTP_401_UNAUTHORIZED
         elif 'validation' in error_type or 'value' in error_type:
-            return status.HTTP_422_UNPROCESSABLE_ENTITY
+            return status.HTTP_422_UNPROCESSABLE_CONTENT
         elif 'timeout' in error_type:
             return status.HTTP_504_GATEWAY_TIMEOUT
         elif 'notfound' in error_type or 'filenotfound' in error_type:

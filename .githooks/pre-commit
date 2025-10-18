@@ -1,0 +1,53 @@
+#!/usr/bin/env pwsh
+# Pre-commit hook: run a simple markdown TODO check for OpenSpec TODO files
+# Ensures checkboxes and headings exist and no trailing whitespace.
+
+$ErrorActionPreference = 'Stop'
+
+function Write-ErrorAndExit($msg) {
+  Write-Host "[pre-commit] $msg" -ForegroundColor Red
+  exit 1
+}
+
+$repoRoot = Split-Path -Parent $PSScriptRoot
+Set-Location $repoRoot
+
+# Get staged files
+$staged = git diff --cached --name-only
+if (-not $staged) { exit 0 }
+
+$todoFiles = $staged | Where-Object { $_ -like 'openspec/changes/*/todo.md' -or $_ -like 'openspec/templates/todo.md' }
+if (-not $todoFiles) { exit 0 }
+
+$failed = $false
+foreach ($file in $todoFiles) {
+  if (-not (Test-Path $file)) { continue }
+  $content = Get-Content -Raw -LiteralPath $file
+
+  if ($content -notmatch '^#\s+TODO:' ) {
+    Write-Host "[pre-commit] $file: missing top-level 'TODO' heading" -ForegroundColor Yellow
+    $failed = $true
+  }
+
+  # Must contain Workflow Progress section and at least one checkbox
+  if ($content -notmatch '##\s+Workflow Progress' -or $content -notmatch '- \[\s?[x ]\s?\]') {
+    Write-Host "[pre-commit] $file: missing 'Workflow Progress' section or checkboxes" -ForegroundColor Yellow
+    $failed = $true
+  }
+
+  # No trailing whitespace
+  $lines = Get-Content -LiteralPath $file
+  foreach ($i in 0..($lines.Length-1)) {
+    if ($lines[$i] -match '\\s+$') {
+      Write-Host "[pre-commit] $file: trailing whitespace on line $($i+1)" -ForegroundColor Yellow
+      $failed = $true
+      break
+    }
+  }
+}
+
+if ($failed) {
+  Write-ErrorAndExit "Markdown TODO checks failed. Fix issues or bypass with --no-verify."
+}
+
+exit 0

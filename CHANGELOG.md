@@ -1,4 +1,17 @@
 # 📝 CHANGELOG
+## v0.1.2 (2025-10-18)
+- **Version Management**: Bumped version to 0.1.2 across package.json and README.md
+- **Pre-Commit Validation**: Added markdown TODO validator for OpenSpec files
+  - PowerShell pre-commit hook at `.githooks/pre-commit`
+  - Python validator script at `scripts/check_markdown_todos.py`
+  - Setup instructions in `.githooks/README.md`
+- **Documentation**: Added `docs/PR_Terminology.md` clarifying "Pull Request (PR)" terminology
+- **Terminology**: Updated multiple files to explicitly use "Pull Request (PR)" for contributor clarity
+- **OpenSpec Workflow**: Added Stage 12 "Archive Completed Change" to PROJECT_WORKFLOW.md
+- **Change Scaffolding**: Initiated "Automate GitHub issue import to OpenSpec" change (proposal, spec, tasks, test_plan, todo)
+
+Generated from OpenSpec change proposals.
+
 ## v0.1.1 (2025-10-18)
 - Security Audit & Hardening: Universal security headers (HSTS, X-Content-Type-Options, X-Frame-Options,
   X-XSS-Protection, Referrer-Policy, CSP, Permissions-Policy) enforced for all responses and OPTIONS requests.
@@ -12,6 +25,7 @@
 - Documentation: Updated README and package.json to 0.1.1; coverage threshold temporarily relaxed.
 - **Requirements Management**: Merged requirements.txt, requirements-dev.txt, and requirements-ml.txt into single requirements.txt with categorical organization and deduplication (openspec/changes/2025-10-18-merge-requirements/).
 - **Project Workflow**: Added standardized workflow documentation (openspec/PROJECT_WORKFLOW.md) for proposal → spec → tasks → tests → implementation → docs → git operations.
+- **OpenSpec Tooling**: Added scaffold script `scripts/openspec_new_change.py` and `openspec/templates/todo.md` to generate change directories with TODO checklists.
 
 Generated from OpenSpec change proposals.
 

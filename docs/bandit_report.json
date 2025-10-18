@@ -1,0 +1,264 @@
+{
+  "errors": [
+    {
+      "filename": "backend/__init__.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/advanced_security.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/backend.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/caching.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/csrf_middleware.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/deps.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/embeddings.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_admin.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_auth.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_gdpr.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_integration.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_rbac.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_soc2.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/enterprise_tenant.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/file_validation.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/https_utils.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/indexing.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/llm_router.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/modelmanager.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/openspec_governance.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/performance.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/rate_limiting.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/security.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/settings.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/simple_backend.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/utils.py",
+      "reason": "exception while scanning file"
+    },
+    {
+      "filename": "backend/voice.py",
+      "reason": "exception while scanning file"
+    }
+  ],
+  "generated_at": "2025-10-15T11:26:46Z",
+  "metrics": {
+    "_totals": {
+      "CONFIDENCE.HIGH": 0,
+      "CONFIDENCE.LOW": 0,
+      "CONFIDENCE.MEDIUM": 0,
+      "CONFIDENCE.UNDEFINED": 0,
+      "SEVERITY.HIGH": 0,
+      "SEVERITY.LOW": 0,
+      "SEVERITY.MEDIUM": 0,
+      "SEVERITY.UNDEFINED": 0,
+      "loc": 8834,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/__init__.py": {
+      "loc": 31,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/advanced_security.py": {
+      "loc": 494,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/backend.py": {
+      "loc": 1634,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/caching.py": {
+      "loc": 119,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/csrf_middleware.py": {
+      "loc": 49,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/deps.py": {
+      "loc": 75,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/embeddings.py": {
+      "loc": 246,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_admin.py": {
+      "loc": 558,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_auth.py": {
+      "loc": 252,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_gdpr.py": {
+      "loc": 429,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_integration.py": {
+      "loc": 336,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_rbac.py": {
+      "loc": 497,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_soc2.py": {
+      "loc": 660,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/enterprise_tenant.py": {
+      "loc": 419,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/file_validation.py": {
+      "loc": 453,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/https_utils.py": {
+      "loc": 26,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/indexing.py": {
+      "loc": 300,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/llm_router.py": {
+      "loc": 134,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/modelmanager.py": {
+      "loc": 283,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/openspec_governance.py": {
+      "loc": 373,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/performance.py": {
+      "loc": 672,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/rate_limiting.py": {
+      "loc": 261,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/security.py": {
+      "loc": 47,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/settings.py": {
+      "loc": 266,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/simple_backend.py": {
+      "loc": 46,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/utils.py": {
+      "loc": 63,
+      "nosec": 0,
+      "skipped_tests": 0
+    },
+    "backend/voice.py": {
+      "loc": 111,
+      "nosec": 0,
+      "skipped_tests": 0
+    }
+  },
+  "results": []
+}

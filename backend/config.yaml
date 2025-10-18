@@ -14,9 +14,9 @@ malicious_key: hack_attempt
 model_backend: new-model
 model_path: backend/models/llama-7b.gguf
 similarity_threshold: 0.8
-ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmpjll7rdqh.crt
-ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmpqnlqy7d2.pem
-ssl_keyfile: C:\Users\kdejo\AppData\Local\Temp\tmpn9o99iy3.key
+ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmp2zg2un0l.crt
+ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmp_shahrtn.pem
+ssl_keyfile: C:\Users\kdejo\AppData\Local\Temp\tmpp8het808.key
 top_k: 15
 vault_path: ./new_vault
 vector_db: chroma
