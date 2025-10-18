@@ -22,7 +22,7 @@
 
 .EXAMPLE
     .\archive-change.ps1 -ChangeId "add-api-governance" -KeepOriginal
-    # Archives but keeps original in changes/
+    # Archives but keeps original in openspec/changes/
 
 .EXAMPLE
     .\archive-change.ps1 -ChangeId "add-api-governance" -Force

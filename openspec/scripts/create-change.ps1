@@ -191,9 +191,9 @@ $TasksContent = @"
 
 ## 6. Post-Merge
 
-- [ ] 6.1 Apply changes with ``openspec apply changes/$ChangeId``
+- [ ] 6.1 Apply changes with ``openspec apply $ChangeId``
 - [ ] 6.2 Validate baseline spec with ``openspec validate --strict``
-- [ ] 6.3 Archive change with ``openspec archive changes/$ChangeId``
+- [ ] 6.3 Archive change with ``openspec archive $ChangeId``
 - [ ] 6.4 Verify archive in ``archive/$ChangeId/``
 
 ---

@@ -123,6 +123,7 @@ profile_*
 *.bak
 *.backup
 *~
+openspec/backups/
 
 # Documentation build
 docs/_build/
