@@ -3,8 +3,12 @@ name: OpenSpec Validate
 on:
     push:
         branches: [main]
+        paths:
+            - 'openspec/**'
     pull_request:
         branches: [main]
+        paths:
+            - 'openspec/**'
 
 permissions:
     contents: read

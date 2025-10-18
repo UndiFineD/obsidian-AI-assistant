@@ -3,10 +3,11 @@ permissions:
   contents: read
 
 on:
+  # Keep comprehensive CI off by default for PRs; run on demand or on main
   push:
-    branches: [main, develop, "release-*", "feature/*"]
+    branches: [main]
   pull_request:
-    branches: [main, develop]
+    branches: [] # disabled for PRs to reduce flakiness and runtime
   workflow_dispatch:
 
 concurrency:

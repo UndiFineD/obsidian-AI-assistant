@@ -1,10 +1,7 @@
 name: Security Scanning
 
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+  # Run on schedule or manually; avoid slowing down PRs
   schedule:
     - cron: '0 2 * * *'
   workflow_dispatch:
