@@ -107,15 +107,23 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 **Artifacts:** `README.md`, `docs/`, `openspec/`, `CHANGELOG.md`, API docs.
 **Contents:** Usage, architecture, API, workflow docs, changelog entries.
 
-### 10. Git Operations
-**Purpose:** Commit, tag, and push changes with traceable metadata and OpenSpec references.
-**Artifacts:** Git commits, tags, PRs, branch updates.
-**Contents:** `git add`, `git commit`, `git tag`, `git push`, Pull Request (PR) description linking to OpenSpec, merge strategy.
-
-### 11. Workflow Improvement
+### 10. Workflow Improvement
 **Purpose:** Capture lessons learned and propose improvements to the workflow and process.
 **Artifacts:** `openspec/changes/<change-id>/retrospective.md` (optional)
 **Contents:** What worked, what didn't, improvement proposals, metrics, action items.
+
+### 11. Git Operations
+**Purpose:** Commit, tag, and push changes with traceable metadata and OpenSpec references.
+**Artifacts:** Git commits, tags, PRs, branch updates.
+**Contents:** `git add`, `git commit`, `git tag`, `git push`,
+```bash
+# Move completed change to archive
+git mv openspec/changes/<change-id> openspec/changes/archive/<change-id>
+git commit -m "chore: archive completed change <change-id>"
+```
+Pull Request (PR) description linking to OpenSpec, merge strategy.
+
+
 
 ### 12. Archive Completed Change
 **Purpose:** Move completed and merged changes to the archive to keep the active changes directory clean and focused.
@@ -125,12 +133,6 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 - Maintain the same directory structure in the archive
 - Update any references in documentation to point to archived location
 **Artifacts:** All change files moved to `openspec/changes/archive/<change-id>/`
-**Contents:** 
-```bash
-# Move completed change to archive
-git mv openspec/changes/<change-id> openspec/changes/archive/<change-id>
-git commit -m "chore: archive completed change <change-id>"
-```
 
 ---
 
