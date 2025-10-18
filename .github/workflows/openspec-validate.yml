@@ -3,8 +3,20 @@ name: OpenSpec Validate
 on:
     push:
         branches: [main]
+        paths:
+            - 'openspec/**'
+            - 'docs/CONSTITUTION.md'
+            - 'CHANGELOG.md'
+            - 'README.md'
+            - 'package.json'
     pull_request:
         branches: [main]
+        paths:
+            - 'openspec/**'
+            - 'docs/CONSTITUTION.md'
+            - 'CHANGELOG.md'
+            - 'README.md'
+            - 'package.json'
 
 permissions:
     contents: read
@@ -35,6 +47,16 @@ jobs:
                   python -m pip install --upgrade pip
                   pip install -r requirements.txt
                   pip install -r requirements-dev.txt || true
+
+                        - name: Verify release update steps (CHANGELOG and version consistency)
+                            run: |
+                                    # Ensure CHANGELOG has an entry for the current OpenSpec change if present in this commit range
+                                    if git diff --name-only HEAD~10 | grep -E "openspec/changes/|docs/CONSTITUTION.md" >/dev/null 2>&1; then
+                                        grep -q "update-doc-docs-constitution" CHANGELOG.md || (echo "CHANGELOG missing entry for update-doc-docs-constitution" && exit 1)
+                                    fi
+                                    # Ensure README version matches package.json
+                                    PKG_VER=$(jq -r '.version' package.json)
+                                    grep -q "Version:** $PKG_VER" README.md || (echo "README version badge does not match package.json ($PKG_VER)" && exit 1)
 
             - name: Run OpenSpec validation suites
               run: |
