@@ -1,10 +1,40 @@
 import logging
+import os
 import re
+import sys
 from typing import Any, Callable, Mapping, Optional, Sequence
 
 # Use __name__ to create a logger that is part of the package's hierarchy.
 # The application's entry point should be responsible for configuring logging.
 logger = logging.getLogger(__name__)
+
+
+# --- Test Mode Detection Utility ---
+def is_test_mode() -> bool:
+    """
+    Detect if the application is running in test mode.
+
+    This centralized function checks multiple indicators:
+    - pytest in sys.modules
+    - PYTEST_CURRENT_TEST environment variable
+    - PYTEST_RUNNING environment variable
+    - TEST_MODE environment variable
+
+    Returns:
+        bool: True if running in test mode, False otherwise
+    """
+    try:
+        if (
+            "pytest" in sys.modules
+            or os.environ.get("PYTEST_CURRENT_TEST")
+            or os.environ.get("PYTEST_RUNNING", "").lower()
+            in ("1", "true", "yes", "on")
+            or os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
+        ):
+            return True
+    except Exception:
+        pass
+    return False
 
 
 def safe_call(

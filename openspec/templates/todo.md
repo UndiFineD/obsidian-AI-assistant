@@ -78,16 +78,21 @@
     - [ ] Update `CHANGELOG.md`
     - [ ] Update OpenSpec documentation
 
+
 - [ ] **10. Git Operations**
     - [ ] Stage changes (`git add`)
     - [ ] Commit with descriptive message
     - [ ] Tag release (if applicable)
     - [ ] Push to origin
-    - [ ] Create Pull Request (PR)
-    - [ ] Link PR to OpenSpec change
+
+- [ ] **11. Create Pull Request (PR)**
+    - [ ] Open PR on GitHub
+    - [ ] Reference OpenSpec change in PR description
+    - [ ] Link to proposal/spec/tasks
+    - [ ] Ensure all checks pass
     - [ ] Merge PR
 
-- [ ] **11. Workflow Improvement**
+- [ ] **12. Workflow Improvement**
     - [ ] Create `retrospective.md`
     - [ ] Document what worked well
     - [ ] Document what didn't work

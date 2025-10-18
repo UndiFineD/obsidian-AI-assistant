@@ -23,6 +23,8 @@ class TestConfigEndpoints:
     def test_get_config_endpoint(self):
         """Test GET /api/config returns current settings."""
         response = self.client.get("/api/config")
+        if response.status_code != 200:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 200
         data = response.json()
         assert "vault_path" in data
@@ -43,6 +45,8 @@ class TestConfigEndpoints:
         mock_update.return_value = mock_settings
         updates = {"vault_path": "new_vault", "chunk_size": 1000, "gpu": False}
         response = self.client.post("/api/config", json=updates)
+        if response.status_code != 200:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 200
         # Should call update_settings with the provided data
         mock_update.assert_called_once_with(updates)
@@ -53,6 +57,8 @@ class TestConfigEndpoints:
     def test_post_config_endpoint_invalid_json(self):
         """Test POST /api/config with invalid JSON."""
         response = self.client.post("/api/config", content="invalid json")
+        if response.status_code != 422:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 422  # Unprocessable Entity
 
     @patch("backend.backend.update_settings")
@@ -61,12 +67,20 @@ class TestConfigEndpoints:
         mock_update.side_effect = Exception("Update failed")
         updates = {"vault_path": "new_vault"}
         response = self.client.post("/api/config", json=updates)
+        if response.status_code != 500:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 500
         data = response.json()
         assert "error" in data  # FastAPI error response format
         # Error is a structured object with 'message' field
-        error_str = str(data["error"]) if not isinstance(data["error"], dict) else data["error"].get("message", "")
-        assert "Update failed" in error_str or "Configuration update failed" in error_str
+        error_str = (
+            str(data["error"])
+            if not isinstance(data["error"], dict)
+            else data["error"].get("message", "")
+        )
+        assert (
+            "Update failed" in error_str or "Configuration update failed" in error_str
+        )
 
     @patch("backend.backend.reload_settings")
     def test_post_config_reload_endpoint(self, mock_reload):
@@ -75,6 +89,8 @@ class TestConfigEndpoints:
         mock_settings.dict.return_value = {"vault_path": "reloaded_vault"}
         mock_reload.return_value = mock_settings
         response = self.client.post("/api/config/reload")
+        if response.status_code != 200:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 200
         mock_reload.assert_called_once()
         data = response.json()
@@ -86,12 +102,20 @@ class TestConfigEndpoints:
         """Test POST /api/config/reload handles failures gracefully."""
         mock_reload.side_effect = Exception("Reload failed")
         response = self.client.post("/api/config/reload")
+        if response.status_code != 500:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 500
         data = response.json()
         assert "error" in data  # FastAPI error response format
         # Error is a structured object with 'message' field
-        error_str = str(data["error"]) if not isinstance(data["error"], dict) else data["error"].get("message", "")
-        assert "Reload failed" in error_str or "Configuration reload failed" in error_str
+        error_str = (
+            str(data["error"])
+            if not isinstance(data["error"], dict)
+            else data["error"].get("message", "")
+        )
+        assert (
+            "Reload failed" in error_str or "Configuration reload failed" in error_str
+        )
 
 
 class TestConfigEndpointIntegration:
@@ -109,6 +133,8 @@ class TestConfigEndpointIntegration:
     def test_get_config_integration(self):
         """Test that GET /api/config returns expected fields."""
         response = self.client.get("/api/config")
+        if response.status_code != 200:
+            print("[DEBUG] Response body:", response.text)
         assert response.status_code == 200
         data = response.json()
         # Check for expected configuration fields

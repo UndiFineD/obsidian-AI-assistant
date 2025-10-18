@@ -13,8 +13,9 @@ Usage:
 If no paths are provided, scans openspec/changes/*/todo.md and openspec/templates/todo.md
 """
 from __future__ import annotations
-import sys
+
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

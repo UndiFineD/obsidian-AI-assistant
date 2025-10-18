@@ -39,14 +39,16 @@ class ChangeSpec:
     base_dir: Path
 
 
-def build_change_id(title: str, date: Optional[str] = None, explicit_id: Optional[str] = None) -> str:
+def build_change_id(
+    title: str, date: Optional[str] = None, explicit_id: Optional[str] = None
+) -> str:
     if explicit_id:
         return explicit_id
-    
+
     # Strip existing date prefix (YYYY-MM-DD-) if present to avoid duplication
-    date_pattern = r'^\d{4}-\d{2}-\d{2}-'
-    clean_title = re.sub(date_pattern, '', title)
-    
+    date_pattern = r"^\d{4}-\d{2}-\d{2}-"
+    clean_title = re.sub(date_pattern, "", title)
+
     date_str = date or dt.date.today().isoformat()
     return f"{date_str}-{slugify(clean_title)}"
 
@@ -60,7 +62,9 @@ def replace_placeholders(text: str, spec: ChangeSpec) -> str:
     return text
 
 
-def create_change(spec: ChangeSpec, *, force: bool = False, dry_run: bool = False) -> Path:
+def create_change(
+    spec: ChangeSpec, *, force: bool = False, dry_run: bool = False
+) -> Path:
     change_dir = spec.base_dir / CHANGES_DIR / spec.change_id
     if change_dir.exists() and not force:
         raise FileExistsError(f"Change directory already exists: {change_dir}")
@@ -72,7 +76,9 @@ def create_change(spec: ChangeSpec, *, force: bool = False, dry_run: bool = Fals
 
     # Copy todo.md from template with replacements
     todo_tpl = (spec.base_dir / TEMPLATES_DIR / "todo.md").read_text(encoding="utf-8")
-    (change_dir / "todo.md").write_text(replace_placeholders(todo_tpl, spec), encoding="utf-8")
+    (change_dir / "todo.md").write_text(
+        replace_placeholders(todo_tpl, spec), encoding="utf-8"
+    )
 
     # Minimal other files if not already present
     for name, header in [
@@ -91,12 +97,20 @@ def create_change(spec: ChangeSpec, *, force: bool = False, dry_run: bool = Fals
 def parse_args(argv: Optional[list[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Scaffold a new OpenSpec change")
     parser.add_argument("title", help="Human-readable change title")
-    parser.add_argument("--id", dest="change_id", help="Explicit change-id (default: YYYY-MM-DD-<slug>)")
+    parser.add_argument(
+        "--id", dest="change_id", help="Explicit change-id (default: YYYY-MM-DD-<slug>)"
+    )
     parser.add_argument("--owner", help="Owner handle (e.g., @kdejo)")
     parser.add_argument("--date", help="Override date (YYYY-MM-DD)")
-    parser.add_argument("--base-dir", default=str(Path.cwd()), help="Project root (default: CWD)")
-    parser.add_argument("--dry-run", action="store_true", help="Preview without creating files")
-    parser.add_argument("--force", action="store_true", help="Overwrite existing change directory")
+    parser.add_argument(
+        "--base-dir", default=str(Path.cwd()), help="Project root (default: CWD)"
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview without creating files"
+    )
+    parser.add_argument(
+        "--force", action="store_true", help="Overwrite existing change directory"
+    )
     return parser.parse_args(argv)
 
 
@@ -105,7 +119,13 @@ def main(argv: Optional[list[str]] = None) -> int:
     base_dir = Path(ns.base_dir)
     date_str = ns.date or dt.date.today().isoformat()
     change_id = build_change_id(ns.title, date=ns.date, explicit_id=ns.change_id)
-    spec = ChangeSpec(title=ns.title, change_id=change_id, owner=ns.owner, date=date_str, base_dir=base_dir)
+    spec = ChangeSpec(
+        title=ns.title,
+        change_id=change_id,
+        owner=ns.owner,
+        date=date_str,
+        base_dir=base_dir,
+    )
 
     try:
         target = create_change(spec, force=ns.force, dry_run=ns.dry_run)

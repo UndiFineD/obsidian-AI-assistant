@@ -285,9 +285,7 @@ class TestSimpleBackendIntegration:
         assert status_response.json()["status"] == "online"
 
         # Finally, ask a question
-        ask_response = client.post(
-            "/api/ask", json={"question": "Test question"}
-        )
+        ask_response = client.post("/api/ask", json={"question": "Test question"})
         assert ask_response.status_code == 200
         assert ask_response.json()["status"] == "success"
 

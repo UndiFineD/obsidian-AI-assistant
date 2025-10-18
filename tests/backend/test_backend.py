@@ -16,7 +16,6 @@ class TestBackendAPI:
 
     @pytest.fixture
     def client(self):
-
         """Create a CSRF-enabled test client for the FastAPI app."""
         import hmac
         from hashlib import sha256
@@ -54,7 +53,6 @@ class TestBackendAPI:
     #         yield {
     #             'model': mock_model,
 
-
     #             'embeddings': mock_emb,
     #             'vault': mock_vault,
     #             'cache': mock_cache,
@@ -69,13 +67,12 @@ class TestBackendAPI:
         assert data["status"] == "ok"
         assert "timestamp" in data
 
-
     def test_ask_endpoint_success(self, client):
         """Test successful ask endpoint."""
         request_data = {
             "question": "What is the capital of France?",
             "prefer_fast": True,
-            "max_tokens": 100
+            "max_tokens": 100,
         }
         response = client.post("/ask", json=request_data)
         assert response.status_code == 200
@@ -87,7 +84,7 @@ class TestBackendAPI:
         """Test ask endpoint with cached response."""
         request_data = {
             "question": "What is the capital of France?",
-            "prefer_fast": True
+            "prefer_fast": True,
         }
         # Simulate two requests to trigger cache
         client.post("/ask", json=request_data)
@@ -104,7 +101,6 @@ class TestBackendAPI:
 
         response = client.post("/ask", json=request_data)
         assert response.status_code == 422  # Validation error
-
 
     def test_reindex_endpoint(self, client):
         """Test the reindex endpoint."""
@@ -125,10 +121,7 @@ class TestBackendAPI:
 
     def test_web_search_endpoint(self, client, mock_web_services):
         """Test the web search endpoint."""
-        request_data = {
-            "url": "https://example.com",
-            "question": "What is this about?"
-        }
+        request_data = {"url": "https://example.com", "question": "What is this about?"}
         response = client.post("/web", json=request_data)
         assert response.status_code == 200
         data = response.json()
@@ -172,10 +165,13 @@ class TestConfigAndPerformanceEndpoints:
     def client(self):
         import hmac
         from hashlib import sha256
+
         from backend.backend import app
         from backend.settings import get_settings
+
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+
         class CSRFTestClient(TestClient):
             def request(self, method, url, **kwargs):
                 headers = kwargs.pop("headers", None)
@@ -185,6 +181,7 @@ class TestConfigAndPerformanceEndpoints:
                     headers["X-CSRF-Token"] = csrf_token
                 kwargs["headers"] = headers
                 return super().request(method, url, **kwargs)
+
         with CSRFTestClient(app) as c:
             yield c
 
@@ -228,7 +225,8 @@ class TestConfigAndPerformanceEndpoints:
 
     def test_performance_metrics_success(self, client):
         with patch(
-            "backend.backend.PerformanceMonitor.get_system_metrics", return_value={"cpu": 10}
+            "backend.backend.PerformanceMonitor.get_system_metrics",
+            return_value={"cpu": 10},
         ):
             r = client.get("/api/performance/metrics")
             assert r.status_code == 200
@@ -239,10 +237,13 @@ class TestConfigAndPerformanceEndpoints:
             def __init__(self):
                 self.l1_cache = {}
                 self.l2_cache = {}
+
             def _persist_l2_cache(self):
                 return None
+
             def get_stats(self):
                 return {"hits": 0, "misses": 0}
+
         with patch("backend.backend.get_cache_manager", return_value=DummyCache()):
             r1 = client.get("/api/performance/cache/stats")
             assert r1.status_code == 200
@@ -254,13 +255,17 @@ class TestConfigAndPerformanceEndpoints:
         class DummyQueue:
             def __init__(self):
                 self._count = 0
+
             async def submit_task(self, coro, priority=1):
                 self._count += 1
                 return True
+
             def get_stats(self):
                 return {"queued": self._count}
+
         async def fake_get_task_queue():
             return DummyQueue()
+
         with patch("backend.backend.get_task_queue", side_effect=fake_get_task_queue):
             r = client.post("/api/performance/optimize", json={})
             assert r.status_code == 200
@@ -274,10 +279,13 @@ class TestSearchAndIndexingEndpoints:
     def client(self):
         import hmac
         from hashlib import sha256
+
         from backend.backend import app
         from backend.settings import get_settings
+
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+
         class CSRFTestClient(TestClient):
             def request(self, method, url, **kwargs):
                 headers = kwargs.pop("headers", None)
@@ -287,6 +295,7 @@ class TestSearchAndIndexingEndpoints:
                     headers["X-CSRF-Token"] = csrf_token
                 kwargs["headers"] = headers
                 return super().request(method, url, **kwargs)
+
         with CSRFTestClient(app) as c:
             yield c
 
@@ -298,12 +307,21 @@ class TestSearchAndIndexingEndpoints:
             assert "results" in r.json()
 
     def test_transcribe_invalid_audio(self, client):
-        with patch("backend.backend.validate_base64_audio", return_value={"valid": False, "error": "bad"}):
-            r = client.post("/transcribe", json={"audio_data": "xxxx", "format": "webm", "language": "en"})
+        with patch(
+            "backend.backend.validate_base64_audio",
+            return_value={"valid": False, "error": "bad"},
+        ):
+            r = client.post(
+                "/transcribe",
+                json={"audio_data": "xxxx", "format": "webm", "language": "en"},
+            )
             assert r.status_code == 400
 
     def test_index_pdf_invalid_validation(self, client):
-        with patch("backend.backend.validate_pdf_path", return_value={"valid": False, "error": "bad"}):
+        with patch(
+            "backend.backend.validate_pdf_path",
+            return_value={"valid": False, "error": "bad"},
+        ):
             r = client.post("/api/index_pdf", params={"pdf_path": "C:/tmp/a.pdf"})
             assert r.status_code == 400
 
@@ -312,7 +330,7 @@ class TestSearchAndIndexingEndpoints:
             "valid": True,
             "size_mb": 1.23,
             "hash_sha256": "abcd" * 16,
-            "warnings": []
+            "warnings": [],
         }
         with patch("backend.backend.validate_pdf_path", return_value=valid), patch(
             "backend.backend.vault_indexer"
@@ -366,10 +384,13 @@ class TestOpenSpecAndSecurityEndpoints:
     def client(self):
         import hmac
         from hashlib import sha256
+
         from backend.backend import app
         from backend.settings import get_settings
+
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
+
         class CSRFTestClient(TestClient):
             def request(self, method, url, **kwargs):
                 headers = kwargs.pop("headers", None)
@@ -379,12 +400,15 @@ class TestOpenSpecAndSecurityEndpoints:
                     headers["X-CSRF-Token"] = csrf_token
                 kwargs["headers"] = headers
                 return super().request(method, url, **kwargs)
+
         with CSRFTestClient(app) as c:
             yield c
 
     def test_list_openspec_changes(self, client):
         with patch("backend.backend.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.list_changes.return_value = [{"change_id": "abc", "status": "active"}]
+            mock_gov.return_value.list_changes.return_value = [
+                {"change_id": "abc", "status": "active"}
+            ]
             r = client.get("/api/openspec/changes")
             assert r.status_code == 200
             data = r.json()
@@ -393,7 +417,10 @@ class TestOpenSpecAndSecurityEndpoints:
 
     def test_get_openspec_change_details(self, client):
         with patch("backend.backend.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.get_change_details.return_value = {"change_id": "abc", "status": "active"}
+            mock_gov.return_value.get_change_details.return_value = {
+                "change_id": "abc",
+                "status": "active",
+            }
             r = client.get("/api/openspec/changes/abc")
             assert r.status_code == 200
             data = r.json()
@@ -426,7 +453,9 @@ class TestOpenSpecAndSecurityEndpoints:
 
     def test_bulk_validate_openspec_changes(self, client):
         with patch("backend.backend.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.bulk_validate.return_value = [{"change_id": "abc", "valid": True}]
+            mock_gov.return_value.bulk_validate.return_value = [
+                {"change_id": "abc", "valid": True}
+            ]
             r = client.post("/api/openspec/validate-bulk", json={"change_ids": ["abc"]})
             assert r.status_code == 200
             data = r.json()
@@ -434,7 +463,9 @@ class TestOpenSpecAndSecurityEndpoints:
 
     def test_get_openspec_metrics(self, client):
         with patch("backend.backend.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
+            mock_gov.return_value.get_governance_metrics.return_value = {
+                "total_changes": 1
+            }
             r = client.get("/api/openspec/metrics")
             assert r.status_code == 200
             data = r.json()
@@ -442,9 +473,15 @@ class TestOpenSpecAndSecurityEndpoints:
 
     def test_get_openspec_dashboard(self, client):
         with patch("backend.backend.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.list_changes.return_value = [{"change_id": "abc", "status": "active"}]
-            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
-            mock_gov.return_value.bulk_validate.return_value = [{"change_id": "abc", "valid": True}]
+            mock_gov.return_value.list_changes.return_value = [
+                {"change_id": "abc", "status": "active"}
+            ]
+            mock_gov.return_value.get_governance_metrics.return_value = {
+                "total_changes": 1
+            }
+            mock_gov.return_value.bulk_validate.return_value = [
+                {"change_id": "abc", "valid": True}
+            ]
             r = client.get("/api/openspec/dashboard")
             assert r.status_code == 200
             data = r.json()
@@ -463,8 +500,11 @@ class TestOpenSpecAndSecurityEndpoints:
         class DummyAuditLogger:
             def get_recent_events(self, severity=None, event_type=None, limit=100):
                 return [{"event": "login", "severity": "low"}]
+
         dummy_sec = type("Sec", (), {"audit_logger": DummyAuditLogger()})()
-        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+        with patch(
+            "backend.backend.get_advanced_security_config", return_value=dummy_sec
+        ):
             r = client.get("/api/security/events?limit=1")
             assert r.status_code == 200
             data = r.json()
@@ -474,8 +514,10 @@ class TestOpenSpecAndSecurityEndpoints:
         class DummyCache:
             async def clear(self):
                 return None
-        with patch("backend.backend.get_cache_manager", return_value=DummyCache()), \
-             patch("backend.backend.log_security_event"):
+
+        with patch(
+            "backend.backend.get_cache_manager", return_value=DummyCache()
+        ), patch("backend.backend.log_security_event"):
             r = client.post("/api/security/clear-cache", json={})
             assert r.status_code == 200
             data = r.json()
@@ -485,8 +527,11 @@ class TestOpenSpecAndSecurityEndpoints:
         class DummyComplianceManager:
             def generate_compliance_report(self):
                 return {"gdpr": True, "soc2": True}
+
         dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
-        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+        with patch(
+            "backend.backend.get_advanced_security_config", return_value=dummy_sec
+        ):
             r = client.get("/api/security/compliance")
             assert r.status_code == 200
             data = r.json()
@@ -496,9 +541,14 @@ class TestOpenSpecAndSecurityEndpoints:
         class DummyComplianceManager:
             def handle_data_deletion_request(self, user_id):
                 return {"deleted": True}
+
         dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
-        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
-            r = client.post("/api/security/gdpr/deletion-request", params={"user_id": "u1"})
+        with patch(
+            "backend.backend.get_advanced_security_config", return_value=dummy_sec
+        ):
+            r = client.post(
+                "/api/security/gdpr/deletion-request", params={"user_id": "u1"}
+            )
             assert r.status_code == 200
             data = r.json()
             assert data["success"] is True
@@ -507,8 +557,18 @@ class TestOpenSpecAndSecurityEndpoints:
         class DummyAuditLogger:
             def get_recent_events(self, severity=None, limit=20):
                 return [{"event": "threat", "severity": "high"}]
-        dummy_sec = type("Sec", (), {"audit_logger": DummyAuditLogger(), "get_security_status": lambda self=None: {"secure": True}})()
-        with patch("backend.backend.get_advanced_security_config", return_value=dummy_sec):
+
+        dummy_sec = type(
+            "Sec",
+            (),
+            {
+                "audit_logger": DummyAuditLogger(),
+                "get_security_status": lambda self=None: {"secure": True},
+            },
+        )()
+        with patch(
+            "backend.backend.get_advanced_security_config", return_value=dummy_sec
+        ):
             r = client.get("/api/security/dashboard")
             assert r.status_code == 200
             data = r.json()

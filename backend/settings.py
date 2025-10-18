@@ -165,24 +165,24 @@ _ALLOWED_UPDATE_KEYS = {
 def validate_cors_origins(origins: list) -> bool:
     """
     Validate CORS origins list.
-    
+
     Each origin must be a valid URL (http:// or https://) or wildcard "*".
     Returns True if all origins are valid, False otherwise.
     """
     if not isinstance(origins, list):
         return False
-    pattern = re.compile(r'^(https?://[a-zA-Z0-9.-]+(:\d+)?|\*)$')
+    pattern = re.compile(r"^(https?://[a-zA-Z0-9.-]+(:\d+)?|\*)$")
     return all(pattern.match(str(origin)) for origin in origins)
 
 
 def validate_ssl_file(filepath: str, extensions: list) -> bool:
     """
     Validate SSL file path and extension.
-    
+
     Args:
         filepath: Path to SSL file (or None/empty for optional files)
         extensions: List of allowed file extensions (e.g., [".pem", ".crt"])
-    
+
     Returns:
         True if file is valid or None/empty, False otherwise
     """
@@ -248,33 +248,71 @@ class Settings(BaseModel):
     # Logging Configuration
     log_level: str = os.getenv("LOG_LEVEL", "INFO")
     log_format: str = os.getenv("LOG_FORMAT", "structured")  # 'structured' or 'text'
-    log_include_pii: bool = os.getenv("LOG_INCLUDE_PII", "false").lower() in ("true", "1", "yes")
-    log_console_enabled: bool = os.getenv("LOG_CONSOLE_ENABLED", "true").lower() in ("true", "1", "yes")
-    log_file_enabled: bool = os.getenv("LOG_FILE_ENABLED", "true").lower() in ("true", "1", "yes")
-    log_audit_enabled: bool = os.getenv("LOG_AUDIT_ENABLED", "true").lower() in ("true", "1", "yes")
-    log_security_enabled: bool = os.getenv("LOG_SECURITY_ENABLED", "true").lower() in ("true", "1", "yes")
-    log_performance_enabled: bool = os.getenv("LOG_PERFORMANCE_ENABLED", "true").lower() in ("true", "1", "yes")
-    log_max_file_size: int = int(os.getenv("LOG_MAX_FILE_SIZE", str(50 * 1024 * 1024)))  # 50MB
+    log_include_pii: bool = os.getenv("LOG_INCLUDE_PII", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    log_console_enabled: bool = os.getenv("LOG_CONSOLE_ENABLED", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    log_file_enabled: bool = os.getenv("LOG_FILE_ENABLED", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    log_audit_enabled: bool = os.getenv("LOG_AUDIT_ENABLED", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    log_security_enabled: bool = os.getenv("LOG_SECURITY_ENABLED", "true").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
+    log_performance_enabled: bool = os.getenv(
+        "LOG_PERFORMANCE_ENABLED", "true"
+    ).lower() in ("true", "1", "yes")
+    log_max_file_size: int = int(
+        os.getenv("LOG_MAX_FILE_SIZE", str(50 * 1024 * 1024))
+    )  # 50MB
     log_backup_count: int = int(os.getenv("LOG_BACKUP_COUNT", "5"))
     log_cleanup_days: int = int(os.getenv("LOG_CLEANUP_DAYS", "30"))
-    
+
     # Security Hardening Configuration
-    security_level: str = os.getenv("SECURITY_LEVEL", "standard")  # minimal, standard, enhanced, maximum
+    security_level: str = os.getenv(
+        "SECURITY_LEVEL", "standard"
+    )  # minimal, standard, enhanced, maximum
     session_timeout_hours: int = int(os.getenv("SESSION_TIMEOUT_HOURS", "24"))
     session_idle_timeout_hours: int = int(os.getenv("SESSION_IDLE_TIMEOUT_HOURS", "2"))
     max_sessions_per_user: int = int(os.getenv("MAX_SESSIONS_PER_USER", "5"))
     api_key_rate_limit: int = int(os.getenv("API_KEY_RATE_LIMIT", "100"))
-    threat_detection_enabled: bool = os.getenv("THREAT_DETECTION_ENABLED", "true").lower() in ("true", "1", "yes")
+    threat_detection_enabled: bool = os.getenv(
+        "THREAT_DETECTION_ENABLED", "true"
+    ).lower() in ("true", "1", "yes")
     auto_block_threshold: float = float(os.getenv("AUTO_BLOCK_THRESHOLD", "20.0"))
-    behavioral_analysis_enabled: bool = os.getenv("BEHAVIORAL_ANALYSIS_ENABLED", "true").lower() in ("true", "1", "yes")
-    request_signing_enabled: bool = os.getenv("REQUEST_SIGNING_ENABLED", "false").lower() in ("true", "1", "yes")
-    security_headers_enabled: bool = os.getenv("SECURITY_HEADERS_ENABLED", "true").lower() in ("true", "1", "yes")
-    
+    behavioral_analysis_enabled: bool = os.getenv(
+        "BEHAVIORAL_ANALYSIS_ENABLED", "true"
+    ).lower() in ("true", "1", "yes")
+    request_signing_enabled: bool = os.getenv(
+        "REQUEST_SIGNING_ENABLED", "false"
+    ).lower() in ("true", "1", "yes")
+    security_headers_enabled: bool = os.getenv(
+        "SECURITY_HEADERS_ENABLED", "true"
+    ).lower() in ("true", "1", "yes")
+
     # Authentication Configuration
     jwt_secret_key: str = os.getenv("JWT_SECRET_KEY", "")
     jwt_expiry_hours: int = int(os.getenv("JWT_EXPIRY_HOURS", "24"))
     password_min_length: int = int(os.getenv("PASSWORD_MIN_LENGTH", "8"))
-    require_mfa: bool = os.getenv("REQUIRE_MFA", "false").lower() in ("true", "1", "yes")
+    require_mfa: bool = os.getenv("REQUIRE_MFA", "false").lower() in (
+        "true",
+        "1",
+        "yes",
+    )
     lockout_attempts: int = int(os.getenv("LOCKOUT_ATTEMPTS", "5"))
     lockout_duration_minutes: int = int(os.getenv("LOCKOUT_DURATION_MINUTES", "15"))
 
@@ -306,39 +344,39 @@ class Settings(BaseModel):
     def get_logging_config(self) -> dict:
         """Get logging configuration dictionary"""
         return {
-            'level': self.log_level,
-            'format': self.log_format,
-            'include_pii': self.log_include_pii,
-            'log_dir': str(self.abs_log_dir),
-            'console_enabled': self.log_console_enabled,
-            'file_enabled': self.log_file_enabled,
-            'audit_enabled': self.log_audit_enabled,
-            'security_enabled': self.log_security_enabled,
-            'performance_enabled': self.log_performance_enabled,
-            'max_file_size': self.log_max_file_size,
-            'backup_count': self.log_backup_count,
-            'cleanup_days': self.log_cleanup_days,
+            "level": self.log_level,
+            "format": self.log_format,
+            "include_pii": self.log_include_pii,
+            "log_dir": str(self.abs_log_dir),
+            "console_enabled": self.log_console_enabled,
+            "file_enabled": self.log_file_enabled,
+            "audit_enabled": self.log_audit_enabled,
+            "security_enabled": self.log_security_enabled,
+            "performance_enabled": self.log_performance_enabled,
+            "max_file_size": self.log_max_file_size,
+            "backup_count": self.log_backup_count,
+            "cleanup_days": self.log_cleanup_days,
         }
-    
+
     def get_security_config(self) -> dict:
         """Get security configuration dictionary"""
         return {
-            'security_level': self.security_level,
-            'session_timeout_hours': self.session_timeout_hours,
-            'session_idle_timeout_hours': self.session_idle_timeout_hours,
-            'max_sessions_per_user': self.max_sessions_per_user,
-            'api_key_rate_limit': self.api_key_rate_limit,
-            'threat_detection_enabled': self.threat_detection_enabled,
-            'auto_block_threshold': self.auto_block_threshold,
-            'behavioral_analysis_enabled': self.behavioral_analysis_enabled,
-            'request_signing_enabled': self.request_signing_enabled,
-            'security_headers_enabled': self.security_headers_enabled,
-            'jwt_secret_key': '***' if self.jwt_secret_key else '',  # Redacted
-            'jwt_expiry_hours': self.jwt_expiry_hours,
-            'password_min_length': self.password_min_length,
-            'require_mfa': self.require_mfa,
-            'lockout_attempts': self.lockout_attempts,
-            'lockout_duration_minutes': self.lockout_duration_minutes
+            "security_level": self.security_level,
+            "session_timeout_hours": self.session_timeout_hours,
+            "session_idle_timeout_hours": self.session_idle_timeout_hours,
+            "max_sessions_per_user": self.max_sessions_per_user,
+            "api_key_rate_limit": self.api_key_rate_limit,
+            "threat_detection_enabled": self.threat_detection_enabled,
+            "auto_block_threshold": self.auto_block_threshold,
+            "behavioral_analysis_enabled": self.behavioral_analysis_enabled,
+            "request_signing_enabled": self.request_signing_enabled,
+            "security_headers_enabled": self.security_headers_enabled,
+            "jwt_secret_key": "***" if self.jwt_secret_key else "",  # Redacted
+            "jwt_expiry_hours": self.jwt_expiry_hours,
+            "password_min_length": self.password_min_length,
+            "require_mfa": self.require_mfa,
+            "lockout_attempts": self.lockout_attempts,
+            "lockout_duration_minutes": self.lockout_duration_minutes,
         }
 
 
@@ -444,7 +482,7 @@ def reload_settings() -> Settings:
 def update_settings(updates: dict) -> Settings:
     """Update settings with new values and reload."""
     import logging
-    
+
     # Filter updates to only include whitelisted keys
     filtered_updates = {}
     for key, value in updates.items():
@@ -453,34 +491,46 @@ def update_settings(updates: dict) -> Settings:
             try:
                 if key == "cors_allowed_origins":
                     if not validate_cors_origins(value):
-                        raise ValueError(f"Invalid CORS origins: {value}. Must be list of valid URLs or '*'")
+                        raise ValueError(
+                            f"Invalid CORS origins: {value}. Must be list of valid URLs or '*'"
+                        )
                     # Warn about wildcard
                     if "*" in value:
-                        logging.warning("CORS wildcard origin (*) detected - NOT recommended for production")
+                        logging.warning(
+                            "CORS wildcard origin (*) detected - NOT recommended for production"
+                        )
                     filtered_updates[key] = value
-                
+
                 elif key == "ssl_certfile":
                     if not validate_ssl_file(value, [".pem", ".crt", ".cert"]):
-                        raise ValueError(f"Invalid SSL certificate file: {value}. Must exist and have .pem, .crt, or .cert extension")
+                        raise ValueError(
+                            f"Invalid SSL certificate file: {value}. Must exist and have .pem, .crt, or .cert extension"
+                        )
                     filtered_updates[key] = value
-                
+
                 elif key == "ssl_keyfile":
                     if not validate_ssl_file(value, [".pem", ".key"]):
-                        raise ValueError(f"Invalid SSL key file: {value}. Must exist and have .pem or .key extension")
+                        raise ValueError(
+                            f"Invalid SSL key file: {value}. Must exist and have .pem or .key extension"
+                        )
                     filtered_updates[key] = value
-                
+
                 elif key == "ssl_ca_certs":
                     if not validate_ssl_file(value, [".pem", ".crt"]):
-                        raise ValueError(f"Invalid CA certs file: {value}. Must exist and have .pem or .crt extension")
+                        raise ValueError(
+                            f"Invalid CA certs file: {value}. Must exist and have .pem or .crt extension"
+                        )
                     filtered_updates[key] = value
-                
+
                 elif key == "csrf_enabled":
                     if isinstance(value, str):
                         value = value.lower() in ("true", "1", "yes")
                     if not value:
-                        logging.warning("CSRF protection disabled - NOT recommended for production")
+                        logging.warning(
+                            "CSRF protection disabled - NOT recommended for production"
+                        )
                     filtered_updates[key] = value
-                
+
                 elif key == "chunk_size" and isinstance(value, str):
                     filtered_updates[key] = int(value)
                 elif key == "gpu" and isinstance(value, str):
@@ -495,7 +545,7 @@ def update_settings(updates: dict) -> Settings:
                 # Log validation errors and skip invalid values
                 logging.error(f"Validation failed for {key}: {e}")
                 continue
-    
+
     # Load existing config
     cfg_path = Path(__file__).parent / "config.yaml"
     if cfg_path.exists():

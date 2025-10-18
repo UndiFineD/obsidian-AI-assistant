@@ -142,17 +142,13 @@ class TestGetSSLConfig:
 
     def test_ssl_config_missing_certfile(self):
         """Test SSL config returns None when certfile is missing"""
-        with patch.dict(
-            os.environ, {"SSL_KEYFILE": "/path/to/key.pem"}, clear=True
-        ):
+        with patch.dict(os.environ, {"SSL_KEYFILE": "/path/to/key.pem"}, clear=True):
             config = get_ssl_config()
             assert config is None
 
     def test_ssl_config_missing_keyfile(self):
         """Test SSL config returns None when keyfile is missing"""
-        with patch.dict(
-            os.environ, {"SSL_CERTFILE": "/path/to/cert.pem"}, clear=True
-        ):
+        with patch.dict(os.environ, {"SSL_CERTFILE": "/path/to/cert.pem"}, clear=True):
             config = get_ssl_config()
             assert config is None
 

@@ -1027,17 +1027,13 @@ class TestTenantIsolation:
     def test_filter_user_access_valid(self):
         """Test user access filtering with valid resource."""
         resource = f"/vaults/tenant_{self.tenant_id}/document.md"
-        result = self.isolation.filter_user_access(
-            self.tenant_id, "user123", resource
-        )
+        result = self.isolation.filter_user_access(self.tenant_id, "user123", resource)
         assert result is True
 
     def test_filter_user_access_invalid_resource(self):
         """Test user access filtering with resource from different tenant."""
         resource = "/vaults/tenant_other_id/document.md"
-        result = self.isolation.filter_user_access(
-            self.tenant_id, "user123", resource
-        )
+        result = self.isolation.filter_user_access(self.tenant_id, "user123", resource)
         assert result is False
 
     def test_filter_user_access_invalid_tenant(self):
@@ -1050,9 +1046,7 @@ class TestTenantIsolation:
         """Test user access filtering for suspended tenant."""
         self.tenant_manager.suspend_tenant(self.tenant_id)
         resource = f"/vaults/tenant_{self.tenant_id}/document.md"
-        result = self.isolation.filter_user_access(
-            self.tenant_id, "user123", resource
-        )
+        result = self.isolation.filter_user_access(self.tenant_id, "user123", resource)
         assert result is False
 
 
@@ -1084,9 +1078,7 @@ class TestBillingManager:
 
     def test_record_multiple_usage_events(self):
         """Test recording multiple usage events."""
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "api_call", quantity=5
-        )
+        self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=5)
         self.billing_manager.record_usage_event(
             self.tenant_id, "document_index", quantity=2
         )
@@ -1099,12 +1091,8 @@ class TestBillingManager:
         from datetime import datetime, timedelta
 
         # Record some events
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "api_call", quantity=10
-        )
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "api_call", quantity=5
-        )
+        self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=10)
+        self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=5)
         self.billing_manager.record_usage_event(
             self.tenant_id, "document_index", quantity=3
         )
@@ -1143,9 +1131,7 @@ class TestBillingManager:
         from datetime import datetime, timedelta
 
         # Record event
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "api_call", quantity=10
-        )
+        self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=10)
 
         # Generate report with past date range (should be empty)
         start_date = datetime.utcnow() - timedelta(days=7)
@@ -1276,12 +1262,13 @@ class TestMultiTenantMiddleware:
 
     def setup_method(self):
         """Set up test tenant manager, middleware, and mock request."""
+        from unittest.mock import AsyncMock, MagicMock
+
         from backend.enterprise_tenant import (
             MultiTenantMiddleware,
             TenantManager,
             TenantTier,
         )
-        from unittest.mock import AsyncMock, MagicMock
 
         self.tenant_manager = TenantManager()
         self.tenant = self.tenant_manager.create_tenant(
@@ -1366,7 +1353,8 @@ class TestMultiTenantMiddleware:
         """Test middleware behavior when concurrent limit is exceeded."""
         # Set concurrent requests to limit
         self.tenant_manager.update_tenant_usage(
-            self.tenant_id, concurrent_requests=self.tenant.limits.max_concurrent_requests
+            self.tenant_id,
+            concurrent_requests=self.tenant.limits.max_concurrent_requests,
         )
 
         response = await self.middleware(self.mock_request, self.mock_call_next)

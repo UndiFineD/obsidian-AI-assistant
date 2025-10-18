@@ -1,6 +1,6 @@
 {
     "name": "obsidian-ai-assistant-plugin",
-    "version": "0.1.6",
+    "version": "0.1.7",
     "description": "Obsidian AI Assistant plugin",
     "main": "main.js",
     "scripts": {

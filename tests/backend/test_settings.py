@@ -490,12 +490,15 @@ class TestUpdateSettings:
 
     def test_coerce_value_for_field_errors(self):
         from backend.settings import _coerce_value_for_field
+
         # Invalid int
         assert _coerce_value_for_field("chunk_size", "not_an_int") is None
         # Invalid float
         assert _coerce_value_for_field("similarity_threshold", "not_a_float") is None
         # Invalid bool
-        assert _coerce_value_for_field("gpu", "not_a_bool") is False  # fallback is False
+        assert (
+            _coerce_value_for_field("gpu", "not_a_bool") is False
+        )  # fallback is False
         # Unknown field
         assert _coerce_value_for_field("not_a_field", "value") is None
 
@@ -517,15 +520,19 @@ class TestUpdateSettings:
     def test_update_settings_file_write_error(self, tmp_path):
         """Test update_settings handles file write errors gracefully."""
         mock_config_data = {"vault_path": "vault"}
+
         def mock_open_func(path, mode="r", **kwargs):
             from io import StringIO
+
             if "w" in mode:
                 raise IOError("Write error")
             else:
                 import yaml
+
                 content = yaml.safe_dump(mock_config_data)
                 mock_file = StringIO(content)
                 return mock_file
+
         with patch("backend.settings.open", mock_open_func), patch(
             "backend.settings.reload_settings", return_value=Settings()
         ):

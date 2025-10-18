@@ -543,7 +543,7 @@ class TestEnterpriseAuthMiddlewareComplete:
         token = self.sso_manager.generate_jwt_token(user_info, self.secret_key)
 
         # Create mock request
-        from unittest.mock import MagicMock, AsyncMock
+        from unittest.mock import AsyncMock, MagicMock
 
         mock_request = MagicMock()
         mock_request.url.path = "/api/protected"
@@ -627,7 +627,7 @@ class TestEnterpriseAuthMiddlewareComplete:
     @pytest.mark.asyncio
     async def test_middleware_public_endpoint_bypass(self):
         """Test that public endpoints bypass authentication."""
-        from unittest.mock import MagicMock, AsyncMock
+        from unittest.mock import AsyncMock, MagicMock
 
         for endpoint in ["/health", "/status", "/", "/auth/login", "/auth/callback"]:
             mock_request = MagicMock()
@@ -660,6 +660,7 @@ class TestSSOEndpoints:
     def test_sso_endpoints_initialization(self):
         """Test that SSOEndpoints initializes correctly."""
         from unittest.mock import MagicMock
+
         from backend.enterprise_auth import SSOEndpoints
 
         mock_app = MagicMock()
@@ -675,6 +676,7 @@ class TestSSOEndpoints:
     def test_sso_endpoints_registers_routes(self):
         """Test that SSOEndpoints registers all required routes."""
         from unittest.mock import MagicMock
+
         from backend.enterprise_auth import SSOEndpoints
 
         mock_app = MagicMock()

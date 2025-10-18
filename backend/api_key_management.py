@@ -2,24 +2,24 @@
 API Key Management Module
 Handles API key generation, rotation, validation, and storage for secure access control.
 """
-import secrets
+
 import hashlib
+import secrets
 import time
 from typing import Dict, Optional
+
 from fastapi import HTTPException
 
 # In-memory store for demonstration (replace with persistent storage in production)
 _API_KEYS: Dict[str, Dict] = {}
+
 
 class APIKeyManager:
     @staticmethod
     def generate_key() -> str:
         key = secrets.token_urlsafe(32)
         hashed = hashlib.sha256(key.encode()).hexdigest()
-        _API_KEYS[hashed] = {
-            "created": time.time(),
-            "active": True
-        }
+        _API_KEYS[hashed] = {"created": time.time(), "active": True}
         return key
 
     @staticmethod

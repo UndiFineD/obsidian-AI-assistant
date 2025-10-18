@@ -26,6 +26,8 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         self.secret = secret.encode("utf-8") if isinstance(secret, str) else secret
 
     async def dispatch(self, request: Request, call_next: Callable):
+
+        print(f"[CSRF] Invoked for {request.method} {request.url.path}")
         # Skip enforcement during tests
         if (
             "pytest" in sys.modules
@@ -34,12 +36,16 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             in ("1", "true", "yes", "on")
             or os.environ.get("TEST_MODE", "").lower() in ("1", "true", "yes", "on")
         ):
+            print("[CSRF] Skipping enforcement (test mode)")
             return await call_next(request)
 
         # Only protect state-changing methods
         if request.method in ("POST", "PUT", "DELETE", "PATCH"):
             token = request.headers.get("X-CSRF-Token")
             if not token or not self._validate_token(token):
+                print(
+                    f"[CSRF] Blocked {request.method} {request.url.path}: token missing or invalid"
+                )
                 return JSONResponse(
                     {"error": "CSRF token missing or invalid"}, status_code=403
                 )
@@ -53,6 +59,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             samesite="strict",
             secure=True,
         )
+        print(f"[CSRF] Completed {request.method} {request.url.path}")
         return response
 
     def _generate_token(self) -> str:
