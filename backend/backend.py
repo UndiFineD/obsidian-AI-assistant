@@ -2193,14 +2193,14 @@ async def trigger_optimization(background_tasks: BackgroundTasks):
 
         # Schedule optimization tasks - create coroutines inline to avoid warnings
         scheduled_count = 0
-        
+
         # Submit each task individually
         tasks_to_schedule = [
             ("cleanup_cache", _cleanup_expired_cache),
             ("optimize_pools", _optimize_connection_pools),
             ("collect_metrics", _collect_performance_metrics),
         ]
-        
+
         for task_name, task_func in tasks_to_schedule:
             # Create coroutine and immediately submit
             coro = task_func()

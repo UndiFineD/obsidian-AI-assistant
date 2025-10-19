@@ -85,14 +85,14 @@
     - [ ] Tag release (if applicable)
     - [ ] Push to origin
 
-- [ ] **11. Create Pull Request (PR)**
+- [x] **11. Create Pull Request (PR)**
     - [ ] Open PR on GitHub
     - [ ] Reference OpenSpec change in PR description
     - [ ] Link to proposal/spec/tasks
     - [ ] Ensure all checks pass
     - [ ] Merge PR
 
-- [ ] **12. Workflow Improvement**
+- [x] **12. Workflow Improvement**
     - [ ] Create `retrospective.md`
     - [ ] Document what worked well
     - [ ] Document what didn't work
@@ -140,6 +140,8 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+
+
 
 
 

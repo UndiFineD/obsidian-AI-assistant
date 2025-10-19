@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 update doc claude
+# TODO: 2025 10 14 update doc claude commands openspec proposal
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-claude`
+- **Change ID**: `2025-10-14-update-doc-claude-commands-openspec-proposal`
 - **Created**: 2025-10-19
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -85,7 +85,7 @@
     - [ ] Tag release (if applicable)
     - [ ] Push to origin
 
-- [x] **11. Create Pull Request (PR)**
+- [ ] **11. Create Pull Request (PR)**
     - [ ] Open PR on GitHub
     - [ ] Reference OpenSpec change in PR description
     - [ ] Link to proposal/spec/tasks
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-proposal/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
@@ -140,8 +140,6 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
-
-
 
 
 

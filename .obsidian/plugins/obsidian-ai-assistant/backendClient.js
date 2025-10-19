@@ -208,7 +208,7 @@ class BackendClient {
         if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) return endpoint;
         const base = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
         const ep = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-        return  ${base}${ep}`;
+        return `${base}${ep}`;
     }
 }
 

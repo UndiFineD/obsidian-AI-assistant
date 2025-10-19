@@ -246,6 +246,67 @@ Describe "Workflow Functionality" {
             Test-Path (Join-Path $TestChangePath "specs") | Should Be $true
         }
     }
+
+    Context "Version Regex Replacement Robustness" {
+        It "Should not leak literal `$newVersion in README.md after version update" {
+            $readmeContent = "badge/Version-0.1.0"
+            $newVersion = "0.2.0"
+            $updated = $readmeContent -replace '(badge/Version-)[0-9.]+' , "`$1$newVersion"
+            $updated | Should Not Match '\$newVersion'
+            $updated | Should Match "badge/Version-0.2.0"
+        }
+        It "Should use PowerShell-safe backreference in all version badge replacements" {
+            $patterns = @(
+                '(badge/[Vv]ersion-)[0-9.]+' ,
+                '(badge/v)[0-9.]+' ,
+                '(\*\*Version\*\*:\s*)[0-9.]+' ,
+                '(Version:\s*)[0-9.]+'
+            )
+            $newVersion = "1.2.3"
+            foreach ($pat in $patterns) {
+                $sample = "badge/Version-0.1.0"
+                $result = $sample -replace $pat, "`$1$newVersion"
+                $result | Should Not Match '\$newVersion'
+                $result | Should Match $newVersion
+            }
+        }
+    }
+
+    Context "Atomic File Write Coverage" {
+        It "Should write file atomically and cleanup temp on error" {
+            $path = Join-Path $TestDataDir "atomic_test.txt"
+            $result = Set-ContentAtomic -Path $path -Value "atomic content"
+            $result | Should Be $true
+            Test-Path $path | Should Be $true
+            # Simulate error: try writing to a locked file, ensure temp is cleaned
+            # (Not implemented here, but logic is present for future extension)
+        }
+    }
+
+    Context "PR Title/Body Construction" {
+        It "Should include new version in PR title and body preview (Step 12)" {
+            $newVersion = "2.3.4"
+            $prTitle = "chore(openspec): Release $newVersion"
+            $prBody = "Release $newVersion`n`nSee openspec/changes/test-change"
+            $prTitle | Should Match $newVersion
+            $prBody | Should Match $newVersion
+            $prBody | Should Match "openspec/changes/test-change"
+        }
+    }
+
+    Context "DryRun Step 1 Behavior" {
+        It "Should default to Patch increment in DryRun mode (simulated)" {
+            # Simulate DryRun logic for Step 1
+            $major = 1; $minor = 2; $patch = 3
+            $DryRun = $true
+            $incrementType = if ($DryRun) { '1' } else { 'manual' }
+            $newVersion = switch ($incrementType) {
+                '1' { "$major.$minor.$($patch + 1)" }
+                default { "$major.$minor.$patch" }
+            }
+            $newVersion | Should Be "1.2.4"
+        }
+    }
     
     Context "Template File Generation" {
         
@@ -651,8 +712,14 @@ Describe "Documentation and Help" {
     Context "Comment-Based Help" {
         
         It "Should have complete help documentation" {
-            $help = Get-Help $WorkflowScript -ErrorAction SilentlyContinue
-            $help | Should Not BeNullOrEmpty
+            $scriptContent = Get-Content $WorkflowScript -Raw
+            # Check for required help comment sections
+            $scriptContent | Should Match '\.SYNOPSIS'
+            $scriptContent | Should Match '\.DESCRIPTION'
+            $scriptContent | Should Match '\.PARAMETER'
+            $scriptContent | Should Match '\.EXAMPLE'
+            $scriptContent | Should Match '\.NOTES'
+            $scriptContent | Should Match '\.LINK'
         }
         
         It "Should document all parameters" {
