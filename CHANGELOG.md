@@ -1,9 +1,18 @@
 # 📝 CHANGELOG
-## v0.1.8 (Unreleased)
-- Documentation Governance: Govern material changes to `docs/TASKS.md` via OpenSpec proposals (see `openspec/archive/update-doc-docs-tasks/`)
-- Documentation Governance: Govern material changes to `openspec/AGENTS.md` via OpenSpec proposals (see `openspec/archive/update-doc-agents/`)
+## v0.1.9 (Unreleased)
 
 - _Next release cycle initialized._
+
+## v0.1.8 (2025-10-19)
+- **OpenSpec Workflow Automation**: Complete 13-step workflow automation system (`scripts/workflow.ps1`)
+- **Batch Processing Tools**: Bulk change processor (`scripts/batch_process_changes.ps1`), initialization utilities (`scripts/bulk_init_todos.ps1`, `scripts/bulk_complete_step1.ps1`)
+- **Documentation Governance**: Archived 43 documentation governance changes under `project-documentation` capability
+  - 2 manual changes: `update-doc-docs-tasks`, `update-doc-agents`
+  - 40 batch-processed changes covering comprehensive documentation coverage
+  - 1 additional change: `update-doc-docs-audit-backend`
+- **Auto-Commit Generation**: Parses proposal.md metadata to generate structured commit messages
+- **Test Coverage**: 70 passing tests validating workflow compliance and functionality
+- **Quality Assurance**: Step 1 HARD REQUIREMENT enforcement for version bumps
 
 ## v0.1.7 (2025-10-18)
 - Documentation Governance: Govern material changes to `docs/CONSTITUTION.md` via OpenSpec proposals (openspec/changes/update-doc-docs-constitution/)

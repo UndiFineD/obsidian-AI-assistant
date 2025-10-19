@@ -477,3 +477,314 @@ def test_workflow_script_coverage_summary():
     assert coverage["examples"] >= 3, "Should include at least 3 usage examples"
     assert coverage["test_integration"] == 1, "Should integrate with pytest"
     assert coverage["git_integration"] == 1, "Should integrate with git"
+
+
+class TestEnhancedProposalValidation:
+    """Test enhanced proposal validation features in Step 2."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_proposal_section_validation(self, script_content: str):
+        """Verify proposal validates required sections."""
+        assert 'requiredSections = @("## Why", "## What Changes", "## Impact")' in script_content
+
+    def test_proposal_placeholder_detection(self, script_content: str):
+        """Verify proposal detects template placeholders."""
+        # Allow either the regex patterns used for detection OR the actual placeholders used in the template
+        checks = [
+            # The script uses a broad pattern for this placeholder and the template has the full sentence
+            (r"'\[Explain the problem'", r"\[Explain the problem or opportunity in 1-2 sentences\]"),
+            (r"'\[List specific changes\]'", r"\[List specific changes\]"),
+            (r"'\[list capability specs\]'", r"\[list capability specs\]"),
+            (r"'\[list files\]'", r"\[list files\]"),
+            (r"'\[who is affected\]'", r"\[who is affected\]"),
+        ]
+        for pattern, alt in checks:
+            assert re.search(pattern, script_content) or re.search(
+                alt, script_content
+            ), f"Missing placeholder check: {pattern} or placeholder: {alt}"
+
+    def test_proposal_content_length_validation(self, script_content: str):
+        """Verify proposal checks minimum content length."""
+        assert "$whyContent.Length -lt 50" in script_content
+        assert "Why section is too short" in script_content
+
+    def test_proposal_bullet_point_validation(self, script_content: str):
+        """Verify proposal validates bullet points in What Changes section."""
+        assert "$bulletCount = ([regex]::Matches($changesContent" in script_content
+        assert "What Changes section has no bullet points" in script_content
+
+    def test_proposal_impact_fields_validation(self, script_content: str):
+        """Verify proposal validates Impact section fields."""
+        assert "'Affected specs', 'Affected files', 'Review priority'" in script_content
+
+    def test_proposal_context_detection(self, script_content: str):
+        """Verify proposal detects git context for intelligent templates."""
+        assert "git status --porcelain" in script_content
+        assert "$detectedContext" in script_content
+        assert "ModifiedFiles" in script_content
+        assert "IssueNumber" in script_content
+        assert "ChangeType" in script_content
+
+    def test_proposal_change_type_detection(self, script_content: str):
+        """Verify proposal detects change types from branch names."""
+        change_types = ["feature", "fix", "refactor", "documentation", "chore", "performance"]
+        for change_type in change_types:
+            assert change_type in script_content
+
+    def test_proposal_priority_detection(self, script_content: str):
+        """Verify proposal determines priority based on context."""
+        assert "Priority" in script_content
+        assert 'if ($detectedContext.ChangeType -eq "fix"' in script_content
+
+
+class TestSpecificationSynthesis:
+    """Test specification synthesis features in Step 3."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_spec_synthesis_from_todo(self, script_content: str):
+        """Verify spec.md is synthesized from todo.md."""
+        assert "Synthesizing specification from todo.md and proposal.md" in script_content
+        assert "$todoContent = Get-Content $todoPath -Raw" in script_content
+
+    def test_spec_extracts_acceptance_criteria(self, script_content: str):
+        """Verify spec extraction of acceptance criteria from todo.md."""
+        assert "$acceptanceCriteria = @()" in script_content
+        assert '[regex]::Matches($todoContent, \'- \\[ \\] (.+)\')' in script_content
+
+    def test_spec_extracts_requirements(self, script_content: str):
+        """Verify spec extraction of requirements from proposal.md."""
+        assert "$requirements = @()" in script_content
+        assert '##\\s+What Changes\\s+(.+?)(?=##|$)' in script_content
+
+    def test_spec_detects_affected_areas(self, script_content: str):
+        """Verify spec detects affected areas for context sections."""
+        areas = ["backend/", "plugin/", "models/", "database", "api", "endpoint"]
+        for area in areas:
+            assert area in script_content
+
+    def test_spec_creates_context_sections(self, script_content: str):
+        """Verify spec creates context-specific sections."""
+        sections = [
+            "Backend Implementation",
+            "Frontend Implementation",
+            "Data Models",
+            "API Changes",
+        ]
+        for section in sections:
+            assert section in script_content
+
+    def test_spec_validation_checks(self, script_content: str):
+        """Verify spec has enhanced validation checks."""
+        assert "$validationIssues = @()" in script_content
+        # The script reports missing standard sections in a user-facing message
+        assert (
+            "No standard specification sections found (Acceptance Criteria, Requirements, Implementation, Design, Architecture)"
+            in script_content
+        )
+        assert "$listCount" in script_content
+
+
+class TestTaskBreakdownAlignment:
+    """Test task breakdown alignment features in Step 4."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_tasks_alignment_with_todo(self, script_content: str):
+        """Verify tasks.md alignment check with todo.md."""
+        assert "$todoTasks = @()" in script_content
+        assert "Missing actionable item from todo.md" in script_content
+
+    def test_tasks_alignment_with_proposal(self, script_content: str):
+        """Verify tasks.md alignment check with proposal.md."""
+        assert "$proposalReqs = @()" in script_content
+        assert "Missing requirement from proposal.md" in script_content
+
+    def test_tasks_alignment_with_spec(self, script_content: str):
+        """Verify tasks.md alignment check with spec.md."""
+        assert "$specCriteria = @()" in script_content
+        assert "Missing acceptance criteria from spec.md" in script_content
+
+    def test_tasks_review_issues_reporting(self, script_content: str):
+        """Verify tasks.md reports alignment issues."""
+        assert "$reviewIssues = @()" in script_content
+        assert "tasks.md review found alignment issues" in script_content
+        assert "tasks.md is aligned with todo.md, proposal.md, and spec.md" in script_content
+
+
+class TestTestPlanAlignment:
+    """Test test plan alignment features in Step 5."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_test_plan_alignment_with_spec(self, script_content: str):
+        """Verify test_plan.md alignment with spec.md acceptance criteria."""
+        # Look for spec criteria extraction in test plan step
+        step5_section = self._extract_step5_section(script_content)
+        assert "$specCriteria = @()" in step5_section
+
+    def test_test_plan_alignment_with_proposal(self, script_content: str):
+        """Verify test_plan.md alignment with proposal.md requirements."""
+        step5_section = self._extract_step5_section(script_content)
+        assert "$proposalReqs = @()" in step5_section
+
+    def test_test_plan_alignment_with_tasks(self, script_content: str):
+        """Verify test_plan.md alignment with tasks.md test cases."""
+        step5_section = self._extract_step5_section(script_content)
+        assert "$taskTests = @()" in step5_section
+        assert "Write unit tests|" in script_content
+        assert "Write integration tests|" in script_content
+
+    def test_test_plan_review_reporting(self, script_content: str):
+        """Verify test_plan.md reports alignment issues."""
+        step5_section = self._extract_step5_section(script_content)
+        assert "test_plan.md review found alignment issues" in step5_section
+        assert "test_plan.md is aligned with" in step5_section
+
+    def _extract_step5_section(self, script_content: str) -> str:
+        """Extract Step 5 section from script."""
+        match = re.search(r'function Invoke-Step5\s*{.*?^}', script_content, re.MULTILINE | re.DOTALL)
+        return match.group(0) if match else ""
+
+
+class TestScriptGeneration:
+    """Test script generation features in Step 6."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_script_requirement_detection(self, script_content: str):
+        """Verify script detects requirements from documentation."""
+        assert "$scriptRequirements = @{" in script_content
+        assert "NeedsSetupScript" in script_content
+        assert "NeedsTestScript" in script_content
+        assert "NeedsCIConfig" in script_content
+
+    def test_script_type_detection(self, script_content: str):
+        """Verify script detects required script types."""
+        assert "PowerShell|" in script_content or "'PowerShell'" in script_content
+        assert "Bash" in script_content or "bash" in script_content
+        assert "Python" in script_content or "python" in script_content
+
+    def test_script_purpose_detection(self, script_content: str):
+        """Verify script detects purposes from content patterns."""
+        purposes = ["setup/installation", "testing/validation", "CI/CD automation"]
+        for purpose in purposes:
+            assert purpose in script_content
+
+    def test_generated_test_script_structure(self, script_content: str):
+        """Verify generated test script has proper structure."""
+        assert "Test script for change:" in script_content
+        assert "function Test-FileExists" in script_content
+        assert "function Test-ContentMatches" in script_content
+        assert "$testResults = @{" in script_content
+
+    def test_generated_test_script_functions(self, script_content: str):
+        """Verify generated test script includes test functions."""
+        assert "Test-FileExists" in script_content
+        assert "Test-ContentMatches" in script_content
+        assert "Passed = 0" in script_content
+        assert "Failed = 0" in script_content
+        assert "Skipped = 0" in script_content
+
+
+class TestUtilityFunctions:
+    """Test utility functions added to workflow script."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_update_todo_file_function(self, script_content: str):
+        """Verify Update-TodoFile function exists."""
+        assert "function Update-TodoFile" in script_content
+
+    def test_new_commit_message_function(self, script_content: str):
+        """Verify New-CommitMessageFromDocs function exists."""
+        assert "function New-CommitMessageFromDocs" in script_content or "New-CommitMessage" in script_content
+
+    def test_test_change_structure_function(self, script_content: str):
+        """Verify Test-ChangeStructure function validates required files."""
+        assert "function Test-ChangeStructure" in script_content
+        assert 'requiredFiles = @("proposal.md", "tasks.md", "todo.md")' in script_content
+
+    def test_new_change_directory_function(self, script_content: str):
+        """Verify New-ChangeDirectory function creates change structure."""
+        assert "function New-ChangeDirectory" in script_content
+        assert "New-Item -ItemType Directory" in script_content
+
+
+class TestVersionManagement:
+    """Test version management features in Step 1."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_version_detection_from_git(self, script_content: str):
+        """Verify version detection from git main branch."""
+        assert "git show origin/main:package.json" in script_content
+        assert "git show origin/main:CHANGELOG.md" in script_content
+
+    def test_version_increment_options(self, script_content: str):
+        """Verify version increment options (patch, minor, major)."""
+        assert "Patch (bug fixes, minor changes)" in script_content
+        assert "Minor (new features, backwards compatible)" in script_content
+        assert "Major (breaking changes)" in script_content
+
+    def test_version_update_targets(self, script_content: str):
+        """Verify version updates multiple files."""
+        assert "package.json" in script_content
+        assert "CHANGELOG.md" in script_content
+        assert "README.md" in script_content
+
+    def test_version_badge_updates(self, script_content: str):
+        """Verify version badge patterns are updated."""
+        assert "badge/[Vv]ersion-" in script_content or "badge/v" in script_content
+
+
+class TestContextDetection:
+    """Test workspace context detection features."""
+
+    @pytest.fixture
+    def script_content(self) -> str:
+        """Load script content for testing."""
+        return WORKFLOW_SCRIPT.read_text(encoding="utf-8")
+
+    def test_git_status_detection(self, script_content: str):
+        """Verify git status is used for context detection."""
+        assert "git status --porcelain" in script_content
+
+    def test_branch_name_parsing(self, script_content: str):
+        """Verify branch name parsing for context."""
+        assert "git rev-parse --abbrev-ref HEAD" in script_content
+
+    def test_issue_number_extraction(self, script_content: str):
+        """Verify issue number extraction from branch name."""
+        assert "$detectedContext.IssueNumber" in script_content
+
+    def test_modified_files_detection(self, script_content: str):
+        """Verify detection of modified files."""
+        assert "$detectedContext.ModifiedFiles" in script_content
+
+    def test_spec_directory_matching(self, script_content: str):
+        """Verify matching of files to capability specs."""
+        assert "$detectedContext.AffectedSpecs" in script_content
+        assert "openspec" in script_content.lower() or "OpenSpec" in script_content

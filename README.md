@@ -1,6 +1,6 @@
 # Obsidian AI Assistant
 
-> **Version:** 0.1.8 (Unreleased)
+> **Version:** 0.1.9 (Unreleased)
 
 [![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
@@ -926,7 +926,7 @@ This project builds on excellent open-source tools:
 ---
 
 **Status**: Production Ready ✅  
-**Version**: 0.1.3  
+**Version**: 0.1.12  
 **Last Updated**: October 18, 2025  
 **Test Coverage**: 1131 passed, 20 skipped  
 **Backend Coverage**: ~65% (reporting only; threshold temporarily not enforced)
