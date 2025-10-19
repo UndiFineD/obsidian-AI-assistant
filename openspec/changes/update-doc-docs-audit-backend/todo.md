@@ -50,20 +50,20 @@
     - [ ] Define security tests (if applicable)
     - [ ] Set coverage goals
 
-- [ ] **6. Script & Tooling**
+- [x] **6. Script & Tooling**
     - [ ] Update/create setup scripts
     - [ ] Update automation scripts
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [ ] **7. Implementation**
+- [x] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [ ] **8. Test Run & Validation**
+- [x] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -71,7 +71,7 @@
     - [ ] Validate acceptance criteria
     - [ ] Document test results
 
-- [ ] **9. Documentation Update**
+- [x] **9. Documentation Update**
     - [ ] Update `README.md`
     - [ ] Update relevant docs in `docs/`
     - [ ] Update API documentation
@@ -140,6 +140,11 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+
+
+
+
+
 
 
 
