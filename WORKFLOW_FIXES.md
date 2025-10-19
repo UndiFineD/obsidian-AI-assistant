@@ -12,7 +12,8 @@
 - Line 1733: `git commit -m $archiveMsg` → `git commit -m "$archiveMsg"`
 
 ### 2. Step 12 (PR Creation) Receiving Invalid Path
-**Problem**: After Step 11 archives the change (moving from `openspec/changes/` to `openspec/archive/`), Step 12 was called with the old path that no longer exists. This caused:
+**Problem**: After Step 11 archives the change (moving from `openspec/changes/` to `openspec/archive/`),
+Step 12 was called with the old path that no longer exists. This caused:
 - Unable to update todo.md
 - Incorrect PR URL generation
 

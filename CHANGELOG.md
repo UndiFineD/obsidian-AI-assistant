@@ -7,9 +7,9 @@
 - **OpenSpec Workflow Automation**: Complete 13-step workflow automation system (`scripts/workflow.ps1`)
 - **Batch Processing Tools**: Bulk change processor (`scripts/batch_process_changes.ps1`), initialization utilities (`scripts/bulk_init_todos.ps1`, `scripts/bulk_complete_step1.ps1`)
 - **Documentation Governance**: Archived 43 documentation governance changes under `project-documentation` capability
-  - 2 manual changes: `update-doc-docs-tasks`, `update-doc-agents`
-  - 40 batch-processed changes covering comprehensive documentation coverage
-  - 1 additional change: `update-doc-docs-audit-backend`
+    - 2 manual changes: `update-doc-docs-tasks`, `update-doc-agents`
+    - 40 batch-processed changes covering comprehensive documentation coverage
+    - 1 additional change: `update-doc-docs-audit-backend`
 - **Auto-Commit Generation**: Parses proposal.md metadata to generate structured commit messages
 - **Test Coverage**: 70 passing tests validating workflow compliance and functionality
 - **Quality Assurance**: Step 1 HARD REQUIREMENT enforcement for version bumps
@@ -51,9 +51,9 @@ Generated from OpenSpec change proposals.
 ## v0.1.2 (2025-10-18)
 - **Version Management**: Bumped version to 0.1.2 across package.json and README.md
 - **Pre-Commit Validation**: Added markdown TODO validator for OpenSpec files
-  - PowerShell pre-commit hook at `.githooks/pre-commit`
-  - Python validator script at `scripts/check_markdown_todos.py`
-  - Setup instructions in `.githooks/README.md`
+    - PowerShell pre-commit hook at `.githooks/pre-commit`
+    - Python validator script at `scripts/check_markdown_todos.py`
+    - Setup instructions in `.githooks/README.md`
 - **Documentation**: Added `docs/PR_Terminology.md` clarifying "Pull Request (PR)" terminology
 - **Terminology**: Updated multiple files to explicitly use "Pull Request (PR)" for contributor clarity
 - **OpenSpec Workflow**: Added Stage 12 "Archive Completed Change" to PROJECT_WORKFLOW.md

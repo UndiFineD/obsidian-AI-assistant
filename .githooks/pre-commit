@@ -2,7 +2,7 @@
 # Pre-commit hook: run a simple markdown TODO check for OpenSpec TODO files
 # Ensures checkboxes and headings exist and no trailing whitespace.
 
-$ErrorActionPreference = 'Stop'
+$syntaxErrorActionPreference = 'Stop'
 
 function Write-ErrorAndExit($msg) {
   Write-Host "[pre-commit] $msg" -ForegroundColor Red
