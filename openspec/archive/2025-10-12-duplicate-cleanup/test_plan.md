@@ -1,19 +1,51 @@
-# Test Plan: 2025 10 12 duplicate cleanup
+
+# Test Plan: 2025-10-12 Duplicate Cleanup
 
 ## Test Strategy
 
+### Actionable Items from TODO
+- [ ] Create new release branch (e.g., `release-x.y.z`)
+- [ ] Update version in `CHANGELOG.md`
+- [ ] Update version in `README.md`
+- [ ] Update version in `package.json`
+- [ ] Document version increment
+- [ ] Create `proposal.md`
+- [ ] Define problem statement
+- [ ] Document rationale and alternatives
+- [ ] Impact analysis completed
+- [ ] Create `spec.md`
+- [ ] Define acceptance criteria
+- [ ] Document data models (if applicable)
+- [ ] Define API changes (if applicable)
+- [ ] Security/privacy review
+- [ ] Performance requirements defined
+- [ ] Create `tasks.md`
+- [ ] Break down into actionable tasks
+- [ ] Define task dependencies
+- [ ] Estimate effort for each task
+- [ ] Assign tasks (if team project)
+- [ ] Create `test_plan.md`
+- [ ] Define unit tests
+- [ ] Define integration tests
+- [ ] Define performance tests (if applicable)
+- [ ] Define security tests (if applicable)
+- [ ] Set coverage goals
+
 ### Unit Tests
-- [List unit test requirements]
-- Coverage goal: XX%
+- Validate removal of duplicate change directories
+- Ensure archiving of completed changes works
+- Confirm version updates in documentation files
+- Coverage goal: 90%
 
 ### Integration Tests
-- [List integration test scenarios]
+- End-to-end workflow execution for change management
+- Validate documentation updates propagate correctly
 
 ### Performance Tests
-- [List performance benchmarks, if applicable]
+- Ensure workflow script completes within 10s for typical change
 
 ### Security Tests
-- [List security validation, if applicable]
+- Validate no sensitive information is exposed in documentation or scripts
 
 ## Test Execution
 
@@ -30,6 +62,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
 
 ## Acceptance Criteria
 
+- [ ] All actionable items from todo.md are completed
 - [ ] All tests pass
 - [ ] Coverage meets or exceeds goal
 - [ ] No new security vulnerabilities

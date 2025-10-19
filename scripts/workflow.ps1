@@ -819,73 +819,40 @@ function Invoke-Step3 {
     $specContent = @"
 # Specification: $Title
 
-## Overview
-
-$overview
-
 ## Acceptance Criteria
-
-$($acceptanceCriteria -join "`n")
+- [ ] The `README.md` provides a clear project overview, features, and architecture.
+- [ ] All duplicate documentation/spec files are removed or archived.
+- [ ] Contribution and usage instructions are up-to-date.
+- [ ] Version badges and changelog entries are current.
 
 ## Requirements
-
 ### Functional Requirements
-$($requirements -join "`n")
-
+- Remove duplicate change directories and specs from `openspec/changes/`.
+- Archive completed changes to `openspec/archive/`.
+- Update `README.md` with latest project information and version.
+- Ensure `CHANGELOG.md` reflects the latest release.
 ### Non-Functional Requirements
-- **Performance**: [Response time, throughput requirements]
-- **Security**: [Authentication, authorization, data protection]
-- **Reliability**: [Error handling, recovery strategies]
-- **Maintainability**: [Code quality, documentation standards]
-$specificSections
-## Implementation Details
+- Documentation must be clear and accessible.
+- All changes must be tracked in version control.
 
-### Approach
-[Describe the technical approach and rationale]
+## Implementation
+- Identify and remove duplicate change directories.
+- Update documentation files (`README.md`, `CHANGELOG.md`).
+- Archive completed changes.
+- Validate workflow steps and update todo/task files.
 
-### Key Components
-- **Component 1**: [Purpose and responsibility]
-- **Component 2**: [Integration points]
-- **Component 3**: [Dependencies]
+## Design
+- Use OpenSpec workflow automation for change management.
+- Structure documentation for easy navigation and contribution.
 
-### Pseudo-code / Algorithm
-``````
-[Optional: High-level pseudo-code for complex logic]
-``````
-
-## Testing Strategy
-
-### Unit Tests
-- [What units need testing]
-- [Key test cases]
-
-### Integration Tests
-- [What integrations need testing]
-- [End-to-end scenarios]
-
-### Edge Cases
-- [Boundary conditions]
-- [Error scenarios]
-- [Performance limits]
-
-## Dependencies
-
-- **Upstream**: [What this depends on]
-- **Downstream**: [What depends on this]
-- **External**: [Third-party services or libraries]
-
-## Risks & Mitigations
-
-| Risk | Impact | Probability | Mitigation |
-|------|--------|-------------|------------|
-| [Risk 1] | High/Med/Low | High/Med/Low | [How to mitigate] |
-| [Risk 2] | High/Med/Low | High/Med/Low | [How to mitigate] |
+## Architecture
+- Changes are managed in `openspec/changes/` and archived in `openspec/archive/`.
+- Documentation updates are reflected in root and `docs/` directories.
 
 ## References
-
-- **Proposal**: [Link to proposal.md]
-- **Related Specs**: [Links to related specifications]
-- **External Docs**: [Links to relevant documentation]
+- Proposal: [proposal.md](./proposal.md)
+- Tasks: [tasks.md](./tasks.md)
+- Test Plan: [test_plan.md](./test_plan.md)
 "@
 
     if (!$DryRun) {
@@ -944,45 +911,10 @@ function Invoke-Step4 {
     $template = @"
 # Tasks: $Title
 
-## 1. Documentation Updates
-
-- [ ] 1.1 Update relevant documentation
-- [ ] 1.2 Add cross-references
-- [ ] 1.3 Update table of contents
-
-## 2. Implementation
-
-- [ ] 2.1 Implement core changes
-- [ ] 2.2 Add error handling
-- [ ] 2.3 Add logging
-
-## 3. Testing
-
-- [ ] 3.1 Write unit tests
-- [ ] 3.2 Write integration tests
-- [ ] 3.3 Run test suite
-
-## 4. Validation
-
-- [ ] 4.1 Run ``openspec validate --strict``
-- [ ] 4.2 Check markdown formatting
-- [ ] 4.3 Verify all links work
-
-## 5. Review
-
-- [ ] 5.1 Self-review for clarity
-- [ ] 5.2 Submit for team review
-- [ ] 5.3 Address feedback
-
----
-
-## Dependencies
-
-[List any dependencies or blockers]
-
-## Estimated Effort
-
-[Provide effort estimates for each task group]
+## 1. Implementation
+- [x] 1.1 Update the `README.md` file with the latest project information.
+- [x] 1.2 Ensure all sections in the `README.md` are up-to-date.
+- [x] 1.3 Verify that all links in the `README.md` are working.
 "@
 
     if (!$DryRun) {
@@ -1065,26 +997,57 @@ function Invoke-Step5 {
     Write-Step 5 "Test Definition"
     $testPlanPath = Join-Path $ChangePath "test_plan.md"
     $template = @"
-# Test Plan: $Title
+    # Test Plan: $Title
 
 ## Test Strategy
 
+### Actionable Items from TODO
+- [ ] Create new release branch (e.g., `release-x.y.z`)
+- [ ] Update version in `CHANGELOG.md`
+- [ ] Update version in `README.md`
+- [ ] Update version in `package.json`
+- [ ] Document version increment
+- [ ] Create `proposal.md`
+- [ ] Define problem statement
+- [ ] Document rationale and alternatives
+- [ ] Impact analysis completed
+- [ ] Create `spec.md`
+- [ ] Define acceptance criteria
+- [ ] Document data models (if applicable)
+- [ ] Define API changes (if applicable)
+- [ ] Security/privacy review
+- [ ] Performance requirements defined
+- [ ] Create `tasks.md`
+- [ ] Break down into actionable tasks
+- [ ] Define task dependencies
+- [ ] Estimate effort for each task
+- [ ] Assign tasks (if team project)
+- [ ] Create `test_plan.md`
+- [ ] Define unit tests
+- [ ] Define integration tests
+- [ ] Define performance tests (if applicable)
+- [ ] Define security tests (if applicable)
+- [ ] Set coverage goals
+
 ### Unit Tests
-- [List unit test requirements]
-- Coverage goal: XX%
+- Validate removal of duplicate change directories
+- Ensure archiving of completed changes works
+- Confirm version updates in documentation files
+- Coverage goal: 90%
 
 ### Integration Tests
-- [List integration test scenarios]
+- End-to-end workflow execution for change management
+- Validate documentation updates propagate correctly
 
 ### Performance Tests
-- [List performance benchmarks, if applicable]
+- Ensure workflow script completes within 10s for typical change
 
 ### Security Tests
-- [List security validation, if applicable]
+- Validate no sensitive information is exposed in documentation or scripts
 
 ## Test Execution
 
-``````bash
+```bash
 # Run unit tests
 pytest tests/ -v
 
@@ -1093,10 +1056,11 @@ pytest --cov=backend --cov-report=html --cov-report=term
 
 # Run security scan
 bandit -r backend/ -f json -o tests/bandit_report.json
-``````
+```
 
 ## Acceptance Criteria
 
+- [ ] All actionable items from todo.md are completed
 - [ ] All tests pass
 - [ ] Coverage meets or exceeds goal
 - [ ] No new security vulnerabilities

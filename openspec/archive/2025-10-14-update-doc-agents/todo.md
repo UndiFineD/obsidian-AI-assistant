@@ -1,7 +1,7 @@
-# TODO: 2025 10 12 duplicate cleanup
+# TODO: 2025 10 14 update doc agents
 
 ## Change Information
-- **Change ID**: `2025-10-12-duplicate-cleanup`
+- **Change ID**: `2025-10-14-update-doc-agents`
 - **Created**: 2025-10-19
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -85,7 +85,7 @@
     - [ ] Tag release (if applicable)
     - [ ] Push to origin
 
-- [x] **11. Create Pull Request (PR)**
+- [ ] **11. Create Pull Request (PR)**
     - [ ] Open PR on GitHub
     - [ ] Reference OpenSpec change in PR description
     - [ ] Link to proposal/spec/tasks
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/proposal.md`
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/spec.md`
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/tasks.md`
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/test_plan.md`
-- [ ] `openspec/changes/2025-10-12-duplicate-cleanup/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-agents/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
@@ -140,7 +140,6 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
-
 
 
 
