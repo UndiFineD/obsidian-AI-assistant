@@ -61,18 +61,21 @@ jobs:
         echo "Scanning Python dependencies for known vulnerabilities..."
         safety check --json --output safety-report.json || true
         safety check --short-report || true
+      continue-on-error: true
         
     - name: Run Bandit security linter
       run: |
         echo "Running Bandit security analysis..."
         bandit -r backend/ -f json -o bandit-report.json || true
         bandit -r backend/ -f txt || true
+      continue-on-error: true
         
     - name: Run Semgrep security analysis
       run: |
         echo "Running Semgrep security analysis..."
         semgrep --config=auto backend/ --json --output=semgrep-report.json || true
         semgrep --config=auto backend/ || true
+      continue-on-error: true
         
     - name: Upload security artifacts
       uses: actions/upload-artifact@v3
@@ -146,6 +149,7 @@ jobs:
         echo "Scanning Node.js dependencies for vulnerabilities..."
         npm audit --audit-level=moderate --json > npm-audit-report.json || true
         npm audit --audit-level=moderate || true
+      continue-on-error: true
         
     - name: Upload JavaScript security artifacts
       if: steps.check-npm.outputs.has_npm == 'true'

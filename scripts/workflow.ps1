@@ -364,6 +364,22 @@ function Invoke-Step1 {
             # Store version in script-level variable for use in later steps
             $script:NewVersion = $newVersion
             Write-Info "New version $newVersion stored for PR creation in Step 12"
+
+            # Create and switch to versioned branch (release-<newVersion>)
+            $versionBranch = "release-$newVersion"
+            $currentBranch = git rev-parse --abbrev-ref HEAD
+            if ($currentBranch -ne $versionBranch) {
+                $branchExists = git branch --list $versionBranch
+                if ($branchExists) {
+                    Write-Info "Branch $versionBranch already exists. Checking out..."
+                    git checkout $versionBranch
+                } else {
+                    Write-Info "Creating and switching to branch $versionBranch..."
+                    git checkout -b $versionBranch
+                }
+            }
+            $script:VersionBranch = $versionBranch
+            Write-Info "Using branch $versionBranch for all subsequent steps."
             Write-Info ""
             Write-Success "Version increment complete!"
             Write-Success "  Version: $currentVersion → $newVersion"
@@ -1793,10 +1809,10 @@ $($issue.body)
         # Commit
         git commit -m "$commitMsg"
         
-        # Push
-        $branch = git rev-parse --abbrev-ref HEAD
-        Write-Info "Pushing to branch: $branch"
-        git push origin $branch
+    # Push
+    $branch = if ($script:VersionBranch) { $script:VersionBranch } else { git rev-parse --abbrev-ref HEAD }
+    Write-Info "Pushing to branch: $branch"
+    git push origin $branch
         
         Write-Success "Git operations completed"
         if (Test-Path $ChangePath) {
@@ -1863,7 +1879,7 @@ function Invoke-Step12 {
         }
     }
     
-    $branch = git rev-parse --abbrev-ref HEAD
+    $branch = if ($script:VersionBranch) { $script:VersionBranch } else { git rev-parse --abbrev-ref HEAD }
     Write-Info "Creating Pull Request for change: $changeId"
     Write-Info "Current branch: $branch"
     Write-Info ""
