@@ -615,13 +615,72 @@ function Invoke-Step7 {
     Write-Info ""
     Write-Info "Verify your implementation matches the specification and tasks."
     
-    $response = Read-Host "Have you completed the implementation? (y/n)"
+    # Check if tasks.md exists and validate completion
+    $tasksPath = Join-Path $ChangePath "tasks.md"
+    if (Test-Path $tasksPath) {
+        $tasksContent = Get-Content $tasksPath -Raw
+        
+        # Count total tasks and completed tasks
+        $totalTasks = ([regex]::Matches($tasksContent, '- \[[ x]\]')).Count
+        $completedTasks = ([regex]::Matches($tasksContent, '- \[x\]')).Count
+        
+        if ($totalTasks -gt 0) {
+            $percentComplete = [math]::Round(($completedTasks / $totalTasks) * 100)
+            Write-Info "Tasks progress: $completedTasks/$totalTasks completed ($percentComplete%)"
+            
+            if ($completedTasks -eq 0) {
+                Write-Warning "No tasks marked as complete in tasks.md"
+                Write-Info "Consider marking completed implementation tasks before proceeding"
+            }
+        }
+    }
+    
+    # Check for uncommitted changes
+    $gitStatus = git status --porcelain 2>&1
+    if ($LASTEXITCODE -eq 0 -and $gitStatus) {
+        $changedFiles = ($gitStatus | Measure-Object).Count
+        Write-Info "Detected $changedFiles uncommitted file(s)"
+        
+        # Parse affected files from proposal
+        $proposalPath = Join-Path $ChangePath "proposal.md"
+        if (Test-Path $proposalPath) {
+            $proposalContent = Get-Content $proposalPath -Raw
+            
+            # Look for affected files in Impact section
+            if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
+                $affectedFiles = $matches[1]
+                Write-Info "Expected affected files: $affectedFiles"
+            }
+            if ($proposalContent -match '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)') {
+                $affectedCode = $matches[1]
+                Write-Info "Expected affected code: $affectedCode"
+            }
+        }
+    } else {
+        Write-Warning "No uncommitted changes detected"
+        Write-Info "If you've already committed changes, you can proceed"
+        Write-Info "Otherwise, ensure implementation changes are made"
+    }
+    
+    Write-Info ""
+    $response = Read-Host "Have you completed the implementation? (y/n/skip)"
+    
     if ($response -eq 'y') {
         Write-Success "Implementation completed"
         if (!$DryRun) {
             Update-TodoFile -ChangePath $ChangePath -CompletedStep 7
         }
         return $true
+    } elseif ($response -eq 'skip') {
+        Write-Warning "Skipping implementation validation"
+        Write-Info "Note: This may cause issues in later steps (testing, git operations)"
+        $confirm = Read-Host "Are you sure you want to skip? (yes/no)"
+        if ($confirm -eq 'yes') {
+            if (!$DryRun) {
+                Update-TodoFile -ChangePath $ChangePath -CompletedStep 7
+            }
+            return $true
+        }
     }
     
     Write-Error "Implementation not complete. Continue implementation before proceeding."
