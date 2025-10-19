@@ -1312,7 +1312,7 @@ function Test-FileExists {
             Result = "PASS"
             Message = "File exists:  $FilePath"
         }
-        return  $true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
         Write-Host "  Expected:  $FilePath" -ForegroundColor Yellow
@@ -1322,7 +1322,7 @@ function Test-FileExists {
             Result = "FAIL"
             Message = "File not found:  $FilePath"
         }
-        return  $false
+        return $false
     }
 }
 
@@ -1339,7 +1339,7 @@ function Test-ContentMatches {
         Write-Host " [SKIP]" -ForegroundColor Yellow
         Write-Host "  File not found:  $FilePath" -ForegroundColor Yellow
         $testResults.Skipped++
-        return  $false
+        return $false
     }
     
     $content = Get-Content  $FilePath -Raw
@@ -1351,7 +1351,7 @@ function Test-ContentMatches {
             Result = "PASS"
             Message = "Pattern found in  $FilePath"
         }
-        return  $true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
         Write-Host "  Pattern not found:  $Pattern" -ForegroundColor Yellow
@@ -1361,7 +1361,7 @@ function Test-ContentMatches {
             Result = "FAIL"
             Message = "Pattern not found in  $FilePath"
         }
-        return  $false
+        return $false
     }
 }
 
@@ -1407,10 +1407,10 @@ Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Test Summary" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Passed:   $( $testResults.Passed)" -ForegroundColor Green
-Write-Host "Failed:   $( $testResults.Failed)" -ForegroundColor Red
-Write-Host "Skipped:  $( $testResults.Skipped)" -ForegroundColor Yellow
-Write-Host "Total:    $( $testResults.Passed +  $testResults.Failed +  $testResults.Skipped)"
+Write-Host "Passed:  $( $testResults.Passed)" -ForegroundColor Green
+Write-Host "Failed:  $( $testResults.Failed)" -ForegroundColor Red
+Write-Host "Skipped: $( $testResults.Skipped)" -ForegroundColor Yellow
+Write-Host "Total:   $( $testResults.Passed +  $testResults.Failed +  $testResults.Skipped)"
 Write-Host ""
 
 if ( $testResults.Failed -gt 0) {
@@ -1692,7 +1692,7 @@ function Invoke-Step10 {
         Write-Info "Staging changes..."
         git add .
         # Commit
-        git commit -m $autoMsg
+        git commit -m "$autoMsg"
         # Push
         $branch = git rev-parse --abbrev-ref HEAD
         Write-Info "Pushing to branch: $branch"
@@ -1730,7 +1730,7 @@ function Invoke-Step11 {
         git add .
         $doc = Get-ChangeDocInfo -ChangePath $archivePath
         $archiveMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc -Archive
-        git commit -m $archiveMsg
+        git commit -m "$archiveMsg"
         $branch = git rev-parse --abbrev-ref HEAD
         git push origin $branch
         Write-Success "Archive operation completed and pushed"
@@ -1748,6 +1748,18 @@ function Invoke-Step12 {
     param([string]$ChangePath)
     Write-Step 12 "Create Pull Request (PR)"
     $changeId = Split-Path $ChangePath -Leaf
+    
+    # Check if change has been archived (Step 11 was executed)
+    $actualPath = $ChangePath
+    if (!(Test-Path $ChangePath)) {
+        # Change was archived, update path to archive location
+        $archivePath = Join-Path $ArchiveDir $changeId
+        if (Test-Path $archivePath) {
+            $actualPath = $archivePath
+            Write-Info "Change has been archived to: openspec/archive/$changeId/"
+        }
+    }
+    
     $branch = git rev-parse --abbrev-ref HEAD
     Write-Info "Creating Pull Request for change: $changeId"
     Write-Info "Current branch: $branch"
@@ -1758,11 +1770,11 @@ function Invoke-Step12 {
     Write-Info "  - All CI checks should pass"
     Write-Info "  - Request appropriate reviewers"
     Write-Warning "This step requires manual action on GitHub"
-    Write-Info "Visit: https://github.com/UndiFineD/obsidian-AI-assistant/compare/$branch?expand=1"
+    Write-Info "Visit: https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
     Read-Host "Press Enter when PR has been created" | Out-Null
     Write-Success "Pull Request step completed"
     if (!$DryRun) {
-        Update-TodoFile -ChangePath $ChangePath -CompletedStep 12
+        Update-TodoFile -ChangePath $actualPath -CompletedStep 12
     }
     return $true
 }
