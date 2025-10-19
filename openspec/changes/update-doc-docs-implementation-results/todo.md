@@ -42,7 +42,7 @@
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [ ] **5. Test Definition**
+- [x] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -140,5 +140,6 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+
 
 
