@@ -343,7 +343,7 @@ jobs:
           
           for report in reports/*.json reports/*.txt; do
             if [ -f "$report" ]; then
-              echo "- \`$(basename "$report")\`" >> DEPENDENCY_REPORT.md
+              echo "- \ $(basename "$report")\`" >> DEPENDENCY_REPORT.md
             fi
           done
       

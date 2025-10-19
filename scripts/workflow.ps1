@@ -128,13 +128,11 @@ function Show-Changes {
         Write-Warning "No changes directory found at $ChangesDir"
         return
     }
-
     $changes = Get-ChildItem -Path $ChangesDir -Directory
     if ($changes.Count -eq 0) {
         Write-Info "No active changes found."
         return
     }
-
     foreach ($change in $changes) {
         $todoPath = Join-Path $change.FullName "todo.md"
         $proposalPath = Join-Path $change.FullName "proposal.md"
@@ -145,13 +143,11 @@ function Show-Changes {
             $totalSteps = ([regex]::Matches($todoContent, '\[[ x]\]')).Count
             Write-Host "   Progress: $completedSteps/$totalSteps steps" -ForegroundColor Cyan
         }
-        if (Test-Path $proposalPath) {
-            $proposalContent = Get-Content $proposalPath -Raw
-            if ($proposalContent -match '##\s+Why\s+(.+?)##') {
-                $why = $matches[1].Trim() -replace '\r?\n', ' '
-                if ($why.Length -gt 80) { $why = $why.Substring(0, 77) + "..." }
-                Write-Host "   Why: $why" -ForegroundColor Gray
-            }
+        $proposalContent = Get-Content $proposalPath -Raw
+        if ($proposalContent -match '##\s+Why\s+(.+?)##') {
+            $why = $matches[1].Trim() -replace '\r?\n', ' '
+            if ($why.Length -gt 80) { $why = $why.Substring(0, 77) + "..." }
+            Write-Host "   Why: $why" -ForegroundColor Gray
         }
     }
 }
@@ -352,7 +348,7 @@ function Invoke-Step1 {
 - Version increment to $newVersion
 
 "@
-                $changelogContent = $changelogContent -replace '(##\s*\[?Unreleased\]?.*?\r?\n)', "`$1`r`n$newEntry"
+                $changelogContent = $changelogContent -replace '(##\s*\[?Unreleased\]?.*?\r?\n)', " $1`r`n$newEntry"
             } else {
                 # If no Unreleased section, add at the top after the header
                 $newEntry = @"
@@ -363,7 +359,7 @@ function Invoke-Step1 {
 - Version increment to $newVersion
 
 "@
-                $changelogContent = $changelogContent -replace '(#\s*Change\s*Log.*?\r?\n)', "`$1$newEntry"
+                $changelogContent = $changelogContent -replace '(#\s*Change\s*Log.*?\r?\n)', " $1$newEntry"
             }
             
             Set-Content -Path $changelogPath -Value $changelogContent -Encoding UTF8 -NoNewline
@@ -378,10 +374,10 @@ function Invoke-Step1 {
             $readmeContent = Get-Content $readmePath -Raw
             $originalReadme = $readmeContent
             # Update version badges (common patterns)
-            $readmeContent = $readmeContent -replace '(badge/[Vv]ersion-)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(badge/v)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(\*\*Version\*\*:\s*)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(Version:\s*)[0-9.]+', "`${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(badge/[Vv]ersion-)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(badge/v)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(\*\*Version\*\*:\s*)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(Version:\s*)[0-9.]+', " ${1}$newVersion"
             if ($readmeContent -ne $originalReadme) {
                 Set-Content -Path $readmePath -Value $readmeContent -Encoding UTF8 -NoNewline
                 $updatedFiles += "README.md"
@@ -805,10 +801,14 @@ function Invoke-Step3 {
         # Detect affected areas for context sections
         if ($proposalContent -match 'Affected files\*\*: (.+)') {
             $affectedFiles = $matches[1]
-            if ($affectedFiles -match 'backend/|\.py$') { $specificSections += "\n## Backend Implementation\n- Python modules affected: $affectedFiles" }
-            if ($affectedFiles -match 'plugin/|\.js$|\.jsx$|\.ts$|\.tsx$') { $specificSections += "\n## Frontend Implementation\n- JS/TS modules affected: $affectedFiles" }
-            if ($affectedFiles -match 'models/|database|db|\.sql$') { $specificSections += "\n## Data Models\n- DB/schema affected: $affectedFiles" }
-            if ($affectedFiles -match 'api|endpoint|route') { $specificSections += "\n## API Changes\n- Endpoints affected: $affectedFiles" }
+            if ($affectedFiles -match 'backend/|\.py$') { 
+                $specificSections += "\n## Backend Implementation\n- Python modules affected: $affectedFiles" }
+            if ($affectedFiles -match 'plugin/|\.js$|\.jsx$|\.ts$|\.tsx$') { 
+                $specificSections += "\n## Frontend Implementation\n- JS/TS modules affected: $affectedFiles" }
+            if ($affectedFiles -match 'models/|database|db|\.sql$') { 
+                $specificSections += "\n## Data Models\n- DB/schema affected: $affectedFiles" }
+            if ($affectedFiles -match 'api|endpoint|route') { 
+                $specificSections += "\n## API Changes\n- Endpoints affected: $affectedFiles" }
         }
     }
     if ($requirements.Count -eq 0) {
@@ -1132,7 +1132,8 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for test cases from tasks.md
         $taskTests = @()
         if ($tasksContent) {
-            $testMatches = [regex]::Matches($tasksContent, '- \[ \] ([\d\.]+ Write unit tests|[\d\.]+ Write integration tests|[\d\.]+ Run test suite)')
+            $testMatches = [regex]::Matches(
+                $tasksContent, '- \[ \] ([\d\.]+ Write unit tests|[\d\.]+ Write integration tests|[\d\.]+ Run test suite)')
             foreach ($tm in $testMatches) { $taskTests += $tm.Groups[1].Value.Trim() }
         }
         if ($taskTests.Count -gt 0) {
@@ -1167,7 +1168,7 @@ function Invoke-Step6 {
     Write-Info "Analyzing documentation for script requirements..."
     # Parse proposal and specs for script requirements
     $proposalPath = Join-Path $ChangePath "proposal.md"
-        $specPath = Join-Path $ChangePath "spec.md"
+    $specPath = Join-Path $ChangePath "spec.md"
     $tasksPath = Join-Path $ChangePath "tasks.md"
     $scriptRequirements = @{
         NeedsSetupScript = $false
@@ -1259,105 +1260,108 @@ function Invoke-Step6 {
     
     if (!(Test-Path $testScriptPath) -and !$DryRun) {
         Write-Info "Generating test script: test_script.ps1"
-        
+
         $testScriptContent = @"
-<#
-.SYNOPSIS
-    Test script for change: $changeId
+        <#
+        .SYNOPSIS
+            Test script for change: $changeId
 
-.DESCRIPTION
-    Automated test script generated from OpenSpec workflow documentation.
-    Tests the implementation of the changes defined in proposal.md and spec.md.
+        .DESCRIPTION
+            Automated test script generated from OpenSpec workflow documentation.
+            Tests the implementation of the changes defined in proposal.md and spec.md.
 
-.NOTES
-    Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-    Change: $changeId
-#>
+        .NOTES
+            Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+            Change: $changeId
+        #>
 
-[CmdletBinding()]
-param(
-    [switch]`$Verbose
-)
+        [CmdletBinding()]
+            param(
+                [switch]$Verbose
+            )
+        "@
 
-`$ErrorActionPreference = "Stop"
-`$ChangeRoot = Split-Path -Parent `$PSScriptRoot
-`$ProjectRoot = Split-Path -Parent `$ChangeRoot
+        $ErrorActionPreference = "Stop"
+        $ChangeRoot = Split-Path -Parent $PSScriptRoot
+        $ProjectRoot = Split-Path -Parent $ChangeRoot
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Test Script: $changeId" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Test Script: $changeId" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
 
-`$testResults = @{
-    Passed = 0
-    Failed = 0
-    Skipped = 0
-    Tests = @()
+        $testResults = @{
+            Passed = 0
+            Failed = 0
+            Skipped = 0
+            Tests = @()
+        
+    }
 }
 
 function Test-FileExists {
-    param([string]`$FilePath, [string]`$Description)
+    param([string] $FilePath, [string] $Description)
     
-    Write-Host "Testing: `$Description" -NoNewline
+    Write-Host "Testing:  $Description" -NoNewline
     
-    if (Test-Path `$FilePath) {
+    if (Test-Path  $FilePath) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "File exists: `$FilePath"
+            Message = "File exists:  $FilePath"
         }
-        return `$true
+        return  $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Expected: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Expected:  $FilePath" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "File not found: `$FilePath"
+            Message = "File not found:  $FilePath"
         }
-        return `$false
+        return  $false
     }
 }
 
 function Test-ContentMatches {
     param(
-        [string]`$FilePath,
-        [string]`$Pattern,
-        [string]`$Description
+        [string] $FilePath,
+        [string] $Pattern,
+        [string] $Description
     )
     
-    Write-Host "Testing: `$Description" -NoNewline
+    Write-Host "Testing:  $Description" -NoNewline
     
-    if (!(Test-Path `$FilePath)) {
+    if (!(Test-Path  $FilePath)) {
         Write-Host " [SKIP]" -ForegroundColor Yellow
-        Write-Host "  File not found: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Skipped++
-        return `$false
+        Write-Host "  File not found:  $FilePath" -ForegroundColor Yellow
+        $testResults.Skipped++
+        return  $false
     }
     
-    `$content = Get-Content `$FilePath -Raw
-    if (`$content -match `$Pattern) {
+    $content = Get-Content  $FilePath -Raw
+    if ( $content -match  $Pattern) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "Pattern found in `$FilePath"
+            Message = "Pattern found in  $FilePath"
         }
-        return `$true
+        return  $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Pattern not found: `$Pattern" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Pattern not found:  $Pattern" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "Pattern not found in `$FilePath"
+            Message = "Pattern not found in  $FilePath"
         }
-        return `$false
+        return  $false
     }
 }
 
@@ -1365,51 +1369,51 @@ Write-Host "Running Tests..." -ForegroundColor Cyan
 Write-Host ""
 
 # Test 1: Verify proposal.md exists and has required sections
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "proposal.md") -Description "Proposal document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "proposal.md") -Description "Proposal document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
 
 # Test 2: Verify tasks.md exists and has tasks
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "tasks.md") -Description "Tasks document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "tasks.md") -Description "Tasks document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
 
 # Test 3: Verify spec.md exists and has content
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "spec.md") -Description "Specification document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "spec.md") -Description "Specification document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
 
 # Test 4: Check for affected files (if specified in proposal)
-`$proposalPath = Join-Path `$ChangeRoot "proposal.md"
-if (Test-Path `$proposalPath) {
-    `$proposalContent = Get-Content `$proposalPath -Raw
+$proposalPath = Join-Path  $ChangeRoot "proposal.md"
+if (Test-Path  $proposalPath) {
+    $proposalContent = Get-Content  $proposalPath -Raw
     
-    if (`$proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-        `$affectedFiles = `$matches[1] -split ',' | ForEach-Object { `$_.Trim() }
+    if ( $proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
+        $affectedFiles =  $matches[1] -split ',' | ForEach-Object {  $_.Trim() }
         
-        foreach (`$file in `$affectedFiles) {
-            if (`$file -and `$file -ne '[list files]') {
-                `$fullPath = Join-Path `$ProjectRoot `$file
-                Test-FileExists -FilePath `$fullPath -Description "Affected file: `$file"
+        foreach ( $file in  $affectedFiles) {
+            if ( $file -and  $file -ne '[list files]') {
+                $fullPath = Join-Path  $ProjectRoot  $file
+                Test-FileExists -FilePath  $fullPath -Description "Affected file:  $file"
             }
         }
     }
 }
 
 # Test 5: Validate todo.md completion status
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "todo.md") -Description "Todo checklist exists"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "todo.md") -Description "Todo checklist exists"
 
 # Summary
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Test Summary" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Passed:  `$(`$testResults.Passed)" -ForegroundColor Green
-Write-Host "Failed:  `$(`$testResults.Failed)" -ForegroundColor Red
-Write-Host "Skipped: `$(`$testResults.Skipped)" -ForegroundColor Yellow
-Write-Host "Total:   `$(`$testResults.Passed + `$testResults.Failed + `$testResults.Skipped)"
+Write-Host "Passed:   $( $testResults.Passed)" -ForegroundColor Green
+Write-Host "Failed:   $( $testResults.Failed)" -ForegroundColor Red
+Write-Host "Skipped:  $( $testResults.Skipped)" -ForegroundColor Yellow
+Write-Host "Total:    $( $testResults.Passed +  $testResults.Failed +  $testResults.Skipped)"
 Write-Host ""
 
-if (`$testResults.Failed -gt 0) {
+if ( $testResults.Failed -gt 0) {
     Write-Host "RESULT: FAILED" -ForegroundColor Red
     exit 1
 } else {
