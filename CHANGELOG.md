@@ -1,5 +1,8 @@
 # 📝 CHANGELOG
 ## v0.1.8 (Unreleased)
+- Documentation Governance: Govern material changes to `docs/TASKS.md` via OpenSpec proposals (see `openspec/archive/update-doc-docs-tasks/`)
+- Documentation Governance: Govern material changes to `openspec/AGENTS.md` via OpenSpec proposals (see `openspec/archive/update-doc-agents/`)
+
 - _Next release cycle initialized._
 
 ## v0.1.7 (2025-10-18)
