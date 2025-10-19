@@ -398,7 +398,7 @@ class EnhancedTaskQueueView extends ItemView {
         [1, 2, 3, 4].forEach(p => {
             prioritySelect.createEl('option', {
                 value: p.toString(),
-                text: `${this.getPriorityIcon(p)}`
+                text:  ${this.getPriorityIcon(p)}`
             });
         });
 
@@ -459,7 +459,7 @@ class EnhancedTaskQueueView extends ItemView {
         [1, 2, 3, 4].forEach(p => {
             const option = prioritySelect.createEl('option', {
                 value: p.toString(),
-                text: `${this.getPriorityIcon(p)}`
+                text:  ${this.getPriorityIcon(p)}`
             });
             if (p === (task.priority || 1)) {
                 option.selected = true;

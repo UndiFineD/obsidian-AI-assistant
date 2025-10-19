@@ -1063,7 +1063,7 @@ class BackendAPIClient {
     private timeout: number = 30000;
 
     async ask(question: string, options?: AskOptions): Promise<AskResponse> {
-        const response = await fetch(`${this.baseUrl}/ask`, {
+        const response = await fetch( ${this.baseUrl}/ask`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1082,7 +1082,7 @@ class BackendAPIClient {
     }
 
     async health(): Promise<HealthResponse> {
-        const response = await fetch(`${this.baseUrl}/health`);
+        const response = await fetch( ${this.baseUrl}/health`);
         return await response.json();
     }
 

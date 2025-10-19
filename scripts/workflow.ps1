@@ -128,13 +128,11 @@ function Show-Changes {
         Write-Warning "No changes directory found at $ChangesDir"
         return
     }
-
     $changes = Get-ChildItem -Path $ChangesDir -Directory
     if ($changes.Count -eq 0) {
         Write-Info "No active changes found."
         return
     }
-
     foreach ($change in $changes) {
         $todoPath = Join-Path $change.FullName "todo.md"
         $proposalPath = Join-Path $change.FullName "proposal.md"
@@ -145,13 +143,11 @@ function Show-Changes {
             $totalSteps = ([regex]::Matches($todoContent, '\[[ x]\]')).Count
             Write-Host "   Progress: $completedSteps/$totalSteps steps" -ForegroundColor Cyan
         }
-        if (Test-Path $proposalPath) {
-            $proposalContent = Get-Content $proposalPath -Raw
-            if ($proposalContent -match '##\s+Why\s+(.+?)##') {
-                $why = $matches[1].Trim() -replace '\r?\n', ' '
-                if ($why.Length -gt 80) { $why = $why.Substring(0, 77) + "..." }
-                Write-Host "   Why: $why" -ForegroundColor Gray
-            }
+        $proposalContent = Get-Content $proposalPath -Raw
+        if ($proposalContent -match '##\s+Why\s+(.+?)##') {
+            $why = $matchResults[1].Trim() -replace '\r?\n', ' '
+            if ($why.Length -gt 80) { $why = $why.Substring(0, 77) + "..." }
+            Write-Host "   Why: $why" -ForegroundColor Gray
         }
     }
 }
@@ -286,9 +282,9 @@ function Invoke-Step1 {
     Write-Success "Current version: $currentVersion (from $versionSource)"
     # Parse version components
     if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
-        $major = [int]$matches[1]
-        $minor = [int]$matches[2]
-        $patch = [int]$matches[3]
+        $major = [int]$matchResults[1]
+        $minor = [int]$matchResults[2]
+        $patch = [int]$matchResults[3]
     } else {
         Write-Error "Invalid version format: $currentVersion"
         return $false
@@ -352,7 +348,7 @@ function Invoke-Step1 {
 - Version increment to $newVersion
 
 "@
-                $changelogContent = $changelogContent -replace '(##\s*\[?Unreleased\]?.*?\r?\n)', "`$1`r`n$newEntry"
+                $changelogContent = $changelogContent -replace '(##\s*\[?Unreleased\]?.*?\r?\n)', " $1`r`n$newEntry"
             } else {
                 # If no Unreleased section, add at the top after the header
                 $newEntry = @"
@@ -363,7 +359,7 @@ function Invoke-Step1 {
 - Version increment to $newVersion
 
 "@
-                $changelogContent = $changelogContent -replace '(#\s*Change\s*Log.*?\r?\n)', "`$1$newEntry"
+                $changelogContent = $changelogContent -replace '(#\s*Change\s*Log.*?\r?\n)', " $1$newEntry"
             }
             
             Set-Content -Path $changelogPath -Value $changelogContent -Encoding UTF8 -NoNewline
@@ -378,10 +374,10 @@ function Invoke-Step1 {
             $readmeContent = Get-Content $readmePath -Raw
             $originalReadme = $readmeContent
             # Update version badges (common patterns)
-            $readmeContent = $readmeContent -replace '(badge/[Vv]ersion-)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(badge/v)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(\*\*Version\*\*:\s*)[0-9.]+', "`${1}$newVersion"
-            $readmeContent = $readmeContent -replace '(Version:\s*)[0-9.]+', "`${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(badge/[Vv]ersion-)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(badge/v)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(\*\*Version\*\*:\s*)[0-9.]+', " ${1}$newVersion"
+            $readmeContent = $readmeContent -replace '(Version:\s*)[0-9.]+', " ${1}$newVersion"
             if ($readmeContent -ne $originalReadme) {
                 Set-Content -Path $readmePath -Value $readmeContent -Encoding UTF8 -NoNewline
                 $updatedFiles += "README.md"
@@ -457,14 +453,14 @@ function Invoke-Step2 {
         $validationIssues = @()
         # Check "Why" section has substantial content
         if ($content -match '##\s+Why\s+(.+?)(?=##|$)') {
-            $whyContent = $matches[1].Trim()
+            $whyContent = $matchResults[1].Trim()
             if ($whyContent.Length -lt 50) {
                 $validationIssues += "Why section is too short (< 50 chars). Provide clear motivation."
             }
         }
         # Check "What Changes" section has bullet points
         if ($content -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesContent = $matches[1]
+            $changesContent = $matchResults[1]
             $bulletCount = ([regex]::Matches($changesContent, '^\s*-\s+', [System.Text.RegularExpressions.RegexOptions]::Multiline)).Count
             if ($bulletCount -eq 0) {
                 $validationIssues += "What Changes section has no bullet points. List specific changes."
@@ -472,7 +468,7 @@ function Invoke-Step2 {
         }
         # Check "Impact" section has required fields
         if ($content -match '##\s+Impact\s+(.+?)(?=##|$)') {
-            $impactContent = $matches[1]
+            $impactContent = $matchResults[1]
             $requiredImpactFields = @('Affected specs', 'Affected files', 'Review priority')
             foreach ($field in $requiredImpactFields) {
                 if ($impactContent -notmatch [regex]::Escape($field)) {
@@ -512,7 +508,7 @@ function Invoke-Step2 {
     $gitStatus = git status --porcelain 2>&1
     if ($LASTEXITCODE -eq 0 -and $gitStatus) {
         $modifiedFiles = $gitStatus -split "`n" | Where-Object { $_ -match '^\s*[AM]\s+(.+)$' } | ForEach-Object {
-            if ($_ -match '^\s*[AM]\s+(.+)$') { $matches[1] }
+            if ($_ -match '^\s*[AM]\s+(.+)$') { $matchResults[1] }
         }
         $detectedContext.ModifiedFiles = $modifiedFiles | Where-Object { $_ -and $_ -notmatch '^openspec/' }
         if ($detectedContext.ModifiedFiles.Count -gt 0) {
@@ -538,7 +534,7 @@ function Invoke-Step2 {
     # Detect issue number from branch name or recent commits
     $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
     if ($LASTEXITCODE -eq 0 -and $currentBranch -match '#?(\d+)') {
-        $detectedContext.IssueNumber = $matches[1]
+        $detectedContext.IssueNumber = $matchResults[1]
         Write-Info "Detected issue reference: #$($detectedContext.IssueNumber)"
     }
     # Detect change type from branch name or files
@@ -774,8 +770,8 @@ function Invoke-Step3 {
     # Extract actionable items from todo.md
     $acceptanceCriteria = @()
     if ($todoContent) {
-        $matches = [regex]::Matches($todoContent, '- \[ \] (.+)')
-        foreach ($m in $matches) {
+        $matchResults = [regex]::Matches($todoContent, '- \[ \] (.+)')
+        foreach ($m in $matchResults) {
             $acceptanceCriteria += "- [ ] $($m.Groups[1].Value.Trim())"
         }
     }
@@ -784,19 +780,11 @@ function Invoke-Step3 {
     }
 
     # Extract summary and requirements from proposal.md
-    $overview = '[Provide a brief summary of what this change accomplishes]'
     $requirements = @()
-    $changeType = 'feature'
     $specificSections = ''
     if ($proposalContent) {
-        if ($proposalContent -match '##\s+Why\s+(.+?)(?=##|$)') {
-            $overview = $matches[1].Trim()
-        }
-        if ($proposalContent -match 'Change Type\*\*: (.+)') {
-            $changeType = $matches[1].Trim()
-        }
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matches[1]
+            $changesBlock = $matchResults[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) {
                 $requirements += "1. $($rm.Groups[1].Value.Trim())"
@@ -804,11 +792,15 @@ function Invoke-Step3 {
         }
         # Detect affected areas for context sections
         if ($proposalContent -match 'Affected files\*\*: (.+)') {
-            $affectedFiles = $matches[1]
-            if ($affectedFiles -match 'backend/|\.py$') { $specificSections += "\n## Backend Implementation\n- Python modules affected: $affectedFiles" }
-            if ($affectedFiles -match 'plugin/|\.js$|\.jsx$|\.ts$|\.tsx$') { $specificSections += "\n## Frontend Implementation\n- JS/TS modules affected: $affectedFiles" }
-            if ($affectedFiles -match 'models/|database|db|\.sql$') { $specificSections += "\n## Data Models\n- DB/schema affected: $affectedFiles" }
-            if ($affectedFiles -match 'api|endpoint|route') { $specificSections += "\n## API Changes\n- Endpoints affected: $affectedFiles" }
+            $affectedFiles = $matchResults[1]
+            if ($affectedFiles -match 'backend/|\.py$') { 
+                $specificSections += "\n## Backend Implementation\n- Python modules affected: $affectedFiles" }
+            if ($affectedFiles -match 'plugin/|\.js$|\.jsx$|\.ts$|\.tsx$') { 
+                $specificSections += "\n## Frontend Implementation\n- JS/TS modules affected: $affectedFiles" }
+            if ($affectedFiles -match 'models/|database|db|\.sql$') { 
+                $specificSections += "\n## Data Models\n- DB/schema affected: $affectedFiles" }
+            if ($affectedFiles -match 'api|endpoint|route') { 
+                $specificSections += "\n## API Changes\n- Endpoints affected: $affectedFiles" }
         }
     }
     if ($requirements.Count -eq 0) {
@@ -934,8 +926,8 @@ function Invoke-Step4 {
         # Check for actionable items from todo.md
         $todoTasks = @()
         if ($todoContent) {
-            $matches = [regex]::Matches($todoContent, '- \[ \] (.+)')
-            foreach ($m in $matches) { $todoTasks += $m.Groups[1].Value.Trim() }
+            $matchResults = [regex]::Matches($todoContent, '- \[ \] (.+)')
+            foreach ($m in $matchResults) { $todoTasks += $m.Groups[1].Value.Trim() }
         }
         if ($todoTasks.Count -gt 0) {
             foreach ($task in $todoTasks) {
@@ -947,7 +939,7 @@ function Invoke-Step4 {
         # Check for requirements from proposal.md
         $proposalReqs = @()
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matches[1]
+            $changesBlock = $matchResults[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) { $proposalReqs += $rm.Groups[1].Value.Trim() }
         }
@@ -961,7 +953,7 @@ function Invoke-Step4 {
         # Check for acceptance criteria from spec.md
         $specCriteria = @()
         if ($specContent -match '##\s+Acceptance Criteria\s+(.+?)(?=##|$)') {
-            $criteriaBlock = $matches[1]
+            $criteriaBlock = $matchResults[1]
             $critMatches = [regex]::Matches($criteriaBlock, '- \[ \] (.+)')
             foreach ($cm in $critMatches) { $specCriteria += $cm.Groups[1].Value.Trim() }
         }
@@ -1091,7 +1083,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for acceptance criteria from spec.md
         $specCriteria = @()
         if ($specContent -match '##\s+Acceptance Criteria\s+(.+?)(?=##|$)') {
-            $criteriaBlock = $matches[1]
+            $criteriaBlock = $matchResults[1]
             $critMatches = [regex]::Matches($criteriaBlock, '- \[ \] (.+)')
             foreach ($cm in $critMatches) { $specCriteria += $cm.Groups[1].Value.Trim() }
         }
@@ -1105,7 +1097,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for requirements from proposal.md
         $proposalReqs = @()
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matches[1]
+            $changesBlock = $matchResults[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) { $proposalReqs += $rm.Groups[1].Value.Trim() }
         }
@@ -1119,8 +1111,8 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for actionable items from todo.md
         $todoTasks = @()
         if ($todoContent) {
-            $matches = [regex]::Matches($todoContent, '- \[ \] (.+)')
-            foreach ($m in $matches) { $todoTasks += $m.Groups[1].Value.Trim() }
+            $matchResults = [regex]::Matches($todoContent, '- \[ \] (.+)')
+            foreach ($m in $matchResults) { $todoTasks += $m.Groups[1].Value.Trim() }
         }
         if ($todoTasks.Count -gt 0) {
             foreach ($task in $todoTasks) {
@@ -1132,7 +1124,8 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for test cases from tasks.md
         $taskTests = @()
         if ($tasksContent) {
-            $testMatches = [regex]::Matches($tasksContent, '- \[ \] ([\d\.]+ Write unit tests|[\d\.]+ Write integration tests|[\d\.]+ Run test suite)')
+            $testMatches = [regex]::Matches(
+                $tasksContent, '- \[ \] ([\d\.]+ Write unit tests|[\d\.]+ Write integration tests|[\d\.]+ Run test suite)')
             foreach ($tm in $testMatches) { $taskTests += $tm.Groups[1].Value.Trim() }
         }
         if ($taskTests.Count -gt 0) {
@@ -1167,8 +1160,7 @@ function Invoke-Step6 {
     Write-Info "Analyzing documentation for script requirements..."
     # Parse proposal and specs for script requirements
     $proposalPath = Join-Path $ChangePath "proposal.md"
-        $specPath = Join-Path $ChangePath "spec.md"
-    $tasksPath = Join-Path $ChangePath "tasks.md"
+    $specPath = Join-Path $ChangePath "spec.md"
     $scriptRequirements = @{
         NeedsSetupScript = $false
         NeedsTestScript = $false
@@ -1206,10 +1198,10 @@ function Invoke-Step6 {
         }
         # Extract affected files
         if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-            $scriptRequirements.AffectedFiles += $matches[1].Trim()
+            $scriptRequirements.AffectedFiles += $matchResults[1].Trim()
         }
         if ($proposalContent -match '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)') {
-            $scriptRequirements.AffectedFiles += $matches[1].Trim()
+            $scriptRequirements.AffectedFiles += $matchResults[1].Trim()
         }
     }
     
@@ -1259,105 +1251,108 @@ function Invoke-Step6 {
     
     if (!(Test-Path $testScriptPath) -and !$DryRun) {
         Write-Info "Generating test script: test_script.ps1"
-        
+
         $testScriptContent = @"
-<#
-.SYNOPSIS
-    Test script for change: $changeId
+        <#
+        .SYNOPSIS
+            Test script for change: $changeId
 
-.DESCRIPTION
-    Automated test script generated from OpenSpec workflow documentation.
-    Tests the implementation of the changes defined in proposal.md and spec.md.
+        .DESCRIPTION
+            Automated test script generated from OpenSpec workflow documentation.
+            Tests the implementation of the changes defined in proposal.md and spec.md.
 
-.NOTES
-    Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-    Change: $changeId
-#>
+        .NOTES
+            Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+            Change: $changeId
+        #>
 
-[CmdletBinding()]
-param(
-    [switch]`$Verbose
-)
+        [CmdletBinding()]
+            param(
+                [switch]$Verbose
+            )
+        "@
 
-`$ErrorActionPreference = "Stop"
-`$ChangeRoot = Split-Path -Parent `$PSScriptRoot
-`$ProjectRoot = Split-Path -Parent `$ChangeRoot
+        $ErrorActionPreference = "Stop"
+        $ChangeRoot = Split-Path -Parent $PSScriptRoot
+        $ProjectRoot = Split-Path -Parent $ChangeRoot
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Test Script: $changeId" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "Test Script: $changeId" -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
 
-`$testResults = @{
-    Passed = 0
-    Failed = 0
-    Skipped = 0
-    Tests = @()
+        $testResults = @{
+            Passed = 0
+            Failed = 0
+            Skipped = 0
+            Tests = @()
+        
+    }
 }
 
 function Test-FileExists {
-    param([string]`$FilePath, [string]`$Description)
+    param([string] $FilePath, [string] $Description)
     
-    Write-Host "Testing: `$Description" -NoNewline
+    Write-Host "Testing:  $Description" -NoNewline
     
-    if (Test-Path `$FilePath) {
+    if (Test-Path  $FilePath) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "File exists: `$FilePath"
+            Message = "File exists:  $FilePath"
         }
-        return `$true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Expected: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Expected:  $FilePath" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "File not found: `$FilePath"
+            Message = "File not found:  $FilePath"
         }
-        return `$false
+        return $false
     }
 }
 
 function Test-ContentMatches {
     param(
-        [string]`$FilePath,
-        [string]`$Pattern,
-        [string]`$Description
+        [string] $FilePath,
+        [string] $Pattern,
+        [string] $Description
     )
     
-    Write-Host "Testing: `$Description" -NoNewline
+    Write-Host "Testing:  $Description" -NoNewline
     
-    if (!(Test-Path `$FilePath)) {
+    if (!(Test-Path  $FilePath)) {
         Write-Host " [SKIP]" -ForegroundColor Yellow
-        Write-Host "  File not found: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Skipped++
-        return `$false
+        Write-Host "  File not found:  $FilePath" -ForegroundColor Yellow
+        $testResults.Skipped++
+        return $false
     }
     
-    `$content = Get-Content `$FilePath -Raw
-    if (`$content -match `$Pattern) {
+    $content = Get-Content  $FilePath -Raw
+    if ( $content -match  $Pattern) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "Pattern found in `$FilePath"
+            Message = "Pattern found in  $FilePath"
         }
-        return `$true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Pattern not found: `$Pattern" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Pattern not found:  $Pattern" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "Pattern not found in `$FilePath"
+            Message = "Pattern not found in  $FilePath"
         }
-        return `$false
+        return $false
     }
 }
 
@@ -1365,51 +1360,51 @@ Write-Host "Running Tests..." -ForegroundColor Cyan
 Write-Host ""
 
 # Test 1: Verify proposal.md exists and has required sections
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "proposal.md") -Description "Proposal document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "proposal.md") -Description "Proposal document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
 
 # Test 2: Verify tasks.md exists and has tasks
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "tasks.md") -Description "Tasks document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "tasks.md") -Description "Tasks document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
 
 # Test 3: Verify spec.md exists and has content
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "spec.md") -Description "Specification document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "spec.md") -Description "Specification document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
 
 # Test 4: Check for affected files (if specified in proposal)
-`$proposalPath = Join-Path `$ChangeRoot "proposal.md"
-if (Test-Path `$proposalPath) {
-    `$proposalContent = Get-Content `$proposalPath -Raw
+$proposalPath = Join-Path  $ChangeRoot "proposal.md"
+if (Test-Path  $proposalPath) {
+    $proposalContent = Get-Content  $proposalPath -Raw
     
-    if (`$proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-        `$affectedFiles = `$matches[1] -split ',' | ForEach-Object { `$_.Trim() }
+    if ( $proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
+        $affectedFiles =  $matchResults[1] -split ',' | ForEach-Object {  $_.Trim() }
         
-        foreach (`$file in `$affectedFiles) {
-            if (`$file -and `$file -ne '[list files]') {
-                `$fullPath = Join-Path `$ProjectRoot `$file
-                Test-FileExists -FilePath `$fullPath -Description "Affected file: `$file"
+        foreach ( $file in  $affectedFiles) {
+            if ( $file -and  $file -ne '[list files]') {
+                $fullPath = Join-Path  $ProjectRoot  $file
+                Test-FileExists -FilePath  $fullPath -Description "Affected file:  $file"
             }
         }
     }
 }
 
 # Test 5: Validate todo.md completion status
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "todo.md") -Description "Todo checklist exists"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "todo.md") -Description "Todo checklist exists"
 
 # Summary
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Test Summary" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Passed:  `$(`$testResults.Passed)" -ForegroundColor Green
-Write-Host "Failed:  `$(`$testResults.Failed)" -ForegroundColor Red
-Write-Host "Skipped: `$(`$testResults.Skipped)" -ForegroundColor Yellow
-Write-Host "Total:   `$(`$testResults.Passed + `$testResults.Failed + `$testResults.Skipped)"
+Write-Host "Passed:  $( $testResults.Passed)" -ForegroundColor Green
+Write-Host "Failed:  $( $testResults.Failed)" -ForegroundColor Red
+Write-Host "Skipped: $( $testResults.Skipped)" -ForegroundColor Yellow
+Write-Host "Total:   $( $testResults.Passed +  $testResults.Failed +  $testResults.Skipped)"
 Write-Host ""
 
-if (`$testResults.Failed -gt 0) {
+if ( $testResults.Failed -gt 0) {
     Write-Host "RESULT: FAILED" -ForegroundColor Red
     exit 1
 } else {
@@ -1496,7 +1491,7 @@ if (`$testResults.Failed -gt 0) {
                     # Validate Bash syntax if available
                     $bashCheck = Get-Command bash -ErrorAction SilentlyContinue
                     if ($bashCheck) {
-                        $bashResult = bash -n $scriptPath 2>&1
+                        bash -n $scriptPath 2>&1 | Out-Null
                         if ($LASTEXITCODE -ne 0) {
                             $syntaxErrors += "$script has syntax errors"
                             Write-Warning "  ✗ $script syntax invalid"
@@ -1511,7 +1506,7 @@ if (`$testResults.Failed -gt 0) {
                     # Validate Python syntax if available
                     $pythonCheck = Get-Command python -ErrorAction SilentlyContinue
                     if ($pythonCheck) {
-                        $pythonResult = python -m py_compile $scriptPath 2>&1
+                        python -m py_compile $scriptPath 2>&1 | Out-Null
                         if ($LASTEXITCODE -ne 0) {
                             $syntaxErrors += "$script has syntax errors"
                             Write-Warning "  ✗ $script syntax invalid"
@@ -1527,8 +1522,8 @@ if (`$testResults.Failed -gt 0) {
         if ($syntaxErrors.Count -gt 0) {
             Write-Error ""
             Write-Error "Script syntax validation failed:"
-            foreach ($error in $syntaxErrors) {
-                Write-Error "  - $error"
+            foreach ($syntaxError in $syntaxErrors) {
+                Write-Error "  - $syntaxError"
             }
             Write-Info "Fix syntax errors and re-run with -Step 6"
             return $false
@@ -1587,11 +1582,11 @@ function Invoke-Step7 {
             $proposalContent = Get-Content $proposalPath -Raw
             # Look for affected files in Impact section
             if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-                $affectedFiles = $matches[1]
+                $affectedFiles = $matchResults[1]
                 Write-Info "Expected affected files: $affectedFiles"
             }
             if ($proposalContent -match '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)') {
-                $affectedCode = $matches[1]
+                $affectedCode = $matchResults[1]
                 Write-Info "Expected affected code: $affectedCode"
             }
         }
@@ -1687,8 +1682,11 @@ function Invoke-Step10 {
         # Stage changes
         Write-Info "Staging changes..."
         git add .
+        # Generate commit message from documentation
+        $doc = Get-ChangeDocInfo -ChangePath $ChangePath
+        $commitMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc
         # Commit
-        git commit -m $autoMsg
+        git commit -m "$commitMsg"
         # Push
         $branch = git rev-parse --abbrev-ref HEAD
         Write-Info "Pushing to branch: $branch"
@@ -1726,7 +1724,7 @@ function Invoke-Step11 {
         git add .
         $doc = Get-ChangeDocInfo -ChangePath $archivePath
         $archiveMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc -Archive
-        git commit -m $archiveMsg
+        git commit -m "$archiveMsg"
         $branch = git rev-parse --abbrev-ref HEAD
         git push origin $branch
         Write-Success "Archive operation completed and pushed"
@@ -1744,21 +1742,126 @@ function Invoke-Step12 {
     param([string]$ChangePath)
     Write-Step 12 "Create Pull Request (PR)"
     $changeId = Split-Path $ChangePath -Leaf
+    
+    # Check if change has been archived (Step 11 was executed)
+    $actualPath = $ChangePath
+    if (!(Test-Path $ChangePath)) {
+        # Change was archived, update path to archive location
+        $archivePath = Join-Path $ArchiveDir $changeId
+        if (Test-Path $archivePath) {
+            $actualPath = $archivePath
+            Write-Info "Change has been archived to: openspec/archive/$changeId/"
+        }
+    }
+    
     $branch = git rev-parse --abbrev-ref HEAD
     Write-Info "Creating Pull Request for change: $changeId"
     Write-Info "Current branch: $branch"
     Write-Info ""
-    Write-Info "PR Checklist:"
-    Write-Info "  - Title should reference the change"
-    Write-Info "  - Description should link to openspec/archive/$changeId/"
-    Write-Info "  - All CI checks should pass"
-    Write-Info "  - Request appropriate reviewers"
-    Write-Warning "This step requires manual action on GitHub"
-    Write-Info "Visit: https://github.com/UndiFineD/obsidian-AI-assistant/compare/$branch?expand=1"
-    Read-Host "Press Enter when PR has been created" | Out-Null
+    
+    # Check if gh CLI is available
+    $ghAvailable = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
+    
+    if ($ghAvailable -and !$DryRun) {
+        # Get change documentation info for PR description
+        $doc = Get-ChangeDocInfo -ChangePath $actualPath
+        
+        # Build PR title
+        $prTitle = if ($doc.Title) {
+            "chore(openspec): $($doc.Title)"
+        } else {
+            "chore(openspec): Complete change $changeId"
+        }
+        
+        # Build PR body
+        $prBody = @"
+# OpenSpec Change: $changeId
+
+## Summary
+
+$($doc.Why -replace '\r?\n', ' ')
+
+## Documentation
+
+- **Proposal**: [openspec/archive/$changeId/proposal.md](openspec/archive/$changeId/proposal.md)
+- **Specification**: [openspec/archive/$changeId/spec.md](openspec/archive/$changeId/spec.md)
+- **Tasks**: [openspec/archive/$changeId/tasks.md](openspec/archive/$changeId/tasks.md)
+- **Test Plan**: [openspec/archive/$changeId/test_plan.md](openspec/archive/$changeId/test_plan.md)
+
+## Changes
+
+"@
+        
+        if ($doc.AffectedSpecs) {
+            $prBody += "`n- **Affected specs**: $($doc.AffectedSpecs)"
+        }
+        if ($doc.AffectedFiles) {
+            $prBody += "`n- **Affected files**: $($doc.AffectedFiles)"
+        }
+        if ($doc.AffectedCode) {
+            $prBody += "`n- **Affected code**: $($doc.AffectedCode)"
+        }
+        
+        $prBody += @"
+
+## Checklist
+
+- [x] All workflow steps completed (0-11)
+- [x] Change archived to openspec/archive/$changeId/
+- [x] Documentation complete and validated
+- [x] Tests passing
+- [x] Ready for review
+
+## Reference
+
+- OpenSpec Workflow: [openspec/PROJECT_WORKFLOW.md](openspec/PROJECT_WORKFLOW.md)
+"@
+        
+        # Check if PR already exists for this branch
+        Write-Info "Checking for existing PR..."
+        $existingPr = gh pr list --head $branch --json number,url --jq '.[0]' 2>$null
+        
+        if ($existingPr -and $existingPr -ne "null" -and $existingPr.Trim() -ne "") {
+            $prInfo = $existingPr | ConvertFrom-Json
+            Write-Warning "PR already exists for branch '$branch': #$($prInfo.number)"
+            Write-Info "URL: $($prInfo.url)"
+            Write-Success "Using existing Pull Request #$($prInfo.number)"
+        } else {
+            # Create PR using gh CLI
+            Write-Info "Creating pull request using GitHub CLI..."
+            try {
+                $prUrl = gh pr create --base main --title $prTitle --body $prBody 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Pull Request created successfully!"
+                    Write-Info "URL: $prUrl"
+                } else {
+                    Write-Error "Failed to create PR: $prUrl"
+                    Write-Info "You can create it manually at:"
+                    Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+                    return $false
+                }
+            } catch {
+                Write-Error "Failed to create PR: $_"
+                Write-Info "You can create it manually at:"
+                Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+                return $false
+            }
+        }
+    } else {
+        if (!$ghAvailable) {
+            Write-Warning "GitHub CLI (gh) not found. Install it from: https://cli.github.com/"
+        }
+        Write-Info ""
+        Write-Info "Create PR manually at:"
+        Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+        Write-Info ""
+        Write-Info "Suggested PR title: chore(openspec): $changeId"
+        Write-Info "Link to: openspec/archive/$changeId/"
+    }
+    
     Write-Success "Pull Request step completed"
     if (!$DryRun) {
-        Update-TodoFile -ChangePath $ChangePath -CompletedStep 12
+        Update-TodoFile -ChangePath $actualPath -CompletedStep 12
     }
     return $true
 }

@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 update doc agents
+# TODO: 2025 10 14 update doc claude
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-agents`
+- **Change ID**: `2025-10-14-update-doc-claude`
 - **Created**: 2025-10-19
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-agents/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`

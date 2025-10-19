@@ -219,7 +219,7 @@ class AdvancedInputValidator:
 
         # Command injection patterns
         self.command_patterns = [
-            r"[;&|`$]",
+            r"[;&| $]",
             r"\$\([^)]*\)",
             r"`[^`]*`",
             r">\s*/\w+",

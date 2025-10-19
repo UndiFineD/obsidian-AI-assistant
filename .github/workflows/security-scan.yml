@@ -435,7 +435,7 @@ jobs:
       uses: actions/github-script@v6
       with:
         script: |
-          const commentBody = `${{ steps.generate-comment.outputs.comment_body }}`;
+          const commentBody =  ${{ steps.generate-comment.outputs.comment_body }}`;
           
           // Find existing security comment
           const comments = await github.rest.issues.listComments({
