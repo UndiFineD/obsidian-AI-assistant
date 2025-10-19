@@ -66,7 +66,7 @@ class EnterpriseAdminDashboard {
         tabs.forEach((tab) => {
             const tabEl = navEl.createEl('button', {
                 cls: `nav-tab ${this.currentView === tab.id ? 'active' : ''}`,
-                text:  ${tab.icon} ${tab.label}`,
+                text: `${tab.icon} ${tab.label}`,
             });
 
             tabEl.addEventListener('click', () => {
@@ -164,13 +164,13 @@ class EnterpriseAdminDashboard {
             },
             {
                 title: 'System Uptime',
-                value:  ${this.dashboardData.system?.uptime_percentage || 99.9}%`,
+                value: `${this.dashboardData.system?.uptime_percentage || 99.9}%`,
                 change: 'Target: 99.9%',
                 positive: true,
             },
             {
                 title: 'Security Score',
-                value:  ${Math.round(this.dashboardData.security?.vulnerability_scan_score || 8.5)}/10`,
+                value: `${Math.round(this.dashboardData.security?.vulnerability_scan_score || 8.5)}/10`,
                 change: 'Excellent',
                 positive: true,
             },
@@ -390,9 +390,9 @@ class EnterpriseAdminDashboard {
 
             const stats = [
                 { label: 'Users', value: tenant.user_count },
-                { label: 'Storage', value:  ${tenant.storage_used_gb}GB` },
+                { label: 'Storage', value: `${tenant.storage_used_gb}GB` },
                 { label: 'API Calls', value: tenant.api_calls_30d },
-                { label: 'Revenue', value:  $${tenant.monthly_cost}` },
+                { label: 'Revenue', value: `$${tenant.monthly_cost}` },
             ];
 
             stats.forEach((stat) => {
@@ -445,7 +445,7 @@ class EnterpriseAdminDashboard {
                     },
                     {
                         name: 'Avg Resolution Time',
-                        value:  ${Math.round(securityData.incidents.metrics.avg_resolution_time_hours)}h`,
+                        value: `${Math.round(securityData.incidents.metrics.avg_resolution_time_hours)}h`,
                     },
                     {
                         name: 'Overdue Reviews',
@@ -508,18 +508,18 @@ class EnterpriseAdminDashboard {
                 gdprScore.createEl('h4', { text: 'GDPR Compliance' });
                 gdprScore.createEl('div', { text: '713 Compliant', cls: 'score-status compliant' });
                 gdprScore.createEl('p', {
-                    text:  ${complianceData.gdpr.processing_activities} processing activities documented`,
+                    text: `${complianceData.gdpr.processing_activities} processing activities documented`,
                 });
 
                 const soc2Score = complianceEl.createEl('div', { cls: 'compliance-score soc2' });
                 soc2Score.createEl('h4', { text: 'SOC2 Compliance' });
                 const soc2ScoreValue = Math.round(complianceData.soc2.compliance_score);
                 soc2Score.createEl('div', {
-                    text:  ${soc2ScoreValue}%`,
+                    text: `${soc2ScoreValue}%`,
                     cls: `score-status ${soc2ScoreValue >= 90 ? 'compliant' : 'warning'}`,
                 });
                 soc2Score.createEl('p', {
-                    text:  ${complianceData.soc2.controls.effective_controls}/${complianceData.soc2.controls.total_controls} controls effective`,
+                    text: `${complianceData.soc2.controls.effective_controls}/${complianceData.soc2.controls.total_controls} controls effective`,
                 });
 
                 // Compliance actions
@@ -556,17 +556,17 @@ class EnterpriseAdminDashboard {
             const metrics = [
                 {
                     name: 'CPU Usage',
-                    value:  ${systemData.cpu_usage_percentage}%`,
+                    value: `${systemData.cpu_usage_percentage}%`,
                     status: 'healthy',
                 },
                 {
                     name: 'Memory Usage',
-                    value:  ${systemData.memory_usage_percentage}%`,
+                    value: `${systemData.memory_usage_percentage}%`,
                     status: 'healthy',
                 },
                 {
                     name: 'Disk Usage',
-                    value:  ${systemData.disk_usage_percentage}%`,
+                    value: `${systemData.disk_usage_percentage}%`,
                     status: 'healthy',
                 },
                 {

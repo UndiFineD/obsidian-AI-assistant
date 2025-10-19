@@ -1,3 +1,0 @@
-# Proposal
-
-...existing code from changes/update-doc-docs-constitution/proposal.md...

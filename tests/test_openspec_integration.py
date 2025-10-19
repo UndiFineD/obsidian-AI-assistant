@@ -71,13 +71,17 @@ class TestOpenSpecIntegration:
             pytest.skip("OpenSpec changes directory doesn't exist")
 
         for change_dir in changes_dir.iterdir():
-            if change_dir.is_dir() and change_dir.name != "archive":
+            if change_dir.is_dir() and change_dir.name not in ("archive", "test-change"):
                 change_id = change_dir.name
 
-                # Should start with 'update-doc-' (governance) or 'update-spec-' (spec modification)
-                assert change_id.startswith("update-doc-") or change_id.startswith(
-                    "update-spec-"
-                ), f"Change ID {change_id} should start with 'update-doc-' or 'update-spec-'"
+                # Modern format: YYYY-MM-DD-description or legacy format: update-doc-* / update-spec-*
+                is_dated_format = change_id[:4].isdigit() and change_id[4] == "-"
+                is_legacy_format = change_id.startswith("update-doc-") or change_id.startswith("update-spec-")
+                
+                assert is_dated_format or is_legacy_format, (
+                    f"Change ID {change_id} should start with date (YYYY-MM-DD-...) "
+                    f"or legacy prefix (update-doc-/update-spec-)"
+                )
 
                 # Should be kebab-case
                 assert all(

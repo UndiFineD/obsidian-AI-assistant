@@ -1,4 +1,4 @@
-# Tasks: update-doc-claude-commands-openspec-proposal
+# Tasks: 2025-10-14-update-doc-claude-commands-openspec-proposal
 
 ## 1. Implementation
 
@@ -6,6 +6,6 @@
 
 - [ ] 1.2 For material changes, update this proposal and add/modify deltas as needed
 
-- [ ] 1.3 Validate: `openspec validate update-doc-claude-commands-openspec-proposal --strict`
+- [ ] 1.3 Validate: `openspec validate 2025-10-14-update-doc-claude-commands-openspec-proposal --strict`
 
 - [ ] 1.4 Open PR referencing this change and request review

@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 update doc claude commands openspec apply
+# TODO: 2025 10 14 update doc claude
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-claude-commands-openspec-apply`
+- **Change ID**: `2025-10-14-update-doc-claude`
 - **Created**: 2025-10-19
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -79,20 +79,20 @@
     - [ ] Update OpenSpec documentation
 
 
-- [x] **10. Git Operations**
+- [ ] **10. Git Operations**
     - [ ] Stage changes (`git add`)
     - [ ] Commit with descriptive message
     - [ ] Tag release (if applicable)
     - [ ] Push to origin
 
-- [x] **11. Create Pull Request (PR)**
+- [ ] **11. Create Pull Request (PR)**
     - [ ] Open PR on GitHub
     - [ ] Reference OpenSpec change in PR description
     - [ ] Link to proposal/spec/tasks
     - [ ] Ensure all checks pass
     - [ ] Merge PR
 
-- [x] **12. Workflow Improvement**
+- [ ] **12. Workflow Improvement**
     - [ ] Create `retrospective.md`
     - [ ] Document what worked well
     - [ ] Document what didn't work
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-claude-commands-openspec-apply/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-claude/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
@@ -140,10 +140,6 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
-
-
-
-
 
 
 

@@ -1,4 +1,4 @@
-# Change Proposal: update-doc-claude-commands-openspec-proposal
+# Change Proposal: 2025-10-14-update-doc-claude-commands-openspec-proposal
 
 ## Why
 

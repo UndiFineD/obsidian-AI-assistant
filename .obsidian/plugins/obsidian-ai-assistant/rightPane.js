@@ -435,8 +435,8 @@ class AIRightPaneView {
             const modelDiv = div.createEl('div', { cls: 'model-usage' });
             Object.entries(this.analyticsState.modelUsage).forEach(([model, count]) => {
                 const modelItem = modelDiv.createEl('div', { cls: 'model-item' });
-                modelItem.createEl('span', { text:  ${model}: ` });
-                modelItem.createEl('strong', { text:  ${count} calls` });
+                modelItem.createEl('span', { text: `${model}: ` });
+                modelItem.createEl('strong', { text: `${count} calls` });
             });
         }
 
