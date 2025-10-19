@@ -926,7 +926,7 @@ This project builds on excellent open-source tools:
 ---
 
 **Status**: Production Ready ✅  
-**Version**: 0.1.3  
+**Version**: 0.1.10  
 **Last Updated**: October 18, 2025  
 **Test Coverage**: 1131 passed, 20 skipped  
 **Backend Coverage**: ~65% (reporting only; threshold temporarily not enforced)
