@@ -79,7 +79,7 @@
     - [ ] Update OpenSpec documentation
 
 
-- [ ] **10. Git Operations**
+- [x] **10. Git Operations**
     - [ ] Stage changes (`git add`)
     - [ ] Commit with descriptive message
     - [ ] Tag release (if applicable)
@@ -140,6 +140,8 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+
+
 
 
 
