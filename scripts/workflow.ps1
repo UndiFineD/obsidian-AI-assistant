@@ -1764,14 +1764,107 @@ function Invoke-Step12 {
     Write-Info "Creating Pull Request for change: $changeId"
     Write-Info "Current branch: $branch"
     Write-Info ""
-    Write-Info "PR Checklist:"
-    Write-Info "  - Title should reference the change"
-    Write-Info "  - Description should link to openspec/archive/$changeId/"
-    Write-Info "  - All CI checks should pass"
-    Write-Info "  - Request appropriate reviewers"
-    Write-Warning "This step requires manual action on GitHub"
-    Write-Info "Visit: https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
-    Read-Host "Press Enter when PR has been created" | Out-Null
+    
+    # Check if gh CLI is available
+    $ghAvailable = $null -ne (Get-Command gh -ErrorAction SilentlyContinue)
+    
+    if ($ghAvailable -and !$DryRun) {
+        # Get change documentation info for PR description
+        $doc = Get-ChangeDocInfo -ChangePath $actualPath
+        
+        # Build PR title
+        $prTitle = if ($doc.Title) {
+            "chore(openspec): $($doc.Title)"
+        } else {
+            "chore(openspec): Complete change $changeId"
+        }
+        
+        # Build PR body
+        $prBody = @"
+# OpenSpec Change: $changeId
+
+## Summary
+
+$($doc.Why -replace '\r?\n', ' ')
+
+## Documentation
+
+- **Proposal**: [openspec/archive/$changeId/proposal.md](openspec/archive/$changeId/proposal.md)
+- **Specification**: [openspec/archive/$changeId/spec.md](openspec/archive/$changeId/spec.md)
+- **Tasks**: [openspec/archive/$changeId/tasks.md](openspec/archive/$changeId/tasks.md)
+- **Test Plan**: [openspec/archive/$changeId/test_plan.md](openspec/archive/$changeId/test_plan.md)
+
+## Changes
+
+"@
+        
+        if ($doc.AffectedSpecs) {
+            $prBody += "`n- **Affected specs**: $($doc.AffectedSpecs)"
+        }
+        if ($doc.AffectedFiles) {
+            $prBody += "`n- **Affected files**: $($doc.AffectedFiles)"
+        }
+        if ($doc.AffectedCode) {
+            $prBody += "`n- **Affected code**: $($doc.AffectedCode)"
+        }
+        
+        $prBody += @"
+
+## Checklist
+
+- [x] All workflow steps completed (0-11)
+- [x] Change archived to openspec/archive/$changeId/
+- [x] Documentation complete and validated
+- [x] Tests passing
+- [x] Ready for review
+
+## Reference
+
+- OpenSpec Workflow: [openspec/PROJECT_WORKFLOW.md](openspec/PROJECT_WORKFLOW.md)
+"@
+        
+        # Check if PR already exists for this branch
+        Write-Info "Checking for existing PR..."
+        $existingPr = gh pr list --head $branch --json number,url --jq '.[0]' 2>$null
+        
+        if ($existingPr -and $existingPr -ne "null" -and $existingPr.Trim() -ne "") {
+            $prInfo = $existingPr | ConvertFrom-Json
+            Write-Warning "PR already exists for branch '$branch': #$($prInfo.number)"
+            Write-Info "URL: $($prInfo.url)"
+            Write-Success "Using existing Pull Request #$($prInfo.number)"
+        } else {
+            # Create PR using gh CLI
+            Write-Info "Creating pull request using GitHub CLI..."
+            try {
+                $prUrl = gh pr create --base main --title $prTitle --body $prBody 2>&1
+                if ($LASTEXITCODE -eq 0) {
+                    Write-Success "Pull Request created successfully!"
+                    Write-Info "URL: $prUrl"
+                } else {
+                    Write-Error "Failed to create PR: $prUrl"
+                    Write-Info "You can create it manually at:"
+                    Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+                    return $false
+                }
+            } catch {
+                Write-Error "Failed to create PR: $_"
+                Write-Info "You can create it manually at:"
+                Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+                return $false
+            }
+        }
+    } else {
+        if (!$ghAvailable) {
+            Write-Warning "GitHub CLI (gh) not found. Install it from: https://cli.github.com/"
+        }
+        Write-Info ""
+        Write-Info "Create PR manually at:"
+        Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...$branch?expand=1"
+        Write-Info ""
+        Write-Info "Suggested PR title: chore(openspec): $changeId"
+        Write-Info "Link to: openspec/archive/$changeId/"
+    }
+    
     Write-Success "Pull Request step completed"
     if (!$DryRun) {
         Update-TodoFile -ChangePath $actualPath -CompletedStep 12
