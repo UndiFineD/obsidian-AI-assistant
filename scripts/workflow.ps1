@@ -86,7 +86,7 @@ param(
 )
 
 # Script variables
-$ErrorActionPreference = "Stop"
+$syntaxErrorActionPreference = "Stop"
 $ScriptRoot = Split-Path -Parent $PSScriptRoot
 $OpenSpecRoot = Join-Path $ScriptRoot "openspec"
 $ChangesDir = Join-Path $OpenSpecRoot "changes"
@@ -145,7 +145,7 @@ function Show-Changes {
         }
         $proposalContent = Get-Content $proposalPath -Raw
         if ($proposalContent -match '##\s+Why\s+(.+?)##') {
-            $why = $matchResults[1].Trim() -replace '\r?\n', ' '
+            $why = $Matches[1].Trim() -replace '\r?\n', ' '
             if ($why.Length -gt 80) { $why = $why.Substring(0, 77) + "..." }
             Write-Host "   Why: $why" -ForegroundColor Gray
         }
@@ -282,9 +282,9 @@ function Invoke-Step1 {
     Write-Success "Current version: $currentVersion (from $versionSource)"
     # Parse version components
     if ($currentVersion -match '^(\d+)\.(\d+)\.(\d+)$') {
-        $major = [int]$matchResults[1]
-        $minor = [int]$matchResults[2]
-        $patch = [int]$matchResults[3]
+        $major = [int]$Matches[1]
+        $minor = [int]$Matches[2]
+        $patch = [int]$Matches[3]
     } else {
         Write-Error "Invalid version format: $currentVersion"
         return $false
@@ -453,14 +453,14 @@ function Invoke-Step2 {
         $validationIssues = @()
         # Check "Why" section has substantial content
         if ($content -match '##\s+Why\s+(.+?)(?=##|$)') {
-            $whyContent = $matchResults[1].Trim()
+            $whyContent = $Matches[1].Trim()
             if ($whyContent.Length -lt 50) {
                 $validationIssues += "Why section is too short (< 50 chars). Provide clear motivation."
             }
         }
         # Check "What Changes" section has bullet points
         if ($content -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesContent = $matchResults[1]
+            $changesContent = $Matches[1]
             $bulletCount = ([regex]::Matches($changesContent, '^\s*-\s+', [System.Text.RegularExpressions.RegexOptions]::Multiline)).Count
             if ($bulletCount -eq 0) {
                 $validationIssues += "What Changes section has no bullet points. List specific changes."
@@ -468,7 +468,7 @@ function Invoke-Step2 {
         }
         # Check "Impact" section has required fields
         if ($content -match '##\s+Impact\s+(.+?)(?=##|$)') {
-            $impactContent = $matchResults[1]
+            $impactContent = $Matches[1]
             $requiredImpactFields = @('Affected specs', 'Affected files', 'Review priority')
             foreach ($field in $requiredImpactFields) {
                 if ($impactContent -notmatch [regex]::Escape($field)) {
@@ -508,7 +508,7 @@ function Invoke-Step2 {
     $gitStatus = git status --porcelain 2>&1
     if ($LASTEXITCODE -eq 0 -and $gitStatus) {
         $modifiedFiles = $gitStatus -split "`n" | Where-Object { $_ -match '^\s*[AM]\s+(.+)$' } | ForEach-Object {
-            if ($_ -match '^\s*[AM]\s+(.+)$') { $matchResults[1] }
+            if ($_ -match '^\s*[AM]\s+(.+)$') { $Matches[1] }
         }
         $detectedContext.ModifiedFiles = $modifiedFiles | Where-Object { $_ -and $_ -notmatch '^openspec/' }
         if ($detectedContext.ModifiedFiles.Count -gt 0) {
@@ -534,7 +534,7 @@ function Invoke-Step2 {
     # Detect issue number from branch name or recent commits
     $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
     if ($LASTEXITCODE -eq 0 -and $currentBranch -match '#?(\d+)') {
-        $detectedContext.IssueNumber = $matchResults[1]
+        $detectedContext.IssueNumber = $Matches[1]
         Write-Info "Detected issue reference: #$($detectedContext.IssueNumber)"
     }
     # Detect change type from branch name or files
@@ -784,7 +784,7 @@ function Invoke-Step3 {
     $specificSections = ''
     if ($proposalContent) {
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matchResults[1]
+            $changesBlock = $Matches[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) {
                 $requirements += "1. $($rm.Groups[1].Value.Trim())"
@@ -792,7 +792,7 @@ function Invoke-Step3 {
         }
         # Detect affected areas for context sections
         if ($proposalContent -match 'Affected files\*\*: (.+)') {
-            $affectedFiles = $matchResults[1]
+            $affectedFiles = $Matches[1]
             if ($affectedFiles -match 'backend/|\.py$') { 
                 $specificSections += "\n## Backend Implementation\n- Python modules affected: $affectedFiles" }
             if ($affectedFiles -match 'plugin/|\.js$|\.jsx$|\.ts$|\.tsx$') { 
@@ -939,7 +939,7 @@ function Invoke-Step4 {
         # Check for requirements from proposal.md
         $proposalReqs = @()
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matchResults[1]
+            $changesBlock = $Matches[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) { $proposalReqs += $rm.Groups[1].Value.Trim() }
         }
@@ -953,7 +953,7 @@ function Invoke-Step4 {
         # Check for acceptance criteria from spec.md
         $specCriteria = @()
         if ($specContent -match '##\s+Acceptance Criteria\s+(.+?)(?=##|$)') {
-            $criteriaBlock = $matchResults[1]
+            $criteriaBlock = $Matches[1]
             $critMatches = [regex]::Matches($criteriaBlock, '- \[ \] (.+)')
             foreach ($cm in $critMatches) { $specCriteria += $cm.Groups[1].Value.Trim() }
         }
@@ -1083,7 +1083,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for acceptance criteria from spec.md
         $specCriteria = @()
         if ($specContent -match '##\s+Acceptance Criteria\s+(.+?)(?=##|$)') {
-            $criteriaBlock = $matchResults[1]
+            $criteriaBlock = $Matches[1]
             $critMatches = [regex]::Matches($criteriaBlock, '- \[ \] (.+)')
             foreach ($cm in $critMatches) { $specCriteria += $cm.Groups[1].Value.Trim() }
         }
@@ -1097,7 +1097,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         # Check for requirements from proposal.md
         $proposalReqs = @()
         if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $changesBlock = $matchResults[1]
+            $changesBlock = $Matches[1]
             $reqMatches = [regex]::Matches($changesBlock, '- (.+)')
             foreach ($rm in $reqMatches) { $proposalReqs += $rm.Groups[1].Value.Trim() }
         }
@@ -1198,10 +1198,10 @@ function Invoke-Step6 {
         }
         # Extract affected files
         if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-            $scriptRequirements.AffectedFiles += $matchResults[1].Trim()
+            $scriptRequirements.AffectedFiles += $Matches[1].Trim()
         }
         if ($proposalContent -match '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)') {
-            $scriptRequirements.AffectedFiles += $matchResults[1].Trim()
+            $scriptRequirements.AffectedFiles += $Matches[1].Trim()
         }
     }
     
@@ -1272,7 +1272,7 @@ function Invoke-Step6 {
             )
         "@
 
-        $ErrorActionPreference = "Stop"
+        $syntaxErrorActionPreference = "Stop"
         $ChangeRoot = Split-Path -Parent $PSScriptRoot
         $ProjectRoot = Split-Path -Parent $ChangeRoot
 
@@ -1379,7 +1379,7 @@ if (Test-Path  $proposalPath) {
     $proposalContent = Get-Content  $proposalPath -Raw
     
     if ( $proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-        $affectedFiles =  $matchResults[1] -split ',' | ForEach-Object {  $_.Trim() }
+        $affectedFiles =  $Matches[1] -split ',' | ForEach-Object {  $_.Trim() }
         
         foreach ( $file in  $affectedFiles) {
             if ( $file -and  $file -ne '[list files]') {
@@ -1471,13 +1471,13 @@ if ( $testResults.Failed -gt 0) {
             if (Test-Path $scriptPath) {
                 if ($script -match '\.ps1$') {
                     # Validate PowerShell syntax
-                    $errors = $null
+                    $syntaxErrors = $null
                     $tokens = $null
                     try {
-                        $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $scriptPath -Raw), [ref]$tokens, [ref]$errors)
+                        $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $scriptPath -Raw), [ref]$tokens, [ref]$syntaxErrors)
                         
-                        if ($errors.Count -gt 0) {
-                            $syntaxErrors += "$script has $($errors.Count) syntax error(s)"
+                        if ($syntaxErrors.Count -gt 0) {
+                            $syntaxErrors += "$script has $($syntaxErrors.Count) syntax error(s)"
                             Write-Warning "  ✗ $script has syntax errors"
                         } else {
                             Write-Success "  ✓ $script syntax valid"
@@ -1582,11 +1582,11 @@ function Invoke-Step7 {
             $proposalContent = Get-Content $proposalPath -Raw
             # Look for affected files in Impact section
             if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-                $affectedFiles = $matchResults[1]
+                $affectedFiles = $Matches[1]
                 Write-Info "Expected affected files: $affectedFiles"
             }
             if ($proposalContent -match '(?m)^-\s*\*\*Affected code\*\*:\s*(.+)') {
-                $affectedCode = $matchResults[1]
+                $affectedCode = $Matches[1]
                 Write-Info "Expected affected code: $affectedCode"
             }
         }

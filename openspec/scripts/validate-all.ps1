@@ -56,7 +56,7 @@ param(
     [switch]$Quiet
 )
 
-$ErrorActionPreference = "Stop"
+$syntaxErrorActionPreference = "Stop"
 
 # Determine script root (openspec directory)
 $OpenSpecRoot = Split-Path -Parent $PSScriptRoot
