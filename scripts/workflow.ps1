@@ -250,6 +250,9 @@ function Invoke-Step1 {
     $response = Read-Host "Have you completed the version increment? (y/n)"
     if ($response -eq 'y') {
         Write-Success "Version increment confirmed"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 1
+        }
         return $true
     }
     
@@ -295,6 +298,9 @@ function Invoke-Step2 {
         }
         
         Write-Success "proposal.md validated"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 2
+        }
         return $true
     }
     
@@ -383,6 +389,9 @@ function Invoke-Step3 {
         
         Write-Success "Found $($specFiles.Count) specification file(s)"
         Write-Success "Specification files validated"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 3
+        }
         return $true
     }
     
@@ -435,6 +444,9 @@ function Invoke-Step4 {
         
         Write-Success "Found $taskCount tasks in tasks.md"
         Write-Success "tasks.md validated"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 4
+        }
         return $true
     }
     
@@ -551,6 +563,7 @@ bandit -r backend/ -f json -o tests/bandit_report.json
         Set-Content -Path $testPlanPath -Value $template -Encoding UTF8
         Write-Success "Created test_plan.md template"
         Write-Info "Please edit: $testPlanPath"
+        Update-TodoFile -ChangePath $ChangePath -CompletedStep 5
     } else {
         Write-Info "[DRY RUN] Would create: $testPlanPath"
     }
@@ -577,6 +590,9 @@ function Invoke-Step6 {
             Write-Info "Skipped: No scripts required for this change"
         }
         Write-Success "Script & tooling step completed"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 6
+        }
         return $true
     }
     
@@ -602,6 +618,9 @@ function Invoke-Step7 {
     $response = Read-Host "Have you completed the implementation? (y/n)"
     if ($response -eq 'y') {
         Write-Success "Implementation completed"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 7
+        }
         return $true
     }
     
@@ -629,6 +648,9 @@ function Invoke-Step8 {
         
         if ($testExitCode -eq 0) {
             Write-Success "Tests passed"
+            if (!$DryRun) {
+                Update-TodoFile -ChangePath $ChangePath -CompletedStep 8
+            }
             return $true
         } else {
             Write-Error "Tests failed with exit code: $testExitCode"
@@ -658,6 +680,9 @@ function Invoke-Step9 {
     $response = Read-Host "Have you updated all relevant documentation? (y/n)"
     if ($response -eq 'y') {
         Write-Success "Documentation updated"
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 9
+        }
         return $true
     }
     
@@ -690,6 +715,7 @@ function Invoke-Step10 {
         git push origin $branch
         
         Write-Success "Git operations completed"
+        Update-TodoFile -ChangePath $ChangePath -CompletedStep 10
         return $true
     } else {
         Write-Info "[DRY RUN] Would perform: git add, commit, push"
@@ -734,6 +760,7 @@ function Invoke-Step11 {
         git push origin $branch
         
         Write-Success "Archive operation completed and pushed"
+        Update-TodoFile -ChangePath $archivePath -CompletedStep 11
         return $true
     } else {
         Write-Info "[DRY RUN] Would archive to: $archivePath"
@@ -765,6 +792,10 @@ function Invoke-Step12 {
     
     Read-Host "Press Enter when PR has been created" | Out-Null
     Write-Success "Pull Request step completed"
+    
+    if (!$DryRun) {
+        Update-TodoFile -ChangePath $ChangePath -CompletedStep 12
+    }
     
     return $true
 }
@@ -974,7 +1005,7 @@ function Invoke-Workflow {
 # Main script execution
 try {
     Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
-    Write-Host "║   OpenSpec Workflow Automation v1.0   ║" -ForegroundColor Cyan
+    Write-Host "║   OpenSpec Workflow Automation v1.0    ║" -ForegroundColor Cyan
     Write-Host "╚════════════════════════════════════════╝`n" -ForegroundColor Cyan
     
     switch ($PSCmdlet.ParameterSetName) {
