@@ -265,6 +265,40 @@ function Invoke-Step2 {
     
     $proposalPath = Join-Path $ChangePath "proposal.md"
     
+    # Check if proposal already exists
+    if (Test-Path $proposalPath) {
+        Write-Info "proposal.md already exists"
+        
+        # Validate it has required sections
+        $content = Get-Content $proposalPath -Raw
+        $requiredSections = @("## Why", "## What Changes", "## Impact")
+        $missing = @()
+        
+        foreach ($section in $requiredSections) {
+            if ($content -notmatch [regex]::Escape($section)) {
+                $missing += $section
+            }
+        }
+        
+        if ($missing.Count -gt 0) {
+            Write-Error "proposal.md is missing required sections: $($missing -join ', ')"
+            Write-Info "Please add these sections before proceeding"
+            return $false
+        }
+        
+        # Check if it's still template content
+        if ($content -match '\[Explain the problem' -or $content -match '\[List specific changes\]') {
+            Write-Error "proposal.md still contains template placeholders"
+            Write-Info "Please fill in the proposal content before proceeding"
+            Write-Info "Edit: $proposalPath"
+            return $false
+        }
+        
+        Write-Success "proposal.md validated"
+        return $true
+    }
+    
+    # Create template
     $template = @"
 # Proposal: $Title
 
@@ -299,11 +333,13 @@ function Invoke-Step2 {
         Set-Content -Path $proposalPath -Value $template -Encoding UTF8
         Write-Success "Created proposal.md template"
         Write-Info "Please edit: $proposalPath"
+        Write-Error "Cannot proceed until proposal.md is filled in"
+        Write-Info "Re-run with -Step 2 after editing"
+        return $false
     } else {
         Write-Info "[DRY RUN] Would create: $proposalPath"
+        return $true
     }
-    
-    return $true
 }
 
 # Step 3: Create Specification
@@ -314,17 +350,53 @@ function Invoke-Step3 {
     
     $specsDir = Join-Path $ChangePath "specs"
     
-    Write-Info "Specification files should be created in: $specsDir"
-    Write-Info "Create delta specs for each affected capability"
-    Write-Info "Example: specs/project-documentation/spec.md"
-    
-    $response = Read-Host "Have you created the specification files? (y/n)"
-    if ($response -eq 'y') {
-        Write-Success "Specification files confirmed"
+    # Check if specs directory exists and has content
+    if (Test-Path $specsDir) {
+        $specFiles = Get-ChildItem -Path $specsDir -Filter "*.md" -Recurse
+        
+        if ($specFiles.Count -eq 0) {
+            Write-Error "specs/ directory exists but contains no .md files"
+            Write-Info "Create specification files in: $specsDir"
+            Write-Info "Example structure: specs/project-documentation/spec.md"
+            return $false
+        }
+        
+        # Validate spec files have content (not just templates)
+        $validSpecs = 0
+        foreach ($specFile in $specFiles) {
+            $content = Get-Content $specFile.FullName -Raw
+            
+            # Check for template placeholders or very short content
+            if ($content.Length -lt 200) {
+                Write-Warning "Spec file $($specFile.Name) is very short (< 200 chars)"
+            } elseif ($content -notmatch '\[' -or $content.Length -gt 500) {
+                # Assume valid if no placeholders or substantial content
+                $validSpecs++
+            }
+        }
+        
+        if ($validSpecs -eq 0) {
+            Write-Error "Specification files appear to be incomplete or template-only"
+            Write-Info "Please fill in the specification content"
+            return $false
+        }
+        
+        Write-Success "Found $($specFiles.Count) specification file(s)"
+        Write-Success "Specification files validated"
         return $true
     }
     
-    Write-Warning "Specification not confirmed. Create spec files before proceeding."
+    # Create specs directory if it doesn't exist
+    if (!$DryRun) {
+        New-Item -ItemType Directory -Path $specsDir -Force | Out-Null
+        Write-Success "Created specs/ directory at: $specsDir"
+    }
+    
+    Write-Error "Specification files required before proceeding"
+    Write-Info "Create delta specs for each affected capability in: $specsDir"
+    Write-Info "Example: specs/project-documentation/spec.md"
+    Write-Info "Re-run with -Step 3 after creating specification files"
+    
     return $false
 }
 
@@ -336,6 +408,37 @@ function Invoke-Step4 {
     
     $tasksPath = Join-Path $ChangePath "tasks.md"
     
+    # Check if tasks.md already exists
+    if (Test-Path $tasksPath) {
+        Write-Info "tasks.md already exists"
+        
+        # Validate it has content and task checkboxes
+        $content = Get-Content $tasksPath -Raw
+        
+        # Check for task checkboxes
+        $taskCount = ([regex]::Matches($content, '- \[[ x]\]')).Count
+        
+        if ($taskCount -eq 0) {
+            Write-Error "tasks.md has no task checkboxes (- [ ] format)"
+            Write-Info "Please add actionable tasks before proceeding"
+            return $false
+        }
+        
+        # Check if it's still mostly template content
+        if ($content -match '\[List any dependencies or blockers\]' -and 
+            $content -match '\[Provide effort estimates') {
+            Write-Error "tasks.md still contains template placeholders"
+            Write-Info "Please fill in the task breakdown before proceeding"
+            Write-Info "Edit: $tasksPath"
+            return $false
+        }
+        
+        Write-Success "Found $taskCount tasks in tasks.md"
+        Write-Success "tasks.md validated"
+        return $true
+    }
+    
+    # Create template
     $template = @"
 # Tasks: $Title
 
@@ -384,11 +487,13 @@ function Invoke-Step4 {
         Set-Content -Path $tasksPath -Value $template -Encoding UTF8
         Write-Success "Created tasks.md template"
         Write-Info "Please edit: $tasksPath"
+        Write-Error "Cannot proceed until tasks.md is filled in"
+        Write-Info "Re-run with -Step 4 after editing"
+        return $false
     } else {
         Write-Info "[DRY RUN] Would create: $tasksPath"
+        return $true
     }
-    
-    return $true
 }
 
 # Step 5: Create Test Definition
@@ -463,14 +568,19 @@ function Invoke-Step6 {
     Write-Info "  - setup.ps1, setup.sh"
     Write-Info "  - scripts/ directory"
     Write-Info "  - CI/CD configurations"
+    Write-Info ""
+    Write-Info "If no scripts are needed for this change, you can skip this step."
     
     $response = Read-Host "Have you created/updated necessary scripts? (y/n/skip)"
     if ($response -eq 'y' -or $response -eq 'skip') {
+        if ($response -eq 'skip') {
+            Write-Info "Skipped: No scripts required for this change"
+        }
         Write-Success "Script & tooling step completed"
         return $true
     }
     
-    Write-Warning "Scripts not confirmed. Update scripts before proceeding."
+    Write-Error "Scripts not confirmed. Update scripts before proceeding or choose 'skip'."
     return $false
 }
 
@@ -486,6 +596,8 @@ function Invoke-Step7 {
     Write-Info "  - plugin/ (JavaScript code)"
     Write-Info "  - tests/ (Test code)"
     Write-Info "  - docs/ (Documentation)"
+    Write-Info ""
+    Write-Info "Verify your implementation matches the specification and tasks."
     
     $response = Read-Host "Have you completed the implementation? (y/n)"
     if ($response -eq 'y') {
@@ -493,7 +605,8 @@ function Invoke-Step7 {
         return $true
     }
     
-    Write-Warning "Implementation not complete. Continue implementation before proceeding."
+    Write-Error "Implementation not complete. Continue implementation before proceeding."
+    Write-Info "Re-run with -Step 7 when ready"
     return $false
 }
 
@@ -539,6 +652,8 @@ function Invoke-Step9 {
     Write-Info "  - CHANGELOG.md"
     Write-Info "  - API documentation"
     Write-Info "  - openspec/ documentation"
+    Write-Info ""
+    Write-Info "Ensure all changes are documented appropriately."
     
     $response = Read-Host "Have you updated all relevant documentation? (y/n)"
     if ($response -eq 'y') {
@@ -546,7 +661,8 @@ function Invoke-Step9 {
         return $true
     }
     
-    Write-Warning "Documentation not updated. Complete documentation before proceeding."
+    Write-Error "Documentation not updated. Complete documentation before proceeding."
+    Write-Info "Re-run with -Step 9 when ready"
     return $false
 }
 
@@ -566,15 +682,7 @@ function Invoke-Step10 {
         git add .
         
         # Commit
-        $userMessage = Read-Host "Enter commit message (or press Enter to auto-generate from docs)"
-        if ([string]::IsNullOrWhiteSpace($userMessage)) {
-            $doc = Get-ChangeDocInfo -ChangePath $ChangePath
-            $autoMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc
-            Write-Info "Using auto-generated commit message from documentation"
-            git commit -m $autoMsg
-        } else {
-            git commit -m $userMessage
-        }
+        git commit -m $autoMsg
         
         # Push
         $branch = git rev-parse --abbrev-ref HEAD
@@ -655,7 +763,7 @@ function Invoke-Step12 {
     Write-Warning "This step requires manual action on GitHub"
     Write-Info "Visit: https://github.com/UndiFineD/obsidian-AI-assistant/compare/$branch?expand=1"
     
-    $response = Read-Host "Press Enter when PR has been created"
+    Read-Host "Press Enter when PR has been created" | Out-Null
     Write-Success "Pull Request step completed"
     
     return $true
@@ -793,6 +901,29 @@ function Invoke-Workflow {
         return $false
     }
     
+    # Enforce sequential execution: Check that previous steps are complete
+    if ($StartStep -gt 0 -and !$DryRun) {
+        $todoPath = Join-Path $changePath "todo.md"
+        if (Test-Path $todoPath) {
+            $todoContent = Get-Content $todoPath -Raw
+            
+            # Check that all previous steps are marked complete
+            for ($prev = 0; $prev -lt $StartStep; $prev++) {
+                # Match both simple and detailed formats
+                $simplePattern = "- \[x\] $prev\."
+                $detailedPattern = "- \[x\] \*\*$prev\."
+                
+                if (($todoContent -notmatch [regex]::Escape($simplePattern)) -and
+                    ($todoContent -notmatch [regex]::Escape($detailedPattern))) {
+                    Write-Error "Cannot execute Step $StartStep - Step $prev is not complete"
+                    Write-Info "Steps must be executed in order: 0 → 1 → 2 → ... → 12"
+                    Write-Info "Complete Step $prev first, then re-run"
+                    return $false
+                }
+            }
+        }
+    }
+    
     # Execute workflow steps
     for ($i = $StartStep; $i -le $EndStep; $i++) {
         $success = switch ($i) {
@@ -817,6 +948,7 @@ function Invoke-Workflow {
         
         if (!$success) {
             Write-Error "Step $i failed. Workflow halted."
+            Write-Info "Fix the issues and re-run with: .\scripts\workflow.ps1 -ChangeId '$ChangeId' -Step $i"
             return $false
         }
         
