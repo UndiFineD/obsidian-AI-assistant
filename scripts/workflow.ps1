@@ -112,13 +112,12 @@ $ScriptRoot = Split-Path -Parent $PSScriptRoot
 $ChangesDir = Join-Path $ScriptRoot "openspec\changes"
 $ArchiveDir = Join-Path $ScriptRoot "openspec\archive"
 $TemplatesDir = Join-Path $ScriptRoot "openspec\templates"
+$script:NewVersion = $null  # Shared version variable set in Step 1
 
 # Helper Functions
 function Write-Step {
     param([int]$Number, [string]$Description)
-    Write-Host "`n═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
-    Write-Host "  STEP ${Number}: $Description" -ForegroundColor Cyan
-    Write-Host "═══════════════════════════════════════════════════════════" -ForegroundColor Cyan
+    Write-Host "`n═════════  STEP ${Number}: $Description ═════════" -ForegroundColor Cyan
 }
 
 function Write-Info {
@@ -362,12 +361,9 @@ function Invoke-Step1 {
                     Write-Info "No version references found in README.md"
                 }
             }
-            $versionFile = Join-Path $ChangePath "_new_version.txt"
-            if (-not (Set-ContentAtomic -Path $versionFile -Value $newVersion)) {
-                Write-Warning "Failed to save new version to $versionFile"
-            } else {
-                Write-Info "Saved new version to $versionFile for later workflow steps."
-            }
+            # Store version in script-level variable for use in later steps
+            $script:NewVersion = $newVersion
+            Write-Info "New version $newVersion stored for PR creation in Step 12"
             Write-Info ""
             Write-Success "Version increment complete!"
             Write-Success "  Version: $currentVersion → $newVersion"
@@ -460,12 +456,8 @@ function Invoke-Step2 {
             }
         }
         if ($validationIssues.Count -gt 0) {
-            Write-Warning "Proposal validation found quality issues:"
-            foreach ($issue in $validationIssues) {
-                Write-Warning "  - $issue"
-            }
-            Write-Info "[NO PROMPT] Proceeding automatically (always 'yes' to continue)."
-            # No prompt, always continue
+            Write-Info "Proposal has $($validationIssues.Count) quality suggestion(s) - proceeding anyway"
+            # Suggestions are informational, not blocking
         }
         Write-Success "proposal.md validated"
         if (!$DryRun) {
@@ -718,12 +710,8 @@ function Invoke-Step3 {
         }
         
         if ($validationIssues.Count -gt 0) {
-            Write-Warning "Specification validation found quality issues:"
-            foreach ($issue in $validationIssues) {
-                Write-Warning "  - $issue"
-            }
-            Write-Info "[NO PROMPT] Proceeding automatically (always 'yes' to continue)."
-            # No prompt, always continue
+            Write-Info "Specification has $($validationIssues.Count) quality suggestion(s) - proceeding anyway"
+            # Suggestions are informational, not blocking
         }
         
         Write-Success "spec.md validated"
@@ -1096,19 +1084,9 @@ bandit -r backend/ -f json -o tests/bandit_report.json
                 }
             }
         }
-        # Check for actionable items from todo.md
-        $todoTasks = @()
-        if ($todoContent) {
-            $matchResults = [regex]::Matches($todoContent, '- \[ \] (.+)')
-            foreach ($m in $matchResults) { $todoTasks += $m.Groups[1].Value.Trim() }
-        }
-        if ($todoTasks.Count -gt 0) {
-            foreach ($task in $todoTasks) {
-                if (-not ($template -match [regex]::Escape($task))) {
-                    $reviewIssues += "Missing actionable item from todo.md: '$task'"
-                }
-            }
-        }
+        # Skip todo.md checking - it contains workflow templates, not test requirements
+        # Test plan should focus on actual test cases from tasks.md and spec.md
+        
         # Check for test cases from tasks.md
         $taskTests = @()
         if ($tasksContent) {
@@ -1124,13 +1102,18 @@ bandit -r backend/ -f json -o tests/bandit_report.json
             }
         }
         if ($reviewIssues.Count -gt 0) {
-            Write-Warning "test_plan.md review found alignment issues:"
-            foreach ($issue in $reviewIssues) {
+            Write-Warning "test_plan.md review found $($reviewIssues.Count) alignment issue(s):"
+            # Show only first 5 issues to avoid overwhelming output
+            $displayIssues = $reviewIssues | Select-Object -First 5
+            foreach ($issue in $displayIssues) {
                 Write-Warning "  - $issue"
             }
-            Write-Info "Please edit test_plan.md to address these issues and ensure alignment with todo.md, proposal.md, spec.md, and tasks.md."
+            if ($reviewIssues.Count -gt 5) {
+                Write-Warning "  ... and $($reviewIssues.Count - 5) more. Review test_plan.md for details."
+            }
+            Write-Info "Please edit test_plan.md to ensure alignment with proposal.md, spec.md, and tasks.md."
         } else {
-            Write-Success "test_plan.md is aligned with todo.md, proposal.md, spec.md, and tasks.md."
+            Write-Success "test_plan.md is aligned with proposal.md, spec.md, and tasks.md."
         }
         Write-Info "Please edit: $testPlanPath"
     Update-TodoFile -ChangePath $ChangePath -CompletedStep 5
@@ -1854,9 +1837,7 @@ function Invoke-Step11 {
         $branch = git rev-parse --abbrev-ref HEAD
         git push origin $branch
         Write-Success "Archive operation completed and pushed"
-        if (Test-Path $archivePath) {
-            Update-TodoFile -ChangePath $archivePath -CompletedStep 11
-        }
+        # Note: Don't update todo.md after archiving - it was moved to archive
         return $true
     } else {
         Write-Info "[DRY RUN] Would archive to: $archivePath"
@@ -1890,13 +1871,8 @@ function Invoke-Step12 {
     # Collect documentation metadata and version info up-front so both gh and DryRun/manual paths can use them
     $doc = Get-ChangeDocInfo -ChangePath $actualPath
 
-    # Read new version from _new_version.txt if present
-    $versionFile = Join-Path $actualPath "_new_version.txt"
-    $newVersion = $null
-    if (Test-Path $versionFile) {
-        $newVersion = Get-Content $versionFile -Raw | Select-Object -First 1
-        $newVersion = $newVersion.Trim()
-    }
+    # Use version from Step 1 (stored in script variable)
+    $newVersion = $script:NewVersion
 
     # Build PR title (include version if available)
     $prTitle = if ($doc.Title) {
@@ -2019,7 +1995,7 @@ function Update-TodoFile {
     )
     $todoPath = Join-Path $ChangePath "todo.md"
     if (!(Test-Path $todoPath)) {
-        Write-Warning "todo.md not found at $todoPath"
+        # Silently skip if todo.md doesn't exist (e.g., after archiving)
         return
     }
     $content = Get-Content $todoPath -Raw
