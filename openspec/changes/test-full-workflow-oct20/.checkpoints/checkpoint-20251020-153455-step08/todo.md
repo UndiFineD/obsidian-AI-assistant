@@ -1,7 +1,7 @@
-# TODO: Test Change
+# TODO: Test Full Workflow Oct20
 
 ## Change Information
-- **Change ID**: `test-change`
+- **Change ID**: `test-full-workflow-oct20`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -63,7 +63,7 @@
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/test-change/todo.md` (this file)
-- [ ] `openspec/changes/test-change/proposal.md`
-- [ ] `openspec/changes/test-change/spec.md`
-- [ ] `openspec/changes/test-change/tasks.md`
-- [ ] `openspec/changes/test-change/test_plan.md`
-- [ ] `openspec/changes/test-change/retrospective.md`
+- [ ] `openspec/changes/test-full-workflow-oct20/todo.md` (this file)
+- [ ] `openspec/changes/test-full-workflow-oct20/proposal.md`
+- [ ] `openspec/changes/test-full-workflow-oct20/spec.md`
+- [ ] `openspec/changes/test-full-workflow-oct20/tasks.md`
+- [ ] `openspec/changes/test-full-workflow-oct20/test_plan.md`
+- [ ] `openspec/changes/test-full-workflow-oct20/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
