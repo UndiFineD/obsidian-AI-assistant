@@ -19,15 +19,3 @@
 
 - Documentation must explicitly cover both offline/local and connected/internet-enabled modes.
 - Add onboarding guidance for contributors about agent orchestration, extensibility, and multi-agent workflows.
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
-
-## Acceptance Criteria
-
-- [ ] AC-01: ...
-- [ ] AC-02: ...
-
