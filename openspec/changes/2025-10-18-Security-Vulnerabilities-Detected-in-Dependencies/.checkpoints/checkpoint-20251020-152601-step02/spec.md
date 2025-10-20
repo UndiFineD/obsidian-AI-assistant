@@ -28,9 +28,3 @@
 ## Backward Compatibility
 - Test for breaking changes after dependency updates
 - Roll back updates if critical functionality is affected
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
