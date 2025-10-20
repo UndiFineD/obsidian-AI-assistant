@@ -1,7 +1,7 @@
-# TODO: 2025 10 18 Update Doc Claude
+# TODO: 2025 10 18 Update Doc Docs Constitution
 
 ## Change Information
-- **Change ID**: `2025-10-18-update-doc-claude`
+- **Change ID**: `2025-10-18-update-doc-docs-constitution`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/proposal.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/spec.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/tasks.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/test_plan.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-claude/retrospective.md`
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/proposal.md`
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/spec.md`
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/tasks.md`
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/test_plan.md`
+- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
