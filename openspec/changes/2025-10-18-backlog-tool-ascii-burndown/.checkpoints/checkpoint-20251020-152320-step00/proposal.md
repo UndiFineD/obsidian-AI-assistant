@@ -65,19 +65,3 @@ Implement `scripts/list_openspec_changes.py` with:
 
 - Terminal width differences: default to sane width and wrap labels; provide `--width` option
 - Encoding issues on Windows: enforce ASCII-only output and avoid emojis
-
-## Context
-
-Describe the background and motivation.
-
-
-## What Changes
-
-List the proposed changes at a high level.
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-

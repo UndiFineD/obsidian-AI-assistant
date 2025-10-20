@@ -1,7 +1,7 @@
-# TODO: 2025 10 18 Automate Github Issue Import
+# TODO: 2025 10 18 Backlog Tool Ascii Burndown
 
 ## Change Information
-- **Change ID**: `2025-10-18-automate-github-issue-import`
+- **Change ID**: `2025-10-18-backlog-tool-ascii-burndown`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -42,7 +42,7 @@
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [x] **5. Test Definition**
+- [ ] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/proposal.md`
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/spec.md`
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/tasks.md`
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/test_plan.md`
-- [ ] `openspec/changes/2025-10-18-automate-github-issue-import/retrospective.md`
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/proposal.md`
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/spec.md`
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/tasks.md`
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/test_plan.md`
+- [ ] `openspec/changes/2025-10-18-backlog-tool-ascii-burndown/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`

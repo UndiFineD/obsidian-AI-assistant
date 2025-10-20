@@ -67,9 +67,3 @@ JSON (abridged):
 
 - Unit tests simulate a temp changes tree with known dates and statuses
 - Rendering tests assert ASCII-only and fixed width lines
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
