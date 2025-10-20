@@ -1,7 +1,7 @@
-# TODO: Issue 6
+# TODO: Issue 6 Ci Cd Pipline Issue 1
 
 ## Change Information
-- **Change ID**: `issue-6`
+- **Change ID**: `issue-6-ci-cd-pipline-issue-1`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/issue-6/todo.md` (this file)
-- [ ] `openspec/changes/issue-6/proposal.md`
-- [ ] `openspec/changes/issue-6/spec.md`
-- [ ] `openspec/changes/issue-6/tasks.md`
-- [ ] `openspec/changes/issue-6/test_plan.md`
-- [ ] `openspec/changes/issue-6/retrospective.md`
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/todo.md` (this file)
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/proposal.md`
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/spec.md`
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/tasks.md`
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/test_plan.md`
+- [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
