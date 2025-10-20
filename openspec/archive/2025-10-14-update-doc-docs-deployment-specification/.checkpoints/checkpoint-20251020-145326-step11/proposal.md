@@ -1,12 +1,12 @@
-# Change Proposal: update-doc-docs-deployment-status
+# Change Proposal: update-doc-docs-deployment-specification
 
 ## Why
 
-Ensure `docs/DEPLOYMENT_STATUS.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Ensure `docs/DEPLOYMENT_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
 
 ## What Changes
 
-- Add a documentation governance requirement for `docs/DEPLOYMENT_STATUS.md` under the `project-documentation` capability.
+- Add a documentation governance requirement for `docs/DEPLOYMENT_SPECIFICATION.md` under the `project-documentation` capability.
 
 - Track material updates via OpenSpec proposals (no functional code changes).
 

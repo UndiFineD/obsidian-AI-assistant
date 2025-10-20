@@ -11,15 +11,3 @@ The project SHALL govern material changes to `docs/DEPLOYMENT_STATUS.md` via Ope
 - **WHEN** a contributor plans a material update to `docs/DEPLOYMENT_STATUS.md`
 
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
-
-## Acceptance Criteria
-
-- [ ] AC-01: ...
-- [ ] AC-02: ...
-
