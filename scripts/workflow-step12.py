@@ -209,7 +209,7 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
     Args:
         change_path: Path to change directory
         dry_run: If True, preview PR without creating
-        new_version: Version from Step 1 (optional)
+        new_version: Version from Step 1 (optional, can be loaded from state)
 
     Returns:
         True if successful, False otherwise
@@ -218,6 +218,18 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
     change_path = Path(change_path)
     change_id = change_path.name
+
+    # Load new_version from state file if not provided
+    if not new_version:
+        state_file = change_path / ".workflow_state.json"
+        if state_file.exists():
+            try:
+                state = json.loads(state_file.read_text(encoding="utf-8"))
+                new_version = state.get("new_version")
+                if new_version:
+                    print(f"Loaded new_version from state: {new_version}")
+            except Exception as e:
+                print(f"Warning: Could not load state file: {e}")
 
     # Check if change has been archived
     openspec_dir = change_path.parent.parent

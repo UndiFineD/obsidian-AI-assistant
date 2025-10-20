@@ -152,6 +152,19 @@ def invoke_step1(
             helpers.set_content_atomic(snapshot, content)
             helpers.write_success(f"Wrote version snapshot: {snapshot}")
 
+    # Persist new_version to state file for downstream steps (especially Step 12)
+    if new_version:
+        state_file = change_path / ".workflow_state.json"
+        try:
+            state = {}
+            if state_file.exists():
+                state = json.loads(state_file.read_text(encoding="utf-8"))
+            state["new_version"] = new_version
+            state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
+            helpers.write_info(f"Persisted new_version to state: {new_version}")
+        except Exception as e:
+            helpers.write_warning(f"Could not persist version state: {e}")
+
     _mark_complete(change_path)
     helpers.write_success("Step 1 completed")
     return True
