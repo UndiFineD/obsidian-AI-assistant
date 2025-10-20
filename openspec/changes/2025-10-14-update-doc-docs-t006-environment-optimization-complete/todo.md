@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs System Status October 2025
+# TODO: 2025 10 14 Update Doc Docs T006 Environment Optimization Complete
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-system-status-october-2025`
+- **Change ID**: `2025-10-14-update-doc-docs-t006-environment-optimization-complete`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-t006-environment-optimization-complete/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
