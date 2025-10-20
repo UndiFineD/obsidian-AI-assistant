@@ -501,36 +501,34 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     # Analyze requirements
     requirements = _analyze_requirements(change_path)
 
-    # Check if scripts are actually needed
-    needs_scripts = (
-        requirements["needs_setup"]
-        or requirements["needs_test"]
-        or requirements["needs_validation"]
-        or requirements["needs_ci"]
-        or len(requirements["script_types"]) > 0
-    )
-
-    if not needs_scripts:
-        helpers.write_info("No script requirements detected in documentation")
-        helpers.write_info("Skipping script generation")
-        return True
-
-    # Display detected requirements
+    # NOTE: Always generate test.py and implement.py for every OpenSpec change
+    # regardless of documented requirements, as they are core workflow artifacts
+    helpers.write_info("Generating standard OpenSpec scripts...")
     helpers.write_info("")
-    helpers.write_info("Detected Script Requirements:")
-    if requirements["purposes"]:
-        helpers.write_info(f"  Purpose: {', '.join(requirements['purposes'])}")
-    if requirements["script_types"]:
-        helpers.write_info(f"  Script Types: {', '.join(requirements['script_types'])}")
-    if requirements["affected_files"]:
-        helpers.write_info(
-            f"  Affected Files: {', '.join(requirements['affected_files'][:3])}"
-        )
-        if len(requirements["affected_files"]) > 3:
+
+    # Display detected requirements (for informational purposes)
+    if any([
+        requirements["needs_setup"],
+        requirements["needs_test"],
+        requirements["needs_validation"],
+        requirements["needs_ci"],
+        len(requirements["script_types"]) > 0,
+        len(requirements["purposes"]) > 0,
+    ]):
+        helpers.write_info("Detected Additional Requirements:")
+        if requirements["purposes"]:
+            helpers.write_info(f"  Purpose: {', '.join(requirements['purposes'])}")
+        if requirements["script_types"]:
+            helpers.write_info(f"  Script Types: {', '.join(requirements['script_types'])}")
+        if requirements["affected_files"]:
             helpers.write_info(
-                f"    ... and {len(requirements['affected_files']) - 3} more"
+                f"  Affected Files: {', '.join(requirements['affected_files'][:3])}"
             )
-    helpers.write_info("")
+            if len(requirements["affected_files"]) > 3:
+                helpers.write_info(
+                    f"    ... and {len(requirements['affected_files']) - 3} more"
+                )
+        helpers.write_info("")
 
     # Generate scripts with progress indicator
     scripts_to_generate = []
