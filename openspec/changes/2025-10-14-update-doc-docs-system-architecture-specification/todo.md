@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs Specification Summary
+# TODO: 2025 10 14 Update Doc Docs System Architecture Specification
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-specification-summary`
+- **Change ID**: `2025-10-14-update-doc-docs-system-architecture-specification`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-specification-summary/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-system-architecture-specification/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
