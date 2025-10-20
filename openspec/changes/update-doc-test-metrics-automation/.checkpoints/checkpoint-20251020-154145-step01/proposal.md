@@ -21,20 +21,3 @@ Capability: project-documentation
 - **CI Integration**: Enables automated weekly updates or on-demand triggers
 
 This change supports OpenSpec governance by automating the creation of compliant change directories for documentation updates.
-
-## Context
-
-Describe the background and motivation.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-

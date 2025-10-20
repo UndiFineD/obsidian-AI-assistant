@@ -1,7 +1,7 @@
-# TODO: Update Doc Security Hardening
+# TODO: Update Doc Test Metrics Automation
 
 ## Change Information
-- **Change ID**: `update-doc-security-hardening`
+- **Change ID**: `update-doc-test-metrics-automation`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/update-doc-security-hardening/todo.md` (this file)
-- [ ] `openspec/changes/update-doc-security-hardening/proposal.md`
-- [ ] `openspec/changes/update-doc-security-hardening/spec.md`
-- [ ] `openspec/changes/update-doc-security-hardening/tasks.md`
-- [ ] `openspec/changes/update-doc-security-hardening/test_plan.md`
-- [ ] `openspec/changes/update-doc-security-hardening/retrospective.md`
+- [ ] `openspec/changes/update-doc-test-metrics-automation/todo.md` (this file)
+- [ ] `openspec/changes/update-doc-test-metrics-automation/proposal.md`
+- [ ] `openspec/changes/update-doc-test-metrics-automation/spec.md`
+- [ ] `openspec/changes/update-doc-test-metrics-automation/tasks.md`
+- [ ] `openspec/changes/update-doc-test-metrics-automation/test_plan.md`
+- [ ] `openspec/changes/update-doc-test-metrics-automation/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
