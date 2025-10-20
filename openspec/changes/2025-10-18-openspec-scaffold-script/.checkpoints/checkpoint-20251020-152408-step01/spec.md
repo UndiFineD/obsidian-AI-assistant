@@ -29,9 +29,3 @@
 - Placeholders in `todo.md` are correctly replaced
 - Re-running without `--force` does not overwrite
 - Tests pass
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
