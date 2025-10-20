@@ -1,7 +1,7 @@
-# TODO: Test Improve Resumption
+# TODO: Test Python Workflow
 
 ## Change Information
-- **Change ID**: `test-improve-resumption`
+- **Change ID**: `test-python-workflow`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/test-improve-resumption/todo.md` (this file)
-- [ ] `openspec/changes/test-improve-resumption/proposal.md`
-- [ ] `openspec/changes/test-improve-resumption/spec.md`
-- [ ] `openspec/changes/test-improve-resumption/tasks.md`
-- [ ] `openspec/changes/test-improve-resumption/test_plan.md`
-- [ ] `openspec/changes/test-improve-resumption/retrospective.md`
+- [ ] `openspec/changes/test-python-workflow/todo.md` (this file)
+- [ ] `openspec/changes/test-python-workflow/proposal.md`
+- [ ] `openspec/changes/test-python-workflow/spec.md`
+- [ ] `openspec/changes/test-python-workflow/tasks.md`
+- [ ] `openspec/changes/test-python-workflow/test_plan.md`
+- [ ] `openspec/changes/test-python-workflow/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
