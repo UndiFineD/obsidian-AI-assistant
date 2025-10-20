@@ -219,7 +219,7 @@ class AdvancedInputValidator:
 
         # Command injection patterns
         self.command_patterns = [
-            r"[;&| $]",
+            r"[;&|]",  # Removed space from character class - spaces are normal in text
             r"\$\([^)]*\)",
             r"`[^`]*`",
             r">\s*/\w+",

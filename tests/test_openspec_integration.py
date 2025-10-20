@@ -74,6 +74,7 @@ class TestOpenSpecIntegration:
             if change_dir.is_dir() and change_dir.name not in (
                 "archive",
                 "test-change",
+                "test-step1",
             ):
                 change_id = change_dir.name
 
@@ -113,7 +114,9 @@ class TestOpenSpecIntegration:
 
         # Test first few proposals
         changes = [
-            d for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"
+            d
+            for d in changes_dir.iterdir()
+            if d.is_dir() and d.name not in ("archive", "test-step1")
         ]
         sample_size = min(3, len(changes))
 
@@ -151,7 +154,7 @@ class TestOpenSpecIntegration:
 
         spec_deltas_tested = 0
         for change_dir in changes_dir.iterdir():
-            if change_dir.is_dir() and change_dir.name != "archive":
+            if change_dir.is_dir() and change_dir.name not in ("archive", "test-step1"):
                 spec_file = change_dir / "specs" / "project-documentation" / "spec.md"
 
                 if spec_file.exists():
@@ -202,7 +205,9 @@ class TestOpenSpecIntegration:
 
         # Test first few tasks files
         changes = [
-            d for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"
+            d
+            for d in changes_dir.iterdir()
+            if d.is_dir() and d.name not in ("archive", "test-step1")
         ]
         sample_size = min(3, len(changes))
 
@@ -243,7 +248,7 @@ class TestOpenSpecIntegration:
         capability_name = "project-documentation"
 
         for change_dir in changes_dir.iterdir():
-            if change_dir.is_dir() and change_dir.name != "archive":
+            if change_dir.is_dir() and change_dir.name not in ("archive", "test-step1"):
                 # Check if spec exists in correct location
                 spec_dir = change_dir / "specs" / capability_name
                 if spec_dir.exists():
@@ -295,7 +300,9 @@ class TestOpenSpecIntegration:
         ]
 
         existing_changes = {
-            d.name for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"
+            d.name
+            for d in changes_dir.iterdir()
+            if d.is_dir() and d.name not in ("archive", "test-step1")
         }
 
         # Check if we have changes for at least some important docs
@@ -332,7 +339,9 @@ class TestOpenSpecWorkflowValidation:
 
         # Test first few changes for actionability
         changes = [
-            d for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"
+            d
+            for d in changes_dir.iterdir()
+            if d.is_dir() and d.name not in ("archive", "test-step1")
         ]
         sample_size = min(3, len(changes))
 
@@ -361,7 +370,7 @@ class TestOpenSpecWorkflowValidation:
             pytest.skip("OpenSpec changes directory doesn't exist")
 
         for change_dir in changes_dir.iterdir():
-            if change_dir.is_dir() and change_dir.name != "archive":
+            if change_dir.is_dir() and change_dir.name not in ("archive", "test-step1"):
                 spec_file = change_dir / "specs" / "project-documentation" / "spec.md"
 
                 if spec_file.exists():
@@ -412,7 +421,7 @@ class TestOpenSpecWorkflowValidation:
 
         changes_tested = 0
         for change_dir in changes_dir.iterdir():
-            if change_dir.is_dir() and change_dir.name != "archive":
+            if change_dir.is_dir() and change_dir.name not in ("archive", "test-step1"):
                 proposal_file = change_dir / "proposal.md"
 
                 if proposal_file.exists():

@@ -1,4 +1,8 @@
 # 📝 CHANGELOG
+## v0.1.27 (2025-10-20)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.9 (Unreleased)
 
 - _Next release cycle initialized._

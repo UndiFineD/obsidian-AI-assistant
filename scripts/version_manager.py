@@ -7,9 +7,10 @@ Handles version bumping, validation, and synchronization across all project file
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
 
 class VersionManager:
@@ -35,14 +36,101 @@ class VersionManager:
 
         return package_data.get("version", "0.1.0")
 
+    def get_github_version(self, branch: Optional[str] = None) -> Optional[str]:
+        """Fetch current version from GitHub branch package.json.
+
+        Args:
+            branch: Git branch to fetch from. If None, uses current branch.
+
+        Returns:
+            Version string from GitHub, or None if unable to fetch.
+        """
+        try:
+            # Determine which branch to use
+            if not branch:
+                result = subprocess.run(
+                    ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+                    cwd=self.project_root,
+                    capture_output=True,
+                    text=True,
+                    timeout=5,
+                )
+                if result.returncode == 0:
+                    branch = result.stdout.strip()
+                    # If we're on a feature branch, try to get from origin/main as fallback
+                    if branch == "HEAD" or not branch:
+                        branch = "origin/main"
+                else:
+                    branch = "origin/main"
+
+            # Fetch from remote if not already prefixed
+            if not branch.startswith("origin/"):
+                branch = f"origin/{branch}"
+
+            result = subprocess.run(
+                ["git", "show", f"{branch}:package.json"],
+                cwd=self.project_root,
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+
+            if result.returncode == 0:
+                data = json.loads(result.stdout)
+                return data.get("version")
+            else:
+                # Try main as fallback
+                if branch != "origin/main":
+                    result = subprocess.run(
+                        ["git", "show", "origin/main:package.json"],
+                        cwd=self.project_root,
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                    if result.returncode == 0:
+                        data = json.loads(result.stdout)
+                        return data.get("version")
+
+                return None
+        except Exception as e:
+            print(f"Warning: Could not fetch GitHub version: {e}", file=sys.stderr)
+            return None
+
+    def get_latest_version(self, use_github: bool = True) -> str:
+        """Get the latest version from GitHub (if available) or local.
+
+        Args:
+            use_github: If True, try GitHub first, fall back to local.
+
+        Returns:
+            Latest version string.
+        """
+        if use_github:
+            github_version = self.get_github_version()
+            if github_version:
+                return github_version
+
+        # Fall back to local version
+        return self.get_current_version()
+
     def validate_version(self, version: str) -> bool:
         """Validate semantic version format."""
         pattern = r"^\d+\.\d+\.\d+(-[\w\.-]+)?(\+[\w\.-]+)?$"
         return bool(re.match(pattern, version))
 
-    def bump_version(self, release_type: str) -> str:
-        """Bump version based on release type (patch, minor, major)."""
-        current = self.get_current_version()
+    def bump_version(self, release_type: str, use_github: bool = True) -> str:
+        """Bump version based on release type (patch, minor, major).
+
+        Args:
+            release_type: Type of bump (patch, minor, major)
+            use_github: If True, bump from GitHub version; else from local
+
+        Returns:
+            New version string
+        """
+        # Get the latest version (from GitHub if available)
+        current = self.get_latest_version(use_github=use_github)
 
         # Parse current version
         version_parts = current.split(".")

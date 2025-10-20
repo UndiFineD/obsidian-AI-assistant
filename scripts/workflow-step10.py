@@ -301,6 +301,9 @@ def invoke_step10(
 ) -> bool:
     """Execute Step 10: Git operations and GitHub issue sync.
 
+    Stages and commits version-bumped files (package.json, CHANGELOG.md, README.md)
+    from Step 1, using the versioned branch. Then syncs GitHub issues.
+
     Args:
         change_path: Path to the change folder
         dry_run: If True, only show what would be done
@@ -312,6 +315,24 @@ def invoke_step10(
     """
     helpers.write_step(10, "Git Operations & GitHub Issue Sync")
 
+    # Load version info from state file (set by Step 1)
+    version_branch = None
+    new_version = None
+    state_file = change_path / ".workflow_state.json"
+    if state_file.exists():
+        try:
+            state = json.loads(state_file.read_text(encoding="utf-8"))
+            version_branch = state.get("version_branch")
+            new_version = state.get("new_version")
+            if version_branch:
+                helpers.write_info(
+                    f"Using version branch from Step 1: {version_branch}"
+                )
+            if new_version:
+                helpers.write_info(f"Version bumped in Step 1: {new_version}")
+        except Exception as e:
+            helpers.write_warning(f"Could not load version state: {e}")
+
     # Part 1: GitHub Issue Synchronization
     if sync_issues:
         synced_count = _sync_github_issues(dry_run=dry_run)
@@ -321,13 +342,15 @@ def invoke_step10(
     # Part 2: Git notes for current change
     notes_path = change_path / "git_notes.md"
 
-    branch = _git(["rev-parse", "--abbrev-ref", "HEAD"])
+    branch = version_branch or _git(["rev-parse", "--abbrev-ref", "HEAD"])
     branch = branch if branch else "unknown"
 
     content = (
         f"## Git Context\n\n"
         f"- Branch: {branch}\n"
-        f"- Suggested commit message: chore(openspec): {change_path.name}\n"
+        f"- Suggested commit message: chore(release): v{new_version}\n"
+        if new_version
+        else f"- Suggested commit message: chore(openspec): {change_path.name}\n"
     )
 
     if dry_run:
@@ -337,12 +360,36 @@ def invoke_step10(
         notes_path.write_text(content, encoding="utf-8")
         helpers.write_success(f"Created: {notes_path.name}")
 
-    # Part 3: Commit and push changes
+    # Part 3: Commit and push changes (including version-bumped files from Step 1)
     if not dry_run:
         try:
-            # Check if there are changes to commit
+            # Stage version-bumped files explicitly
+            files_to_stage = [
+                "package.json",
+                "pyproject.toml",
+                "CHANGELOG.md",
+                "README.md",
+            ]
+
+            # Check which files exist and have changes
+            files_with_changes = []
+            for file_name in files_to_stage:
+                file_path = PROJECT_ROOT / file_name
+                if file_path.exists():
+                    # Check if file has changes
+                    status_check = subprocess.run(
+                        ["git", "diff", "--name-only", file_name],
+                        cwd=PROJECT_ROOT,
+                        capture_output=True,
+                        text=True,
+                    )
+                    if status_check.stdout.strip():
+                        files_with_changes.append(file_name)
+
+            # Also check for any other changes (from issue sync, git_notes, etc)
             status_output = _git(["status", "--porcelain"])
-            if status_output:
+
+            if status_output or files_with_changes:
                 helpers.write_info("Staging changes...")
 
                 # Stage all changes
@@ -358,8 +405,12 @@ def invoke_step10(
 
                 helpers.write_success("Changes staged")
 
-                # Commit changes
-                commit_msg = f"chore(openspec): {change_path.name}"
+                # Build commit message with version if available
+                if new_version:
+                    commit_msg = f"chore(release): Bump version to v{new_version}"
+                else:
+                    commit_msg = f"chore(openspec): {change_path.name}"
+
                 helpers.write_info(f"Committing: {commit_msg}")
 
                 result = subprocess.run(
