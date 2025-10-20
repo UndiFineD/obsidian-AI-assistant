@@ -82,14 +82,3 @@ def parse_issue_url(issue_ref: str) -> tuple[str, str, int]:
 - ✅ No breaking changes to function signature
 - ✅ Return type remains the same
 
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
-
-## Acceptance Criteria
-
-- [ ] AC-01: ...
-- [ ] AC-02: ...
-
