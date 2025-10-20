@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Step 10: Git Operations & GitHub Issue Sync
 
-Prepares git-related notes. Non-destructive by default; no automatic commit.
+Prepares git-related notes, commits changes, and pushes to remote.
 Optionally syncs open GitHub issues to create change folders.
 """
 
@@ -341,6 +341,65 @@ def invoke_step10(
         notes_path.write_text(content, encoding="utf-8")
         helpers.write_success(f"Created: {notes_path.name}")
 
+    # Part 3: Commit and push changes
+    if not dry_run:
+        try:
+            # Check if there are changes to commit
+            status_output = _git(["status", "--porcelain"])
+            if status_output:
+                helpers.write_info("Staging changes...")
+                
+                # Stage all changes
+                result = subprocess.run(
+                    ["git", "add", "."],
+                    cwd=PROJECT_ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    helpers.write_error(f"Git add failed: {result.stderr}")
+                    return False
+                
+                helpers.write_success("Changes staged")
+                
+                # Commit changes
+                commit_msg = f"chore(openspec): {change_path.name}"
+                helpers.write_info(f"Committing: {commit_msg}")
+                
+                result = subprocess.run(
+                    ["git", "commit", "-m", commit_msg],
+                    cwd=PROJECT_ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    helpers.write_error(f"Git commit failed: {result.stderr}")
+                    return False
+                
+                helpers.write_success("Changes committed")
+                
+                # Push changes
+                helpers.write_info(f"Pushing to {branch}...")
+                
+                result = subprocess.run(
+                    ["git", "push", "origin", branch],
+                    cwd=PROJECT_ROOT,
+                    capture_output=True,
+                    text=True,
+                )
+                if result.returncode != 0:
+                    helpers.write_error(f"Git push failed: {result.stderr}")
+                    return False
+                
+                helpers.write_success(f"Changes pushed to {branch}")
+            else:
+                helpers.write_info("No changes to commit")
+        except Exception as error:
+            helpers.write_error(f"Git operations failed: {error}")
+            return False
+    
+    _mark_complete(change_path)
+    helpers.write_success("Step 10 completed")
     return True
 
 
