@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs Security Modules
+# TODO: 2025 10 14 Update Doc Docs Security Specification
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-security-modules`
+- **Change ID**: `2025-10-14-update-doc-docs-security-specification`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-modules/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
