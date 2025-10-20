@@ -25,19 +25,3 @@ Contributors often open GitHub issues first. We want a simple way to import an i
 
 ## References
 - openspec/PROJECT_WORKFLOW.md
-
-## Context
-
-Describe the background and motivation.
-
-
-## What Changes
-
-List the proposed changes at a high level.
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
