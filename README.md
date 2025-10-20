@@ -1,6 +1,6 @@
 # Obsidian AI Assistant
 
-> **Version:** 0.1.27 (Unreleased)
+> **Version:** 0.1.28 (Unreleased)
 
 [![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
