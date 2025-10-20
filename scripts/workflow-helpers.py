@@ -593,10 +593,10 @@ Describe the background and motivation.
 
 List the proposed changes at a high level.
 
-## Goals / Non-Goals
+## Goals
 
-- Goals: ...
-- Non-goals: ...
+- Goal 1: ...
+- Goal 2: ...
 
 ## Stakeholders
 
