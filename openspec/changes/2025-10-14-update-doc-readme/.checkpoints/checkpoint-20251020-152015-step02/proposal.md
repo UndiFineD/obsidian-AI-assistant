@@ -31,9 +31,3 @@
 
 - Affected specs: project-documentation
 - Affected code: none (documentation only)
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
