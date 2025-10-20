@@ -1,7 +1,7 @@
-# TODO: Test Version Bump
+# TODO: Update Doc Claude Commands Openspec Apply
 
 ## Change Information
-- **Change ID**: `test-version-bump`
+- **Change ID**: `update-doc-claude-commands-openspec-apply`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/test-version-bump/todo.md` (this file)
-- [ ] `openspec/changes/test-version-bump/proposal.md`
-- [ ] `openspec/changes/test-version-bump/spec.md`
-- [ ] `openspec/changes/test-version-bump/tasks.md`
-- [ ] `openspec/changes/test-version-bump/test_plan.md`
-- [ ] `openspec/changes/test-version-bump/retrospective.md`
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/todo.md` (this file)
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/proposal.md`
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/spec.md`
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/tasks.md`
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/test_plan.md`
+- [ ] `openspec/changes/update-doc-claude-commands-openspec-apply/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
