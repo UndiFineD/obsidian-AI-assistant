@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs Enterprise Features Clean
+# TODO: 2025 10 14 Update Doc Docs Enterprise Features Specification
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-enterprise-features-clean`
+- **Change ID**: `2025-10-14-update-doc-docs-enterprise-features-specification`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-clean/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-enterprise-features-specification/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
