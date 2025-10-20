@@ -1,0 +1,181 @@
+{
+  "change_id": "issue-15-testopenspecintegration-test-generated-changes-exi",
+  "checkpoints": [
+    {
+      "checkpoint_id": "checkpoint-20251020-184422-step00",
+      "step_num": 0,
+      "step_name": "Create TODOs",
+      "timestamp": "2025-10-20T18:44:22.945488",
+      "files_snapshot": [
+        "proposal.md",
+        "todo.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 0"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184423-step01",
+      "step_num": 1,
+      "step_name": "Version Bump",
+      "timestamp": "2025-10-20T18:44:23.143935",
+      "files_snapshot": [
+        "proposal.md",
+        "todo.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 1"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184423-step02",
+      "step_num": 2,
+      "step_name": "Proposal Review",
+      "timestamp": "2025-10-20T18:44:23.324517",
+      "files_snapshot": [
+        "proposal.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 2"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184423-step03",
+      "step_num": 3,
+      "step_name": "Capability Spec",
+      "timestamp": "2025-10-20T18:44:23.519174",
+      "files_snapshot": [
+        "proposal.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 3"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184423-step04",
+      "step_num": 4,
+      "step_name": "Task Breakdown",
+      "timestamp": "2025-10-20T18:44:23.807987",
+      "files_snapshot": [
+        "proposal.md",
+        "spec.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 4"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184424-step05",
+      "step_num": 5,
+      "step_name": "Implementation Checklist",
+      "timestamp": "2025-10-20T18:44:24.095190",
+      "files_snapshot": [
+        "proposal.md",
+        "spec.md",
+        "tasks.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 5"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184424-step06",
+      "step_num": 6,
+      "step_name": "Script Generation",
+      "timestamp": "2025-10-20T18:44:24.389294",
+      "files_snapshot": [
+        "proposal.md",
+        "spec.md",
+        "tasks.md",
+        "test_plan.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 6"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184424-step07",
+      "step_num": 7,
+      "step_name": "Document Review",
+      "timestamp": "2025-10-20T18:44:24.520040",
+      "files_snapshot": [
+        "implement.py",
+        "proposal.md",
+        "spec.md",
+        "tasks.md",
+        "test.py",
+        "test_plan.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 7"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184424-step08",
+      "step_num": 8,
+      "step_name": "Test Execution",
+      "timestamp": "2025-10-20T18:44:24.727793",
+      "files_snapshot": [
+        "implement.py",
+        "implementation_notes.md",
+        "proposal.md",
+        "spec.md",
+        "tasks.md",
+        "test.py",
+        "test_plan.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 8"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184424-step09",
+      "step_num": 9,
+      "step_name": "Review Changes",
+      "timestamp": "2025-10-20T18:44:24.918719",
+      "files_snapshot": [
+        "implement.py",
+        "implementation_notes.md",
+        "proposal.md",
+        "spec.md",
+        "tasks.md",
+        "test.py",
+        "test_plan.md",
+        "test_results.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 9"
+    },
+    {
+      "checkpoint_id": "checkpoint-20251020-184425-step10",
+      "step_num": 10,
+      "step_name": "Git Operations",
+      "timestamp": "2025-10-20T18:44:25.300741",
+      "files_snapshot": [
+        "cross_validation_report.md",
+        "doc_changes.md",
+        "implement.py",
+        "implementation_notes.md",
+        "proposal.md",
+        "review_summary.md",
+        "spec.md",
+        "tasks.md",
+        "test.py",
+        "test_plan.md",
+        "test_results.md",
+        "todo.md",
+        "version_snapshot.md"
+      ],
+      "git_commit": "ed1f92324bdccf52063256d9e1d3e97340e3a068",
+      "notes": "Before executing step 10"
+    }
+  ],
+  "last_successful_step": 9
+}
