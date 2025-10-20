@@ -11,19 +11,3 @@ This is a test change.
 - **Affected files**: none
 - **Review priority**: Low
 
-## Context
-
-Describe the background and motivation.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
