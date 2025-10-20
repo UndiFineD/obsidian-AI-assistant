@@ -69,9 +69,3 @@ N/A - no API changes
 - Fully compatible - all existing packages retained
 - Setup scripts require no changes
 - CI/CD pipelines unaffected
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-

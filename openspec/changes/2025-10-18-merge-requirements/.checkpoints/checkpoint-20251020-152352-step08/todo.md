@@ -1,7 +1,7 @@
-# TODO: 2025 10 18 Fix Scaffold Date Prefix Duplication
+# TODO: 2025 10 18 Merge Requirements
 
 ## Change Information
-- **Change ID**: `2025-10-18-fix-scaffold-date-prefix-duplication`
+- **Change ID**: `2025-10-18-merge-requirements`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -63,7 +63,7 @@
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/proposal.md`
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/spec.md`
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/tasks.md`
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/test_plan.md`
-- [ ] `openspec/changes/2025-10-18-fix-scaffold-date-prefix-duplication/retrospective.md`
+- [ ] `openspec/changes/2025-10-18-merge-requirements/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-18-merge-requirements/proposal.md`
+- [ ] `openspec/changes/2025-10-18-merge-requirements/spec.md`
+- [ ] `openspec/changes/2025-10-18-merge-requirements/tasks.md`
+- [ ] `openspec/changes/2025-10-18-merge-requirements/test_plan.md`
+- [ ] `openspec/changes/2025-10-18-merge-requirements/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
