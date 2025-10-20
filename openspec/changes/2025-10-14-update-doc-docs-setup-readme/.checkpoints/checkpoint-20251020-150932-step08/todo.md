@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs Security Specification
+# TODO: 2025 10 14 Update Doc Docs Setup Readme
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-security-specification`
+- **Change ID**: `2025-10-14-update-doc-docs-setup-readme`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -63,7 +63,7 @@
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-security-specification/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
