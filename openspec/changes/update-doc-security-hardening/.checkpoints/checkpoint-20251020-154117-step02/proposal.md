@@ -45,25 +45,3 @@ This change affects the **project-documentation** capability described in `AGENT
 ## Impact
 
 This change improves the security posture of the project, ensures OpenSpec compliance for security documentation, and provides clear audit trails for all security-related changes.
-
-## Context
-
-Describe the background and motivation.
-
-
-## What Changes
-
-List the proposed changes at a high level.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
