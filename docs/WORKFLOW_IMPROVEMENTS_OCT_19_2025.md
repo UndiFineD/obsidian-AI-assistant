@@ -98,20 +98,20 @@ Please edit test_plan.md to ensure alignment with proposal.md, spec.md, and task
    $script:NewVersion = $null  # Shared version variable set in Step 1
    ```
 
-2. Modified Step 1 (lines ~365-369):
+1. Modified Step 1 (lines ~365-369):
    ```powershell
    # Store version in script-level variable for use in later steps
    $script:NewVersion = $newVersion
    Write-Info "New version $newVersion stored for PR creation in Step 12"
    ```
 
-3. Modified Step 12 (lines ~1892-1895):
+1. Modified Step 12 (lines ~1892-1895):
    ```powershell
    # Use version from Step 1 (stored in script variable)
    $newVersion = $script:NewVersion
    ```
 
-4. Modified `Update-TodoFile` function (lines ~2008-2011):
+1. Modified `Update-TodoFile` function (lines ~2008-2011):
    ```powershell
    if (!(Test-Path $todoPath)) {
        # Silently skip if todo.md doesn't exist (e.g., after archiving)
@@ -119,13 +119,13 @@ Please edit test_plan.md to ensure alignment with proposal.md, spec.md, and task
    }
    ```
 
-5. Modified Step 5 validation (lines ~1103-1106):
+1. Modified Step 5 validation (lines ~1103-1106):
    ```powershell
    # Skip todo.md checking - it contains workflow templates, not test requirements
    # Test plan should focus on actual test cases from tasks.md and spec.md
    ```
 
-6. Modified validation warnings to show concise summaries instead of full lists
+1. Modified validation warnings to show concise summaries instead of full lists
 
 ## Testing
 

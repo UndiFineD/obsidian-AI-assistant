@@ -6,7 +6,8 @@
 
 ## Executive Summary
 
-Successfully improved `backend/security_hardening.py` test coverage from **19.8% → 62.3%** (3.1x improvement) through comprehensive test suite creation covering authentication, threat detection, and middleware functionality.
+Successfully improved `backend/security_hardening.py` test coverage from **19.8% → 62.3%** (3.1x improvement) through
+comprehensive test suite creation covering authentication, threat detection, and middleware functionality.
 
 ## Achievements
 
@@ -64,25 +65,25 @@ Successfully improved `backend/security_hardening.py` test coverage from **19.8%
    - Threat score tracking
    - Validation error collection
 
-2. ✅ **SecurityLevel & AuthenticationMethod Enums** - Full coverage
+1. ✅ **SecurityLevel & AuthenticationMethod Enums** - Full coverage
    - All enum values accessible
    - String representation
    - Value comparison
 
-3. ✅ **ThreatDetector Basic Analysis** - Partial coverage
+1. ✅ **ThreatDetector Basic Analysis** - Partial coverage
    - Request analysis framework
    - Threat score calculation
    - Pattern detection (SQL injection, XSS)
    - User agent evaluation
 
-4. ✅ **Middleware Core Functionality** - Good coverage
+1. ✅ **Middleware Core Functionality** - Good coverage
    - Initialization with security levels
    - Dispatch method framework
    - OPTIONS request bypass
    - Response header injection
    - Exception handling
 
-5. ✅ **Authentication Validation** - Partial coverage
+1. ✅ **Authentication Validation** - Partial coverage
    - API key authentication flow
    - JWT token validation framework
    - Session token validation
@@ -97,27 +98,27 @@ Successfully improved `backend/security_hardening.py` test coverage from **19.8%
    - Permission validation
    - Key expiry handling
 
-2. ❌ **SessionManager Advanced Features**
+1. ❌ **SessionManager Advanced Features**
    - Session creation returns string (not dict as expected)
    - Session expiry validation
    - IP mismatch detection
    - User agent mismatch detection
    - Session invalidation flows
 
-3. ❌ **RequestSigner Operations**
+1. ❌ **RequestSigner Operations**
    - Different constructor signature than tested
    - Request signature generation
    - Signature validation with timestamp
    - Timestamp expiry enforcement
 
-4. ❌ **Middleware Advanced Logic**
+1. ❌ **Middleware Advanced Logic**
    - Threat score threshold enforcement (20.0 threshold)
    - Rate limit rejection responses
    - Public endpoint bypass logic
    - Security header composition
    - Background session cleanup task
 
-5. ❌ **Error Handling Edge Cases**
+1. ❌ **Error Handling Edge Cases**
    - SecurityError construction with custom kwargs
    - High threat request blocking (403 responses)
    - Authentication failure responses
@@ -132,22 +133,22 @@ Successfully improved `backend/security_hardening.py` test coverage from **19.8%
    - Expected: `dict` with metadata
    - Impact: 5 test failures
 
-2. **APIKeyManager**
+1. **APIKeyManager**
    - Missing: `create_api_key()` method
    - Has: `validate_api_key()`, `revoke_api_key()`
    - Impact: 5 test failures
 
-3. **RequestSigner**
+1. **RequestSigner**
    - Constructor: Does not accept `secret_key` parameter
    - Alternative: May use global configuration
    - Impact: 5 test failures
 
-4. **SecurityError**
+1. **SecurityError**
    - Parent: `ObsidianAIError` with strict kwargs
    - Cannot pass: `threat_score`, `auth_method`, `suggestion`
    - Impact: 2 test failures
 
-5. **Middleware Threat Blocking**
+1. **Middleware Threat Blocking**
    - Current: Does not return 403 for high threat scores
    - Possible: Threat detection is logged but not enforced
    - Impact: 1 test failure
@@ -164,37 +165,37 @@ Successfully improved `backend/security_hardening.py` test coverage from **19.8%
    - SecurityError - understand allowed kwargs
    ```
 
-2. **Update test expectations to match reality**
+1. **Update test expectations to match reality**
    - Adjust SessionManager tests for string return
    - Mock or remove APIKeyManager creation tests
    - Fix RequestSigner initialization
    - Simplify SecurityError tests
 
 ### Phase 2: Cover Missing Logic (Priority: HIGH)
-3. **Add middleware enforcement tests**
+1. **Add middleware enforcement tests**
    - Threat score threshold blocking (lines 691-699)
    - Rate limit enforcement (lines 828-850)
    - Authentication requirement enforcement
    - Public endpoint bypass (lines 743-752)
 
-4. **Add session cleanup tests**
+1. **Add session cleanup tests**
    - Background task execution (lines 656-664)
    - Expired session removal
    - Session cleanup scheduling
 
-5. **Add comprehensive error response tests**
+1. **Add comprehensive error response tests**
    - 403 Forbidden for high threats
    - 401 Unauthorized for auth failures
    - 429 Too Many Requests for rate limits
 
 ### Phase 3: Edge Cases (Priority: MEDIUM)
-6. **Security header composition**
+1. **Security header composition**
    - X-Content-Type-Options
    - X-Frame-Options
    - X-XSS-Protection
    - Strict-Transport-Security
 
-7. **Multi-level security testing**
+1. **Multi-level security testing**
    - MINIMAL: Basic checks only
    - STANDARD: Normal enforcement
    - ENHANCED: Strict validation
@@ -214,15 +215,15 @@ Successfully improved `backend/security_hardening.py` test coverage from **19.8%
    - 18 test failures due to incorrect assumptions
    - Cost: Development time, test maintenance
 
-2. **Module-level mocking for middleware**
+1. **Module-level mocking for middleware**
    - `patch('backend.security_hardening.SecurityContext')` works
    - `patch.object(middleware, '_create_security_context')` fails
 
-3. **Return type validation critical**
+1. **Return type validation critical**
    - SessionManager returns string, not dict
    - Affects all dependent tests
 
-4. **Factory functions need async context**
+1. **Factory functions need async context**
    - `create_security_hardening_middleware()` requires event loop
    - Must mock or wrap in async test
 

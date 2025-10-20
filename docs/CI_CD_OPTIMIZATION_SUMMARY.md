@@ -85,21 +85,21 @@ Complete overhaul of CI/CD pipeline to optimize for speed, reliability, and comp
    - Coverage enforcement with 85% threshold
    - Durations reporting (top 20)
 
-2. **performance-regression**
+1. **performance-regression**
    - Benchmark tests with pytest-benchmark
    - Auto-save benchmark data for comparison
    - Memory profiling with psutil
 
-3. **voice-tests**
+1. **voice-tests**
    - Specialized voice processing tests
    - Isolated from main test runs
 
-4. **security-audit**
+1. **security-audit**
    - Bandit security scan
    - Safety dependency check
    - pip-audit vulnerability scanning
 
-5. **report**
+1. **report**
    - Aggregates all job results
    - Generates comprehensive summary
    - Creates GitHub issues on failure (auto-labeled: ci, nightly-failure)
@@ -247,19 +247,19 @@ ddaabe6 - fix(health-monitoring): aware UTC timestamps and normalized comparison
    - Increase xdist workers for even faster local runs
    - Consider pytest-xdist-split for intelligent work distribution
 
-2. **Matrix Optimization**
+1. **Matrix Optimization**
    - Consider ubuntu-only for PRs, full matrix for push/nightly
    - Use docker for consistent cross-platform testing
 
-3. **Coverage Tracking**
+1. **Coverage Tracking**
    - Integrate Codecov or Coveralls for trend analysis
    - Set per-module coverage targets
 
-4. **Performance Baselines**
+1. **Performance Baselines**
    - Store benchmark results for regression detection
    - Alert on >10% performance degradation
 
-5. **Workflow Triggers**
+1. **Workflow Triggers**
    - Add path filters to skip irrelevant workflows
    - Implement workflow_call for reusable job templates
 

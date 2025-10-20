@@ -2,7 +2,8 @@
 
 ## Problem Summary
 
-All configuration endpoint tests (`tests/backend/test_config_endpoints.py`) were failing with 500 Internal Server Error responses. The root cause was traced through multiple layers:
+All configuration endpoint tests (`tests/backend/test_config_endpoints.py`) were failing with 500 Internal Server Error
+responses. The root cause was traced through multiple layers:
 
 1. **Initial symptom**: All config endpoint tests returned 500 status codes
 2. **Error message**: "An unexpected error occurred in security middleware"
@@ -18,7 +19,8 @@ All configuration endpoint tests (`tests/backend/test_config_endpoints.py`) were
 ### Phase 2: Root Cause Identification
 - Enhanced `SecurityHardeningMiddleware` exception handler with full traceback logging
 - Discovered `TypeError: ObsidianAIError.__init__() got an unexpected keyword argument 'auth_method'`
-- Found that `SecurityError` was passing extra kwargs (`auth_method`, `suggestion`, etc.) to parent class that didn't accept them
+- Found that `SecurityError` was passing extra kwargs (`auth_method`, `suggestion`, etc.) to parent class that didn't
+accept them
 
 ### Phase 3: Secondary Issues
 - Fixed `SecurityError` initialization to handle extra kwargs properly
@@ -29,7 +31,8 @@ All configuration endpoint tests (`tests/backend/test_config_endpoints.py`) were
 
 ### 1. Fixed `SecurityError` class initialization (`backend/error_handling.py`)
 
-**Problem**: `SecurityError` passed arbitrary kwargs to `ObsidianAIError.__init__()`, which only accepts specific parameters.
+**Problem**: `SecurityError` passed arbitrary kwargs to `ObsidianAIError.__init__()`, which only accepts specific
+parameters.
 
 **Solution**: Extract known parameters and add remaining kwargs to context dict:
 
@@ -128,9 +131,11 @@ except Exception as e:
 
 ### 4. Fixed config endpoint error handling (`backend/backend.py`)
 
-**Problem**: `post_update_config()` and `post_reload_config()` returned 200 responses with error details in test mode instead of raising exceptions.
+**Problem**: `post_update_config()` and `post_reload_config()` returned 200 responses with error details in test mode
+instead of raising exceptions.
 
-**Solution**: Removed test-mode special handling to let FastAPI's exception handlers convert to proper HTTP status codes:
+**Solution**: Removed test-mode special handling to let FastAPI's exception handlers convert to proper HTTP status
+codes:
 
 ```python
 # Before:
@@ -174,15 +179,20 @@ except Exception as exc:
 
 ## Key Learnings
 
-1. **Exception Parameter Compatibility**: Custom exception classes must carefully handle kwargs to avoid passing unexpected parameters to parent classes.
+1. **Exception Parameter Compatibility**: Custom exception classes must carefully handle kwargs to avoid passing
+unexpected parameters to parent classes.
 
-2. **Test Mode Security**: Security middleware should detect and bypass authentication in test environments while maintaining header consistency.
+1. **Test Mode Security**: Security middleware should detect and bypass authentication in test environments while
+maintaining header consistency.
 
-3. **Error Response Consistency**: Endpoints should always use FastAPI's exception handling for consistent HTTP status codes across test and production modes.
+1. **Error Response Consistency**: Endpoints should always use FastAPI's exception handling for consistent HTTP status
+codes across test and production modes.
 
-4. **Debug Logging Strategy**: Enhanced logging with full tracebacks and test-mode detection significantly accelerates debugging of middleware issues.
+1. **Debug Logging Strategy**: Enhanced logging with full tracebacks and test-mode detection significantly accelerates
+debugging of middleware issues.
 
-5. **Middleware Ordering**: Test mode detection should occur early in middleware processing to avoid unnecessary authentication checks.
+1. **Middleware Ordering**: Test mode detection should occur early in middleware processing to avoid unnecessary
+authentication checks.
 
 ## Related Files
 
@@ -207,15 +217,19 @@ except Exception as exc:
 
 ## Future Improvements
 
-1. **Centralized Test Mode Detection**: Create a shared utility function for consistent test mode detection across all modules.
+1. **Centralized Test Mode Detection**: Create a shared utility function for consistent test mode detection across all
+modules.
 
-2. **Exception Class Factory**: Consider a factory pattern for custom exceptions to ensure consistent parameter handling.
+1. **Exception Class Factory**: Consider a factory pattern for custom exceptions to ensure consistent parameter
+handling.
 
-3. **Middleware Testing**: Add dedicated unit tests for `SecurityHardeningMiddleware` to catch initialization issues earlier.
+1. **Middleware Testing**: Add dedicated unit tests for `SecurityHardeningMiddleware` to catch initialization issues
+earlier.
 
-4. **Configuration Validation**: Add schema validation for config endpoint payloads to catch issues before processing.
+1. **Configuration Validation**: Add schema validation for config endpoint payloads to catch issues before processing.
 
-5. **Deprecation Warnings**: Address `datetime.utcnow()` deprecation warnings by migrating to `datetime.now(timezone.utc)`.
+1. **Deprecation Warnings**: Address `datetime.utcnow()` deprecation warnings by migrating to `datetime.now(timezone
+.utc)`.
 
 ## Verification Steps
 
@@ -241,4 +255,5 @@ The persistent 500 errors in config endpoint tests were caused by a combination 
 2. Missing test mode bypass in `SecurityHardeningMiddleware`
 3. Incorrect error handling in config endpoints for test mode
 
-All issues have been resolved with minimal code changes and no impact on production behavior. The test suite now passes consistently with proper HTTP status codes.
+All issues have been resolved with minimal code changes and no impact on production behavior. The test suite now passes
+consistently with proper HTTP status codes.

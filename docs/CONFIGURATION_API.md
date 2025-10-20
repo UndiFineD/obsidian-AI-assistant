@@ -585,7 +585,8 @@ Attempting to update these fields will silently skip them.
 ```json
 {
   "status": "error",
-  "message": "Validation failed for cors_allowed_origins: Invalid CORS origins: ['not-a-url']. Must be list of valid URLs or '*'"
+  "message": "Validation failed for cors_allowed_origins: Invalid CORS origins: ['not-a-url']. Must be list of valid
+URLs or '*'"
 }
 ```
 
@@ -603,7 +604,8 @@ Attempting to update these fields will silently skip them.
 ```json
 {
   "status": "error",
-  "message": "Validation failed for ssl_certfile: Invalid SSL certificate file: /nonexistent/cert.pem. Must exist and have .pem, .crt, or .cert extension"
+  "message": "Validation failed for ssl_certfile: Invalid SSL certificate file: /nonexistent/cert.pem. Must exist and
+have .pem, .crt, or .cert extension"
 }
 ```
 

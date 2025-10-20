@@ -1,7 +1,8 @@
 # API Key Management & Rotation
 
 ## Overview
-API keys are used to authenticate and authorize access to sensitive endpoints. This system supports secure API key generation, validation, deactivation, and rotation via REST endpoints.
+API keys are used to authenticate and authorize access to sensitive endpoints. This system supports secure API key
+generation, validation, deactivation, and rotation via REST endpoints.
 
 ## Key Features
 - **Key Generation**: Secure random API keys (token_urlsafe, 32 bytes)

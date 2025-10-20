@@ -2,7 +2,8 @@
 
 ## Overview
 
-Comprehensive cleanup of the Obsidian AI Assistant repository to remove redundant files, standardize configurations, and improve maintainability.
+Comprehensive cleanup of the Obsidian AI Assistant repository to remove redundant files, standardize configurations,
+and improve maintainability.
 
 ## Completed Actions
 

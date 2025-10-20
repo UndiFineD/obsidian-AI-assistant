@@ -1,7 +1,8 @@
 # Stage 0: Create TODOs - Implementation Summary
 
 ## Overview
-Successfully added Stage 0 (Create TODOs) to the OpenSpec Project Workflow, providing visibility and tracking for all workflow stages.
+Successfully added Stage 0 (Create TODOs) to the OpenSpec Project Workflow, providing visibility and tracking for all
+workflow stages.
 
 ## What Was Completed
 
@@ -84,7 +85,7 @@ All files follow markdownlint rules:
 1. **Modified**:
     - `openspec/PROJECT_WORKFLOW.md` (added Stage 0, fixed formatting)
 
-2. **Created**:
+1. **Created**:
     - `openspec/templates/` (new directory)
     - `openspec/templates/todo.md` (template)
     - `openspec/changes/2025-10-18-merge-requirements/todo.md`
@@ -101,7 +102,9 @@ All files follow markdownlint rules:
 
 ## Conclusion
 
-Stage 0: Create TODOs is now fully integrated into the OpenSpec workflow, providing a robust framework for tracking progress and ensuring all workflow stages are completed systematically. This enhancement makes the workflow more practical, transparent, and maintainable.
+Stage 0: Create TODOs is now fully integrated into the OpenSpec workflow, providing a robust framework for tracking
+progress and ensuring all workflow stages are completed systematically. This enhancement makes the workflow more
+practical, transparent, and maintainable.
 
 ---
 

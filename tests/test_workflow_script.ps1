@@ -147,9 +147,9 @@ Describe "workflow.ps1 Script Validation" {
             $scriptContent | Should Match '\[string\]\$Owner'
         }
         
-        It "Should accept Step parameter with valid range (0-12)" {
+        It "Should accept Step parameter with valid range (0-13)" {
             $scriptContent = Get-Content $WorkflowScript -Raw
-            $scriptContent | Should Match 'ValidateRange\(0,\s*12\)'
+            $scriptContent | Should Match 'ValidateRange\(0,\s*13\)'
         }
         
         It "Should accept DryRun switch" {
@@ -205,8 +205,8 @@ Describe "workflow.ps1 Script Validation" {
         It "Should define Invoke-Step0 function" {
             Get-Command Invoke-Step0 -ErrorAction SilentlyContinue | Should Not BeNullOrEmpty
         }
-        It "Should define all workflow step functions (Step0-Step12)" {
-            for ($i = 0; $i -le 12; $i++) {
+        It "Should define all workflow step functions (Step0-Step13)" {
+            for ($i = 0; $i -le 13; $i++) {
                 Get-Command "Invoke-Step$i" -ErrorAction SilentlyContinue | Should Not BeNullOrEmpty
             }
         }
@@ -486,7 +486,7 @@ Describe "Workflow Step Templates" {
             $template | Should Match '\*\*0\. Create TODOs\*\*'
             $template | Should Match '\*\*1\. Increment Release Version\*\*'
             $template | Should Match '\*\*2\. Proposal\*\*'
-            $template | Should Match '\*\*12\. Create Pull Request'
+            $template | Should Match '\*\*13\. Pull Request\*\*'
         }
     }
     
@@ -622,9 +622,9 @@ Describe "Workflow Compliance" {
             $scriptContent | Should Match 'PROJECT_WORKFLOW\.md'
         }
         
-        It "Should implement all 13 workflow steps (0-12)" {
+        It "Should implement all 14 workflow steps (0-13)" {
             $scriptContent = Get-Content $WorkflowScript -Raw
-            for ($i = 0; $i -le 12; $i++) {
+            for ($i = 0; $i -le 13; $i++) {
                 $scriptContent | Should Match "function Invoke-Step$i"
             }
         }

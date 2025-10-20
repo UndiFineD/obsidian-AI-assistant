@@ -2,7 +2,8 @@
 
 ## Overview
 
-This document tracks the comprehensive code quality improvements implemented on October 17, 2025, following the release 0.1.0 README improvements.
+This document tracks the comprehensive code quality improvements implemented on October 17, 2025, following the release
+0.1.0 README improvements.
 
 ## Completed Improvements
 
@@ -51,11 +52,11 @@ This document tracks the comprehensive code quality improvements implemented on 
    - Fixed YAML indentation error where `jobs:` section was incorrectly nested
    - Proper structure now aligns with GitHub Actions schema
 
-2. **test-backend.yml**:
+1. **test-backend.yml**:
    - Removed trailing whitespace from JavaScript code (lines 105-106)
    - Improved code cleanliness
 
-3. **benchmark.yml**:
+1. **benchmark.yml**:
    - Added explicit minimal permissions: `contents: read`, `actions: write`
    - Prevents security warning about write-all permissions
 
