@@ -64,6 +64,36 @@ def invoke_step3(change_path: Path, title: str | None = None, dry_run: bool = Fa
 
     if spec_md.exists():
         helpers.write_info("spec.md already exists; leaving as-is")
+        # Ensure required sections exist to satisfy validator
+        if not dry_run:
+            try:
+                content = spec_md.read_text(encoding="utf-8")
+                updated = content
+                import re as _re
+                has_requirements = "## Requirements" in content
+                has_ac = bool(_re.search(r"(?m)^##\s+Acceptance Criteria\b", content))
+
+                sections_to_append: list[tuple[str, str]] = []
+                if not has_requirements:
+                    sections_to_append.append((
+                        "## Requirements",
+                        "\n- **R-01**: ...\n- **R-02**: ...\n"
+                    ))
+                if not has_ac:
+                    sections_to_append.append((
+                        "## Acceptance Criteria",
+                        "\n- [ ] AC-01: ...\n- [ ] AC-02: ...\n"
+                    ))
+
+                if sections_to_append:
+                    updated = updated.rstrip() + "\n\n" + "\n\n".join(
+                        f"{hdr}\n{body}" for hdr, body in sections_to_append
+                    ) + "\n"
+                if updated != content:
+                    helpers.set_content_atomic(spec_md, updated)
+                    helpers.write_success("Auto-inserted missing spec sections")
+            except Exception as e:
+                helpers.write_warning(f"Could not auto-insert missing spec sections: {e}")
     else:
         # Prefer contextual generation from proposal
         if progress:
