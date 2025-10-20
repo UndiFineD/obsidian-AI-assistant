@@ -80,8 +80,7 @@ STEP_NAMES = {
     9: "Review Changes",
     10: "Git Operations",
     11: "Commit Changes",
-    12: "Cross-Validation",
-    13: "Pull Request",
+    12: "Pull Request",
 }
 
 
@@ -538,7 +537,7 @@ def run_interactive_workflow(
         print()  # Add space for progress display
         
         with workflow_progress(total_steps, "OpenSpec Workflow") as wp:
-            for i, current_step in enumerate(range(start_step, 14), 1):
+            for i, current_step in enumerate(range(start_step, 13), 1):
                 step_name = STEP_NAMES.get(current_step, f"Step {current_step}")
                 wp.start_step(i, step_name)
                 wp.update_step_progress("Starting...")
@@ -560,7 +559,7 @@ def run_interactive_workflow(
         print()  # Add space after progress
     else:
         # Fallback to non-progress mode
-        for current_step in range(start_step, 14):
+        for current_step in range(start_step, 13):
             success = execute_step(current_step, change_path, title, owner, dry_run, release_type, template, enable_checkpoints)
             
             if not success:
@@ -677,9 +676,9 @@ Examples:
     parser.add_argument(
         '--step',
         type=int,
-        choices=range(0, 14),
+        choices=range(0, 13),
         metavar='N',
-        help='Execute specific step (0-13)'
+        help='Execute specific step (0-12)'
     )
     parser.add_argument(
         '--dry-run',
