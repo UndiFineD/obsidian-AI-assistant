@@ -1,12 +1,12 @@
-# Change Proposal: update-doc-docs-deployment-specification
+# Change Proposal: update-doc-docs-data-models-specification
 
 ## Why
 
-Ensure `docs/DEPLOYMENT_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Ensure `docs/DATA_MODELS_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
 
 ## What Changes
 
-- Add a documentation governance requirement for `docs/DEPLOYMENT_SPECIFICATION.md` under the `project-documentation` capability.
+- Add a documentation governance requirement for `docs/DATA_MODELS_SPECIFICATION.md` under the `project-documentation` capability.
 
 - Track material updates via OpenSpec proposals (no functional code changes).
 
