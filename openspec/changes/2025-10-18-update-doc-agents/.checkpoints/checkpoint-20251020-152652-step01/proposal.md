@@ -23,20 +23,3 @@ This change implements the project-documentation capability as required by OpenS
 ## Impact
 
 Improves governance, auditability, and compliance of agent documentation. Enables automated validation and change tracking for agent files under the project-documentation capability.
-
-## Context
-
-Describe the background and motivation.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
