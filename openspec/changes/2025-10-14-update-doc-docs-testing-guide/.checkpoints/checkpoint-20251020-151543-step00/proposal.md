@@ -48,9 +48,3 @@ Ensure `docs/TESTING_GUIDE.md` is governed by OpenSpec so material updates are r
 
 - Affected docs: testing guide
 - Affected code: none (documentation only)
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
