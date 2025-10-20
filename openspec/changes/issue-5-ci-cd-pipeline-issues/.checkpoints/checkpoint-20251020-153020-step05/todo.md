@@ -1,7 +1,7 @@
-# TODO: Issue 5
+# TODO: Issue 5 Ci Cd Pipeline Issues
 
 ## Change Information
-- **Change ID**: `issue-5`
+- **Change ID**: `issue-5-ci-cd-pipeline-issues`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -42,7 +42,7 @@
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [x] **5. Test Definition**
+- [ ] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/issue-5/todo.md` (this file)
-- [ ] `openspec/changes/issue-5/proposal.md`
-- [ ] `openspec/changes/issue-5/spec.md`
-- [ ] `openspec/changes/issue-5/tasks.md`
-- [ ] `openspec/changes/issue-5/test_plan.md`
-- [ ] `openspec/changes/issue-5/retrospective.md`
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/todo.md` (this file)
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/proposal.md`
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/spec.md`
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/tasks.md`
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/test_plan.md`
+- [ ] `openspec/changes/issue-5-ci-cd-pipeline-issues/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
