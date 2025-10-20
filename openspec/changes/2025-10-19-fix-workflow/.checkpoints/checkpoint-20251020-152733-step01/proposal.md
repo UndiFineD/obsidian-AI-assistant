@@ -23,25 +23,3 @@ Missing Step 1 Function: The script references Invoke-Step1 in the workflow swit
 Missing Step 3 Function: Similarly, Invoke-Step3 is referenced but not defined.
 
 These issues would prevent the script from running properly. The most critical are the syntax errors that need to be fixed first before the script can be executed.
-
-## Context
-
-Describe the background and motivation.
-
-
-## What Changes
-
-List the proposed changes at a high level.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-

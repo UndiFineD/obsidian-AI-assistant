@@ -1,7 +1,7 @@
-# TODO: 2025 10 18 Update Doc Docs Constitution
+# TODO: 2025 10 19 Fix Workflow
 
 ## Change Information
-- **Change ID**: `2025-10-18-update-doc-docs-constitution`
+- **Change ID**: `2025-10-19-fix-workflow`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/proposal.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/spec.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/tasks.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/test_plan.md`
-- [ ] `openspec/changes/2025-10-18-update-doc-docs-constitution/retrospective.md`
+- [ ] `openspec/changes/2025-10-19-fix-workflow/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-19-fix-workflow/proposal.md`
+- [ ] `openspec/changes/2025-10-19-fix-workflow/spec.md`
+- [ ] `openspec/changes/2025-10-19-fix-workflow/tasks.md`
+- [ ] `openspec/changes/2025-10-19-fix-workflow/test_plan.md`
+- [ ] `openspec/changes/2025-10-19-fix-workflow/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
