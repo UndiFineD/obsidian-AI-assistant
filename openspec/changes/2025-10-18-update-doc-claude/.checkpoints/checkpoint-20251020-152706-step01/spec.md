@@ -18,15 +18,3 @@ and a validation command.
             `changes/update-doc-claude/specs/project-documentation/spec.md` using valid
             ADDED/MODIFIED/REMOVED sections
     - A documented validation command: `openspec validate update-doc-claude --strict`
-
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
-
-## Acceptance Criteria
-
-- [ ] AC-01: ...
-- [ ] AC-02: ...
-
