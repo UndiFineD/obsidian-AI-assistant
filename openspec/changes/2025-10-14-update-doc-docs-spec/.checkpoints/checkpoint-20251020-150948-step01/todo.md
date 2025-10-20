@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Docs Setup Readme
+# TODO: 2025 10 14 Update Doc Docs Spec
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-docs-setup-readme`
+- **Change ID**: `2025-10-14-update-doc-docs-spec`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -21,13 +21,13 @@
     - [ ] Update version in `package.json`
     - [ ] Document version increment
 
-- [x] **2. Proposal**
+- [ ] **2. Proposal**
     - [ ] Create `proposal.md`
     - [ ] Define problem statement
     - [ ] Document rationale and alternatives
     - [ ] Impact analysis completed
 
-- [x] **3. Specification**
+- [ ] **3. Specification**
     - [ ] Create `spec.md`
     - [ ] Define acceptance criteria
     - [ ] Document data models (if applicable)
@@ -35,14 +35,14 @@
     - [ ] Security/privacy review
     - [ ] Performance requirements defined
 
-- [x] **4. Task Breakdown**
+- [ ] **4. Task Breakdown**
     - [ ] Create `tasks.md`
     - [ ] Break down into actionable tasks
     - [ ] Define task dependencies
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [x] **5. Test Definition**
+- [ ] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-setup-readme/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-spec/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
