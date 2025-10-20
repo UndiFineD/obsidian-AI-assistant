@@ -48,9 +48,3 @@ Ensure `docs/TESTING_STANDARDS_SPECIFICATION.md` is governed by OpenSpec so mate
 
 - Affected docs: testing standards specification
 - Affected code: none (documentation only)
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
