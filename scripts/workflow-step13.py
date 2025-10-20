@@ -349,33 +349,33 @@ def invoke_step13(change_path, dry_run=False, new_version=None, **_):
     print("Creating pull request using GitHub CLI...")
     
     try:
-        tracker = StatusTracker(5)
-        tracker.update_status(0, "Preparing PR content", "in_progress")
-        tracker.update_status(0, "Preparing PR content", "completed")
+        # Initialize tracker with proper API
+        tracker = StatusTracker("Create Pull Request")
+        tracker.add_item("prepare", "Preparing PR content", status="running")
+        tracker.update_item("prepare", status="success")
         
-        tracker.update_status(1, "Checking GitHub authentication", "in_progress")
-        # gh will handle auth
-        tracker.update_status(1, "Checking GitHub authentication", "completed")
+        tracker.add_item("auth", "Checking GitHub authentication", status="running")
+        # gh will handle auth implicitly during creation
+        tracker.update_item("auth", status="success")
         
-        tracker.update_status(2, "Creating pull request", "in_progress")
+        tracker.add_item("create", "Creating pull request", status="running")
         success, result = create_pr_with_gh(pr_title, pr_body, branch)
         
         if success:
-            tracker.update_status(2, "Creating pull request", "completed")
+            tracker.update_item("create", status="success")
             
-            tracker.update_status(3, "Retrieving PR URL", "in_progress")
+            tracker.add_item("retrieve", "Retrieving PR URL", status="running")
             pr_url = result
-            tracker.update_status(3, "Retrieving PR URL", "completed")
+            tracker.update_item("retrieve", status="success")
             
-            tracker.update_status(4, "Pull request created", "in_progress")
-            tracker.update_status(4, "Pull request created", "completed")
+            tracker.add_item("done", "Pull request created", status="success")
             
             print()
             print("✓ Pull Request created successfully!")
             print(f"URL: {pr_url}")
             return True
         else:
-            tracker.update_status(2, f"Creating pull request failed: {result}", "failed")
+            tracker.update_item("create", status="failed", message=str(result))
             print()
             print(f"Error: Failed to create PR: {result}")
             print()

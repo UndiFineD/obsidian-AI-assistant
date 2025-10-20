@@ -2378,20 +2378,32 @@ $($issue.body)
     if (!$DryRun) {
         # Stage changes
         Write-Info "Staging changes..."
-        git add .
-        
+        $addResult = git add . 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "git add failed: $addResult"
+            return $false
+        }
+
         # Generate commit message from documentation
         $doc = Get-ChangeDocInfo -ChangePath $ChangePath
         $commitMsg = New-CommitMessageFromDocs -ChangeId $changeId -DocInfo $doc
-        
-        # Commit
-        git commit -m "$commitMsg"
-        
+
+        Write-Info "Committing changes..."
+        $commitResult = git commit -m "$commitMsg" 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "git commit failed: $commitResult"
+            return $false
+        }
+
         # Push
         $branch = if ($script:VersionBranch) { $script:VersionBranch } else { git rev-parse --abbrev-ref HEAD }
         Write-Info "Pushing to branch: $branch"
-        git push origin $branch
-        
+        $pushResult = git push origin $branch 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Error "git push failed: $pushResult"
+            return $false
+        }
+
         Write-Success "Git operations completed"
         if (Test-Path $ChangePath) {
             # Update-TodoFile call removed - handled by main workflow loop
