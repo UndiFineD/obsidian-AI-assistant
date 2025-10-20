@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
