@@ -4,10 +4,9 @@
 Creates/updates test_results.md with a placeholder section for results.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -44,7 +43,9 @@ def invoke_step8(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     else:
         if progress:
             with progress.spinner("Recording test results", "Test results recorded"):
-                existing = results.read_text(encoding="utf-8") if results.exists() else ""
+                existing = (
+                    results.read_text(encoding="utf-8") if results.exists() else ""
+                )
                 block = (
                     "\n## Test Results\n\n"
                     "- Summary: \n"

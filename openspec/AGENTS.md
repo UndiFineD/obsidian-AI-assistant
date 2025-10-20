@@ -383,16 +383,20 @@ When adding orchestration, model routing, or agent-to-agent features:
 
 - **Offline/local**: Answers and research are performed using only local models and data
 - **Connected/internet-enabled**: Backend can fetch, summarize, and analyze external content via web hooks or remote models
-- **Multi-agent orchestration**: Requests can be delegated or routed to other agents/models for broader research or specialized tasks
+- **Multi-agent orchestration**: Requests can be delegated or routed to other
+  agents/models for broader research or specialized tasks
 
 ### Mode enforcement
 
 - Offline mode: No outbound network calls. Operations restricted to local models and local data sources.
-- Connected mode: Outbound requests MUST be performed only via approved web hooks or configured providers, respecting security and compliance settings.
+- Connected mode: Outbound requests MUST be performed only via approved web
+  hooks or configured providers, respecting security and compliance settings.
 
 ## Mode Change Guidance
 
-- When extending backend agent capabilities, update AGENTS.md and project-documentation/spec.md to reflect new orchestration, model routing, or research features
+- When extending backend agent capabilities, update AGENTS.md and
+  project-documentation/spec.md to reflect new orchestration, model routing,
+  or research features
 - Ensure documentation covers both offline and connected modes
 
 When changing mode behavior (offline/connected):
@@ -468,7 +472,8 @@ Skip proposal for:
 
 1. Review `openspec/project.md`, `openspec list`, and `openspec list --specs` to understand current context.
 
-1. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`, optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
+1. Choose a unique verb-led `change-id` and scaffold `proposal.md`, `tasks.md`,
+   optional `design.md`, and spec deltas under `openspec/changes/<id>/`.
 
 1. Draft spec deltas using `## ADDED|MODIFIED|REMOVED Requirements` with at least one `#### Scenario:` per requirement.
 
@@ -681,7 +686,8 @@ The system SHALL provide...
 [How to handle]
 ```
 
-If multiple capabilities are affected, create multiple delta files under `changes/[change-id]/specs/<capability>/spec.md`—one per capability.
+If multiple capabilities are affected, create multiple delta files under
+`changes/[change-id]/specs/<capability>/spec.md`—one per capability.
 
 1. **Create tasks.md:**
 
@@ -799,7 +805,8 @@ Headers matched with `trim(header)` - whitespace ignored.
   scenarios). The archiver will replace the entire requirement with what you
   provide here; partial deltas will drop previous details.
 
-- RENAMED: Use when only the name changes. If you also change behavior, use RENAMED (name) plus MODIFIED (content) referencing the new name.
+- RENAMED: Use when only the name changes. If you also change behavior, use
+  RENAMED (name) plus MODIFIED (content) referencing the new name.
 
 Common pitfall: Using MODIFIED to add a new concern without including the
 previous text. This causes loss of detail at archive time. If you aren’t
@@ -1070,7 +1077,8 @@ Remember: Specs are truth. Changes are proposals. Keep them in sync.
 
 ### Documentation Governance
 
-This file is covered by OpenSpec governance. All changes are tracked via proposals in `openspec/changes/` and must follow the required structure:
+This file is covered by OpenSpec governance. All changes are tracked via
+proposals in `openspec/changes/` and must follow the required structure:
 
 - `proposal.md`: Change proposal and rationale
 

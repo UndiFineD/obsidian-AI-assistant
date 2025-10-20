@@ -16,16 +16,16 @@ building upon the Phase 1 and Phase 2 enhancements completed earlier.
 **Changes Made**:
 
 - **`scripts/workflow-step01.py`**:
-  - Added `release_type` parameter (optional: `patch|minor|major`)
-  - Integrated `version_manager.py` for semantic version bumping
-  - Updates `package.json`, `manifest.json`, `backend/__init__.py`, `setup.py`
-  - Always creates/updates `version_snapshot.md` with current and new versions
-  - Full dry-run support (shows version bump preview without modifying files)
+    - Added `release_type` parameter (optional: `patch|minor|major`)
+    - Integrated `version_manager.py` for semantic version bumping
+    - Updates `package.json`, `manifest.json`, `backend/__init__.py`, `setup.py`
+    - Always creates/updates `version_snapshot.md` with current and new versions
+    - Full dry-run support (shows version bump preview without modifying files)
 
 - **`scripts/workflow.py`**:
-  - Added `--release-type` CLI argument (choices: patch, minor, major)
-  - Routes release_type through `execute_step()` to Step 1
-  - Supports both interactive and single-step execution modes
+    - Added `--release-type` CLI argument (choices: patch, minor, major)
+    - Routes release_type through `execute_step()` to Step 1
+    - Supports both interactive and single-step execution modes
 
 **Usage Examples**:
 
@@ -65,11 +65,11 @@ Step 1 completed
 **Changes Made**:
 
 - **`scripts/workflow-step09.py`**:
-  - Added `_summarize_doc()` helper to extract line counts and titles
-  - Displays console summary of proposal, spec, tasks, test_plan
-  - Creates `review_summary.md` with quick navigation links
-  - Idempotent doc_changes.md updates (won't duplicate sections)
-  - Full dry-run support
+    - Added `_summarize_doc()` helper to extract line counts and titles
+    - Displays console summary of proposal, spec, tasks, test_plan
+    - Creates `review_summary.md` with quick navigation links
+    - Idempotent doc_changes.md updates (won't duplicate sections)
+    - Full dry-run support
 
 **Features**:
 

@@ -6,11 +6,10 @@ concise review summary of proposal/spec/tasks/test_plan. Also writes a
 review_summary.md with quick links and counts.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
 from typing import List
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -33,7 +32,10 @@ def _mark_complete(change_path: Path) -> None:
     if not todo.exists():
         return
     content = todo.read_text(encoding="utf-8")
-    updated = content.replace("[ ] **9. Documentation and Cross-Validation", "[x] **9. Documentation and Cross-Validation")
+    updated = content.replace(
+        "[ ] **9. Documentation and Cross-Validation",
+        "[x] **9. Documentation and Cross-Validation",
+    )
     if updated != content:
         helpers.set_content_atomic(todo, updated)
 
@@ -51,7 +53,9 @@ def _summarize_doc(name: str, path: Path) -> str:
         return f"- {name}: MISSING"
     # Simple summary: line count and first non-empty heading line if any
     non_empty = [l for l in lines if l.strip()]
-    heading = next((l.strip('# ').strip() for l in non_empty if l.startswith('#')), None)
+    heading = next(
+        (l.strip("# ").strip() for l in non_empty if l.startswith("#")), None
+    )
     return f"- {name}: {len(lines)} lines" + (f", title: {heading}" if heading else "")
 
 
@@ -65,8 +69,12 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         helpers.write_info(f"[DRY RUN] Would append docs section: {changes}")
     else:
         if progress:
-            with progress.spinner("Updating documentation changes", "Doc changes updated"):
-                existing = changes.read_text(encoding="utf-8") if changes.exists() else ""
+            with progress.spinner(
+                "Updating documentation changes", "Doc changes updated"
+            ):
+                existing = (
+                    changes.read_text(encoding="utf-8") if changes.exists() else ""
+                )
                 block = (
                     "\n## Documentation Changes\n\n"
                     "- Files updated:\n"
@@ -93,21 +101,28 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     tasks = change_path / "tasks.md"
     test_plan = change_path / "test_plan.md"
 
-    docs = [("proposal", proposal), ("spec", spec_md), ("tasks", tasks), ("test_plan", test_plan)]
-    
+    docs = [
+        ("proposal", proposal),
+        ("spec", spec_md),
+        ("tasks", tasks),
+        ("test_plan", test_plan),
+    ]
+
     if progress:
         # Use StatusTracker to show validation of each document
         tracker = progress.StatusTracker("Reviewing Documents")
         for label, path in docs:
             tracker.add_item(label, label.replace("_", " ").title(), "pending")
-        
+
         for label, path in docs:
             tracker.update_item(label, "running", "Analyzing...")
             msg = _summarize_doc(label, path)
-            tracker.update_item(label, "success", msg.split(": ", 1)[1] if ": " in msg else "Complete")
-        
+            tracker.update_item(
+                label, "success", msg.split(": ", 1)[1] if ": " in msg else "Complete"
+            )
+
         tracker.complete()
-        
+
         helpers.write_info("Documentation review summary:")
         for label, path in docs:
             msg = _summarize_doc(label, path)
@@ -148,10 +163,10 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
             helpers.write_success(f"Wrote: {review}")
 
     _mark_complete(change_path)
-    
+
     # --- Begin merged cross-validation logic from step 12 ---
     helpers.write_step(9, "Cross-Validation")
-    
+
     if progress:
         # Use StatusTracker to show the 5 validation stages
         tracker = progress.StatusTracker("Cross-Validation")
@@ -160,23 +175,23 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         tracker.add_item("tasks", "Tasks → Spec", "pending")
         tracker.add_item("references", "Orphaned References", "pending")
         tracker.add_item("files", "Affected Files", "pending")
-        
+
         # Run validation (this performs all checks internally)
         tracker.update_item("proposal", "running", "Checking proposal changes...")
         tracker.update_item("spec", "running", "Checking acceptance criteria...")
         tracker.update_item("tasks", "running", "Checking implementation tasks...")
         tracker.update_item("references", "running", "Checking references...")
         tracker.update_item("files", "running", "Checking affected files...")
-        
+
         result = helpers.test_documentation_cross_validation(change_path)
-        
+
         # Update all items to success
         tracker.update_item("proposal", "success", "Complete")
         tracker.update_item("spec", "success", "Complete")
         tracker.update_item("tasks", "success", "Complete")
         tracker.update_item("references", "success", "Complete")
         tracker.update_item("files", "success", "Complete")
-        
+
         tracker.complete()
     else:
         result = helpers.test_documentation_cross_validation(change_path)
@@ -204,12 +219,14 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         helpers.write_info(f"[DRY RUN] Would write: {report_path}")
     else:
         if progress:
-            with progress.spinner("Writing validation report", f"Report written: {report_path}"):
+            with progress.spinner(
+                "Writing validation report", f"Report written: {report_path}"
+            ):
                 helpers.set_content_atomic(report_path, content)
         else:
             helpers.set_content_atomic(report_path, content)
             helpers.write_success(f"Wrote report: {report_path}")
-    
+
     helpers.write_success("Step 9 completed")
     return True
 

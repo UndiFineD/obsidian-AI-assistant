@@ -1,6 +1,7 @@
 # OpenSpec Change Delta Patterns
 
-This document provides comprehensive guidance on writing change deltas (ADDED, MODIFIED, REMOVED, RENAMED) for OpenSpec governance.
+This document provides comprehensive guidance on writing change deltas
+(ADDED, MODIFIED, REMOVED, RENAMED) for OpenSpec governance.
 
 ## Table of Contents
 
@@ -13,7 +14,8 @@ This document provides comprehensive guidance on writing change deltas (ADDED, M
 
 ## Overview
 
-**Change deltas** describe how a capability specification changes. They are the core mechanism for proposing updates to governed documentation.
+**Change deltas** describe how a capability specification changes.
+They are the core mechanism for proposing updates to governed documentation.
 
 ### Key Principles
 
@@ -76,7 +78,8 @@ The [subject] SHALL [normative statement].
 
 ### Requirement: Governance for API Documentation
 
-The project SHALL govern material changes to `docs/API_REFERENCE.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `docs/API_REFERENCE.md` via OpenSpec change proposals to 
+maintain consistency and review.
 
 #### Scenario: Material change to API_REFERENCE.md requires proposal
 
@@ -134,7 +137,8 @@ The [subject] SHALL [updated normative statement].
 
 ### Requirement: Governance for README.md
 
-The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain consistency and review, and SHALL provide automated validation for all proposals.
+The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain 
+consistency and review, and SHALL provide automated validation for all proposals.
 
 #### Scenario: Material change to README.md requires proposal
 
@@ -232,7 +236,8 @@ Existing CHANGELOG.md entries are preserved in the repository history. Future re
 
 ### Requirement: Governance for Plugin Setup Documentation
 
-The project SHALL govern material changes to plugin setup documentation files via OpenSpec change proposals to maintain consistency, and SHALL require peer review for all setup procedure changes.
+The project SHALL govern material changes to plugin setup documentation files via OpenSpec change proposals 
+to maintain consistency, and SHALL require peer review for all setup procedure changes.
 
 #### Scenario: Material change requires proposal and review
 
@@ -321,7 +326,8 @@ Add automated CI validation.
 - **THEN** CI validates changes
 ```
 
-**Problem**: This only shows the addition, not the complete updated requirement. The archiver will replace the baseline entirely, losing previous content.
+**Problem**: This only shows the addition, not the complete updated requirement.
+The archiver will replace the baseline entirely, losing previous content.
 
 **CORRECT**:
 
@@ -330,7 +336,8 @@ Add automated CI validation.
 
 ### Requirement: Governance for README.md
 
-The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain consistency and review. The system SHALL automatically validate all README.md changes via CI before merge.
+The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain 
+consistency and review. The system SHALL automatically validate all README.md changes via CI before merge.
 
 #### Scenario: Material change to README.md requires proposal
 
@@ -489,7 +496,8 @@ Before running `openspec validate --strict`:
 
 ### Requirement: Governance for API Reference Documentation
 
-The project SHALL govern material changes to `docs/API_REFERENCE.md` via OpenSpec change proposals to maintain API documentation consistency and accuracy.
+The project SHALL govern material changes to `docs/API_REFERENCE.md` via OpenSpec change proposals to 
+maintain API documentation consistency and accuracy.
 
 #### Scenario: Material API documentation change requires proposal
 
@@ -520,7 +528,9 @@ The project SHALL govern material changes to `docs/API_REFERENCE.md` via OpenSpe
 
 ### Requirement: Governance for README.md
 
-The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain consistency and review. All README.md change proposals SHALL be automatically validated in the CI/CD pipeline before merge approval.
+The project SHALL govern material changes to key documentation files via OpenSpec change proposals to maintain 
+consistency and review. All README.md change proposals SHALL be automatically validated in the CI/CD pipeline 
+before merge approval.
 
 #### Scenario: Material change to README.md requires proposal
 
@@ -595,7 +605,8 @@ Existing references to `LEGACY_GUIDE.md` in other documentation will be updated 
 
 ### Requirement: Governance for Plugin Installation and Configuration
 
-The project SHALL govern material changes to all plugin installation and configuration documentation files via OpenSpec change proposals, including setup procedures, configuration examples, and troubleshooting guides.
+The project SHALL govern material changes to all plugin installation and configuration documentation files 
+via OpenSpec change proposals, including setup procedures, configuration examples, and troubleshooting guides.
 
 #### Scenario: Material change to installation documentation requires proposal
 

@@ -4,10 +4,9 @@
 Creates/updates implementation_notes.md to capture implementation details.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 

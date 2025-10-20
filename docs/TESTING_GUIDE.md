@@ -655,6 +655,145 @@ python -m pytest tests/ -v
 
 ---
 
+## 🤖 Test Metrics Automation
+
+### Overview
+
+Test metrics are automatically updated across project documentation after each test run. This automation reduces manual effort from ~15 minutes to <1 minute per update while ensuring consistency and governance compliance.
+
+### Local Usage
+
+#### Basic Dry-Run (Preview Changes)
+
+Preview what changes will be made without applying them:
+
+```bash
+python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15
+```
+
+This shows what will be updated:
+- README.md badge and statistics
+- `docs/TEST_RESULTS_OCTOBER_2025.md`
+- `docs/SYSTEM_STATUS_OCTOBER_2025.md`
+
+#### Apply Changes to Documentation
+
+Apply the previewed changes to all documentation files:
+
+```bash
+python scripts/update_test_metrics.py --skip-pytest --passed 691 --skipped 2 --duration "3m19s" --date 2025-10-15 --apply
+```
+
+#### Create OpenSpec Change Directory
+
+Scaffold a compliant OpenSpec change directory for governance tracking:
+
+```bash
+python scripts/update_test_metrics.py --scaffold-openspec --skip-pytest --passed 691 --skipped 2
+```
+
+### Automation Script Features
+
+**Files Updated** (3 key documentation files):
+1. `README.md` - Test badges and statistics
+2. `docs/TEST_RESULTS_OCTOBER_2025.md` - Comprehensive test results
+3. `docs/SYSTEM_STATUS_OCTOBER_2025.md` - System health status
+
+**Command-Line Options**:
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--skip-pytest` | Skip pytest execution (use supplied metrics) | False (run pytest) |
+| `--passed` | Number of passed tests | Parsed from pytest |
+| `--skipped` | Number of skipped tests | Parsed from pytest |
+| `--duration` | Test execution duration | Parsed from pytest |
+| `--date` | Date for documentation | Current date |
+| `--apply` | Apply changes (default is dry-run) | Dry-run mode |
+| `--scaffold-openspec` | Create OpenSpec change directory | False |
+
+### CI/CD Integration
+
+#### GitHub Actions Workflow
+
+Automated scheduled updates and manual trigger support:
+
+**Triggers**:
+- **Scheduled**: Every Sunday at 00:00 UTC
+- **Manual**: On-demand via `workflow_dispatch`
+
+**Manual Workflow Dispatch Parameters**:
+
+| Parameter | Type | Purpose |
+|-----------|------|---------|
+| `scaffold-openspec` | boolean | Create OpenSpec change directory |
+| `create-pr` | boolean | Create PR vs. commit directly |
+
+**Workflow Steps**:
+1. Checkout repository with full history
+2. Set up Python 3.11 environment
+3. Install test dependencies (ML libraries mocked)
+4. Prepare test environment (directories, test vault)
+5. Run full pytest suite with parsing
+6. Update documentation via automation script
+7. Create PR or commit directly
+8. Generate workflow summary
+
+**Example: Manual Trigger with OpenSpec**:
+
+```bash
+gh workflow run update-test-metrics.yml \
+  -f scaffold-openspec=true \
+  -f create-pr=true
+```
+
+**Example: Direct Commit (No PR)**:
+
+```bash
+gh workflow run update-test-metrics.yml \
+  -f create-pr=false
+```
+
+#### Pull Request Content
+
+Automated PR includes:
+- **Title**: "docs: Update test metrics to latest run"
+- **Commit Message**: `docs: update test metrics (691 passed, 2 skipped)`
+- **Labels**: `documentation`, `automated`
+- **Body**: Test statistics, updated files list, OpenSpec notice
+
+### Validation & Quality Checks
+
+After automation runs:
+
+1. **Verify metrics updated**: Check README.md badge reflects latest run
+2. **Validate markdown**: Ensure no lint issues in updated files
+3. **Check cross-references**: Links between documentation remain valid
+4. **Review OpenSpec changes**: If scaffolded, validate governance structure
+
+### Best Practices
+
+1. **Dry-Run First**: Always preview changes with default dry-run mode before applying
+2. **Regular Runs**: Let scheduled workflow handle weekly updates (Sundays 00:00 UTC)
+3. **Manual for Hotfixes**: Use manual trigger after emergency test fixes
+4. **OpenSpec Consistency**: Always scaffold when major test structure changes
+5. **PR Review**: Check automated PR for accuracy before merge
+
+### Troubleshooting
+
+**Issue: Script fails with "test results not found"**
+- **Cause**: Pytest parsing failed or tests didn't run
+- **Fix**: Use `--skip-pytest` with explicit `--passed`, `--skipped`, `--duration` values
+
+**Issue: Files show no changes after --apply**
+- **Cause**: Metrics haven't changed since last run
+- **Fix**: Confirm test count changed, use different `--passed` values
+
+**Issue: OpenSpec tests failing after automation**
+- **Cause**: Missing capability declaration or governance keywords
+- **Fix**: Ensure `--scaffold-openspec` generates compliant proposal/spec files
+
+---
+
 ## ✨ **Success Factors**
 
 The key factors that made this testing strategy successful:

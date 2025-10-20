@@ -281,16 +281,16 @@ Generated: implement.py
 **Generated Scripts:**
 
 - **test.py** (~160 lines): Comprehensive test harness with validation functions
-  - Tests proposal, spec, tasks documents
-  - Validates affected files exist
-  - Pattern matching for required sections
-  - Results tracking and summary
+    - Tests proposal, spec, tasks documents
+    - Validates affected files exist
+    - Pattern matching for required sections
+    - Results tracking and summary
 
 - **implement.py** (~140 lines): Implementation framework with task execution
-  - Parses tasks.md for implementation steps
-  - Verifies affected files
-  - Supports `--what-if` dry-run mode
-  - Results tracking and error handling
+    - Parses tasks.md for implementation steps
+    - Verifies affected files
+    - Supports `--what-if` dry-run mode
+    - Results tracking and error handling
 
 **Features:**
 - Intelligent requirement detection from proposal and spec

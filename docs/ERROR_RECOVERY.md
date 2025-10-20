@@ -1,10 +1,12 @@
 # Error Recovery & Checkpoint System
 
-The OpenSpec workflow includes a comprehensive checkpoint and rollback system to protect against failures and enable safe experimentation.
+The OpenSpec workflow includes a comprehensive checkpoint and rollback system to protect
+against failures and enable safe experimentation.
 
 ## Overview
 
-The checkpoint system automatically creates snapshots of your work before each workflow step executes. If a step fails or produces unexpected results, you can easily roll back to any previous checkpoint.
+The checkpoint system automatically creates snapshots of your work before each workflow step executes.
+If a step fails or produces unexpected results, you can easily roll back to any previous checkpoint.
 
 ### Key Features
 
@@ -390,7 +392,8 @@ A: The system will update `state.json` on next checkpoint operation. Safe to del
 
 **Q: Can I checkpoint in the middle of a step?**
 
-A: Not automatically. Checkpoints are created before step execution. You can manually create checkpoints via programmatic API if needed.
+A: Not automatically. Checkpoints are created before step execution.
+You can manually create checkpoints via programmatic API if needed.
 
 **Q: Do checkpoints include generated code?**
 

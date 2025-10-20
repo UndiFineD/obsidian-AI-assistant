@@ -6,14 +6,13 @@ version_snapshot.md under the change directory. Optionally bumps versions
 using VersionManager when release_type is provided (patch|minor|major).
 """
 
-import sys
-import re
-import json
 import importlib.util
+import json
+import re
+import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -111,7 +110,7 @@ def invoke_step1(
                 vm = version_manager.VersionManager(str(PROJECT_ROOT))
                 current = vm.get_current_version()
                 new_version = vm.bump_version(rt)
-            
+
             try:
                 if dry_run:
                     helpers.write_info(

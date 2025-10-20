@@ -57,7 +57,9 @@ openspec show changes/<any-change-id>
 
 ### Time Estimate: 15-30 minutes
 
-Let's walk through creating a simple documentation update from start to finish. For a complete example, see the sample change proposal in `openspec/changes/update-doc-sample-change-demo/` (includes proposal.md, tasks.md, and delta spec).
+Let's walk through creating a simple documentation update from start to finish.
+For a complete example, see the sample change proposal in `openspec/changes/update-doc-sample-change-demo/`
+(includes proposal.md, tasks.md, and delta spec).
 
 ### Step 1: Identify What Needs to Change (2 minutes)
 
@@ -609,7 +611,8 @@ The [subject] SHALL [normative statement with clear action].
 3. **[change-patterns.md](./change-patterns.md)** - Delta examples and pitfalls
 4. **[scripts/README.md](../scripts/README.md)** - Automation scripts guide
 5. **[troubleshooting.md](./troubleshooting.md)** - Common errors _(planned)_
-6. **Sample change proposal**: [changes/update-doc-sample-change-demo/](../changes/update-doc-sample-change-demo/) — full example with proposal, tasks, and delta spec
+6. **Sample change proposal**: [changes/update-doc-sample-change-demo/](../changes/update-doc-sample-change-demo/)
+— full example with proposal, tasks, and delta spec
 
 ### Ask Questions
 
