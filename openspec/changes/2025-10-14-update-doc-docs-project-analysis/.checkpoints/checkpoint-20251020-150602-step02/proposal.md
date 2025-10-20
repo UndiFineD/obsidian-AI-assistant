@@ -48,9 +48,3 @@ Ensure `docs/PROJECT_ANALYSIS.md` is governed by OpenSpec so material updates ar
 
 - Affected docs: project analysis
 - Affected code: none (documentation only)
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
