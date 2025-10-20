@@ -1,14 +1,14 @@
 ## Why
 
-Test
+Test proposal
 
 ## What Changes
 
-- **Affected files**: test.py, app.js
+- **Affected files**: backend/test.py, frontend/app.js
 
 ## Impact
 
-Testing
+Need testing and validation scripts.
 
 ## Context
 

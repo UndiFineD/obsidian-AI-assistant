@@ -1,6 +1,6 @@
 ## Requirements
 
-Automated
+Automated testing required.
 
 ## Acceptance Criteria
 
