@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Github Copilot Instructions
+# TODO: 2025 10 14 Update Doc Obsidian Plugins Obsidian Ai Assistant Setup
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-github-copilot-instructions`
+- **Change ID**: `2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-github-copilot-instructions/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
