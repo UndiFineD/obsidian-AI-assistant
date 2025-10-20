@@ -27,7 +27,7 @@ test_results = {
 def test_file_exists(file_path: Path, description: str) -> bool:
     """Test if a file exists."""
     print(f"Testing: {description}", end="")
-    
+
     if file_path.exists():
         print(" [PASS]", flush=True)
         test_results["passed"] += 1
@@ -52,15 +52,15 @@ def test_file_exists(file_path: Path, description: str) -> bool:
 def test_content_matches(file_path: Path, pattern: str, description: str) -> bool:
     """Test if file content matches a pattern."""
     import re
-    
+
     print(f"Testing: {description}", end="")
-    
+
     if not file_path.exists():
         print(" [SKIP]", flush=True)
         print(f"  File not found: {file_path}")
         test_results["skipped"] += 1
         return False
-    
+
     content = file_path.read_text(encoding="utf-8")
     if re.search(pattern, content, re.MULTILINE | re.IGNORECASE):
         print(" [PASS]", flush=True)
@@ -89,10 +89,10 @@ def main() -> int:
     print(f"Test Script: issue-5")
     print("=" * 50)
     print()
-    
+
     print("Running Tests...")
     print()
-    
+
     # Test: Verify proposal.md exists and has required sections
     test_file_exists(change_root / "proposal.md", "Proposal document exists")
     test_content_matches(
@@ -110,7 +110,7 @@ def main() -> int:
         r"## Impact",
         "Proposal has 'Impact' section"
     )
-    
+
     # Test: Verify tasks.md exists and has tasks
     test_file_exists(change_root / "tasks.md", "Tasks document exists")
     test_content_matches(
@@ -118,7 +118,7 @@ def main() -> int:
         r"- \[[\sx]\]",
         "Tasks has checkboxes"
     )
-    
+
     # Test: Verify spec.md exists and has content
     test_file_exists(change_root / "spec.md", "Specification document exists")
     test_content_matches(
@@ -126,10 +126,10 @@ def main() -> int:
         r"## Acceptance Criteria|## Requirements|## Implementation",
         "Specification has required sections"
     )
-    
+
     # Test: Validate todo.md completion status
     test_file_exists(change_root / "todo.md", "Todo checklist exists")
-    
+
     # Summary
     print()
     print("=" * 50)
@@ -140,7 +140,7 @@ def main() -> int:
     print(f"Skipped: {test_results['skipped']}")
     print(f"Total: {test_results['passed'] + test_results['failed'] + test_results['skipped']}")
     print()
-    
+
     if test_results["failed"] > 0:
         print("RESULT: FAILED")
         return 1

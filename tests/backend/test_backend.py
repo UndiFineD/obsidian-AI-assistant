@@ -308,6 +308,7 @@ class TestSearchAndIndexingEndpoints:
                     headers["X-CSRF-Token"] = csrf_token
                 kwargs["headers"] = headers
                 return super().request(method, url, **kwargs)
+
         # Avoid context manager teardown portal issues by yielding client directly
         yield CSRFTestClient(app, raise_server_exceptions=False)
 

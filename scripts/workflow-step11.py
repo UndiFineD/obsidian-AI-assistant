@@ -5,11 +5,10 @@ Archives the change by moving its directory to openspec/archive/<change-id>.
 Supports dry-run for preview. Will not overwrite existing archive.
 """
 
-import sys
-import shutil
 import importlib.util
+import shutil
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -29,6 +28,7 @@ except ImportError:
 
 # Remove any .checkpoints directory creation or usage in step 11
 
+
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
     if not todo.exists():
@@ -47,7 +47,9 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     if target.exists():
         helpers.write_warning(f"Archive target already exists: {target}")
         if change_path.exists():
-            helpers.write_info(f"Removing change directory since archive already exists.")
+            helpers.write_info(
+                "Removing change directory since archive already exists."
+            )
             if dry_run:
                 helpers.write_info(f"[DRY RUN] Would remove {change_path}")
             else:
@@ -55,8 +57,13 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
                     shutil.rmtree(str(change_path))
                     helpers.write_success(f"Removed from active changes: {change_path}")
                 except Exception as e:
-                    helpers.write_error(f"Failed to remove change directory: {change_path}")
-                    helpers.write_error_hint(str(e), "Check for file locks, permissions, or open files in the directory.")
+                    helpers.write_error(
+                        f"Failed to remove change directory: {change_path}"
+                    )
+                    helpers.write_error_hint(
+                        str(e),
+                        "Check for file locks, permissions, or open files in the directory.",
+                    )
                     return False
         else:
             helpers.write_info("Change directory already removed. Archive exists.")
@@ -69,7 +76,9 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     else:
         try:
             if progress:
-                with progress.spinner("Archiving change directory", f"Archived to: {target}"):
+                with progress.spinner(
+                    "Archiving change directory", f"Archived to: {target}"
+                ):
                     # Copy the directory to archive
                     shutil.copytree(str(change_path), str(target))
                     # Remove the original change directory
@@ -82,8 +91,13 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
                 shutil.rmtree(str(change_path))
                 helpers.write_success(f"Removed from active changes: {change_path}")
         except Exception as e:
-            helpers.write_error(f"Failed to archive or remove change directory: {change_path}")
-            helpers.write_error_hint(str(e), "Check for file locks, permissions, or open files in the directory.")
+            helpers.write_error(
+                f"Failed to archive or remove change directory: {change_path}"
+            )
+            helpers.write_error_hint(
+                str(e),
+                "Check for file locks, permissions, or open files in the directory.",
+            )
             return False
 
     _mark_complete(target if target.exists() else change_path)
@@ -93,11 +107,20 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
 
 
 if __name__ == "__main__":
-    import sys
     import argparse
-    parser = argparse.ArgumentParser(description="OpenSpec Step 11: Archive change directory")
-    parser.add_argument("change_path", type=str, help="Path to change directory (e.g. openspec/changes/CHANGE-ID)")
-    parser.add_argument("--dry-run", action="store_true", help="Preview actions without making changes")
+    import sys
+
+    parser = argparse.ArgumentParser(
+        description="OpenSpec Step 11: Archive change directory"
+    )
+    parser.add_argument(
+        "change_path",
+        type=str,
+        help="Path to change directory (e.g. openspec/changes/CHANGE-ID)",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview actions without making changes"
+    )
     args = parser.parse_args()
 
     change_dir = Path(args.change_path)

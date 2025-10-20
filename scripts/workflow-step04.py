@@ -4,10 +4,9 @@
 Ensures tasks.md exists listing tasks mapped to requirements.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -48,7 +47,9 @@ def _mark_complete(change_path: Path) -> None:
         helpers.set_content_atomic(todo, updated)
 
 
-def invoke_step4(change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict) -> bool:
+def invoke_step4(
+    change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict
+) -> bool:
     helpers.write_step(4, "Task Breakdown")
     tasks = change_path / "tasks.md"
     spec_md = change_path / "spec.md"
@@ -68,7 +69,7 @@ def invoke_step4(change_path: Path, title: str | None = None, dry_run: bool = Fa
             if not dry_run:
                 helpers.set_content_atomic(tasks, content)
                 helpers.write_success(f"Created tasks from spec: {tasks}")
-        
+
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {tasks}")
 
@@ -83,7 +84,7 @@ def invoke_step4(change_path: Path, title: str | None = None, dry_run: bool = Fa
         else:
             validator = helpers.DocumentValidator()
             result = validator.validate_tasks(tasks)
-        
+
         if not result.is_valid:
             for err in result.errors:
                 helpers.write_error(f"  ✗ {err}")

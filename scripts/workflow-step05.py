@@ -4,10 +4,9 @@
 Ensures test_plan.md exists with mapping to acceptance criteria.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -53,7 +52,9 @@ def _mark_complete(change_path: Path) -> None:
         helpers.set_content_atomic(todo, updated)
 
 
-def invoke_step5(change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict) -> bool:
+def invoke_step5(
+    change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict
+) -> bool:
     helpers.write_step(5, "Test Definition")
     test_plan = change_path / "test_plan.md"
     spec_md = change_path / "spec.md"
@@ -74,7 +75,7 @@ def invoke_step5(change_path: Path, title: str | None = None, dry_run: bool = Fa
             if not dry_run:
                 helpers.set_content_atomic(test_plan, content)
                 helpers.write_success(f"Created test_plan from spec/tasks: {test_plan}")
-        
+
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {test_plan}")
 
@@ -89,7 +90,7 @@ def invoke_step5(change_path: Path, title: str | None = None, dry_run: bool = Fa
         else:
             validator = helpers.DocumentValidator()
             result = validator.validate_test_plan(test_plan)
-        
+
         if not result.is_valid:
             for err in result.errors:
                 helpers.write_error(f"  ✗ {err}")
@@ -97,7 +98,9 @@ def invoke_step5(change_path: Path, title: str | None = None, dry_run: bool = Fa
             return False
         if result.warnings or result.suggestions:
             if result.warnings:
-                helpers.write_warning(f"Test Plan has {len(result.warnings)} warning(s)")
+                helpers.write_warning(
+                    f"Test Plan has {len(result.warnings)} warning(s)"
+                )
             if result.suggestions:
                 helpers.write_info(f"Suggestions ({len(result.suggestions)}):")
                 for s in result.suggestions[:3]:

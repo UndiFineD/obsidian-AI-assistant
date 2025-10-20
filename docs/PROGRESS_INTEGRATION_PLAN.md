@@ -66,4 +66,3 @@ For each step:
 1. High-value: Steps 3, 4, 9, 12 (complex operations, clear progress)
 2. Medium-value: Steps 1, 5, 7, 8 (simpler operations)
 3. Low-value: Step 11 (very quick operation)
-

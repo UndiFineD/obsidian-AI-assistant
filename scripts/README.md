@@ -4,7 +4,8 @@ This directory contains utility scripts for development, validation, and mainten
 
 ## Validation Scripts
 
-These scripts validate the structure, syntax, and basic functionality of various backend components. They are **not** pytest tests but standalone verification tools used during development.
+These scripts validate the structure, syntax, and basic functionality of various backend components.
+They are **not** pytest tests but standalone verification tools used during development.
 
 ### Infrastructure Validation
 

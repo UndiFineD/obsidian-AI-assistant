@@ -31,19 +31,19 @@ def invoke_task(
     description: str = ""
 ) -> bool:
     """Execute an implementation task.
-    
+
     Args:
         task_name: Name of the task
         action: Callable to execute the task
         description: Task description
-        
+
     Returns:
         True if successful, False otherwise
     """
     print(f"Task: {task_name}")
     if description:
         print(f"  {description}")
-    
+
     try:
         if args.what_if:
             print("  [WHAT-IF] Would execute task")
@@ -52,7 +52,7 @@ def invoke_task(
             action()
             print("  [COMPLETED]")
             implement_results["completed"] += 1
-        
+
         implement_results["tasks"].append({
             "name": task_name,
             "result": "SKIPPED" if args.what_if else "COMPLETED",
@@ -80,7 +80,7 @@ def verify_file(file_path: Path) -> None:
 def main() -> int:
     """Run implementation tasks."""
     global args
-    
+
     parser = argparse.ArgumentParser(description="Implementation script for 2025-10-14-update-doc-docs-integration-tests-completion-summary")
     parser.add_argument(
         "--what-if",
@@ -93,26 +93,26 @@ def main() -> int:
         help="Force execution without prompts"
     )
     args = parser.parse_args()
-    
+
     print("=" * 50)
     print(f"Implementation: 2025-10-14-update-doc-docs-integration-tests-completion-summary")
     print("=" * 50)
     print()
-    
+
     if args.what_if:
         print("[WHAT-IF MODE] No changes will be made")
         print()
-    
+
     # Parse tasks.md to understand what needs to be done
     tasks_path = change_root / "tasks.md"
     if not tasks_path.exists():
         print(f"ERROR: tasks.md not found at {tasks_path}")
         return 1
-    
+
     tasks_content = tasks_path.read_text(encoding="utf-8")
     print("Analyzing tasks.md...")
     print()
-    
+
     # Extract file paths from proposal.md Impact section
     proposal_path = change_root / "proposal.md"
     affected_files = []
@@ -126,13 +126,13 @@ def main() -> int:
             for f in affected_files:
                 print(f"  - {f}")
             print()
-    
+
     # Implementation Section
     print("=" * 50)
     print("IMPLEMENTATION TASKS")
     print("=" * 50)
     print()
-    
+
     # Parse specific implementation tasks from tasks.md
     # Extract tasks from Implementation section
     import re
@@ -143,18 +143,18 @@ def main() -> int:
     if impl_match:
         impl_section = impl_match.group(0)
         print("Implementation tasks from tasks.md:")
-        
+
         # Extract individual tasks
         task_pattern = r"- \[[\sx]\]\s*\*\*(.+?)\*\*:?\s*(.+?)(?=\n-|\n\n|$)"
         tasks = re.findall(task_pattern, impl_section)
-        
+
         for task_name, task_desc in tasks:
             invoke_task(
                 task_name.strip(),
                 lambda: print(f"    TODO: Implement {task_name}"),
                 task_desc.strip()
             )
-    
+
     # Summary
     print()
     print("=" * 50)
@@ -165,7 +165,7 @@ def main() -> int:
     print(f"Skipped: {implement_results['skipped']}")
     print(f"Total: {implement_results['completed'] + implement_results['failed'] + implement_results['skipped']}")
     print()
-    
+
     if implement_results["failed"] > 0:
         print("RESULT: FAILED")
         return 1

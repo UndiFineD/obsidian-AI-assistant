@@ -4,10 +4,9 @@
 Ensures spec.md exists with key sections. Does not overwrite existing files.
 """
 
-import sys
 import importlib.util
+import sys
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -57,7 +56,9 @@ def _mark_complete(change_path: Path) -> None:
         helpers.set_content_atomic(todo, updated)
 
 
-def invoke_step3(change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict) -> bool:
+def invoke_step3(
+    change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict
+) -> bool:
     helpers.write_step(3, "Specification")
     spec_md = change_path / "spec.md"
     proposal = change_path / "proposal.md"
@@ -70,30 +71,39 @@ def invoke_step3(change_path: Path, title: str | None = None, dry_run: bool = Fa
                 content = spec_md.read_text(encoding="utf-8")
                 updated = content
                 import re as _re
+
                 has_requirements = "## Requirements" in content
                 has_ac = bool(_re.search(r"(?m)^##\s+Acceptance Criteria\b", content))
 
                 sections_to_append: list[tuple[str, str]] = []
                 if not has_requirements:
-                    sections_to_append.append((
-                        "## Requirements",
-                        "\n- **R-01**: ...\n- **R-02**: ...\n"
-                    ))
+                    sections_to_append.append(
+                        ("## Requirements", "\n- **R-01**: ...\n- **R-02**: ...\n")
+                    )
                 if not has_ac:
-                    sections_to_append.append((
-                        "## Acceptance Criteria",
-                        "\n- [ ] AC-01: ...\n- [ ] AC-02: ...\n"
-                    ))
+                    sections_to_append.append(
+                        (
+                            "## Acceptance Criteria",
+                            "\n- [ ] AC-01: ...\n- [ ] AC-02: ...\n",
+                        )
+                    )
 
                 if sections_to_append:
-                    updated = updated.rstrip() + "\n\n" + "\n\n".join(
-                        f"{hdr}\n{body}" for hdr, body in sections_to_append
-                    ) + "\n"
+                    updated = (
+                        updated.rstrip()
+                        + "\n\n"
+                        + "\n\n".join(
+                            f"{hdr}\n{body}" for hdr, body in sections_to_append
+                        )
+                        + "\n"
+                    )
                 if updated != content:
                     helpers.set_content_atomic(spec_md, updated)
                     helpers.write_success("Auto-inserted missing spec sections")
             except Exception as e:
-                helpers.write_warning(f"Could not auto-insert missing spec sections: {e}")
+                helpers.write_warning(
+                    f"Could not auto-insert missing spec sections: {e}"
+                )
     else:
         # Prefer contextual generation from proposal
         if progress:
@@ -108,10 +118,10 @@ def invoke_step3(change_path: Path, title: str | None = None, dry_run: bool = Fa
             if not dry_run:
                 helpers.set_content_atomic(spec_md, content)
                 helpers.write_success(f"Created spec from proposal: {spec_md}")
-        
+
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {spec_md}")
-    
+
     # Validate (skip in dry-run)
     if dry_run:
         helpers.write_info("[DRY RUN] Skipping spec validation")
@@ -123,14 +133,18 @@ def invoke_step3(change_path: Path, title: str | None = None, dry_run: bool = Fa
         else:
             validator = helpers.DocumentValidator()
             result = validator.validate_spec(spec_md)
-        
+
         if not result.is_valid:
             for err in result.errors:
                 helpers.write_error(f"  ✗ {err}")
-            helpers.write_warning("Specification has blocking issues; fix and rerun step 3")
+            helpers.write_warning(
+                "Specification has blocking issues; fix and rerun step 3"
+            )
             return False
         if result.warnings:
-            helpers.write_warning(f"Specification has {len(result.warnings)} warning(s):")
+            helpers.write_warning(
+                f"Specification has {len(result.warnings)} warning(s):"
+            )
             for w in result.warnings[:3]:
                 helpers.write_warning(f"  ⚠ {w}")
 

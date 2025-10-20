@@ -5,11 +5,10 @@ Ensures proposal.md exists. If missing, creates a minimal scaffold with
 sections. Does not overwrite existing content.
 """
 
-import sys
 import importlib.util
+import sys
 from datetime import datetime
 from pathlib import Path
-
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -37,10 +36,16 @@ def _mark_complete(change_path: Path) -> None:
         helpers.set_content_atomic(todo, updated)
 
 
-def invoke_step2(change_path: Path, title: str | None = None, template: str = "default", dry_run: bool = False, **_: dict) -> bool:
+def invoke_step2(
+    change_path: Path,
+    title: str | None = None,
+    template: str = "default",
+    dry_run: bool = False,
+    **_: dict,
+) -> bool:
     """
     Create and validate proposal.md.
-    
+
     Args:
         change_path: Path to change directory
         title: Optional title for the proposal
@@ -56,12 +61,16 @@ def invoke_step2(change_path: Path, title: str | None = None, template: str = "d
     else:
         # Load template
         template_manager = helpers.TemplateManager()
-        
+
         if template != "default":
-            helpers.write_info(f"Using '{template}' template: {template_manager.describe_template(template)}")
-        
+            helpers.write_info(
+                f"Using '{template}' template: {template_manager.describe_template(template)}"
+            )
+
         if progress:
-            with progress.spinner("Creating proposal.md from template", "Proposal created from template"):
+            with progress.spinner(
+                "Creating proposal.md from template", "Proposal created from template"
+            ):
                 content = template_manager.load_template(template, title)
                 if not dry_run:
                     helpers.set_content_atomic(proposal, content)
@@ -70,7 +79,7 @@ def invoke_step2(change_path: Path, title: str | None = None, template: str = "d
             if not dry_run:
                 helpers.set_content_atomic(proposal, content)
                 helpers.write_success(f"Created from template: {proposal}")
-        
+
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {proposal}")
 
@@ -86,31 +95,51 @@ def invoke_step2(change_path: Path, title: str | None = None, template: str = "d
             has_what = "## What Changes" in content
             # Accept headings like '## Goals' or '## Goals / Non-Goals' or '## Goals & Non-Goals'
             import re as _re
+
             has_goals = bool(_re.search(r"(?m)^##\s+Goals(\b|\s|/|&)", content))
             has_stakeholders = "## Stakeholders" in content
 
             sections_to_append: list[tuple[str, str]] = []
             if not has_context:
-                sections_to_append.append(("## Context", "\nDescribe the background and motivation.\n"))
+                sections_to_append.append(
+                    ("## Context", "\nDescribe the background and motivation.\n")
+                )
             if not has_what:
-                sections_to_append.append(("## What Changes", "\nList the proposed changes at a high level.\n"))
+                sections_to_append.append(
+                    (
+                        "## What Changes",
+                        "\nList the proposed changes at a high level.\n",
+                    )
+                )
             if not has_goals:
                 # Add a clean Goals section; keep any existing 'Non-Goals' section intact if present
-                sections_to_append.append(("## Goals", "\n- Goal 1: ...\n- Goal 2: ...\n"))
+                sections_to_append.append(
+                    ("## Goals", "\n- Goal 1: ...\n- Goal 2: ...\n")
+                )
             if not has_stakeholders:
-                sections_to_append.append(("## Stakeholders", "\n- Owner: [owner]\n- Reviewers: [reviewers]\n"))
+                sections_to_append.append(
+                    (
+                        "## Stakeholders",
+                        "\n- Owner: [owner]\n- Reviewers: [reviewers]\n",
+                    )
+                )
 
             if sections_to_append:
                 # Append in order with spacing
-                updated = updated.rstrip() + "\n\n" + "\n\n".join(
-                    f"{hdr}\n{body}" for hdr, body in sections_to_append
-                ) + "\n"
+                updated = (
+                    updated.rstrip()
+                    + "\n\n"
+                    + "\n\n".join(f"{hdr}\n{body}" for hdr, body in sections_to_append)
+                    + "\n"
+                )
 
             if updated != content:
                 helpers.set_content_atomic(proposal, updated)
                 helpers.write_success("Auto-inserted missing proposal sections")
         except Exception as e:
-            helpers.write_warning(f"Could not auto-insert missing proposal sections: {e}")
+            helpers.write_warning(
+                f"Could not auto-insert missing proposal sections: {e}"
+            )
 
     # Step 2b: Validate proposal quality
     if dry_run:
@@ -123,11 +152,13 @@ def invoke_step2(change_path: Path, title: str | None = None, template: str = "d
         else:
             validator = helpers.DocumentValidator()
             result = validator.validate_proposal(proposal)
-        
+
         if not result.is_valid:
             for err in result.errors:
                 helpers.write_error(f"  ✗ {err}")
-            helpers.write_warning("Proposal has blocking issues; please fix and rerun step 2")
+            helpers.write_warning(
+                "Proposal has blocking issues; please fix and rerun step 2"
+            )
             return False
         if result.warnings:
             helpers.write_warning(f"Proposal has {len(result.warnings)} warning(s):")

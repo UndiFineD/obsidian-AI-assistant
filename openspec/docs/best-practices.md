@@ -1,6 +1,7 @@
 # OpenSpec Best Practices Checklist
 
-This checklist helps contributors and reviewers ensure high-quality, consistent OpenSpec documentation and change proposals.
+This checklist helps contributors and reviewers ensure high-quality,
+consistent OpenSpec documentation and change proposals.
 
 ## For Contributors
 

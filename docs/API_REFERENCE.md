@@ -809,24 +809,114 @@ All endpoints return standard HTTP status codes with JSON error responses:
 }
 ```
 
-## Rate Limiting
+## Rate Limiting & Throttling
 
-API endpoints are protected by rate limiting:
+Obsidian AI Assistant implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair usage for all clients.
 
-- **Default**: 100 requests per minute per IP
-- **AI endpoints**: 20 requests per minute per user
-- **Admin endpoints**: 50 requests per minute per admin user
+### Configuration
 
-Rate limit headers are included in responses:
+Rate limiting is configured via environment variables and config.yaml:
+
+```yaml
+# backend/config.yaml
+rate_limit:
+  enabled: true
+  global_per_minute: 100
+  global_per_hour: 1000
+  endpoint_limits:
+    /api/ask: 30/minute
+    /api/config: 10/minute
+  burst_limit: 10/second
+```
+
+Or via environment variables:
+
+```bash
+export RATE_LIMIT=100
+export RATE_LIMIT_BURST=10
+export RATE_LIMIT_ENABLED=true
+```
+
+### Rate Limit Headers
+
+All rate-limited responses include standard headers:
+
 ```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1729094460
+Retry-After: 60
 ```
 
-## CORS Policy
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum allowed requests |
+| `X-RateLimit-Remaining` | Requests left in current window |
+| `X-RateLimit-Reset` | Time (UTC epoch) when limit resets |
+| `Retry-After` | Seconds until next allowed request (on 429) |
 
-The API supports CORS for web applications:
+### Error Handling
+
+When a client exceeds the limit, HTTP 429 Too Many Requests is returned:
+
+```json
+{
+  "error": "Rate limit exceeded",
+  "limit": 100,
+  "remaining": 0,
+  "retry_after": 60
+}
+```
+
+**Best Practices:**
+- Handle 429 errors with exponential backoff
+- Monitor rate limit headers to adjust request rates dynamically
+- Use API keys for higher limits (authenticated clients get increased quotas)
+- Contact support for custom limits (enterprise users)
+
+## Health Monitoring
+
+The health monitoring system provides comprehensive observability into the backend.
+
+### Health Endpoints
+
+| Endpoint | Purpose | Target SLA |
+|----------|---------|-----------|
+| `GET /api/health/detailed` | Enhanced health with service status, metrics | <2s |
+| `GET /api/health/metrics` | Aggregated metrics over time windows | <500ms |
+| `GET /api/health/alerts` | Active and resolved alerts | <100ms |
+| `POST /api/health/alerts/{id}/acknowledge` | Acknowledge alert awareness | <100ms |
+
+### Health Response Example
+
+```json
+{
+  "overall_status": "healthy",
+  "timestamp": "2025-10-17T05:59:01.671Z",
+  "uptime_seconds": 12345.67,
+  "services": {
+    "model_manager": {"status": "healthy", "response_time_ms": 23.4},
+    "embeddings": {"status": "healthy", "response_time_ms": 15.2},
+    "cache": {"status": "healthy", "response_time_ms": 8.1}
+  },
+  "system_metrics": {
+    "cpu_percent": 45.2,
+    "memory_percent": 62.3,
+    "disk_usage_percent": 73.1
+  },
+  "active_alerts": 0
+}
+```
+
+### Alert Thresholds
+
+| Metric | Warning | Error | Critical |
+|--------|---------|-------|----------|
+| CPU (%) | 70 | 85 | 95 |
+| Memory (%) | 75 | 90 | 95 |
+| Disk (%) | 80 | 90 | 95 |
+
+**For complete health monitoring documentation, see** `backend/health_monitoring.py` **source code or use** `/docs` **for interactive reference.**
 
 - **Allowed Origins**: Configurable via `cors_allowed_origins` setting
 - **Allowed Methods**: GET, POST, PUT, DELETE, OPTIONS

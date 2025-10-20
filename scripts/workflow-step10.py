@@ -5,13 +5,12 @@ Prepares git-related notes, commits changes, and pushes to remote.
 Optionally syncs open GitHub issues to create change folders.
 """
 
-import sys
-import subprocess
 import importlib.util
 import json
+import subprocess
+import sys
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-
+from typing import Any, Dict, List, Optional
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -74,7 +73,7 @@ def _check_gh_cli() -> bool:
 
 def _fetch_github_issues() -> List[Dict[str, Any]]:
     """Fetch open GitHub issues using gh CLI.
-    
+
     Returns:
         List of issue dictionaries with number, title, body, labels.
     """
@@ -98,24 +97,28 @@ def _fetch_github_issues() -> List[Dict[str, Any]]:
             errors="replace",  # Replace undecodable bytes
             check=True,
         )
-        
+
         if not result.stdout:
             return []
-            
+
         issues = json.loads(result.stdout)
         return issues if issues else []
-    except (subprocess.CalledProcessError, json.JSONDecodeError, FileNotFoundError) as error:
+    except (
+        subprocess.CalledProcessError,
+        json.JSONDecodeError,
+        FileNotFoundError,
+    ) as error:
         helpers.write_warning(f"Failed to fetch GitHub issues: {error}")
         return []
 
 
 def _sanitize_folder_name(issue_number: int, title: str) -> str:
     """Create sanitized folder name from issue number and title.
-    
+
     Args:
         issue_number: GitHub issue number
         title: Issue title
-        
+
     Returns:
         Sanitized folder name like 'issue-123-fix-bug'
     """
@@ -129,10 +132,10 @@ def _sanitize_folder_name(issue_number: int, title: str) -> str:
 
 def _create_proposal_from_issue(issue: Dict[str, Any]) -> str:
     """Generate proposal.md content from GitHub issue.
-    
+
     Args:
         issue: Issue dictionary with number, title, body, labels
-        
+
     Returns:
         Formatted proposal.md content
     """
@@ -141,7 +144,7 @@ def _create_proposal_from_issue(issue: Dict[str, Any]) -> str:
     body = issue.get("body", "No description provided.")
     labels = issue.get("labels", [])
     label_names = [label.get("name", "") for label in labels]
-    
+
     content = f"""# Proposal: {title}
 
 **Source**: GitHub Issue #{number}
@@ -175,7 +178,7 @@ See `todo.md` for detailed task breakdown.
 
 def _create_todo_from_template() -> str:
     """Generate todo.md content with workflow steps pre-populated.
-    
+
     Returns:
         Formatted todo.md content with workflow steps
     """
@@ -212,10 +215,10 @@ def _create_todo_from_template() -> str:
 
 def _sync_github_issues(dry_run: bool = False) -> int:
     """Sync open GitHub issues to create change folders.
-    
+
     Args:
         dry_run: If True, only show what would be created
-        
+
     Returns:
         Number of issues synced/would be synced
     """
@@ -223,36 +226,34 @@ def _sync_github_issues(dry_run: bool = False) -> int:
         helpers.write_warning("GitHub CLI (gh) not available. Skipping issue sync.")
         helpers.write_info("Install gh CLI: https://cli.github.com/")
         return 0
-    
+
     # Fetch issues with spinner
     with progress.spinner("Fetching open GitHub issues", "Issues fetched"):
         issues = _fetch_github_issues()
-    
+
     if not issues:
         helpers.write_info("No open GitHub issues found.")
         return 0
-    
+
     helpers.write_success(f"Found {len(issues)} open issue(s)")
-    
+
     synced_count = 0
-    
+
     # Process issues with progress bar
     with progress.progress_bar(
-        len(issues),
-        "Syncing issues",
-        f"Synced {len(issues)} issue(s)"
+        len(issues), "Syncing issues", f"Synced {len(issues)} issue(s)"
     ) as bar:
         for issue in issues:
             issue_number = issue.get("number")
             title = issue.get("title", "Untitled")
-            
+
             if not issue_number:
                 bar.update(1)
                 continue
-            
+
             # Check if change folder already exists (by issue number pattern)
             existing_folders = list(CHANGES_DIR.glob(f"issue-{issue_number}-*"))
-            
+
             if existing_folders:
                 helpers.write_info(
                     f"  Issue #{issue_number}: Folder already exists "
@@ -260,10 +261,10 @@ def _sync_github_issues(dry_run: bool = False) -> int:
                 )
                 bar.update(1, f"#{issue_number} (skipped)")
                 continue
-            
+
             folder_name = _sanitize_folder_name(issue_number, title)
             change_path = CHANGES_DIR / folder_name
-            
+
             if dry_run:
                 helpers.write_info(f"  [DRY-RUN] Would create: {folder_name}")
                 helpers.write_info(f"    Title: {title}")
@@ -272,56 +273,51 @@ def _sync_github_issues(dry_run: bool = False) -> int:
             else:
                 # Create change folder structure
                 change_path.mkdir(parents=True, exist_ok=True)
-                
+
                 # Generate proposal.md
                 proposal_content = _create_proposal_from_issue(issue)
                 proposal_path = change_path / "proposal.md"
                 proposal_path.write_text(proposal_content, encoding="utf-8")
-                
+
                 # Generate todo.md
                 todo_content = _create_todo_from_template()
                 todo_path = change_path / "todo.md"
                 todo_path.write_text(todo_content, encoding="utf-8")
-                
+
                 # Create empty specs directory
                 specs_dir = change_path / "specs"
                 specs_dir.mkdir(exist_ok=True)
-                
+
                 helpers.write_success(f"  Created: {folder_name}")
                 helpers.write_info(f"    Issue #{issue_number}: {title}")
                 synced_count += 1
                 bar.update(1, f"#{issue_number}")
-    
+
     return synced_count
 
 
 def invoke_step10(
-    change_path: Path, 
-    dry_run: bool = False, 
-    sync_issues: bool = True,
-    **_: dict
+    change_path: Path, dry_run: bool = False, sync_issues: bool = True, **_: dict
 ) -> bool:
     """Execute Step 10: Git operations and GitHub issue sync.
-    
+
     Args:
         change_path: Path to the change folder
         dry_run: If True, only show what would be done
         sync_issues: If True, sync GitHub issues to create change folders
         **_: Additional keyword arguments (ignored)
-        
+
     Returns:
         True if successful, False otherwise
     """
     helpers.write_step(10, "Git Operations & GitHub Issue Sync")
-    
+
     # Part 1: GitHub Issue Synchronization
     if sync_issues:
         synced_count = _sync_github_issues(dry_run=dry_run)
         if synced_count > 0:
-            helpers.write_success(
-                f"Synced {synced_count} issue(s) to change folders"
-            )
-    
+            helpers.write_success(f"Synced {synced_count} issue(s) to change folders")
+
     # Part 2: Git notes for current change
     notes_path = change_path / "git_notes.md"
 
@@ -348,7 +344,7 @@ def invoke_step10(
             status_output = _git(["status", "--porcelain"])
             if status_output:
                 helpers.write_info("Staging changes...")
-                
+
                 # Stage all changes
                 result = subprocess.run(
                     ["git", "add", "."],
@@ -359,13 +355,13 @@ def invoke_step10(
                 if result.returncode != 0:
                     helpers.write_error(f"Git add failed: {result.stderr}")
                     return False
-                
+
                 helpers.write_success("Changes staged")
-                
+
                 # Commit changes
                 commit_msg = f"chore(openspec): {change_path.name}"
                 helpers.write_info(f"Committing: {commit_msg}")
-                
+
                 result = subprocess.run(
                     ["git", "commit", "-m", commit_msg],
                     cwd=PROJECT_ROOT,
@@ -375,12 +371,12 @@ def invoke_step10(
                 if result.returncode != 0:
                     helpers.write_error(f"Git commit failed: {result.stderr}")
                     return False
-                
+
                 helpers.write_success("Changes committed")
-                
+
                 # Push changes
                 helpers.write_info(f"Pushing to {branch}...")
-                
+
                 result = subprocess.run(
                     ["git", "push", "origin", branch],
                     cwd=PROJECT_ROOT,
@@ -390,14 +386,14 @@ def invoke_step10(
                 if result.returncode != 0:
                     helpers.write_error(f"Git push failed: {result.stderr}")
                     return False
-                
+
                 helpers.write_success(f"Changes pushed to {branch}")
             else:
                 helpers.write_info("No changes to commit")
         except Exception as error:
             helpers.write_error(f"Git operations failed: {error}")
             return False
-    
+
     _mark_complete(change_path)
     helpers.write_success("Step 10 completed")
     return True
