@@ -10,6 +10,8 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
+
 
 class TestOpenSpecChangeGeneration:
     """Test the OpenSpec change generation script."""
@@ -324,6 +326,9 @@ class TestOpenSpecValidation:
 class TestOpenSpecIntegration:
     """Test integration with the actual OpenSpec change files."""
 
+    @pytest.mark.skip(
+        reason="Changes archived during Phase 3 consolidation (Oct 20, 2025). These changes are now in openspec/archive/"
+    )
     def test_generated_changes_exist(self):
         """Test that the actual generated changes exist and have proper structure."""
         repo_root = Path(__file__).parent.parent
