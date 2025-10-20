@@ -507,18 +507,28 @@ Describe "Workflow Step Templates" {
             $scriptContent = Get-Content $WorkflowScript -Raw
             $scriptContent | Should Match '# Tasks:'
             $scriptContent | Should Match '## Dependencies'
-            $scriptContent | Should Match '## Estimated Effort'
+            $scriptContent | Should Match 'Provide effort estimates'
         }
     }
     
     Context "Step 5 - Test Definition Template" {
         
-        It "Should contain test plan template structure in script" {
+        It "Should reference external test plan template" {
             $scriptContent = Get-Content $WorkflowScript -Raw
-            $scriptContent | Should Match '# Test Plan:'
-            $scriptContent | Should Match '### Unit Tests'
-            $scriptContent | Should Match '### Integration Tests'
-            $scriptContent | Should Match '## Acceptance Criteria'
+            # Step5 now loads from $TemplatesDir/test_plan.md using Join-Path
+            $scriptContent | Should Match '\$TemplatesDir.*test_plan\.md'
+            $scriptContent | Should Match 'Get-Content.*\$templatePath'
+        }
+        
+        It "Should have test plan template file" {
+            # Calculate correct path: TestRoot is already project root from line 18
+            $templatePath = Join-Path $script:TestRoot "openspec\templates\test_plan.md"
+            $templatePath | Should Exist
+            $templateContent = Get-Content $templatePath -Raw
+            $templateContent | Should Match '# Test Plan:'
+            $templateContent | Should Match '### Unit Tests'
+            $templateContent | Should Match '### Integration Tests'
+            $templateContent | Should Match '## Acceptance Criteria'
         }
     }
 }

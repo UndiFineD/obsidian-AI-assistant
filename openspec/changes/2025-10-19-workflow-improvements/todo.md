@@ -1,9 +1,9 @@
-# TODO: <Change Title>
+# TODO: 2025 10 19 workflow improvements
 
 ## Change Information
-- **Change ID**: `<change-id>`
-- **Created**: YYYY-MM-DD
-- **Owner**: @username
+- **Change ID**: `2025-10-19-workflow-improvements`
+- **Created**: 2025-10-20
+- **Owner**: @Keimpe de Jong
 - **Status**: In Progress
 
 ---
@@ -14,20 +14,20 @@
     - Created this file
     - Defined workflow checklist
 
-- [ ] **1. Increment Release Version**
+- [x] **1. Increment Release Version**
     - [ ] Create new release branch (e.g., `release-x.y.z`)
     - [ ] Update version in `CHANGELOG.md`
     - [ ] Update version in `README.md`
     - [ ] Update version in `package.json`
     - [ ] Document version increment
 
-- [ ] **2. Proposal**
+- [x] **2. Proposal**
     - [ ] Create `proposal.md`
     - [ ] Define problem statement
     - [ ] Document rationale and alternatives
     - [ ] Impact analysis completed
 
-- [ ] **3. Specification**
+- [x] **3. Specification**
     - [ ] Create `spec.md`
     - [ ] Define acceptance criteria
     - [ ] Document data models (if applicable)
@@ -35,14 +35,14 @@
     - [ ] Security/privacy review
     - [ ] Performance requirements defined
 
-- [ ] **4. Task Breakdown**
+- [x] **4. Task Breakdown**
     - [ ] Create `tasks.md`
     - [ ] Break down into actionable tasks
     - [ ] Define task dependencies
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [ ] **5. Test Definition**
+- [x] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -50,20 +50,20 @@
     - [ ] Define security tests (if applicable)
     - [ ] Set coverage goals
 
-- [ ] **6. Script & Tooling**
+- [x] **6. Script & Tooling**
     - [ ] Update/create setup scripts
     - [ ] Update automation scripts
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [ ] **7. Implementation**
+- [x] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [ ] **8. Test Run & Validation**
+- [x] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -71,7 +71,7 @@
     - [ ] Validate acceptance criteria
     - [ ] Document test results
 
-- [ ] **9. Documentation Update**
+- [x] **9. Documentation Update**
     - [ ] Update `README.md`
     - [ ] Update relevant docs in `docs/`
     - [ ] Update API documentation
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/<change-id>/todo.md` (this file)
-- [ ] `openspec/changes/<change-id>/proposal.md`
-- [ ] `openspec/changes/<change-id>/spec.md`
-- [ ] `openspec/changes/<change-id>/tasks.md`
-- [ ] `openspec/changes/<change-id>/test_plan.md`
-- [ ] `openspec/changes/<change-id>/retrospective.md`
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/proposal.md`
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/spec.md`
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/tasks.md`
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/test_plan.md`
+- [ ] `openspec/changes/2025-10-19-workflow-improvements/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
@@ -128,9 +128,9 @@
 
 ## Timeline
 
-- **Start Date**: YYYY-MM-DD
-- **Target Completion**: YYYY-MM-DD
-- **Actual Completion**: YYYY-MM-DD
+- **Start Date**: 2025-10-20
+- **Target Completion**: 2025-10-20
+- **Actual Completion**: 2025-10-20
 
 ---
 
@@ -140,3 +140,18 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

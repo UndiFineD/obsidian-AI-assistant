@@ -114,12 +114,7 @@ $ArchiveDir = Join-Path $ScriptRoot "openspec\archive"
 $TemplatesDir = Join-Path $ScriptRoot "openspec\templates"
 $script:NewVersion = $null  # Shared version variable set in Step 1
 
-# Visual symbols reference (used across output): ✓ ℹ ⚠ ✗
-
 # Helper Functions
-# Step header format documentation (for tests and contributors):
-# Step $StepNumber
-# ========================================
 function Write-Step {
     param([int]$Number, [string]$Description)
     Write-Host "`n═════════  STEP ${Number}: $Description ═════════" -ForegroundColor Cyan
@@ -193,7 +188,7 @@ function New-ChangeDirectory {
     param([string]$Id, [string]$Title, [string]$Owner)
     $changePath = Join-Path $ChangesDir $Id
     if (Test-Path $changePath) {
-        Write-Error "Change directory already exists: $Id"
+        Write-Error "Change already exists: $Id"
         return $null
     }
     Write-Info "Creating change directory: $Id"
@@ -202,7 +197,6 @@ function New-ChangeDirectory {
     }
     return $changePath
 }
-
 
 # Step 0: Create TODOs
 function Invoke-Step0 {
@@ -393,6 +387,7 @@ function Invoke-Step1 {
             Write-Info ""
             Write-Info "Changes are staged but not committed."
             Write-Info "They will be committed in Step 10 (Git Operations)."
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 1
             return $true
         } else {
             Write-Info "[DRY RUN] Would update version: $currentVersion → $newVersion"
@@ -482,7 +477,7 @@ function Invoke-Step2 {
         }
         Write-Success "proposal.md validated"
         if (!$DryRun) {
-            # Update-TodoFile call removed - handled by main workflow loop
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 2
         }
         return $true
     }
@@ -737,7 +732,7 @@ function Invoke-Step3 {
         
         Write-Success "spec.md validated"
         if (!$DryRun) {
-            # Update-TodoFile call removed - handled by main workflow loop
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 3
         }
         return $true
     }
@@ -791,15 +786,45 @@ function Invoke-Step3 {
         $requirements = @('1. List what the system must do', '2. Be specific and measurable', '3. Include user-facing behavior')
     }
 
-    # Build spec.md content from template
-    $specTemplatePath = Join-Path $TemplatesDir "spec.md"
-    if (!(Test-Path $specTemplatePath)) {
-        Write-Error "Template not found: $specTemplatePath"
-        return $false
-    }
-    
-    $specContent = Get-Content $specTemplatePath -Raw
-    $specContent = $specContent -replace '\$Title', $Title
+    # Build spec.md content
+    $specContent = @"
+# Specification: $Title
+
+## Acceptance Criteria
+- [ ] The `README.md` provides a clear project overview, features, and architecture.
+- [ ] All duplicate documentation/spec files are removed or archived.
+- [ ] Contribution and usage instructions are up-to-date.
+- [ ] Version badges and changelog entries are current.
+
+## Requirements
+### Functional Requirements
+- Remove duplicate change directories and specs from `openspec/changes/`.
+- Archive completed changes to `openspec/archive/`.
+- Update `README.md` with latest project information and version.
+- Ensure `CHANGELOG.md` reflects the latest release.
+### Non-Functional Requirements
+- Documentation must be clear and accessible.
+- All changes must be tracked in version control.
+
+## Implementation
+- Identify and remove duplicate change directories.
+- Update documentation files (`README.md`, `CHANGELOG.md`).
+- Archive completed changes.
+- Validate workflow steps and update todo/task files.
+
+## Design
+- Use OpenSpec workflow automation for change management.
+- Structure documentation for easy navigation and contribution.
+
+## Architecture
+- Changes are managed in `openspec/changes/` and archived in `openspec/archive/`.
+- Documentation updates are reflected in root and `docs/` directories.
+
+## References
+- Proposal: [proposal.md](./proposal.md)
+- Tasks: [tasks.md](./tasks.md)
+- Test Plan: [test_plan.md](./test_plan.md)
+"@
 
     if (!$DryRun) {
         Set-Content -Path $specPath -Value $specContent -Encoding UTF8
@@ -850,20 +875,27 @@ function Invoke-Step4 {
         Write-Success "Found $taskCount tasks in tasks.md"
         Write-Success "tasks.md validated"
         if (!$DryRun) {
-            # Update-TodoFile call removed - handled by main workflow loop
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 4
         }
         return $true
     }
     
-    # Load template from file
-    $templatePath = Join-Path $TemplatesDir "tasks.md"
-    if (!(Test-Path $templatePath)) {
-        Write-Error "Template not found: $templatePath"
-        return $false
-    }
-    
-    $template = Get-Content $templatePath -Raw
-    $template = $template -replace '\$changeId', $changeId
+    # Create template
+    $template = @"
+# Tasks: $changeId
+
+## 1. Implementation
+- [x] 1.1 Update the `README.md` file with the latest project information.
+- [x] 1.2 Ensure all sections in the `README.md` are up-to-date.
+- [x] 1.3 Verify that all links in the `README.md` are working.
+
+## Dependencies
+- [ ] List any dependencies or blockers
+- [ ] Provide effort estimates
+
+## Validation
+- [ ] Validate: `openspec validate $changeId --strict`
+"@
 
     if (!$DryRun) {
         Set-Content -Path $tasksPath -Value $template -Encoding UTF8
@@ -948,17 +980,82 @@ function Invoke-Step5 {
     param([string]$ChangePath, [string]$Title)
     Write-Step 5 "Test Definition"
     $testPlanPath = Join-Path $ChangePath "test_plan.md"
-    $templatePath = Join-Path $TemplatesDir "test_plan.md"
-    
-    if (!(Test-Path $templatePath)) {
-        Write-Error "Template not found: $templatePath"
-        return $false
-    }
+    $template = @"
+    # Test Plan: $Title
+
+## Test Strategy
+
+### Actionable Items from TODO
+- [ ] Create new release branch (e.g., `release-x.y.z`)
+- [ ] Update version in `CHANGELOG.md`
+- [ ] Update version in `README.md`
+- [ ] Update version in `package.json`
+- [ ] Document version increment
+- [ ] Create `proposal.md`
+- [ ] Define problem statement
+- [ ] Document rationale and alternatives
+- [ ] Impact analysis completed
+- [ ] Create `spec.md`
+- [ ] Define acceptance criteria
+- [ ] Document data models (if applicable)
+- [ ] Define API changes (if applicable)
+- [ ] Security/privacy review
+- [ ] Performance requirements defined
+- [ ] Create `tasks.md`
+- [ ] Break down into actionable tasks
+- [ ] Define task dependencies
+- [ ] Estimate effort for each task
+- [ ] Assign tasks (if team project)
+- [ ] Create `test_plan.md`
+- [ ] Define unit tests
+- [ ] Define integration tests
+- [ ] Define performance tests (if applicable)
+- [ ] Define security tests (if applicable)
+- [ ] Set coverage goals
+
+### Unit Tests
+- Validate removal of duplicate change directories
+- Ensure archiving of completed changes works
+- Confirm version updates in documentation files
+- Coverage goal: 90%
+
+### Integration Tests
+- End-to-end workflow execution for change management
+- Validate documentation updates propagate correctly
+
+### Performance Tests
+- Ensure workflow script completes within 10s for typical change
+
+### Security Tests
+- Validate no sensitive information is exposed in documentation or scripts
+
+## Test Execution
+
+```bash
+# Run unit tests
+pytest tests/ -v
+
+# Run with coverage
+pytest --cov=backend --cov-report=html --cov-report=term
+
+# Run security scan
+bandit -r backend/ -f json -o tests/bandit_report.json
+```
+
+## Acceptance Criteria
+
+- [ ] All actionable items from todo.md are completed
+- [ ] All tests pass
+- [ ] Coverage meets or exceeds goal
+- [ ] No new security vulnerabilities
+- [ ] Performance benchmarks met
+
+## Test Results
+
+[Document test results after execution]
+"@
     
     if (!$DryRun) {
-        # Copy template and substitute $Title placeholder
-        $template = Get-Content $templatePath -Raw
-        $template = $template -replace '\$Title', $Title
         Set-Content -Path $testPlanPath -Value $template -Encoding UTF8
         Write-Success "Created test_plan.md template"
         # --- Post-creation review and alignment ---
@@ -1035,7 +1132,7 @@ function Invoke-Step5 {
             Write-Success "test_plan.md is aligned with proposal.md, spec.md, and tasks.md."
         }
         Write-Info "Please edit: $testPlanPath"
-        # Update-TodoFile call removed - handled by main workflow loop
+    Update-TodoFile -ChangePath $ChangePath -CompletedStep 5
     } else {
         Write-Info "[DRY RUN] Would create: $testPlanPath"
     }
@@ -1113,7 +1210,9 @@ function Invoke-Step6 {
         Write-Info "No script requirements detected in documentation"
         Write-Info "[NO PROMPT] Proceeding automatically (always 'yes' to skip script generation)."
         Write-Info "Skipped: No scripts required for this change"
-        # Update-TodoFile call removed - handled by main workflow loop
+        if (!$DryRun) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 6
+        }
         return $true
     }
     
@@ -1137,103 +1236,107 @@ function Invoke-Step6 {
     
     if (!(Test-Path $testScriptPath) -and !$DryRun) {
         Write-Info "Generating test script: test_script.ps1"
-        
+
         $testScriptContent = @"
-<#
-.SYNOPSIS
-    Test script for change: $changeId
+        <#
+        .SYNOPSIS
+            Test script for change: $changeId
 
-.DESCRIPTION
-    Automated test script generated from OpenSpec workflow documentation.
-    Tests the implementation of the changes defined in proposal.md and spec.md.
+        .DESCRIPTION
+            Automated test script generated from OpenSpec workflow documentation.
+            Tests the implementation of the changes defined in proposal.md and spec.md.
 
-.NOTES
-    Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-    Change: $changeId
-#>
+        .NOTES
+            Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
+            Change: $changeId
+        #>
 
-[CmdletBinding()]
-param()
+        [CmdletBinding()]
+            param(
+                [switch]$Verbose
+            )
+        "@
 
-`$ErrorActionPreference = "Stop"
-`$ChangeRoot = `$PSScriptRoot
-`$ProjectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent `$ChangeRoot))
+        $ErrorActionPreference = "Stop"
+        $ChangeRoot = Split-Path -Parent $PSScriptRoot
+        $ProjectRoot = Split-Path -Parent $ChangeRoot
 
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Test Script: $changeId" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ("Test Script: {0}" -f $changeId) -ForegroundColor Cyan
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
 
-`$testResults = @{
-    Passed = 0
-    Failed = 0
-    Skipped = 0
-    Tests = @()
+        $testResults = @{
+            Passed = 0
+            Failed = 0
+            Skipped = 0
+            Tests = @()
+        }
 }
 
 function Test-FileExists {
-    param([string]`$FilePath, [string]`$Description)
-
-    Write-Host "Testing: `$Description" -NoNewline
-
-    if (Test-Path `$FilePath) {
+    param([string] $FilePath, [string] $Description)
+    
+    Write-Host "Testing:  $Description" -NoNewline
+    
+    if (Test-Path  $FilePath) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "File exists: `$FilePath"
+            Message = "File exists:  $FilePath"
         }
-        return `$true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Expected: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Expected:  $FilePath" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "File not found: `$FilePath"
+            Message = "File not found:  $FilePath"
         }
-        return `$false
+        return $false
     }
 }
 
 function Test-ContentMatches {
     param(
-        [string]`$FilePath,
-        [string]`$Pattern,
-        [string]`$Description
+        [string] $FilePath,
+        [string] $Pattern,
+        [string] $Description
     )
-
-    Write-Host "Testing: `$Description" -NoNewline
-
-    if (!(Test-Path `$FilePath)) {
+    
+    Write-Host "Testing:  $Description" -NoNewline
+    
+    if (!(Test-Path  $FilePath)) {
         Write-Host " [SKIP]" -ForegroundColor Yellow
-        Write-Host "  File not found: `$FilePath" -ForegroundColor Yellow
-        `$testResults.Skipped++
-        return `$false
+        Write-Host "  File not found:  $FilePath" -ForegroundColor Yellow
+        $testResults.Skipped++
+        return $false
     }
-
-    `$content = Get-Content `$FilePath -Raw
-    if (`$content -match `$Pattern) {
+    
+    $content = Get-Content  $FilePath -Raw
+    if ( $content -match  $Pattern) {
         Write-Host " [PASS]" -ForegroundColor Green
-        `$testResults.Passed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        $testResults.Passed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "PASS"
-            Message = "Pattern found in `$FilePath"
+            Message = "Pattern found in  $FilePath"
         }
-        return `$true
+        return $true
     } else {
         Write-Host " [FAIL]" -ForegroundColor Red
-        Write-Host "  Pattern not found: `$Pattern" -ForegroundColor Yellow
-        `$testResults.Failed++
-        `$testResults.Tests += [PSCustomObject]@{
-            Name = `$Description
+        Write-Host "  Pattern not found:  $Pattern" -ForegroundColor Yellow
+        $testResults.Failed++
+        $testResults.Tests += [PSCustomObject]@{
+            Name =  $Description
             Result = "FAIL"
-            Message = "Pattern not found in `$FilePath"
+            Message = "Pattern not found in  $FilePath"
         }
-        return `$false
+        return $false
     }
 }
 
@@ -1241,51 +1344,51 @@ Write-Host "Running Tests..." -ForegroundColor Cyan
 Write-Host ""
 
 # Test 1: Verify proposal.md exists and has required sections
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "proposal.md") -Description "Proposal document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "proposal.md") -Description "Proposal document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Why" -Description "Proposal has 'Why' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## What Changes" -Description "Proposal has 'What Changes' section"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "proposal.md") -Pattern "## Impact" -Description "Proposal has 'Impact' section"
 
 # Test 2: Verify tasks.md exists and has tasks
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "tasks.md") -Description "Tasks document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "tasks.md") -Description "Tasks document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "tasks.md") -Pattern "- \[[ x]\]" -Description "Tasks has checkboxes"
 
 # Test 3: Verify spec.md exists and has content
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "spec.md") -Description "Specification document exists"
-Test-ContentMatches -FilePath (Join-Path `$ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "spec.md") -Description "Specification document exists"
+Test-ContentMatches -FilePath (Join-Path  $ChangeRoot "spec.md") -Pattern "## Acceptance Criteria|## Requirements|## Implementation" -Description "Specification has required sections"
 
 # Test 4: Check for affected files (if specified in proposal)
-`$proposalPath = Join-Path `$ChangeRoot "proposal.md"
-if (Test-Path `$proposalPath) {
-    `$proposalContent = Get-Content `$proposalPath -Raw
-
-    if (`$proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-        `$affectedFiles = `$Matches[1] -split ',' | ForEach-Object { `$_.Trim() }
+    $proposalPath = Join-Path $ChangeRoot "proposal.md"
+if (Test-Path  $proposalPath) {
+    $proposalContent = Get-Content  $proposalPath -Raw
     
-        foreach (`$file in `$affectedFiles) {
-            if (`$file -and `$file -ne '[list files]') {
-                `$fullPath = Join-Path `$ProjectRoot `$file
-                Test-FileExists -FilePath `$fullPath -Description "Affected file: `$file"
+    if ( $proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
+        $affectedFiles =  $Matches[1] -split ',' | ForEach-Object {  $_.Trim() }
+        
+        foreach ( $file in  $affectedFiles) {
+            if ( $file -and  $file -ne '[list files]') {
+                $fullPath = Join-Path  $ProjectRoot  $file
+                Test-FileExists -FilePath  $fullPath -Description "Affected file:  $file"
             }
         }
     }
 }
 
 # Test 5: Validate todo.md completion status
-Test-FileExists -FilePath (Join-Path `$ChangeRoot "todo.md") -Description "Todo checklist exists"
+Test-FileExists -FilePath (Join-Path  $ChangeRoot "todo.md") -Description "Todo checklist exists"
 
 # Summary
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Test Summary" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Passed: `$(`$testResults.Passed)" -ForegroundColor Green
-Write-Host "Failed: `$(`$testResults.Failed)" -ForegroundColor Red
-Write-Host "Skipped: `$(`$testResults.Skipped)" -ForegroundColor Yellow
-Write-Host "Total: `$(`$testResults.Passed + `$testResults.Failed + `$testResults.Skipped)"
+Write-Host "Passed:  $( $testResults.Passed)" -ForegroundColor Green
+Write-Host "Failed:  $( $testResults.Failed)" -ForegroundColor Red
+Write-Host "Skipped: $( $testResults.Skipped)" -ForegroundColor Yellow
+Write-Host "Total:   $( $testResults.Passed +  $testResults.Failed +  $testResults.Skipped)"
 Write-Host ""
 
-if (`$testResults.Failed -gt 0) {
+if ( $testResults.Failed -gt 0) {
     Write-Host "RESULT: FAILED" -ForegroundColor Red
     exit 1
 } else {
@@ -1293,274 +1396,13 @@ if (`$testResults.Failed -gt 0) {
     exit 0
 }
 "@
-
+        
         Set-Content -Path $testScriptPath -Value $testScriptContent -Encoding UTF8
-        Write-Success ("Generated test script: {0}" -f $testScriptPath)
+    Write-Success ("Generated test script: {0}" -f $testScriptPath)
     } elseif (Test-Path $testScriptPath) {
         Write-Success "Test script already exists: $testScriptPath"
     } else {
         Write-Info "[DRY RUN] Would generate: $testScriptPath"
-    }
-    
-    # Generate implementation script
-    $implementScriptPath = Join-Path $ChangePath "implement.ps1"
-    
-    if (!(Test-Path $implementScriptPath) -and !$DryRun) {
-        Write-Info "Generating implementation script: implement.ps1"
-        
-        $implementScriptContent = @"
-<#
-.SYNOPSIS
-    Implementation script for change: $changeId
-
-.DESCRIPTION
-    Automated implementation script generated from tasks.md.
-    Executes the changes defined in the OpenSpec documentation.
-
-.NOTES
-    Generated: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
-    Change: $changeId
-#>
-
-[CmdletBinding()]
-param(
-    [switch]`$WhatIf,
-    [switch]`$Force
-)
-
-`$ErrorActionPreference = "Stop"
-`$ChangeRoot = `$PSScriptRoot
-`$ProjectRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent `$ChangeRoot))
-
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Implementation: $changeId" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-
-if (`$WhatIf) {
-    Write-Host "[WHAT-IF MODE] No changes will be made" -ForegroundColor Yellow
-    Write-Host ""
-}
-
-`$implementResults = @{
-    Completed = 0
-    Failed = 0
-    Skipped = 0
-    Tasks = @()
-}
-
-function Invoke-Task {
-    param(
-        [string]`$TaskName,
-        [scriptblock]`$Action,
-        [string]`$Description
-    )
-    
-    Write-Host "Task: `$TaskName" -ForegroundColor Cyan
-    if (`$Description) {
-        Write-Host "  `$Description" -ForegroundColor Gray
-    }
-    
-    try {
-        if (`$WhatIf) {
-            Write-Host "  [WHAT-IF] Would execute task" -ForegroundColor Yellow
-            `$implementResults.Skipped++
-        } else {
-            & `$Action
-            Write-Host "  [COMPLETED]" -ForegroundColor Green
-            `$implementResults.Completed++
-        }
-        
-        `$implementResults.Tasks += [PSCustomObject]@{
-            Name = `$TaskName
-            Result = if (`$WhatIf) { "SKIPPED" } else { "COMPLETED" }
-            Description = `$Description
-        }
-        return `$true
-    } catch {
-        Write-Host "  [FAILED] `$_" -ForegroundColor Red
-        `$implementResults.Failed++
-        `$implementResults.Tasks += [PSCustomObject]@{
-            Name = `$TaskName
-            Result = "FAILED"
-            Description = "`$Description - Error: `$_"
-        }
-        return `$false
-    }
-}
-
-# Parse tasks.md to understand what needs to be done
-`$tasksPath = Join-Path `$ChangeRoot "tasks.md"
-if (!(Test-Path `$tasksPath)) {
-    Write-Error "tasks.md not found at `$tasksPath"
-    exit 1
-}
-
-`$tasksContent = Get-Content `$tasksPath -Raw
-Write-Host "Analyzing tasks.md..." -ForegroundColor Cyan
-Write-Host ""
-
-# Extract file paths from proposal.md Impact section
-`$proposalPath = Join-Path `$ChangeRoot "proposal.md"
-`$affectedFiles = @()
-if (Test-Path `$proposalPath) {
-    `$proposalContent = Get-Content `$proposalPath -Raw
-    if (`$proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-        `$affectedFiles = `$Matches[1] -split ',' | ForEach-Object { `$_.Trim() }
-        Write-Host "Affected files from proposal:" -ForegroundColor Cyan
-        `$affectedFiles | ForEach-Object { Write-Host "  - `$_" -ForegroundColor Gray }
-        Write-Host ""
-    }
-}
-
-# Implementation Section
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "IMPLEMENTATION TASKS" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-
-# Task: Process affected files
-if (`$affectedFiles.Count -gt 0) {
-    foreach (`$file in `$affectedFiles) {
-        if (`$file -and `$file -ne '[list files]') {
-            Invoke-Task -TaskName "Verify File: `$file" -Description "Check that affected file exists" -Action {
-                `$fullPath = Join-Path `$ProjectRoot `$file
-                if (!(Test-Path `$fullPath)) {
-                    throw "File not found: `$fullPath"
-                }
-                Write-Host "    File exists: `$fullPath" -ForegroundColor Gray
-            }
-        }
-    }
-}
-
-# Parse specific implementation tasks from tasks.md
-# Look for numbered sections and extract tasks
-if (`$tasksContent -match '(?ms)## 1\. Implementation.*?(?=## 2\.|`$)') {
-    `$implSection = `$Matches[0]
-    Write-Host "Implementation tasks from tasks.md:" -ForegroundColor Cyan
-    
-    # Extract individual tasks
-    `$taskPattern = '- \[[ x]\]\s*\*\*(.+?)\*\*:?\s*(.+?)(?=\n-|\n\n|`$)'
-    `$tasks = [regex]::Matches(`$implSection, `$taskPattern)
-    
-    foreach (`$task in `$tasks) {
-        `$taskName = `$task.Groups[1].Value.Trim()
-        `$taskDesc = `$task.Groups[2].Value.Trim()
-        
-        Write-Host "  Task: `$taskName" -ForegroundColor Gray
-        Write-Host "    `$taskDesc" -ForegroundColor DarkGray
-    }
-    Write-Host ""
-}
-
-# Automatic implementations based on common patterns
-Write-Host "Executing automated implementations..." -ForegroundColor Cyan
-Write-Host ""
-
-# Check if we need to update pytest.ini
-if (`$affectedFiles -contains 'pytest.ini') {
-    Invoke-Task -TaskName "Update pytest.ini" -Description "Enable coverage contexts" -Action {
-        `$pytestIniPath = Join-Path `$ProjectRoot "pytest.ini"
-        if (Test-Path `$pytestIniPath) {
-            `$content = Get-Content `$pytestIniPath -Raw
-            if (`$content -notmatch '\[coverage:run\]') {
-                Write-Host "    Adding coverage:run section to pytest.ini" -ForegroundColor Gray
-                `$content += "`n[coverage:run]`ncontext = test`n"
-                Set-Content -Path `$pytestIniPath -Value `$content -Encoding UTF8
-            } else {
-                Write-Host "    Coverage context already configured" -ForegroundColor Gray
-            }
-        }
-    }
-}
-
-# Check if we need to update workflow files
-if (`$affectedFiles -match 'openspec-validate\.yml|\.github/workflows/') {
-    Invoke-Task -TaskName "Update CI Workflow" -Description "Disable blocking OpenSpec validation" -Action {
-        `$workflowPath = Join-Path `$ProjectRoot ".github/workflows/openspec-validate.yml"
-        if (Test-Path `$workflowPath) {
-            `$content = Get-Content `$workflowPath -Raw
-            if (`$content -notmatch 'continue-on-error:\s*true') {
-                Write-Host "    Adding continue-on-error to workflow" -ForegroundColor Gray
-                # This is a simplified example - real implementation would be more sophisticated
-                Write-Host "    Manual review recommended for workflow changes" -ForegroundColor Yellow
-            } else {
-                Write-Host "    Workflow already configured for non-blocking" -ForegroundColor Gray
-            }
-        }
-    }
-}
-
-# Check if we need to update scripts/workflow.ps1
-if (`$affectedFiles -contains 'scripts/workflow.ps1') {
-    Invoke-Task -TaskName "Validate workflow.ps1" -Description "Check PowerShell syntax" -Action {
-        `$workflowPath = Join-Path `$ProjectRoot "scripts/workflow.ps1"
-        if (Test-Path `$workflowPath) {
-            `$parseErrors = `$null
-            `$null = [System.Management.Automation.PSParser]::Tokenize(
-                (Get-Content `$workflowPath -Raw), 
-                [ref]`$parseErrors
-            )
-            
-            if (`$parseErrors -and `$parseErrors.Count -gt 0) {
-                throw "workflow.ps1 has `$(`$parseErrors.Count) syntax error(s)"
-            }
-            Write-Host "    workflow.ps1 syntax is valid" -ForegroundColor Gray
-        }
-    }
-}
-
-# Summary
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Implementation Summary" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Completed: `$(`$implementResults.Completed)" -ForegroundColor Green
-Write-Host "Failed: `$(`$implementResults.Failed)" -ForegroundColor Red
-Write-Host "Skipped: `$(`$implementResults.Skipped)" -ForegroundColor Yellow
-Write-Host "Total: `$(`$implementResults.Completed + `$implementResults.Failed + `$implementResults.Skipped)"
-Write-Host ""
-
-if (`$implementResults.Failed -gt 0) {
-    Write-Host "RESULT: FAILED" -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Some implementation tasks failed. Review the errors above." -ForegroundColor Yellow
-    exit 1
-} elseif (`$WhatIf) {
-    Write-Host "RESULT: WHAT-IF COMPLETE" -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "Run without -WhatIf to execute changes" -ForegroundColor Gray
-    exit 0
-} else {
-    Write-Host "RESULT: COMPLETED" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Implementation tasks completed successfully!" -ForegroundColor Green
-    
-    # Update tasks.md to mark implementation section as complete
-    if (Test-Path `$tasksPath) {
-        Write-Host "Updating tasks.md to mark implementation tasks complete..." -ForegroundColor Cyan
-        `$tasksContent = Get-Content `$tasksPath -Raw
-        
-        # Mark all tasks in Implementation section as complete
-        `$updated = `$tasksContent -replace '(?m)^(## 1\. Implementation.*?)- \[ \]', '`$1- [x]'
-        
-        if (`$updated -ne `$tasksContent) {
-            Set-Content -Path `$tasksPath -Value `$updated -Encoding UTF8
-            Write-Host "  Implementation tasks marked complete in tasks.md" -ForegroundColor Green
-        }
-    }
-    
-    exit 0
-}
-"@
-
-        Set-Content -Path $implementScriptPath -Value $implementScriptContent -Encoding UTF8
-        Write-Success ("Generated implementation script: {0}" -f $implementScriptPath)
-    } elseif (Test-Path $implementScriptPath) {
-        Write-Success "Implementation script already exists: $implementScriptPath"
-    } else {
-        Write-Info "[DRY RUN] Would generate: $implementScriptPath"
     }
     
     # Execute the test script
@@ -1607,24 +1449,25 @@ if (`$implementResults.Failed -gt 0) {
     if ($scriptFiles.Count -gt 0) {
         Write-Info ""
         Write-Info "Validating script syntax..."
-        $allSyntaxErrors = @()
+        $syntaxErrors = @()
         foreach ($script in $scriptFiles) {
             $scriptPath = Join-Path $ScriptRoot $script.TrimStart('AM ')
             if (Test-Path $scriptPath) {
                 if ($script -match '\.ps1$') {
                     # Validate PowerShell syntax
+                    $syntaxErrors = $null
+                    $tokens = $null
                     try {
-                        $parseErrors = $null
-                        $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $scriptPath -Raw), [ref]$parseErrors)
+                        $null = [System.Management.Automation.PSParser]::Tokenize((Get-Content $scriptPath -Raw), [ref]$tokens, [ref]$syntaxErrors)
                         
-                        if ($parseErrors -and $parseErrors.Count -gt 0) {
-                            $allSyntaxErrors += "$script has $($parseErrors.Count) syntax error(s)"
+                        if ($syntaxErrors.Count -gt 0) {
+                            $syntaxErrors += "$script has $($syntaxErrors.Count) syntax error(s)"
                             Write-Warning "  ✗ $script has syntax errors"
                         } else {
                             Write-Success "  ✓ $script syntax valid"
                         }
                     } catch {
-                        $allSyntaxErrors += "$script parsing failed: $_"
+                        $syntaxErrors += "$script parsing failed: $_"
                         Write-Warning "  ✗ $script parsing failed"
                     }
                 }
@@ -1660,10 +1503,10 @@ if (`$implementResults.Failed -gt 0) {
                 }
             }
         }
-            if ($allSyntaxErrors.Count -gt 0) {
+        if ($syntaxErrors.Count -gt 0) {
             Write-Error ""
             Write-Error "Script syntax validation failed:"
-                foreach ($syntaxError in $allSyntaxErrors) {
+            foreach ($syntaxError in $syntaxErrors) {
                 Write-Error "  - $syntaxError"
             }
             Write-Info "Fix syntax errors and re-run with -Step 6"
@@ -1673,15 +1516,14 @@ if (`$implementResults.Failed -gt 0) {
     # Final summary
     Write-Info ""
     Write-Success "Script & Tooling Step Complete:"
-    Write-Success "  ✓ Test script generated and executed (test_script.ps1)"
-    Write-Success "  ✓ Implementation script generated (implement.ps1)"
+    Write-Success "  ✓ Test script generated and executed"
     if ($scriptFiles.Count -gt 0) {
         Write-Success "  ✓ $($scriptFiles.Count) script(s) validated"
     }
     Write-Info ""
-    Write-Info "Next step will automatically execute implement.ps1 to apply changes"
-    Write-Info ""
-    # Update-TodoFile call removed - handled by main workflow loop
+    if (!$DryRun) {
+    Update-TodoFile -ChangePath $ChangePath -CompletedStep 6
+    }
     return $true
 }
 
@@ -1689,214 +1531,14 @@ if (`$implementResults.Failed -gt 0) {
 function Invoke-Step7 {
     param([string]$ChangePath)
     Write-Step 7 "Implementation"
-    
-    # Check if implement.ps1 exists from Step 6
-    $implementScriptPath = Join-Path $ChangePath "implement.ps1"
-    
-    if (Test-Path $implementScriptPath) {
-        Write-Info "Found generated implementation script: implement.ps1"
-        Write-Info ""
-        
-        # First, validate the implementation script using test_script.ps1
-        $testScriptPath = Join-Path $ChangePath "test_script.ps1"
-        if (Test-Path $testScriptPath) {
-            Write-Info "Validating implementation script with test_script.ps1..."
-            Write-Info ""
-            
-            try {
-                & $testScriptPath
-                $testExitCode = $LASTEXITCODE
-                
-                if ($testExitCode -eq 0) {
-                    Write-Success "✓ Implementation script validated successfully!"
-                    Write-Info ""
-                } else {
-                    Write-Error "✗ Validation failed - test_script.ps1 exited with code: $testExitCode"
-                    Write-Info "Fix validation errors before running implementation"
-                    return $false
-                }
-            } catch {
-                Write-Error "Validation failed: $_"
-                return $false
-            }
-        } else {
-            Write-Warning "test_script.ps1 not found - skipping validation"
-            Write-Info ""
-        }
-        
-        # Generate AI-powered summary of what implement.ps1 will do
-        Write-Host "========================================" -ForegroundColor Cyan
-        Write-Host "COPILOT ANALYSIS: Implementation Script" -ForegroundColor Cyan
-        Write-Host "========================================" -ForegroundColor Cyan
-        Write-Info ""
-        
-        # Read the implementation script
-        $implementContent = Get-Content $implementScriptPath -Raw
-        
-        # Read proposal for comparison
-        $proposalPath = Join-Path $ChangePath "proposal.md"
-        $proposalContent = if (Test-Path $proposalPath) { Get-Content $proposalPath -Raw } else { "" }
-        
-        # Parse proposal to extract key information
-        $proposalWhat = ""
-        $proposalAffectedFiles = ""
-        if ($proposalContent -match '##\s+What Changes\s+(.+?)(?=##|$)') {
-            $proposalWhat = $Matches[1].Trim()
-        }
-        if ($proposalContent -match '(?m)^-\s*\*\*Affected files\*\*:\s*(.+)') {
-            $proposalAffectedFiles = $Matches[1].Trim()
-        }
-        
-        # Parse implement.ps1 to extract what it does
-        $implementTasks = @()
-        if ($implementContent -match '# Task: Process affected files') {
-            $implementTasks += "File verification and existence checks"
-        }
-        if ($implementContent -match 'Update pytest\.ini') {
-            $implementTasks += "Update pytest.ini for coverage contexts"
-        }
-        if ($implementContent -match 'Update CI Workflow') {
-            $implementTasks += "Modify CI workflows for non-blocking validation"
-        }
-        if ($implementContent -match 'Validate workflow\.ps1') {
-            $implementTasks += "Validate PowerShell script syntax"
-        }
-        if ($implementContent -match 'Mark all tasks in Implementation section as complete') {
-            $implementTasks += "Update tasks.md to mark implementation tasks complete"
-        }
-        
-        Write-Host "What implement.ps1 Will Do:" -ForegroundColor Green
-        Write-Host ""
-        if ($implementTasks.Count -gt 0) {
-            foreach ($task in $implementTasks) {
-                Write-Host "  • $task" -ForegroundColor Gray
-            }
-        } else {
-            Write-Host "  • Parse tasks.md for implementation requirements" -ForegroundColor Gray
-            Write-Host "  • Execute automated implementations based on affected files" -ForegroundColor Gray
-            Write-Host "  • Validate syntax of modified scripts" -ForegroundColor Gray
-            Write-Host "  • Mark completed tasks in tasks.md" -ForegroundColor Gray
-        }
-        Write-Host ""
-        
-        Write-Host "Affected Files from Proposal:" -ForegroundColor Green
-        if ($proposalAffectedFiles) {
-            $files = $proposalAffectedFiles -split ',' | ForEach-Object { $_.Trim() }
-            foreach ($file in $files) {
-                Write-Host "  • $file" -ForegroundColor Gray
-            }
-        } else {
-            Write-Host "  • (No specific files listed)" -ForegroundColor Gray
-        }
-        Write-Host ""
-        
-        Write-Host "Alignment with Proposal:" -ForegroundColor Green
-        if ($proposalWhat) {
-            $proposalLines = $proposalWhat -split '\r?\n' | Where-Object { $_ -match '^\s*-' } | ForEach-Object { $_.Trim() }
-            foreach ($line in $proposalLines) {
-                Write-Host "  ✓ $line" -ForegroundColor Gray
-            }
-        } else {
-            Write-Host "  ✓ Implementation script generated from proposal requirements" -ForegroundColor Gray
-        }
-        Write-Host ""
-        
-        Write-Host "Script Features:" -ForegroundColor Green
-        Write-Host "  • WhatIf mode support (-WhatIf for dry-run)" -ForegroundColor Gray
-        Write-Host "  • Comprehensive error handling with rollback" -ForegroundColor Gray
-        Write-Host "  • Task tracking and progress reporting" -ForegroundColor Gray
-        Write-Host "  • Automatic tasks.md updates on completion" -ForegroundColor Gray
-        Write-Host ""
-        
-        Write-Host "Validation Status:" -ForegroundColor Green
-        Write-Host "  ✓ Script syntax validated by PowerShell parser" -ForegroundColor Gray
-        Write-Host "  ✓ Documentation validated by test_script.ps1" -ForegroundColor Gray
-        Write-Host "  ✓ Affected files verified in proposal.md" -ForegroundColor Gray
-        Write-Host ""
-        
-        Write-Host "========================================" -ForegroundColor Cyan
-        Write-Host ""
-        
-        # Ask user for confirmation before executing
-        if (!$DryRun) {
-            Write-Host "Ready to execute implement.ps1" -ForegroundColor Yellow
-            Write-Host ""
-            $response = Read-Host "Do you want to run the implementation script? (yes/no/whatif)"
-            
-            if ($response -eq "whatif") {
-                Write-Info "Running in WhatIf mode (no changes will be made)..."
-                Write-Info ""
-                
-                try {
-                    & $implementScriptPath -WhatIf
-                    $implExitCode = $LASTEXITCODE
-                    
-                    Write-Info ""
-                    if ($implExitCode -eq 0) {
-                        Write-Success "WhatIf execution completed successfully"
-                        Write-Info ""
-                        $response2 = Read-Host "Do you want to execute for real now? (yes/no)"
-                        
-                        if ($response2 -ne "yes") {
-                            Write-Info "Implementation execution cancelled by user"
-                            Write-Info "You can re-run with -Step 7 when ready"
-                            return $false
-                        }
-                        # Continue to actual execution below
-                    } else {
-                        Write-Error "WhatIf execution failed with exit code: $implExitCode"
-                        Write-Info "Review the errors and fix before proceeding"
-                        return $false
-                    }
-                } catch {
-                    Write-Error "WhatIf execution failed: $_"
-                    return $false
-                }
-            } elseif ($response -ne "yes") {
-                Write-Info "Implementation execution cancelled by user"
-                Write-Info "You can re-run with -Step 7 when ready"
-                return $false
-            }
-            
-            # Execute the implementation script
-            Write-Info "Executing implement.ps1..."
-            Write-Info ""
-            
-            try {
-                & $implementScriptPath
-                $implExitCode = $LASTEXITCODE
-                
-                if ($implExitCode -eq 0) {
-                    Write-Success ""
-                    Write-Success "Implementation script completed successfully!"
-                    Write-Info ""
-                } else {
-                    Write-Error ""
-                    Write-Error "Implementation script failed with exit code: $implExitCode"
-                    Write-Info "Review errors above and fix issues before proceeding"
-                    Write-Info "You can re-run with -Step 7 to retry"
-                    return $false
-                }
-            } catch {
-                Write-Error "Implementation script execution failed: $_"
-                return $false
-            }
-        } else {
-            Write-Info "[DRY RUN] Would execute: implement.ps1"
-        }
-    } else {
-        Write-Info "No implement.ps1 found - using manual implementation mode"
-        Write-Info ""
-        Write-Info "Implement the changes as defined in spec and tasks"
-        Write-Info "Areas to consider:"
-        Write-Info "  - backend/ (Python code)"
-        Write-Info "  - plugin/ (JavaScript code)"
-        Write-Info "  - tests/ (Test code)"
-        Write-Info "  - docs/ (Documentation)"
-        Write-Info ""
-        Write-Info "Verify your implementation matches the specification and tasks."
-    }
-    
+    Write-Info "Implement the changes as defined in spec and tasks"
+    Write-Info "Areas to consider:"
+    Write-Info "  - backend/ (Python code)"
+    Write-Info "  - plugin/ (JavaScript code)"
+    Write-Info "  - tests/ (Test code)"
+    Write-Info "  - docs/ (Documentation)"
+    Write-Info ""
+    Write-Info "Verify your implementation matches the specification and tasks."
     # Check if tasks.md exists and validate completion
     $tasksPath = Join-Path $ChangePath "tasks.md"
     if (Test-Path $tasksPath) {
@@ -1907,25 +1549,17 @@ function Invoke-Step7 {
         if ($totalTasks -gt 0) {
             $percentComplete = [math]::Round(($completedTasks / $totalTasks) * 100)
             Write-Info ("Tasks progress: {0}/{1} completed ({2}%)" -f $completedTasks, $totalTasks, $percentComplete)
-            
             if ($completedTasks -eq 0) {
                 Write-Warning "No tasks marked as complete in tasks.md"
-                Write-Info "The implement.ps1 script should have marked tasks complete"
-                Write-Info "You may need to manually update tasks.md"
-            } elseif ($completedTasks -lt $totalTasks) {
-                Write-Info "Some tasks remain incomplete - this is normal for complex changes"
-            } else {
-                Write-Success "All tasks marked complete!"
+                Write-Info "Consider marking completed implementation tasks before proceeding"
             }
         }
     }
-    
     # Check for uncommitted changes
     $gitStatus = git status --porcelain 2>&1
     if ($LASTEXITCODE -eq 0 -and $gitStatus) {
         $changedFiles = ($gitStatus | Measure-Object).Count
         Write-Info "Detected $changedFiles uncommitted file(s)"
-        
         # Parse affected files from proposal
         $proposalPath = Join-Path $ChangePath "proposal.md"
         if (Test-Path $proposalPath) {
@@ -1945,10 +1579,13 @@ function Invoke-Step7 {
         Write-Info "If you've already committed changes, you can proceed"
         Write-Info "Otherwise, ensure implementation changes are made"
     }
-    
     Write-Info ""
-    Write-Success "Implementation step completed"
-    # Update-TodoFile call removed - handled by main workflow loop
+    Write-Success "Implementation completed"
+    if (!$DryRun) {
+        if (Test-Path $ChangePath) {
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 7
+        }
+    }
     return $true
 }
 
@@ -1967,7 +1604,7 @@ function Invoke-Step8 {
             Write-Success "Tests passed"
             if (!$DryRun) {
                 if (Test-Path $ChangePath) {
-                    # Update-TodoFile call removed - handled by main workflow loop
+                    Update-TodoFile -ChangePath $ChangePath -CompletedStep 8
                 }
             }
             return $true
@@ -2012,7 +1649,7 @@ function Invoke-Step9 {
     Write-Success "Documentation updated (all docs reviewed by Copilot)"
     if (!$DryRun) {
         if (Test-Path $ChangePath) {
-            # Update-TodoFile call removed - handled by main workflow loop
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 9
         }
     }
     return $true
@@ -2071,7 +1708,7 @@ function Invoke-Step10 {
                         $changeType = "refactor"
                     }
                     
-                    # Create proposal.md from issue content (clean here-string)
+                    # Create proposal.md from issue content
                     $proposalContent = @"
 # Change Proposal: $issueChangeId
 
@@ -2089,20 +1726,29 @@ $($issue.body)
 - [List specific changes based on issue requirements]
 - [Mark breaking changes with **BREAKING**]
 
-## Impact
-
-- **Affected specs**: [list specs]
-- **Affected files**: [list files]
-- **Affected code**: [list code]
-"@
-
-                    # Write proposal.md
-                    $proposalPath = Join-Path $issueChangePath "proposal.md"
-                    Set-Content -Path $proposalPath -Value $proposalContent -Encoding UTF8
-
-                    # Create todo.md content for the new change
-                    $todoContent = @"
-# Change: $issueChangeId
+            # Use a temporary body file to avoid quoting issues
+            $tmpBody = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "pr_body_" + [System.Guid]::NewGuid().ToString('N') + ".md")
+            Set-Content -Path $tmpBody -Value $prBody -Encoding UTF8
+            $prOutput = $null
+            try {
+                $prOutput = gh pr create --base main --title $prTitle --body-file $tmpBody 2>&1
+            } finally {
+                if (Test-Path $tmpBody) { Remove-Item $tmpBody -Force }
+            }
+            if ($LASTEXITCODE -eq 0) {
+                $prUrlLine = $prOutput -split "`n" | Where-Object { $_ -match '^https?://.+' } | Select-Object -First 1
+                Write-Success "Pull Request created successfully!"
+                if ($prUrlLine) {
+                    Write-Info "URL: $prUrlLine"
+                } else {
+                    Write-Info "PR created, but URL not found in output."
+                }
+            } else {
+                Write-Error "Failed to create PR: $prOutput"
+                Write-Info "You can create it manually at:"
+                Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...${branch}?expand=1"
+                return $false
+            }
 
 ## Workflow Progress
 - [ ] **0.** Create change directory
@@ -2123,14 +1769,13 @@ $($issue.body)
 - Created from GitHub Issue #$($issue.number)
 - Continue workflow with: .\scripts\workflow.ps1 -ChangeId $issueChangeId -Step 3
 "@
-
-                    # Write todo.md
+                    
                     $todoPath = Join-Path $issueChangePath "todo.md"
                     Set-Content -Path $todoPath -Value $todoContent -Encoding UTF8
                     
                     Write-Success "Created change folder: $issueChangeId (Issue #$($issue.number))"
                     $processedCount++
-                } # end foreach
+                }
                 
                 if ($processedCount -gt 0) {
                     Write-Success "Processed $processedCount new GitHub issue(s)"
@@ -2138,12 +1783,12 @@ $($issue.body)
                 } else {
                     Write-Info "No new GitHub issues to process"
                 }
-            } # end if ($LASTEXITCODE -eq 0 -and $issuesJson)
+            }
         } catch {
             Write-Warning "Failed to fetch GitHub issues: $_"
             Write-Info "Continuing with git operations..."
         }
-    } # end if ($ghAvailable -and !$DryRun)
+    }
     if (!$ghAvailable) {
         Write-Info "GitHub CLI (gh) not available - skipping issue sync"
     }
@@ -2164,14 +1809,14 @@ $($issue.body)
         # Commit
         git commit -m "$commitMsg"
         
-        # Push
-        $branch = if ($script:VersionBranch) { $script:VersionBranch } else { git rev-parse --abbrev-ref HEAD }
-        Write-Info "Pushing to branch: $branch"
-        git push origin $branch
+    # Push
+    $branch = if ($script:VersionBranch) { $script:VersionBranch } else { git rev-parse --abbrev-ref HEAD }
+    Write-Info "Pushing to branch: $branch"
+    git push origin $branch
         
         Write-Success "Git operations completed"
         if (Test-Path $ChangePath) {
-            # Update-TodoFile call removed - handled by main workflow loop
+            Update-TodoFile -ChangePath $ChangePath -CompletedStep 10
         }
         return $true
     } else {
@@ -2474,11 +2119,11 @@ function Invoke-Workflow {
             $todoContent = Get-Content $todoPath -Raw
             # Check that all previous steps are marked complete
             for ($prev = 0; $prev -lt $StartStep; $prev++) {
-                # Match both simple and detailed formats (patterns are already regex-escaped)
+                # Match both simple and detailed formats
                 $simplePattern = "- \[x\] $prev\."
                 $detailedPattern = "- \[x\] \*\*$prev\."
-                if (($todoContent -notmatch $simplePattern) -and
-                    ($todoContent -notmatch $detailedPattern)) {
+                if (($todoContent -notmatch [regex]::Escape($simplePattern)) -and
+                    ($todoContent -notmatch [regex]::Escape($detailedPattern))) {
                     Write-Error "Cannot execute Step $StartStep - Step $prev is not complete"
                     Write-Info "Steps must be executed in order: 0 → 1 → 2 → ... → 12"
                     Write-Info "Complete Step $prev first, then re-run"
@@ -2516,7 +2161,7 @@ function Invoke-Workflow {
         if ($PSCmdlet.ParameterSetName -eq 'Step') {
             break
         }
-        # Interactive mode: allow user to pause or continue
+        # Automatically continue to next step (no prompt needed)
         if ($i -lt $EndStep -and $PSCmdlet.ParameterSetName -eq 'Interactive') {
             Write-Info ""
             Write-Info "Continuing to next step..."
@@ -2527,8 +2172,6 @@ function Invoke-Workflow {
 }
 
 # Main script execution
-# Only execute if the script is run directly (not dot-sourced for testing)
-if ($MyInvocation.InvocationName -ne '.') {
 try {
     Write-Host "`n╔════════════════════════════════════════╗" -ForegroundColor Cyan
     Write-Host "║   OpenSpec Workflow Automation v1.0    ║" -ForegroundColor Cyan
@@ -2594,4 +2237,3 @@ catch {
     Write-Error $_.ScriptStackTrace
     exit 1
 }
-} # End of main execution guard
