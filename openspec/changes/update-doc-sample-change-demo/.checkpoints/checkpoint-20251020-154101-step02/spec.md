@@ -9,14 +9,3 @@ The documentation SHALL provide a step-by-step onboarding path for new contribut
 - **WHEN** a new contributor reviews the governance docs
 - **THEN** they SHALL find a sample change proposal under openspec/changes/update-doc-sample-change-demo/ with proposal.md, tasks.md, and delta spec
 
-## Requirements
-
-- **R-01**: ...
-- **R-02**: ...
-
-
-## Acceptance Criteria
-
-- [ ] AC-01: ...
-- [ ] AC-02: ...
-

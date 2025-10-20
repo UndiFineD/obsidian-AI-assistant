@@ -1,7 +1,7 @@
-# TODO: Update Doc Readme Latest Run
+# TODO: Update Doc Sample Change Demo
 
 ## Change Information
-- **Change ID**: `update-doc-readme-latest-run`
+- **Change ID**: `update-doc-sample-change-demo`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -27,7 +27,7 @@
     - [ ] Document rationale and alternatives
     - [ ] Impact analysis completed
 
-- [x] **3. Specification**
+- [ ] **3. Specification**
     - [ ] Create `spec.md`
     - [ ] Define acceptance criteria
     - [ ] Document data models (if applicable)
@@ -35,14 +35,14 @@
     - [ ] Security/privacy review
     - [ ] Performance requirements defined
 
-- [x] **4. Task Breakdown**
+- [ ] **4. Task Breakdown**
     - [ ] Create `tasks.md`
     - [ ] Break down into actionable tasks
     - [ ] Define task dependencies
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [x] **5. Test Definition**
+- [ ] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/update-doc-readme-latest-run/todo.md` (this file)
-- [ ] `openspec/changes/update-doc-readme-latest-run/proposal.md`
-- [ ] `openspec/changes/update-doc-readme-latest-run/spec.md`
-- [ ] `openspec/changes/update-doc-readme-latest-run/tasks.md`
-- [ ] `openspec/changes/update-doc-readme-latest-run/test_plan.md`
-- [ ] `openspec/changes/update-doc-readme-latest-run/retrospective.md`
+- [ ] `openspec/changes/update-doc-sample-change-demo/todo.md` (this file)
+- [ ] `openspec/changes/update-doc-sample-change-demo/proposal.md`
+- [ ] `openspec/changes/update-doc-sample-change-demo/spec.md`
+- [ ] `openspec/changes/update-doc-sample-change-demo/tasks.md`
+- [ ] `openspec/changes/update-doc-sample-change-demo/test_plan.md`
+- [ ] `openspec/changes/update-doc-sample-change-demo/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
