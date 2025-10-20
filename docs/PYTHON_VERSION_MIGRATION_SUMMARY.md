@@ -1,7 +1,8 @@
 # Python Version Migration Summary - October 18, 2025
 
 ## Overview
-Completed comprehensive migration from Python 3.10 to Python 3.11 across all CI/CD workflows, documentation, and configuration files.
+Completed comprehensive migration from Python 3.10 to Python 3.11 across all CI/CD workflows, documentation, and
+configuration files.
 
 ## Motivation
 - **Consistency**: Standardize Python version across all workflows and documentation

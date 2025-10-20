@@ -2,7 +2,8 @@
 
 ## Overview
 
-The health monitoring system provides comprehensive observability into the Obsidian AI Assistant backend, including service health checks, system metrics collection, alert management, and performance tracking.
+The health monitoring system provides comprehensive observability into the Obsidian AI Assistant backend, including
+service health checks, system metrics collection, alert management, and performance tracking.
 
 ## Architecture
 
@@ -15,13 +16,13 @@ The health monitoring system provides comprehensive observability into the Obsid
    - Alert threshold management
    - Historical data retention
 
-2. **Health API Endpoints** (`backend/backend.py`)
+1. **Health API Endpoints** (`backend/backend.py`)
    - `/api/health/detailed` - Enhanced health with service status
    - `/api/health/metrics` - Aggregated metrics over time windows
    - `/api/health/alerts` - Active and resolved alerts
    - `/api/health/alerts/{id}/acknowledge` - Alert acknowledgement
 
-3. **Alert System**
+1. **Alert System**
    - Threshold-based alerting (CPU, memory, disk, response time)
    - Severity levels: INFO, WARNING, ERROR, CRITICAL
    - Alert lifecycle: creation → acknowledgement → resolution

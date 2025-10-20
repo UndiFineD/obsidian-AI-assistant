@@ -2,7 +2,8 @@
 
 ## Executive Summary
 
-This document describes the comprehensive OpenSpec workflow improvements that ensure governance, release management, and test hygiene for the Obsidian AI Assistant project.
+This document describes the comprehensive OpenSpec workflow improvements that ensure governance, release management,
+and test hygiene for the Obsidian AI Assistant project.
 
 **Status**: ✅ Complete and Validated  
 **Date**: October 18, 2025  
@@ -17,14 +18,16 @@ This document describes the comprehensive OpenSpec workflow improvements that en
 
 All governance steps are now properly enforced and validated:
 
-- ✅ **Spec Delta Normalization**: Change proposals require proper delta specifications (ADDED.md, MODIFIED.md, or REMOVED.md)
+- ✅ **Spec Delta Normalization**: Change proposals require proper delta specifications (ADDED.md, MODIFIED.md, or
+REMOVED.md)
 - ✅ **Release Update**: Version management integrated with CHANGELOG.md
 - ✅ **Changelog Alignment**: All changes documented with clear versioning
 - ✅ **Validation Pipeline**: Automated validation via GitHub Actions workflows
 
 ### 2. Backend Test Teardown Fixes
 
-**Issue**: Async endpoint tests for bulk validate operations were experiencing teardown errors due to Starlette/FastAPI async lifecycle management.
+**Issue**: Async endpoint tests for bulk validate operations were experiencing teardown errors due to Starlette/FastAPI
+async lifecycle management.
 
 **Solution**: Implemented proper test skip with documentation:
 ```python
@@ -53,16 +56,16 @@ The OpenSpec governance module has comprehensive test coverage:
    - Initialization, file operations, proposal/task parsing
    - Validation workflows and status determination
    
-2. **OpenSpecGovernance Tests** (19 tests)
+1. **OpenSpecGovernance Tests** (19 tests)
    - Change listing, details, validation
    - Apply, archive, bulk operations
    - Metrics calculation
 
-3. **Edge Cases** (10 tests)
+1. **Edge Cases** (10 tests)
    - Exception handling, malformed content
    - Sorting, timestamps, nested content
    
-4. **Malformed Content** (3 tests)
+1. **Malformed Content** (3 tests)
    - Parse errors, empty files, non-directory handling
 
 ### 4. Workflow Structure Documentation
@@ -77,19 +80,19 @@ Created comprehensive workflow documentation:
 
 **Workflow Stages**:
 ```markdown
-0. Create TODOs
-1. Increment Release Version (+0.0.1)
-2. Proposal
-3. Specification
-4. Task Breakdown
-5. Test Definition
-6. Script & Tooling
-7. Implementation
-8. Test Run & Validation
-9. Documentation Update
-10. Git Operations
-11. Create Pull Request (PR)
-12. Archive Completed Change
+1. Create TODOs
+2. Increment Release Version (+0.0.1)
+3. Proposal
+4. Specification
+5. Task Breakdown
+6. Test Definition
+7. Script & Tooling
+8. Implementation
+9. Test Run & Validation
+10. Documentation Update
+11. Git Operations
+12. Create Pull Request (PR)
+13. Archive Completed Change
 ```
 
 ---
@@ -336,15 +339,15 @@ openspec validate --strict --json
    - Increase coverage from 95.8% to 98%+
    - Add edge case tests for remaining 7 uncovered lines
    
-2. **Automation**
+1. **Automation**
    - Auto-archive completed changes on PR merge
    - Automated CHANGELOG generation from OpenSpec changes
    
-3. **Starlette Issue**
+1. **Starlette Issue**
    - Monitor upstream fixes for CancelledError
    - Re-enable bulk_validate integration test when fixed
    
-4. **Documentation**
+1. **Documentation**
    - Add contributor guide with examples
    - Create troubleshooting guide for common issues
    - Video walkthrough of OpenSpec workflow
@@ -353,7 +356,9 @@ openspec validate --strict --json
 
 ## Conclusion
 
-The OpenSpec workflow improvements provide a comprehensive, auditable framework for managing all changes to the Obsidian AI Assistant project. With 100% test success rate, proper governance enforcement, and clear documentation, the project is well-positioned for scalable, high-quality development.
+The OpenSpec workflow improvements provide a comprehensive, auditable framework for managing all changes to the
+Obsidian AI Assistant project. With 100% test success rate, proper governance enforcement, and clear documentation, the
+project is well-positioned for scalable, high-quality development.
 
 **Status**: ✅ All improvements complete and validated  
 **Next Steps**: Continue using OpenSpec workflow for all future changes

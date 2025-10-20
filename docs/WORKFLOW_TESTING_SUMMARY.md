@@ -15,7 +15,8 @@ The `scripts/workflow.ps1` OpenSpec workflow automation script now has comprehen
 
 ### Why Dual Testing?
 
-The workflow script is a PowerShell script but integrates with a Python-based test ecosystem. We maintain both test suites to:
+The workflow script is a PowerShell script but integrates with a Python-based test ecosystem. We maintain both test
+suites to:
 
 1. **Python tests** (`tests/test_workflow_script.py`)
    - Content validation via regex and string matching
@@ -23,7 +24,7 @@ The workflow script is a PowerShell script but integrates with a Python-based te
    - Integration with pytest and existing CI/CD pipeline
    - Coverage reporting alongside backend/plugin tests
 
-2. **PowerShell tests** (`tests/test_workflow_script.ps1`)
+1. **PowerShell tests** (`tests/test_workflow_script.ps1`)
    - Native PowerShell execution and function testing
    - Pester framework for idiomatic PowerShell testing
    - Runtime behavior validation
@@ -113,32 +114,32 @@ Added comprehensive tests for new workflow.ps1 behaviors:
    - Checks for representative placeholder patterns
    - Ensures template placeholders are detected before proceeding
 
-2. **Specification Validation** (Step 3)
+1. **Specification Validation** (Step 3)
    - Validates warning message for missing standard sections
    - Checks for structured list recommendation
    - Verifies spec placeholder detection patterns
 
-3. **Sequential Step Enforcement**
+1. **Sequential Step Enforcement**
    - Validates blocking when previous steps incomplete
    - Checks for order guidance message (0 → 1 → 2 → ... → 12)
 
-4. **Update-TodoFile Behavior**
+1. **Update-TodoFile Behavior**
    - Validates pattern assignment and -replace usage
    - Checks checkbox state transformation ([x] marker)
 
-5. **Generated Test Script** (Step 6)
+1. **Generated Test Script** (Step 6)
    - Validates presence of summary and result lines
    - Checks for proposal section validation in generated script
 
-6. **Version Management** (Step 1)
+1. **Version Management** (Step 1)
    - Validates git fetch from origin/main
    - Checks references to package.json and CHANGELOG.md
 
-7. **Usage and Commit Messages**
+1. **Usage and Commit Messages**
    - Validates usage guidance when ChangeId is missing
    - Checks chore(openspec) commit message prefix format
 
-8. **Syntax Validation**
+1. **Syntax Validation**
    - Validates use of PSParser for PowerShell syntax checking
 
 ### Test Quality Improvements

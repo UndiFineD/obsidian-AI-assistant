@@ -1,0 +1,15 @@
+{
+  "change_id": "2025-10-12-duplicate-cleanup",
+  "checkpoints": [
+    {
+      "checkpoint_id": "checkpoint-20251020-094230-step12",
+      "step_num": 12,
+      "step_name": "Cross-Validation",
+      "timestamp": "2025-10-20T09:42:30.903067",
+      "files_snapshot": [],
+      "git_commit": "8c8c728d311837db2394f930ddd0fbad2f54bccb",
+      "notes": "Before executing step 12"
+    }
+  ],
+  "last_successful_step": 12
+}

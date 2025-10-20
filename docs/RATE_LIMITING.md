@@ -2,7 +2,8 @@
 
 ## Overview
 
-Obsidian AI Assistant implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair usage for all clients.
+Obsidian AI Assistant implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair
+usage for all clients.
 
 ## Features
 

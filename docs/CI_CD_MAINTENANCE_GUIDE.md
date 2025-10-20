@@ -120,7 +120,8 @@ jobs:
 strategy:
   matrix:
     python-version: ['3.11']
-    os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest", "windows-latest", "macos-latest"]') }}
+    os: ${{ github.event_name == 'pull_request' && fromJSON('["ubuntu-latest"]') || fromJSON('["ubuntu-latest",
+"windows-latest", "macos-latest"]') }}
 ```
 
 **Impact**: 66% faster PR checks (3 OS → 1 OS)

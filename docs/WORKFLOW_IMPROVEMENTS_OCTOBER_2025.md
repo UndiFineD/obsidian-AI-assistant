@@ -2,13 +2,15 @@
 
 ## Summary
 
-This document summarizes the comprehensive improvements made to the OpenSpec workflow automation script (`scripts/workflow.ps1`) in October 2025.
+This document summarizes the comprehensive improvements made to the OpenSpec workflow automation script
+(`scripts/workflow.ps1`) in October 2025.
 
 ## Improvements Implemented
 
 ### 1. PR Branch Logic for Duplicate PRs ✅
 
-**Problem**: The workflow always used the same versioned branch (e.g., `release-0.1.18`) for PRs, causing conflicts when a PR already existed for that version.
+**Problem**: The workflow always used the same versioned branch (e.g., `release-0.1.18`) for PRs, causing conflicts
+when a PR already existed for that version.
 
 **Solution**: 
 - Implemented automatic patch version increment when a PR already exists for the current versioned branch
@@ -25,7 +27,8 @@ This document summarizes the comprehensive improvements made to the OpenSpec wor
 
 ### 2. Remove Duplicate todo.md Updates ✅
 
-**Problem**: The workflow output showed duplicate "Updated todo.md for step X" messages because `Update-TodoFile` was being called multiple times per step.
+**Problem**: The workflow output showed duplicate "Updated todo.md for step X" messages because `Update-TodoFile` was
+being called multiple times per step.
 
 **Solution**:
 - Ensured each step only calls `Update-TodoFile` once
@@ -41,7 +44,8 @@ This document summarizes the comprehensive improvements made to the OpenSpec wor
 
 ### 3. Update tasks.md in Relevant Steps ✅
 
-**Problem**: The workflow updated `todo.md` but not `tasks.md`, so task completion progress wasn't reflected in the task breakdown file.
+**Problem**: The workflow updated `todo.md` but not `tasks.md`, so task completion progress wasn't reflected in the
+task breakdown file.
 
 **Solution**:
 - Created new helper script `scripts/tasks_update.ps1` with `Update-TasksFile` function
@@ -69,7 +73,8 @@ Update-TasksFile -ChangePath $ChangePath -CompletedStep 7
 
 **Problem**: pytest-cov displayed warning: `CoverageWarning: No contexts were measured`
 
-**Root Cause**: Coverage contexts were enabled in HTML reporting (`show_contexts = True`) but not being collected during test runs.
+**Root Cause**: Coverage contexts were enabled in HTML reporting (`show_contexts = True`) but not being collected
+during test runs.
 
 **Solution**:
 - Added `dynamic_context = test_function` to `[coverage:run]` section in `pytest.ini`
@@ -95,7 +100,8 @@ directory = htmlcov
 
 ### 5. Automate test_plan.md Update ✅
 
-**Problem**: `test_plan.md` was created as a static template and required manual editing to align with proposal, spec, and tasks.
+**Problem**: `test_plan.md` was created as a static template and required manual editing to align with proposal, spec,
+and tasks.
 
 **Solution**:
 - Step 5 now auto-generates `test_plan.md` by synthesizing content from:

@@ -1,20 +1,23 @@
 # Specification: $Title
 
-## Acceptance Criteria
-- [ ] The `README.md` provides a clear project overview, features, and architecture.
-- [ ] All duplicate documentation/spec files are removed or archived.
-- [ ] Contribution and usage instructions are up-to-date.
-- [ ] Version badges and changelog entries are current.
-
 ## Requirements
+
 ### Functional Requirements
 - Remove duplicate change directories and specs from `openspec/changes/`.
 - Archive completed changes to `openspec/archive/`.
 - Update `README.md` with latest project information and version.
 - Ensure `CHANGELOG.md` reflects the latest release.
+
 ### Non-Functional Requirements
 - Documentation must be clear and accessible.
 - All changes must be tracked in version control.
+
+## Acceptance Criteria
+
+- [ ] The `README.md` provides a clear project overview, features, and architecture.
+- [ ] All duplicate documentation/spec files are removed or archived.
+- [ ] Contribution and usage instructions are up-to-date.
+- [ ] Version badges and changelog entries are current.
 
 ## Implementation
 - Identify and remove duplicate change directories.

@@ -1,7 +1,8 @@
 # JWT Secret Management
 
 ## Overview
-JWT (JSON Web Token) secrets are used to sign and verify authentication tokens. Proper management of these secrets is critical for security.
+JWT (JSON Web Token) secrets are used to sign and verify authentication tokens. Proper management of these secrets is
+critical for security.
 
 ## Best Practices
 - **Never hardcode secrets in code**: Always load secrets from environment variables or secure configuration files.

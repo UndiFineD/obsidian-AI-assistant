@@ -2,7 +2,8 @@
 
 ## Overview
 
-The Obsidian AI Assistant backend includes comprehensive performance monitoring and request tracing capabilities designed to help identify bottlenecks, track slow queries, and maintain optimal system performance.
+The Obsidian AI Assistant backend includes comprehensive performance monitoring and request tracing capabilities
+designed to help identify bottlenecks, track slow queries, and maintain optimal system performance.
 
 ## Features
 

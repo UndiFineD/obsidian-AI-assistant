@@ -6,7 +6,8 @@
 
 ## Overview
 
-Enhanced the OpenSpec workflow automation script (`scripts/workflow.ps1`) with comprehensive improvements to functionality, documentation, GitHub integration, and test coverage.
+Enhanced the OpenSpec workflow automation script (`scripts/workflow.ps1`) with comprehensive improvements to
+functionality, documentation, GitHub integration, and test coverage.
 
 ## Key Improvements
 
@@ -99,7 +100,8 @@ if ($labelNames -contains "bug") {
 ### Pull Request Creation
 ```powershell
 # Use temporary file to avoid quoting issues with PR body
-$tmpBody = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "pr_body_" + [System.Guid]::NewGuid().ToString('N') + ".md")
+$tmpBody = [System.IO.Path]::Combine([System.IO.Path]::GetTempPath(), "pr_body_" + [System.Guid]::NewGuid()
+.ToString('N') + ".md")
 Set-Content -Path $tmpBody -Value $prBody -Encoding UTF8
 
 try {
@@ -237,7 +239,8 @@ Get-Help .\scripts\workflow.ps1 -Parameter ChangeId
 - **Test Suite**: `tests/test_workflow_script.ps1`
 - **OpenSpec Docs**: `openspec/PROJECT_WORKFLOW.md`
 - **GitHub CLI**: https://cli.github.com/
-- **PowerShell Help**: https://learn.microsoft.com/powershell/module/microsoft.powershell.core/about/about_comment_based_help
+- **PowerShell Help**: https://learn.microsoft.com/powershell/module/microsoft.powershell
+.core/about/about_comment_based_help
 
 ---
 
