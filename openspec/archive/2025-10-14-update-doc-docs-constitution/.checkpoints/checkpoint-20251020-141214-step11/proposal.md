@@ -1,12 +1,12 @@
-# Change Proposal: update-doc-docs-data-models-specification
+# Change Proposal: update-doc-docs-constitution
 
 ## Why
 
-Ensure `docs/DATA_MODELS_SPECIFICATION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Ensure `docs/CONSTITUTION.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
 
 ## What Changes
 
-- Add a documentation governance requirement for `docs/DATA_MODELS_SPECIFICATION.md` under the `project-documentation` capability.
+- Add a documentation governance requirement for `docs/CONSTITUTION.md` under the `project-documentation` capability.
 
 - Track material updates via OpenSpec proposals (no functional code changes).
 
