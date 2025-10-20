@@ -1,7 +1,7 @@
-# TODO: Test Smart Docs
+# TODO: Test Step10
 
 ## Change Information
-- **Change ID**: `test-smart-docs`
+- **Change ID**: `test-step10`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -63,7 +63,7 @@
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/test-smart-docs/todo.md` (this file)
-- [ ] `openspec/changes/test-smart-docs/proposal.md`
-- [ ] `openspec/changes/test-smart-docs/spec.md`
-- [ ] `openspec/changes/test-smart-docs/tasks.md`
-- [ ] `openspec/changes/test-smart-docs/test_plan.md`
-- [ ] `openspec/changes/test-smart-docs/retrospective.md`
+- [ ] `openspec/changes/test-step10/todo.md` (this file)
+- [ ] `openspec/changes/test-step10/proposal.md`
+- [ ] `openspec/changes/test-step10/spec.md`
+- [ ] `openspec/changes/test-step10/tasks.md`
+- [ ] `openspec/changes/test-step10/test_plan.md`
+- [ ] `openspec/changes/test-step10/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
