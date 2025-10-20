@@ -1,7 +1,7 @@
-# TODO: Test Step6 Progress
+# TODO: Test Step6 Real
 
 ## Change Information
-- **Change ID**: `test-step6-progress`
+- **Change ID**: `test-step6-real`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/test-step6-progress/todo.md` (this file)
-- [ ] `openspec/changes/test-step6-progress/proposal.md`
-- [ ] `openspec/changes/test-step6-progress/spec.md`
-- [ ] `openspec/changes/test-step6-progress/tasks.md`
-- [ ] `openspec/changes/test-step6-progress/test_plan.md`
-- [ ] `openspec/changes/test-step6-progress/retrospective.md`
+- [ ] `openspec/changes/test-step6-real/todo.md` (this file)
+- [ ] `openspec/changes/test-step6-real/proposal.md`
+- [ ] `openspec/changes/test-step6-real/spec.md`
+- [ ] `openspec/changes/test-step6-real/tasks.md`
+- [ ] `openspec/changes/test-step6-real/test_plan.md`
+- [ ] `openspec/changes/test-step6-real/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `backend/` and/or `plugin/`
