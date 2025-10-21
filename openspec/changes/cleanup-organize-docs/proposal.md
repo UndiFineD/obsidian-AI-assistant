@@ -83,6 +83,8 @@ C. DELETE (redundant celebration/status/project tracking):
    - FINAL_PROJECT_COMPLETION_100_PERCENT.md
    - FINAL_STATUS_REPORT_100_PERCENT.md
    - PROJECT_COMPLETE_LIVE.md
+   - DELIVERABLES_*.md (self-reporting noise, not useful)
+   - EXECUTIVE_SUMMARY_*.md (self-reporting noise)
    - PHASE_2_*.md (5 files - already have detailed versions in openspec/)
    - PHASE2_*.md (consolidation summaries, not authoritative)
    - FINAL_SESSION_SUMMARY_PROPOSALS.md (session tracking, not reference)
@@ -92,8 +94,6 @@ C. DELETE (redundant celebration/status/project tracking):
    - SESSION_HANDOFF_OCT21_2025.md
    - SESSION_PROGRESS_*.md (3 files)
    - SESSION_SUMMARY_*.md (3 files)
-   - DELIVERABLES_*.md (2 files)
-   - EXECUTIVE_SUMMARY_*.md (2 files)
    - *_COMPLETE.md (15+ files)
    - *_COMPLETE_FINAL_*.md
    - *_READY_*.md
@@ -114,6 +114,8 @@ docs/
 ```
 
 **Key Point**: Only create directory structure. Do NOT create new content—we're organizing existing files only.
+
+**Important**: Self-reporting and celebration documents (DELIVERABLES_*, EXECUTIVE_SUMMARY_*, FINAL_PROJECT_*, etc.) are not useful and should be deleted. Changes should be documented in CHANGELOG.md, not in status reports.
 
 ### Phase 3: Move Files
 

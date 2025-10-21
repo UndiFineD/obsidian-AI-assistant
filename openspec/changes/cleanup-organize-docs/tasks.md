@@ -103,12 +103,13 @@
 - [ ] Update any hardcoded links in README or setup scripts
 - [ ] Remove outdated status information from root README
 - [ ] Test critical navigation paths
-- [ ] Run link checker on markdown files
+- [ ] Update CHANGELOG.md to document this cleanup change
 
 **Success Criteria**:
 - README is clean and focused
 - Clear navigation to docs/ and openspec/
 - No broken links
+- CHANGELOG.md reflects cleanup work (not status reports)
 - Professional appearance
 - [ ] Test cloning repo fresh and finding key docs
 - [ ] Verify build scripts still work
