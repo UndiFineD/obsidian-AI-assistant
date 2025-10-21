@@ -219,7 +219,7 @@ Submit a question to the AI model with optional context.
          ▼                    ▼
     ┌────────┐          ┌──────────┐
     │ Models │          │ Cache    │
-    │ (./models/       │ Storage  │
+    │ ./models/ |      │ Storage  │
     └────────┘          └──────────┘
 ```
 
@@ -553,12 +553,11 @@ python -m uvicorn backend:app
 ### **Phase 1: Critical (Week 1-2)**
 Priority: CRITICAL impact items
 
-1. ✅ Update README.md with v0.1.35 changes (2-3 hrs)
-2. ✅ Update CONTRIBUTING.md with current paths (1-2 hrs)
-3. ✅ Create API Examples document (3-4 hrs)
-4. ✅ Create "Getting Started" guide (2-3 hrs)
+1. ✅ Update README.md with v0.1.35 changes
+2. ✅ Update CONTRIBUTING.md with current paths
+3. ✅ Create API Examples document
+4. ✅ Create "Getting Started" guide
 
-**Subtotal**: 8-12 hours
 
 ### **Phase 2: High Priority (Week 2-3)**
 Impact: HIGH value items
