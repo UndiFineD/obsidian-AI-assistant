@@ -21,6 +21,142 @@ The API uses Bearer token authentication with role-based access control (RBAC):
 
 In test mode, authentication is bypassed for integration testing.
 
+### Authentication Methods
+
+#### Method 1: Bearer Token (Recommended)
+
+**Format:**
+```
+Authorization: Bearer <token>
+```
+
+**Example:**
+```bash
+curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIs..." \
+  http://localhost:8000/api/ask
+```
+
+**Getting a Token:**
+```bash
+# Exchange credentials for token
+curl -X POST "http://localhost:8000/api/auth/token" \
+  -d "username=user&password=pass"
+
+# Response:
+# {
+#   "access_token": "eyJhbGciOiJIUzI1NiIs...",
+#   "token_type": "bearer",
+#   "expires_in": 3600
+# }
+```
+
+#### Method 2: API Key Authentication
+
+**Format:**
+```
+X-API-Key: <api-key>
+```
+
+**Example:**
+```bash
+curl -H "X-API-Key: sk_test_4eC39HqLyjWDarht..." \
+  http://localhost:8000/api/ask
+```
+
+**Enterprise Feature**: Generate API keys in admin dashboard
+
+#### Method 3: OAuth2 SSO (Enterprise)
+
+**Flow:**
+```bash
+# 1. Redirect user to SSO provider
+curl -X POST "http://localhost:8000/api/enterprise/auth/sso" \
+  -d '{"provider": "azure"}'
+
+# 2. User authenticates at provider
+# 3. Provider redirects to callback with auth code
+# 4. Exchange code for token
+curl -X POST "http://localhost:8000/api/enterprise/auth/callback" \
+  -d '{"code": "auth_code", "state": "state_token"}'
+```
+
+### Role-Based Access Control (RBAC)
+
+**User Role** (Default):
+- Read-only access to search and AI features
+- Cannot modify configuration or system settings
+
+**Admin Role**:
+- Full API access including configuration and reindexing
+- User management capabilities (enterprise)
+- System monitoring and optimization
+
+**Example: Permission Denied**
+```bash
+# User role trying to access admin endpoint
+curl -X POST "http://localhost:8000/api/reindex" \
+  -H "Authorization: Bearer user_token"
+
+# Response 403 Forbidden:
+# {"detail": "Requires role: admin"}
+```
+
+### Token Management
+
+**Token Lifespan:**
+- Default expiration: 1 hour
+- Enterprise JWT: Configurable via settings
+- Refresh tokens: Available for long-lived sessions
+
+**Refresh Token Flow:**
+```bash
+# Original token expired, get a new one
+curl -X POST "http://localhost:8000/api/auth/refresh" \
+  -H "Authorization: Bearer expired_token"
+```
+
+**Token Validation:**
+```bash
+# Check current token validity
+curl -X GET "http://localhost:8000/api/auth/verify" \
+  -H "Authorization: Bearer token_to_verify"
+
+# Response:
+# {"valid": true, "user": "user123", "expires_at": 1729094400}
+```
+
+### Security Best Practices
+
+1. **Never commit tokens** to version control
+2. **Use environment variables** for tokens: `export API_TOKEN=...`
+3. **Rotate tokens regularly** (especially for long-running services)
+4. **Use HTTPS** in production (Bearer tokens are plaintext)
+5. **Implement token expiration** in applications
+6. **Log authentication events** for security auditing
+
+### Authentication Examples by Language
+
+**Python:**
+```python
+import requests
+
+headers = {"Authorization": "Bearer your_token"}
+response = requests.get("http://localhost:8000/api/config", headers=headers)
+```
+
+**Node.js:**
+```javascript
+const response = await fetch("http://localhost:8000/api/config", {
+  headers: {"Authorization": "Bearer your_token"}
+});
+```
+
+**cURL:**
+```bash
+curl "http://localhost:8000/api/config" \
+  -H "Authorization: Bearer your_token"
+```
+
 ## Core Endpoints
 
 ### Health & Status
@@ -809,6 +945,290 @@ All endpoints return standard HTTP status codes with JSON error responses:
 }
 ```
 
+### Common Error Solutions
+
+| Error | Cause | Solution | Example |
+|-------|-------|----------|---------|
+| 400 Bad Request | Invalid JSON syntax | Validate JSON with `jq` or JSON validator | `echo '{"bad}' \| jq '.'` shows syntax error |
+| 401 Unauthorized | Missing token | Add `Authorization: Bearer <token>` header | `curl -H "Authorization: Bearer token123"` |
+| 403 Forbidden | Insufficient permissions | Check user role requirements (admin vs user) | Need admin role for `/api/reindex` |
+| 404 Not Found | Endpoint/resource not found | Verify endpoint path is correct | Typo: `/api/ask` not `/api/ask/` |
+| 409 Conflict | Resource already exists | Use PUT to update instead of POST | Creating duplicate note |
+| 422 Unprocessable Entity | Missing required fields | Check all required fields in request body | Missing "question" field |
+| 429 Too Many Requests | Rate limit exceeded | Implement exponential backoff retry logic | Wait 60 seconds per `Retry-After` header |
+| 500 Internal Server Error | Backend error | Check `/api/health/detailed` for service status | Model unavailable, disk full |
+| 503 Service Unavailable | Backend overloaded/offline | Retry with backoff, check deployment status | All models busy, API down |
+
+### Debugging Tips
+
+**Enable Verbose Output:**
+```bash
+# See request headers and response
+curl -v -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer token" \
+  -d '{"question": "..."}'
+```
+
+**Check Health Status:**
+```bash
+# If you get errors, first check health
+curl "http://localhost:8000/api/health/detailed" | jq '.services'
+```
+
+**Validate Request Body:**
+```bash
+# Use jq to validate JSON before sending
+jq -n '{question: "test"}' | \
+  curl -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer token" \
+  -d @-
+```
+
+**Capture Full Error Response:**
+```bash
+# Save both stdout and stderr
+curl -X POST "http://localhost:8000/api/ask" \
+  -d '{"bad_field": "data"}' \
+  2>&1 | tee error.log
+```
+
+## cURL Examples
+
+### Complete cURL Reference (20+ Examples)
+
+**1. Health Check**
+```bash
+curl http://localhost:8000/health
+```
+
+**2. Lightweight Status Check**
+```bash
+curl http://localhost:8000/status
+```
+
+**3. Ask Question (Basic)**
+```bash
+curl -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What are the main topics in my vault?"
+  }'
+```
+
+**4. Ask Question (Advanced with Context)**
+```bash
+curl -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Summarize machine learning concepts",
+    "context_paths": ["/notes/ml.md", "/notes/ai.md"],
+    "max_tokens": 512,
+    "prefer_fast": false,
+    "model_name": "llama-7b"
+  }'
+```
+
+**5. Get Configuration**
+```bash
+curl "http://localhost:8000/api/config" \
+  -H "Authorization: Bearer your-token"
+```
+
+**6. Update Configuration**
+```bash
+curl -X POST "http://localhost:8000/api/config" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vault_path": "./my_vault",
+    "chunk_size": 1500,
+    "gpu": true
+  }'
+```
+
+**7. Reload Configuration from File**
+```bash
+curl -X POST "http://localhost:8000/api/config/reload" \
+  -H "Authorization: Bearer your-token"
+```
+
+**8. Semantic Search (Basic)**
+```bash
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "machine learning",
+    "top_k": 5
+  }'
+```
+
+**9. Semantic Search (Advanced)**
+```bash
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "neural networks",
+    "top_k": 10,
+    "similarity_threshold": 0.75
+  }'
+```
+
+**10. Reindex Vault**
+```bash
+curl -X POST "http://localhost:8000/api/reindex" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "vault_path": "./vault"
+  }'
+```
+
+**11. Scan Vault for Changes**
+```bash
+curl -X POST "http://localhost:8000/api/scan_vault" \
+  -H "Authorization: Bearer your-token"
+```
+
+**12. Index PDF File**
+```bash
+curl -X POST "http://localhost:8000/api/index_pdf" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "pdf_path": "/documents/research.pdf"
+  }'
+```
+
+**13. Web Research (Basic)**
+```bash
+curl -X POST "http://localhost:8000/api/web" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com/article",
+    "question": "What is the main topic?"
+  }'
+```
+
+**14. Web Research (with Summary)**
+```bash
+curl -X POST "http://localhost:8000/api/web" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://news.example.com/story",
+    "question": "Summarize the key findings"
+  }' | jq '.summary'
+```
+
+**15. Voice Transcription**
+```bash
+curl -X POST "http://localhost:8000/api/voice_transcribe" \
+  -H "Authorization: Bearer your-token" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "audio_data": "base64-audio-string-here",
+    "format": "webm",
+    "language": "en"
+  }'
+```
+
+**16. Get Performance Metrics**
+```bash
+curl "http://localhost:8000/api/performance/metrics"
+```
+
+**17. Get Cache Statistics**
+```bash
+curl "http://localhost:8000/api/performance/cache/stats"
+```
+
+**18. Clear Performance Cache**
+```bash
+curl -X POST "http://localhost:8000/api/performance/cache/clear"
+```
+
+**19. Trigger Optimization**
+```bash
+curl -X POST "http://localhost:8000/api/performance/optimize"
+```
+
+**20. Get Detailed Health Info**
+```bash
+curl "http://localhost:8000/api/health/detailed" | jq '.services'
+```
+
+**21. Get Security Status**
+```bash
+curl "http://localhost:8000/api/security/status" \
+  -H "Authorization: Bearer your-token"
+```
+
+**22. View Security Events**
+```bash
+curl "http://localhost:8000/api/security/events" \
+  -H "Authorization: Bearer your-token"
+```
+
+**23. Get Compliance Status**
+```bash
+curl "http://localhost:8000/api/security/compliance"
+```
+
+**24. Enterprise SSO Initiation**
+```bash
+curl -X POST "http://localhost:8000/api/enterprise/auth/sso" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "azure",
+    "redirect_uri": "https://myapp.com/callback"
+  }'
+```
+
+**25. Get Enterprise Status**
+```bash
+curl "http://localhost:8000/api/enterprise/status" \
+  -H "Authorization: Bearer your-token"
+```
+
+### cURL Tips & Tricks
+
+**Pretty-print JSON responses:**
+```bash
+curl http://localhost:8000/api/config | jq '.'
+```
+
+**Save response to file:**
+```bash
+curl -X POST http://localhost:8000/api/ask \
+  -d @request.json \
+  -o response.json
+```
+
+**Include response headers:**
+```bash
+curl -i http://localhost:8000/health
+```
+
+**Follow redirects:**
+```bash
+curl -L http://localhost:8000/api/enterprise/auth/sso
+```
+
+**Show verbose output:**
+```bash
+curl -v http://localhost:8000/health
+```
+
+**Time the request:**
+```bash
+curl -w "\nTotal time: %{time_total}s\n" http://localhost:8000/health
+```
+
 ## Rate Limiting & Throttling
 
 Obsidian AI Agent implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair usage for all clients.
@@ -874,6 +1294,103 @@ When a client exceeds the limit, HTTP 429 Too Many Requests is returned:
 - Use API keys for higher limits (authenticated clients get increased quotas)
 - Contact support for custom limits (enterprise users)
 
+## Pagination
+
+Many list endpoints support pagination for handling large result sets efficiently.
+
+### Pagination Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `page` | integer | 1 | Current page number (starts at 1) |
+| `per_page` | integer | 10 | Number of results per page (max 100) |
+| `sort_by` | string | `created` | Field to sort by |
+| `order` | string | `desc` | Sort order (`asc` or `desc`) |
+
+### Paginated Endpoints
+
+Endpoints that support pagination:
+- `GET /api/security/events` - Security event log
+- `GET /api/openspec/changes` - OpenSpec changes list
+- `GET /api/health/alerts` - Active alerts
+
+### Pagination Example Request
+
+```bash
+curl "http://localhost:8000/api/security/events?page=2&per_page=20&sort_by=timestamp&order=desc" \
+  -H "Authorization: Bearer your-token"
+```
+
+### Pagination Response Example
+
+```json
+{
+  "data": [
+    {
+      "timestamp": "2025-10-16T10:30:00Z",
+      "type": "successful_auth",
+      "severity": "low"
+    },
+    {
+      "timestamp": "2025-10-16T10:15:00Z",
+      "type": "api_call",
+      "severity": "low"
+    }
+  ],
+  "pagination": {
+    "page": 2,
+    "per_page": 20,
+    "total_results": 156,
+    "total_pages": 8,
+    "has_next": true,
+    "has_previous": true,
+    "next_page": 3,
+    "previous_page": 1
+  }
+}
+```
+
+### Pagination Best Practices
+
+**1. Efficient Iteration**
+```bash
+# Iterate through all pages
+for page in {1..8}; do
+  curl "http://localhost:8000/api/security/events?page=$page&per_page=50"
+done
+```
+
+**2. Handle Last Page**
+```bash
+# Stop when has_next is false
+page=1
+while true; do
+  response=$(curl -s "http://localhost:8000/api/security/events?page=$page")
+  echo "$response" | jq '.data'
+  
+  has_next=$(echo "$response" | jq '.pagination.has_next')
+  if [ "$has_next" = "false" ]; then
+    break
+  fi
+  
+  page=$((page + 1))
+done
+```
+
+**3. Optimize Page Size**
+- Use larger `per_page` values (50-100) for faster iteration
+- Trade-off: Larger pages = fewer requests but larger payloads
+- API enforces maximum of 100 results per page
+
+**4. Sorting Optimization**
+```bash
+# Most recent events first
+curl "http://localhost:8000/api/security/events?sort_by=timestamp&order=desc&per_page=50"
+
+# Oldest events first
+curl "http://localhost:8000/api/security/events?sort_by=timestamp&order=asc&per_page=50"
+```
+
 ## Health Monitoring
 
 The health monitoring system provides comprehensive observability into the backend.
@@ -930,6 +1447,140 @@ The API provides interactive documentation:
 - **Swagger UI**: `http://localhost:8000/docs`
 - **ReDoc**: `http://localhost:8000/redoc`
 - **OpenAPI Schema**: `http://localhost:8000/openapi.json`
+
+## Real-World Use Cases
+
+### Use Case 1: Research Paper Summarization
+
+**Scenario**: Quickly summarize and extract key findings from research papers
+
+**Workflow**:
+```bash
+# 1. Index the PDF
+curl -X POST "http://localhost:8000/api/index_pdf" \
+  -H "Authorization: Bearer token" \
+  -d '{"pdf_path": "/papers/ai-research.pdf"}'
+
+# 2. Search for specific concepts
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "query": "neural network architecture",
+    "top_k": 3
+  }'
+
+# 3. Ask for synthesis
+curl -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "question": "What are the main contributions of this paper?",
+    "context_paths": ["/papers/ai-research.pdf"]
+  }'
+```
+
+**Expected Result**: Structured summary with key findings, methodology, and conclusions
+
+### Use Case 2: Content Aggregation & Analysis
+
+**Scenario**: Analyze multiple web articles on a topic and synthesize findings
+
+**Workflow**:
+```bash
+# 1. Analyze first article
+curl -X POST "http://localhost:8000/api/web" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "url": "https://news.example.com/ai-trends",
+    "question": "What are the top AI trends?"
+  }'
+
+# 2. Analyze second article
+curl -X POST "http://localhost:8000/api/web" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "url": "https://blog.example.com/ml-predictions",
+    "question": "What ML advancements are predicted?"
+  }'
+
+# 3. Synthesize from indexed notes
+curl -X POST "http://localhost:8000/api/ask" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "question": "Compare and contrast the trends from both articles"
+  }'
+```
+
+**Expected Result**: Comparative analysis with synthesis of information
+
+### Use Case 3: Voice-to-Note Workflow
+
+**Scenario**: Record voice notes and have them indexed for later search
+
+**Workflow**:
+```bash
+# 1. Convert speech to text
+curl -X POST "http://localhost:8000/api/voice_transcribe" \
+  -H "Authorization: Bearer token" \
+  -d '{
+    "audio_data": "base64-encoded-audio",
+    "format": "webm",
+    "language": "en"
+  }'
+
+# 2. Reindex vault to include new notes
+curl -X POST "http://localhost:8000/api/reindex" \
+  -H "Authorization: Bearer token"
+
+# 3. Search voice notes
+curl -X POST "http://localhost:8000/api/search" \
+  -H "Authorization: Bearer token" \
+  -d '{"query": "meeting discussion points"}'
+```
+
+**Expected Result**: Voice notes indexed and searchable alongside typed notes
+
+### Use Case 4: Performance Monitoring & Optimization
+
+**Scenario**: Monitor system performance and trigger optimizations
+
+**Workflow**:
+```bash
+# 1. Check current metrics
+curl "http://localhost:8000/api/performance/metrics" | jq '.cache'
+
+# 2. If cache hit rate is low, check detailed health
+curl "http://localhost:8000/api/health/detailed" | jq '.services'
+
+# 3. Trigger optimization if needed
+curl -X POST "http://localhost:8000/api/performance/optimize"
+
+# 4. Verify improvement
+curl "http://localhost:8000/api/performance/metrics" | jq '.cache'
+```
+
+**Expected Result**: System optimized with improved cache hit rates and response times
+
+### Use Case 5: Enterprise Multi-Tenant Setup
+
+**Scenario**: Set up SSO authentication and track compliance
+
+**Workflow**:
+```bash
+# 1. Check enterprise status
+curl "http://localhost:8000/api/enterprise/status"
+
+# 2. Initiate SSO for team member
+curl -X POST "http://localhost:8000/api/enterprise/auth/sso" \
+  -d '{
+    "provider": "azure",
+    "redirect_uri": "https://company.example.com/callback"
+  }'
+
+# 3. Verify compliance status
+curl "http://localhost:8000/api/security/compliance"
+```
+
+**Expected Result**: Team members authenticated via SSO with compliance tracking
 
 ## SDK Examples
 
