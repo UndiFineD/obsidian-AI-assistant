@@ -41,7 +41,7 @@ def client():
 @pytest.fixture
 def jwt_config():
     """Get JWT configuration from backend"""
-    from agent import agentimport backend
+    from agent import backend
 
     return {
         "secret_key": backend.JWT_SECRET_KEY,
