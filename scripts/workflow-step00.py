@@ -5,7 +5,7 @@ OpenSpec Workflow - Step 0: Create TODOs
 Creates the todo.md file from template with placeholders replaced
 for the new change. This is the first step in the OpenSpec workflow.
 
-Author: Obsidian AI Assistant Team
+Author: Obsidian AI Agent Team
 License: MIT
 """
 

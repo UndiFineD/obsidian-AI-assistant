@@ -22,7 +22,7 @@ suites to:
    - Content validation via regex and string matching
    - Structure and syntax validation using PowerShell tokenization
    - Integration with pytest and existing CI/CD pipeline
-   - Coverage reporting alongside backend/plugin tests
+   - Coverage reporting alongside agent/plugin tests
 
 1. **PowerShell tests** (`tests/test_workflow_script.ps1`)
    - Native PowerShell execution and function testing

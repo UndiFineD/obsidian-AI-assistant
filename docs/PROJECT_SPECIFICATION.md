@@ -1,6 +1,6 @@
 # 📋 PROJECT SPECIFICATION
 
-## Obsidian AI Assistant - Comprehensive Technical & Functional Specification
+## Obsidian AI Agent - Comprehensive Technical & Functional Specification
 
 ---
 
@@ -8,7 +8,7 @@
 
 ### Executive Summary
 
-The Obsidian AI Assistant project demonstrates **exceptional technical achievement** with a mature, production-ready architecture. Current metrics show:
+The Obsidian AI Agent project demonstrates **exceptional technical achievement** with a mature, production-ready architecture. Current metrics show:
 
 | Metric | Value | Status |
 |--------|-------|--------|
@@ -831,7 +831,7 @@ pip install -r requirements.txt
 
 # 5. Start backend server
 
-uvicorn backend.backend:app --host 127.0.0.1 --port 8000
+uvicorn agent.agent:app --host 127.0.0.1 --port 8000
 ```
 
 ### **Configuration Management**
@@ -848,7 +848,7 @@ ANTHROPIC_API_KEY=your_anthropic_key_here
 # Model Settings
 
 DEFAULT_MODEL=gpt-4
-MODEL_CACHE_DIR=./backend/models
+MODEL_CACHE_DIR=./agent/models
 EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 # Performance Settings
@@ -868,7 +868,7 @@ CORS_ORIGINS=["http://localhost:3000"]
 
 ```yaml
 
-# backend/config.yaml
+# agent/config.yaml
 
 server:
     host: 127.0.0.1
@@ -1078,8 +1078,8 @@ jobs:
 - uses: actions/upload-release-asset@v1
               with:
                   upload_url: ${{ github.event.release.upload_url }}
-                  asset_path: ./dist/obsidian-ai-assistant.zip
-                  asset_name: obsidian-ai-assistant.zip
+                  asset_path: ./dist/obsidian-ai-agent.zip
+                  asset_name: obsidian-ai-agent.zip
                   asset_content_type: application/zip
 ```
 
@@ -1309,7 +1309,7 @@ markers =
 # Run linting
 
 echo "Running linting..."
-flake8 backend/ tests/
+flake8 agent/ tests/
 if [ $? -ne 0 ]; then
     echo "Linting failed. Please fix the issues."
     exit 1
@@ -1318,7 +1318,7 @@ fi
 # Run type checking
 
 echo "Running type checking..."
-mypy backend/
+mypy agent/
 if [ $? -ne 0 ]; then
     echo "Type checking failed. Please fix the issues."
     exit 1
@@ -1336,7 +1336,7 @@ fi
 # Run security scan
 
 echo "Running security scan..."
-bandit -r backend/
+bandit -r agent/
 if [ $? -ne 0 ]; then
     echo "Security issues found. Please fix them."
     exit 1
@@ -1524,3 +1524,4 @@ current state and future direction of the project._
 - **Approved By**: Project Team
 
 - **Distribution**: All stakeholders
+

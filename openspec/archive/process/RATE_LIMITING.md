@@ -2,7 +2,7 @@
 
 ## Overview
 
-Obsidian AI Assistant implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair
+Obsidian AI Agent implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair
 usage for all clients.
 
 ## Features
@@ -18,7 +18,7 @@ usage for all clients.
 Rate limiting is configured via environment variables and config.yaml:
 
 ```yaml
-# backend/config.yaml
+# agent/config.yaml
 rate_limit:
   enabled: true
   global_per_minute: 100
@@ -101,3 +101,4 @@ def test_rate_limit_exceeded(client):
 - [Security Specification](SECURITY_SPECIFICATION.md)
 - [Performance Monitoring](PERFORMANCE_MONITORING.md)
 - [API Key Management](API_KEY_MANAGEMENT.md)
+

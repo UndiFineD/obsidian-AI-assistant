@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Successfully improved `backend/security_hardening.py` test coverage from **19.8% → 62.3%** (3.1x improvement) through
+Successfully improved `agent/security_hardening.py` test coverage from **19.8% → 62.3%** (3.1x improvement) through
 comprehensive test suite creation covering authentication, threat detection, and middleware functionality.
 
 ## Achievements
@@ -19,7 +19,7 @@ comprehensive test suite creation covering authentication, threat detection, and
 
 ### Test Suite Development
 
-#### Primary Test File: `tests/backend/test_security_hardening.py`
+#### Primary Test File: `tests/agent/test_security_hardening.py`
 - **Tests Created**: 29 comprehensive tests
 - **Status**: ✅ All 29 passing (100% success rate)
 - **Coverage Areas**:
@@ -36,7 +36,7 @@ comprehensive test suite creation covering authentication, threat detection, and
   - Request ID uniqueness
   - Middleware chain compatibility
 
-#### Advanced Test File: `tests/backend/test_security_hardening_advanced.py`
+#### Advanced Test File: `tests/agent/test_security_hardening_advanced.py`
 - **Tests Created**: 36 additional tests
 - **Status**: 18 passing, 18 failing (API signature mismatches)
 - **Coverage Areas**:
@@ -296,7 +296,7 @@ Known Issues:
 
 ## References
 
-- **Source Module**: `backend/security_hardening.py` (377 statements)
+- **Source Module**: `agent/security_hardening.py` (377 statements)
 - **Coverage Report**: Generated 2025-10-17
 - **Test Framework**: pytest 8.4.2, pytest-cov 7.0.0
 - **Python Version**: 3.14.0

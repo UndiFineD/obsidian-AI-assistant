@@ -59,8 +59,8 @@
 **Description**: Verify development tools work correctly
 
 **Steps**:
-1. Run `ruff check backend/`
-2. Run `bandit -r backend/`
+1. Run `ruff check agent/`
+2. Run `bandit -r agent/`
 3. Run `pytest --cov=backend`
 
 **Expected Result**: All tools execute without missing dependencies

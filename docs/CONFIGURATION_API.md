@@ -3,7 +3,7 @@
 ## Overview
 
 The Configuration API (`/api/config`) allows runtime configuration updates for the
-Obsidian AI Assistant backend. This document provides comprehensive documentation for
+Obsidian AI Agent backend. This document provides comprehensive documentation for
 all configurable fields.
 
 ## Endpoints
@@ -54,13 +54,13 @@ all configurable fields.
 
 **Endpoint**: `POST /api/config/reload`
 
-**Description**: Reload configuration from `backend/config.yaml`
+**Description**: Reload configuration from `agent/config.yaml`
 
 **Response**:
 ```json
 {
   "status": "success",
-  "message": "Configuration reloaded from backend/config.yaml"
+  "message": "Configuration reloaded from agent/config.yaml"
 }
 ```
 
@@ -102,24 +102,24 @@ all configurable fields.
 
 #### models_dir
 - **Type**: String (path)
-- **Default**: `"backend/models"`
+- **Default**: `"agent/models"`
 - **Validation**: Valid directory path
 - **Description**: Directory containing AI models
-- **Example**: `"backend/models"`, `"/data/ai-models"`
+- **Example**: `"agent/models"`, `"/data/ai-models"`
 
 #### cache_dir
 - **Type**: String (path)
-- **Default**: `"backend/cache"`
+- **Default**: `"agent/cache"`
 - **Validation**: Valid directory path
 - **Description**: Directory for cached embeddings and responses
-- **Example**: `"backend/cache"`, `"/tmp/ai-cache"`
+- **Example**: `"agent/cache"`, `"/tmp/ai-cache"`
 
 #### log_dir
 - **Type**: String (path)
-- **Default**: `"backend/logs"`
+- **Default**: `"agent/logs"`
 - **Validation**: Valid directory path
 - **Description**: Directory for log files
-- **Example**: `"backend/logs"`, `"/var/log/obsidian-ai"`
+- **Example**: `"agent/logs"`, `"/var/log/obsidian-ai"`
 
 ### AI Model Configuration
 
@@ -132,10 +132,10 @@ all configurable fields.
 
 #### model_path
 - **Type**: String (path)
-- **Default**: `"backend/models/llama-7b.gguf"`
+- **Default**: `"agent/models/llama-7b.gguf"`
 - **Validation**: Valid file path to .gguf model
 - **Description**: Path to AI model file
-- **Example**: `"backend/models/llama-7b.gguf"`
+- **Example**: `"agent/models/llama-7b.gguf"`
 
 #### embed_model
 - **Type**: String
@@ -193,10 +193,10 @@ all configurable fields.
 
 #### vosk_model_path
 - **Type**: String (path)
-- **Default**: `"backend/models/vosk-model-small-en-us-0.15"`
+- **Default**: `"agent/models/vosk-model-small-en-us-0.15"`
 - **Validation**: Valid directory path to Vosk model
 - **Description**: Path to Vosk speech recognition model
-- **Example**: `"backend/models/vosk-model-small-en-us-0.15"`
+- **Example**: `"agent/models/vosk-model-small-en-us-0.15"`
 
 ### File Validation
 
@@ -460,7 +460,7 @@ all configurable fields.
 - **Description**: Path to SSL certificate file for HTTPS
 - **Examples**:
   ```
-  "backend/certs/server.crt"
+  "agent/certs/server.crt"
   "/etc/ssl/certs/myapp.pem"
   "C:/certs/server.cert"
   ```
@@ -477,7 +477,7 @@ all configurable fields.
 - **Description**: Path to SSL private key file for HTTPS
 - **Examples**:
   ```
-  "backend/certs/server.key"
+  "agent/certs/server.key"
   "/etc/ssl/private/myapp.key"
   "C:/certs/server.pem"
   ```
@@ -494,7 +494,7 @@ all configurable fields.
 - **Description**: Path to CA bundle for certificate chain validation
 - **Examples**:
   ```
-  "backend/certs/ca-bundle.crt"
+  "agent/certs/ca-bundle.crt"
   "/etc/ssl/certs/ca-certificates.crt"
   null  // Use system CA bundle
   ```
@@ -536,9 +536,9 @@ curl -X POST http://localhost:8000/api/config \
 curl -X POST http://localhost:8000/api/config \
   -H "Content-Type: application/json" \
   -d '{
-    "ssl_certfile": "backend/certs/server.crt",
-    "ssl_keyfile": "backend/certs/server.key",
-    "ssl_ca_certs": "backend/certs/ca-bundle.crt"
+    "ssl_certfile": "agent/certs/server.crt",
+    "ssl_keyfile": "agent/certs/server.key",
+    "ssl_ca_certs": "agent/certs/ca-bundle.crt"
   }'
 ```
 
@@ -572,7 +572,7 @@ curl -X POST http://localhost:8000/api/config \
 
 The following fields CANNOT be updated via the API for security reasons:
 
-- `backend_url` - Derived from `api_port`, use `api_port` instead
+- `agent_url` - Derived from `api_port`, use `api_port` instead
 - `project_root` - System-level path, immutable at runtime
 - `csrf_secret` - Use dedicated rotation endpoint instead (future feature)
 
@@ -612,7 +612,7 @@ have .pem, .crt, or .cert extension"
 ## Best Practices
 
 1. **Environment Variables**: Use environment variables for sensitive settings (JWT_SECRET_KEY, CSRF_SECRET)
-2. **Configuration Files**: Use `backend/config.yaml` for persistent configuration
+2. **Configuration Files**: Use `agent/config.yaml` for persistent configuration
 3. **API Updates**: Use `/api/config` for runtime updates during development/testing
 4. **Security**: Never disable security features in production
 5. **Validation**: Always validate SSL file paths before deployment
@@ -626,3 +626,4 @@ have .pem, .crt, or .cert extension"
 - [Security Specification](./SECURITY_SPECIFICATION.md)
 - [Deployment Guide](./DEPLOYMENT_SPECIFICATION.md)
 - [Performance Configuration](./PERFORMANCE_REQUIREMENTS_SPECIFICATION.md)
+

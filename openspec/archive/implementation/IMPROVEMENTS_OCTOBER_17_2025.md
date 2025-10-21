@@ -73,9 +73,9 @@ This document tracks the comprehensive code quality improvements implemented on 
 **Status**: COMPLETED (with known issues)
 
 **Changes Made**:
-- Created `/api/voice_transcribe` endpoint in `backend/backend.py` (lines 1237-1313)
+- Created `/api/voice_transcribe` endpoint in `agent/backend.py` (lines 1237-1313)
 - Enhanced response format with language detection, confidence scores, word-level timestamps
-- Added 9 comprehensive tests in `tests/backend/test_api_voice_transcribe.py`
+- Added 9 comprehensive tests in `tests/agent/test_api_voice_transcribe.py`
 - Tests cover: valid audio, invalid base64, empty audio, large files, different formats, languages
 - Comparison test between new endpoint and legacy `/transcribe` endpoint
 

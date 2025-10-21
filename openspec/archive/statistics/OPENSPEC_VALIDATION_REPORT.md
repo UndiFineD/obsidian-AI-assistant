@@ -20,7 +20,7 @@ resolved, and the OpenSpec workflow is fully functional and documented.
 
 ### 1. OpenSpec Governance Test Suite ✅
 
-**Location**: `tests/backend/test_openspec_governance.py`
+**Location**: `tests/agent/test_openspec_governance.py`
 
 **Results**:
 ```
@@ -48,7 +48,7 @@ Execution Time: 3.21 seconds
 
 **Issue**: Async endpoint teardown errors for bulk validate operations
 
-**Solution**: Properly documented test skip in `tests/backend/test_backend.py:461`
+**Solution**: Properly documented test skip in `tests/agent/test_backend.py:461`
 
 ```python
 @pytest.mark.skip(reason="Starlette/FastAPI CancelledError bug; all logic validated")
@@ -146,55 +146,55 @@ openspec/
 ### OpenSpec Governance Tests
 
 ```
-tests/backend/test_openspec_governance.py::test_openspec_change_initialization PASSED
-tests/backend/test_openspec_governance.py::test_openspec_change_exists_true PASSED
-tests/backend/test_openspec_governance.py::test_openspec_change_exists_false PASSED
-tests/backend/test_openspec_governance.py::test_get_proposal_success PASSED
-tests/backend/test_openspec_governance.py::test_get_proposal_missing_file PASSED
-tests/backend/test_openspec_governance.py::test_get_proposal_acceptance_criteria PASSED
-tests/backend/test_openspec_governance.py::test_get_tasks_success PASSED
-tests/backend/test_openspec_governance.py::test_get_tasks_completion_calculation PASSED
-tests/backend/test_openspec_governance.py::test_get_tasks_sections PASSED
-tests/backend/test_openspec_governance.py::test_get_tasks_missing_file PASSED
-tests/backend/test_openspec_governance.py::test_validate_success PASSED
-tests/backend/test_openspec_governance.py::test_validate_missing_required_files PASSED
-tests/backend/test_openspec_governance.py::test_validate_warnings_for_incomplete_proposal PASSED
-tests/backend/test_openspec_governance.py::test_get_status_pending PASSED
-tests/backend/test_openspec_governance.py::test_get_status_in_progress PASSED
-tests/backend/test_openspec_governance.py::test_get_status_completed PASSED
-tests/backend/test_openspec_governance.py::test_get_status_not_found PASSED
-tests/backend/test_openspec_governance.py::test_governance_initialization PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_empty PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_with_changes PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_excludes_archive_by_default PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_includes_archive_when_requested PASSED
-tests/backend/test_openspec_governance.py::test_get_change_details_success PASSED
-tests/backend/test_openspec_governance.py::test_get_change_details_not_found PASSED
-tests/backend/test_openspec_governance.py::test_validate_change_success PASSED
-tests/backend/test_openspec_governance.py::test_validate_change_not_found PASSED
-tests/backend/test_openspec_governance.py::test_apply_change_dry_run PASSED
-tests/backend/test_openspec_governance.py::test_apply_change_incomplete_tasks PASSED
-tests/backend/test_openspec_governance.py::test_apply_change_invalid PASSED
-tests/backend/test_openspec_governance.py::test_archive_change_success PASSED
-tests/backend/test_openspec_governance.py::test_archive_change_not_completed PASSED
-tests/backend/test_openspec_governance.py::test_archive_change_not_found PASSED
-tests/backend/test_openspec_governance.py::test_bulk_validate_all_changes PASSED
-tests/backend/test_openspec_governance.py::test_bulk_validate_specific_changes PASSED
-tests/backend/test_openspec_governance.py::test_get_governance_metrics PASSED
-tests/backend/test_openspec_governance.py::test_get_openspec_governance_factory PASSED
-tests/backend/test_openspec_governance.py::test_parse_proposal_with_malformed_content PASSED
-tests/backend/test_openspec_governance.py::test_parse_tasks_with_empty_file PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_with_non_directory_files PASSED
-tests/backend/test_openspec_governance.py::test_get_proposal_parse_exception PASSED
-tests/backend/test_openspec_governance.py::test_get_tasks_parse_exception PASSED
-tests/backend/test_openspec_governance.py::test_validate_with_exception_during_validation PASSED
-tests/backend/test_openspec_governance.py::test_list_changes_sorting PASSED
-tests/backend/test_openspec_governance.py::test_archive_change_with_timestamp PASSED
-tests/backend/test_openspec_governance.py::test_apply_change_with_actual_execution PASSED
-tests/backend/test_openspec_governance.py::test_get_governance_metrics_empty PASSED
-tests/backend/test_openspec_governance.py::test_parse_checklist_items_with_nested_content PASSED
-tests/backend/test_openspec_governance.py::test_proposal_sections_with_special_characters PASSED
-tests/backend/test_openspec_governance.py::test_bulk_validate_with_mixed_results PASSED
+tests/agent/test_openspec_governance.py::test_openspec_change_initialization PASSED
+tests/agent/test_openspec_governance.py::test_openspec_change_exists_true PASSED
+tests/agent/test_openspec_governance.py::test_openspec_change_exists_false PASSED
+tests/agent/test_openspec_governance.py::test_get_proposal_success PASSED
+tests/agent/test_openspec_governance.py::test_get_proposal_missing_file PASSED
+tests/agent/test_openspec_governance.py::test_get_proposal_acceptance_criteria PASSED
+tests/agent/test_openspec_governance.py::test_get_tasks_success PASSED
+tests/agent/test_openspec_governance.py::test_get_tasks_completion_calculation PASSED
+tests/agent/test_openspec_governance.py::test_get_tasks_sections PASSED
+tests/agent/test_openspec_governance.py::test_get_tasks_missing_file PASSED
+tests/agent/test_openspec_governance.py::test_validate_success PASSED
+tests/agent/test_openspec_governance.py::test_validate_missing_required_files PASSED
+tests/agent/test_openspec_governance.py::test_validate_warnings_for_incomplete_proposal PASSED
+tests/agent/test_openspec_governance.py::test_get_status_pending PASSED
+tests/agent/test_openspec_governance.py::test_get_status_in_progress PASSED
+tests/agent/test_openspec_governance.py::test_get_status_completed PASSED
+tests/agent/test_openspec_governance.py::test_get_status_not_found PASSED
+tests/agent/test_openspec_governance.py::test_governance_initialization PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_empty PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_with_changes PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_excludes_archive_by_default PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_includes_archive_when_requested PASSED
+tests/agent/test_openspec_governance.py::test_get_change_details_success PASSED
+tests/agent/test_openspec_governance.py::test_get_change_details_not_found PASSED
+tests/agent/test_openspec_governance.py::test_validate_change_success PASSED
+tests/agent/test_openspec_governance.py::test_validate_change_not_found PASSED
+tests/agent/test_openspec_governance.py::test_apply_change_dry_run PASSED
+tests/agent/test_openspec_governance.py::test_apply_change_incomplete_tasks PASSED
+tests/agent/test_openspec_governance.py::test_apply_change_invalid PASSED
+tests/agent/test_openspec_governance.py::test_archive_change_success PASSED
+tests/agent/test_openspec_governance.py::test_archive_change_not_completed PASSED
+tests/agent/test_openspec_governance.py::test_archive_change_not_found PASSED
+tests/agent/test_openspec_governance.py::test_bulk_validate_all_changes PASSED
+tests/agent/test_openspec_governance.py::test_bulk_validate_specific_changes PASSED
+tests/agent/test_openspec_governance.py::test_get_governance_metrics PASSED
+tests/agent/test_openspec_governance.py::test_get_openspec_governance_factory PASSED
+tests/agent/test_openspec_governance.py::test_parse_proposal_with_malformed_content PASSED
+tests/agent/test_openspec_governance.py::test_parse_tasks_with_empty_file PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_with_non_directory_files PASSED
+tests/agent/test_openspec_governance.py::test_get_proposal_parse_exception PASSED
+tests/agent/test_openspec_governance.py::test_get_tasks_parse_exception PASSED
+tests/agent/test_openspec_governance.py::test_validate_with_exception_during_validation PASSED
+tests/agent/test_openspec_governance.py::test_list_changes_sorting PASSED
+tests/agent/test_openspec_governance.py::test_archive_change_with_timestamp PASSED
+tests/agent/test_openspec_governance.py::test_apply_change_with_actual_execution PASSED
+tests/agent/test_openspec_governance.py::test_get_governance_metrics_empty PASSED
+tests/agent/test_openspec_governance.py::test_parse_checklist_items_with_nested_content PASSED
+tests/agent/test_openspec_governance.py::test_proposal_sections_with_special_characters PASSED
+tests/agent/test_openspec_governance.py::test_bulk_validate_with_mixed_results PASSED
 ```
 
 **All 49 tests passed** ✅
@@ -324,7 +324,7 @@ solid foundation for scalable project development.
 
 ```bash
 # Run OpenSpec governance tests
-python3 -m pytest tests/backend/test_openspec_governance.py -v --tb=short --no-cov
+python3 -m pytest tests/agent/test_openspec_governance.py -v --tb=short --no-cov
 ```
 
 ### Validation Commands
@@ -334,7 +334,7 @@ python3 -m pytest tests/backend/test_openspec_governance.py -v --tb=short --no-c
 openspec validate --strict
 
 # Check test coverage
-pytest tests/backend/test_openspec_governance.py --cov=backend.openspec_governance --cov-report=html
+pytest tests/agent/test_openspec_governance.py --cov=backend.openspec_governance --cov-report=html
 
 # List active changes
 ls -1 openspec/changes/ | wc -l

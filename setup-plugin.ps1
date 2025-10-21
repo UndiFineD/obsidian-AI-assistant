@@ -1,9 +1,9 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Obsidian AI Assistant Plugin Setup Script
+    Obsidian AI Agent Plugin Setup Script
 .DESCRIPTION
-    Automates the complete setup process for the Obsidian AI Assistant plugin including:
+    Automates the complete setup process for the Obsidian AI Agent plugin including:
     - Plugin directory creation
     - File copying and verification
     - Backend server configuration
@@ -56,8 +56,8 @@ if (-not $global:BACKEND_HOST) { $global:BACKEND_HOST = "127.0.0.1" }
 if (-not $global:BACKEND_PORT) { $global:BACKEND_PORT = 8000 }
 if (-not $global:BACKEND_RELOAD) { $global:BACKEND_RELOAD = $false }
 
-# IMPORTANT: Folder name must match manifest.json id ("obsidian-ai-assistant")
-if (-not $global:PLUGIN_NAME) { $global:PLUGIN_NAME = "obsidian-ai-assistant" }
+# IMPORTANT: Folder name must match manifest.json id ("obsidian-ai-agent")
+if (-not $global:PLUGIN_NAME) { $global:PLUGIN_NAME = "obsidian-ai-agent" }
 
 # Color functions for better output
 function Write-ColorOutput {
@@ -144,7 +144,7 @@ function Test-Prerequisites {
     
     if ($missingFiles.Count -gt 0) {
         Write-Error "Missing expected files/directories: $($missingFiles -join ', ')"
-        Write-Error "Please run this script from the obsidian-AI-assistant directory"
+        Write-Error "Please run this script from the obsidian-ai-agent directory"
         return $false
     }
     
@@ -252,7 +252,7 @@ function Install-PluginFiles {
         Write-Info "Creating plugin directory: $pluginDir"
         New-Item -ItemType Directory -Path $pluginDir -Force | Out-Null
         
-    # Recursively copy all files and subfolders from .obsidian/plugins/obsidian-ai-assistant/ to the vault plugin directory
+    # Recursively copy all files and subfolders from .obsidian/plugins/obsidian-ai-agent/ to the vault plugin directory
         Write-Info "Recursively copying all plugin files and folders..."
         Copy-Item -Path $sourceDir\* -Destination $pluginDir -Recurse -Force
         # Count files and total size for summary
@@ -265,7 +265,7 @@ function Install-PluginFiles {
         
         # Create setup instructions
         $readmeContent = @"
-# Obsidian AI Assistant Plugin - Installation Complete
+# Obsidian AI Agent Plugin - Installation Complete
 
 ## 🎯 Plugin Successfully Installed!
 Installation Date: $(Get-Date -Format "yyyy-MM-dd HH:mm:ss")
@@ -505,7 +505,7 @@ function Show-CompletionSummary {
 # Main execution
 function Main {
     try {
-        Write-Header "Obsidian AI Assistant Setup"
+        Write-Header "Obsidian AI Agent Setup"
         Write-Info "Setup Mode: $(if ($BackendOnly) { "Backend Only" } elseif ($PluginOnly) { "Plugin Only" } else { "Full Setup" })"
         
         # Check prerequisites
@@ -556,3 +556,4 @@ function Main {
 
 # Execute main function
 Main
+

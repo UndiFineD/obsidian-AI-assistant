@@ -1,5 +1,7 @@
 # Proposal: [Feature Name]
 
+## Why
+
 ## Context
 
 **Background**: Describe what problem this feature solves or what capability it adds.
@@ -92,5 +94,5 @@
 - **Proposed**: <date>
 - **Target Completion**: [estimate]
 - **Milestones**:
-  - Phase 1: [scope] by [date]
-  - Phase 2: [scope] by [date]
+    - Phase 1: [scope] by [date]
+    - Phase 2: [scope] by [date]

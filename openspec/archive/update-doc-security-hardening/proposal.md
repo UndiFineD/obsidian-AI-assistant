@@ -8,7 +8,7 @@
 
 - **change_id**: update-doc-security-hardening
 
-- **description**: Comprehensive security and robustness improvements for Obsidian AI Assistant backend and plugin.
+- **description**: Comprehensive security and robustness improvements for Obsidian AI Agent backend and plugin.
 
 - **category**: Security
 
@@ -40,7 +40,7 @@ Recent review identified areas for improvement in input validation, authenticati
 
 ## Reference
 
-This change affects the **project-documentation** capability described in `AGENTS.md`, `project.md`, and `backend/settings.py` for OpenSpec conventions and integration points.
+This change affects the **project-documentation** capability described in `AGENTS.md`, `project.md`, and `agent/settings.py` for OpenSpec conventions and integration points.
 
 ## Impact
 
@@ -66,4 +66,5 @@ List the proposed changes at a high level.
 
 - Owner: [owner]
 - Reviewers: [reviewers]
+
 

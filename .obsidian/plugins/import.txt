@@ -1,1 +1,1 @@
-https://github.com/qgrail/obsidian-ai-assistant
+https://github.com/qgrail/obsidian-ai-agent

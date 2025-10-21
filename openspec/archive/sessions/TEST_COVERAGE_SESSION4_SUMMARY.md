@@ -1,7 +1,7 @@
 # TEST COVERAGE SESSION 4 SUMMARY
 
 **Date:** October 15, 2025
-**Module:** backend/settings.py
+**Module:** agent/settings.py
 
 ## Goals
 - Improve test coverage for settings.py from 83% to 85%+

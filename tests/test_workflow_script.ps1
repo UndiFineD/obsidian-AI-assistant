@@ -8,7 +8,7 @@
     Tests all execution modes, parameter validation, and workflow steps.
 
 .NOTES
-    Author: Obsidian AI Assistant Team
+    Author: Obsidian AI Agent Team
     Version: 1.0.0
     Last Updated: October 18, 2025
     Requires: Pester 3.x
@@ -896,3 +896,4 @@ Describe "Enhanced Validation and Workflow Semantics" {
         }
     }
 }
+

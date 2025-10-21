@@ -87,7 +87,7 @@ during test runs.
 **Configuration Changes**:
 ```ini
 [coverage:run]
-source = backend/
+source = agent/
 dynamic_context = test_function  # <- Added
 omit = ...
 

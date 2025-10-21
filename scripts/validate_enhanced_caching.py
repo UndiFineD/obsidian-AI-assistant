@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).parent / "backend"))
 def test_enhanced_caching_imports():
     """Test that enhanced caching modules can be imported."""
     try:
-        import backend.cache_management as cm
-        import backend.enhanced_caching as ec
+        import agent.cache_management as cm
+        import agent.enhanced_caching as ec
 
         # Test key classes exist
         assert hasattr(ec, "UnifiedCacheManager")
@@ -45,7 +45,7 @@ def test_unified_cache_manager():
         sys.modules["transformers"] = MagicMock()
 
         # Import and test cache manager
-        from backend.enhanced_caching import CacheType, UnifiedCacheManager
+        from agent.enhanced_caching import CacheType, UnifiedCacheManager
 
         # Create cache manager
         cache_manager = UnifiedCacheManager(cache_dir="./test_cache")
@@ -78,7 +78,7 @@ def test_unified_cache_manager():
 def test_cache_routing():
     """Test intelligent cache routing."""
     try:
-        from backend.enhanced_caching import CacheType, SmartCacheRouter
+        from agent.enhanced_caching import CacheType, SmartCacheRouter
 
         router = SmartCacheRouter()
 
@@ -107,7 +107,7 @@ def test_cache_routing():
 def test_cache_decorator():
     """Test intelligent caching decorator."""
     try:
-        from backend.enhanced_caching import cached_with_intelligence
+        from agent.enhanced_caching import cached_with_intelligence
 
         call_count = 0
 
@@ -139,7 +139,7 @@ def test_cache_decorator():
         return False
 
 
-def test_backend_integration():
+def test_agent_integration():
     """Test that enhanced caching integrates with backend without errors."""
     try:
         # Mock dependencies
@@ -153,14 +153,14 @@ def test_backend_integration():
         sys.modules["chromadb"] = MagicMock()
 
         # Test that backend imports work with enhanced caching
-        import backend.backend
+        import agent.backend
 
         # Check that enhanced caching imports are present
         assert hasattr(
-            backend.backend, "get_unified_cache_manager"
+            agent.agent, "get_unified_cache_manager"
         ), "Backend should have unified cache manager"
         assert hasattr(
-            backend.backend, "cache_router"
+            agent.agent, "cache_router"
         ), "Backend should have cache router"
 
         print("✓ Backend integration successful")
@@ -180,7 +180,7 @@ def main():
         test_unified_cache_manager,
         test_cache_routing,
         test_cache_decorator,
-        test_backend_integration,
+        test_agent_integration,
     ]
 
     passed = 0

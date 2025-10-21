@@ -4,7 +4,7 @@ Test proposal
 
 ## What Changes
 
-- **Affected files**: backend/test.py, frontend/app.js
+- **Affected files**: agent/test.py, frontend/app.js
 
 ## Impact
 

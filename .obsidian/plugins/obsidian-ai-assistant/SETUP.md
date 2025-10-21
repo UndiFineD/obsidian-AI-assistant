@@ -1,8 +1,8 @@
-# Obsidian AI Assistant Plugin Setup
+# Obsidian AI Agent Plugin Setup
 
 ## Installation
 
-1. Copy all plugin files to `.obsidian/plugins/obsidian-ai-assistant/` in your Obsidian vault.
+1. Copy all plugin files to `.obsidian/plugins/obsidian-ai-agent/` in your Obsidian vault.
 
 2. Ensure `manifest.json` is present and correct.
 
@@ -10,7 +10,7 @@
 
 ## Development
 
-- All plugin code is now in `.obsidian/plugins/obsidian-ai-assistant/`.
+- All plugin code is now in `.obsidian/plugins/obsidian-ai-agent/`.
 
 - Use explicit relative paths for all `require()` statements.
 
@@ -23,3 +23,4 @@
 - Remove any placeholder or duplicate files.
 
 - Validate plugin loading in Obsidian after migration.
+

@@ -350,7 +350,7 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
         print()
         print("Create PR manually at:")
         print(
-            f"  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...{branch}?expand=1"
+            f"  https://github.com/UndiFineD/obsidian-ai-agent/compare/main...{branch}?expand=1"
         )
         print()
         print(f"Computed PR title: {pr_title}")
@@ -421,7 +421,7 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
             print()
             print("You can create it manually at:")
             print(
-                f"  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...{branch}?expand=1"
+                f"  https://github.com/UndiFineD/obsidian-ai-agent/compare/main...{branch}?expand=1"
             )
             return False
     except Exception as e:
@@ -454,7 +454,7 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
             print("You can create the PR manually at:")
             print(
-                f"  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...{branch}?expand=1"
+                f"  https://github.com/UndiFineD/obsidian-ai-agent/compare/main...{branch}?expand=1"
             )
             print()
             print("Step 12 completed with warnings (PR creation pending)")

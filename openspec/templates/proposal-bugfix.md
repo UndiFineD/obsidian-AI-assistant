@@ -1,5 +1,7 @@
 # Proposal: [Bug Fix Title]
 
+## Why
+
 ## Context
 
 **Bug Description**: Clear description of the incorrect behavior.

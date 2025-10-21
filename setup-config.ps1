@@ -1,4 +1,4 @@
-# Obsidian AI Assistant - Setup Configuration
+# Obsidian AI Agent - Setup Configuration
 # This file contains default settings for the setup script
 # Modify these values to customize your installation
 # Note: Variables defined here are intended to be sourced by other PowerShell scripts
@@ -18,5 +18,6 @@ if (-not $global:BACKEND_PORT) { $global:BACKEND_PORT = 8000 }
 if (-not $global:BACKEND_RELOAD) { $global:BACKEND_RELOAD = $false }
 
 # Plugin configuration
-# Must match manifest.json "id": "obsidian-ai-assistant"
-if (-not $global:PLUGIN_NAME) { $global:PLUGIN_NAME = "obsidian-ai-assistant" }
+# Must match manifest.json "id": "obsidian-ai-agent"
+if (-not $global:PLUGIN_NAME) { $global:PLUGIN_NAME = "obsidian-ai-agent" }
+

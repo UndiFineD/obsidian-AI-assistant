@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Obsidian AI Assistant backend includes comprehensive performance monitoring and request tracing capabilities
+The Obsidian AI Agent backend includes comprehensive performance monitoring and request tracing capabilities
 designed to help identify bottlenecks, track slow queries, and maintain optimal system performance.
 
 ## Features
@@ -172,7 +172,7 @@ X-Response-Time: 42.5ms
 
 ### Slow Query Thresholds
 
-Configured in `backend/request_tracing.py`:
+Configured in `agent/request_tracing.py`:
 
 ```python
 class RequestTracer:
@@ -199,7 +199,7 @@ class RequestTracer:
 Run performance regression tests to ensure SLA compliance:
 
 ```powershell
-python -m pytest tests/backend/test_performance_regression.py -v
+python -m pytest tests/agent/test_performance_regression.py -v
 ```
 
 Tests include:
@@ -214,7 +214,7 @@ Tests include:
 Test request tracing endpoints:
 
 ```powershell
-python -m pytest tests/backend/test_request_tracing_endpoints.py -v
+python -m pytest tests/agent/test_request_tracing_endpoints.py -v
 ```
 
 Tests include:
@@ -250,7 +250,7 @@ Very slow requests (>5000ms) are logged at CRITICAL level.
 
 ### Middleware Stack
 
-Request tracing is integrated via middleware in `backend/backend.py`:
+Request tracing is integrated via middleware in `agent/backend.py`:
 
 ```python
 from .request_tracing import RequestTracingMiddleware
@@ -271,7 +271,7 @@ The middleware automatically:
 For fine-grained performance tracking within a request:
 
 ```python
-from backend.request_tracing import trace_operation
+from agent.request_tracing import trace_operation
 
 async def complex_operation():
     with trace_operation("database_query"):
@@ -314,7 +314,7 @@ Set up monitoring alerts for:
 
 Use performance regression tests in CI/CD:
 ```bash
-pytest tests/backend/test_performance_regression.py --benchmark
+pytest tests/agent/test_performance_regression.py --benchmark
 ```
 
 ## Troubleshooting
@@ -341,20 +341,20 @@ pytest tests/backend/test_performance_regression.py --benchmark
 
 ## Implementation Files
 
-- **`backend/request_tracing.py`** (442 lines): Core tracing logic
+- **`agent/request_tracing.py`** (442 lines): Core tracing logic
   - `RequestTracer` class: Main tracing engine
   - `RequestTracingMiddleware`: ASGI middleware
   - `trace_operation()`: Context manager for operation timing
   - `get_request_tracer()`: Singleton accessor
 
-- **`backend/backend.py`**: REST API endpoints
+- **`agent/backend.py`**: REST API endpoints
   - `/api/performance/tracing/summary`
   - `/api/performance/tracing/slow-requests`
   - `/api/performance/tracing/endpoint/{endpoint}`
 
 - **Tests**:
-  - `tests/backend/test_performance_regression.py` (16 tests)
-  - `tests/backend/test_request_tracing_endpoints.py` (13 tests)
+  - `tests/agent/test_performance_regression.py` (16 tests)
+  - `tests/agent/test_request_tracing_endpoints.py` (13 tests)
 
 ## Future Enhancements
 
@@ -375,3 +375,4 @@ Planned features for future releases:
 - [System Architecture Specification](SYSTEM_ARCHITECTURE_SPECIFICATION.md)
 - [Testing Guide](TESTING_GUIDE.md)
 - [Health Monitoring System](HEALTH_MONITORING.md)
+

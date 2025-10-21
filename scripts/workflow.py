@@ -13,7 +13,7 @@ Usage:
     python workflow.py --change-id my-change --validate # Validate structure
     python workflow.py --change-id my-change --archive  # Archive change
 
-Author: Obsidian AI Assistant Team
+Author: Obsidian AI Agent Team
 License: MIT
 """
 

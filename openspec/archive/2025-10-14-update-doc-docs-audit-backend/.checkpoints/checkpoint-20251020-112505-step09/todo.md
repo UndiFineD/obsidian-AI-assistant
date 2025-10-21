@@ -104,15 +104,15 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-backend/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-docs-audit-agent/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 

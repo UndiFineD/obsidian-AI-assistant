@@ -31,7 +31,7 @@ self = <tests.test_openspec_changes.TestOpenSpecIntegration object at 0x7fa26560
 E           AssertionError: Change update-doc-agents does not exist
 E           assert False
 E            +  where False = exists()
-E            +    where exists = PosixPath('/home/runner/work/obsidian-AI-assistant/obsidian-AI-assistant/openspec/changes/update-doc-agents').exists
+E            +    where exists = PosixPath('/home/runner/work/obsidian-ai-agent/obsidian-ai-agent/openspec/changes/update-doc-agents').exists
 
 tests/test_openspec_changes.py:343: AssertionError
 ________ TestOpenSpecWorkflowCompliance.test_spec_delta_openspec_format ________
@@ -109,7 +109,7 @@ tests/test_openspec_workflow.py:329: AssertionError
 FAILED tests/test_openspec_changes.py::TestOpenSpecIntegration::test_generated_changes_exist - AssertionError: Change update-doc-agents does not exist
 assert False
  +  where False = exists()
- +    where exists = PosixPath('/home/runner/work/obsidian-AI-assistant/obsidian-AI-assistant/openspec/changes/update-doc-agents').exists
+ +    where exists = PosixPath('/home/runner/work/obsidian-ai-agent/obsidian-ai-agent/openspec/changes/update-doc-agents').exists
 FAILED tests/test_openspec_workflow.py::TestOpenSpecWorkflowCompliance::test_spec_delta_openspec_format - AssertionError: Missing ADDED section in update-doc-claude
 assert '## ADDED Requirements' in '# Spec Delta: project-documentation / update-doc-claude\n\n## MODIFIED Requirements\n\n### Requirement: Governance fo...DED/MODIFIED/REMOVED sections\n    - A documented validation command: `openspec validate update-doc-claude --strict`\n'
 FAILED tests/test_openspec_workflow.py::TestOpenSpecIntegrationPatterns::test_markdown_file_coverage - AssertionError: Missing change for important doc AGENTS.md
@@ -136,3 +136,4 @@ See `todo.md` for detailed task breakdown.
 ## Impact Analysis
 
 <!-- Describe potential impacts and risks -->
+

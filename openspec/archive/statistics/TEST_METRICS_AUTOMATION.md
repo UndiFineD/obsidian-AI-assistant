@@ -338,7 +338,7 @@ git diff openspec/changes/
 
 For issues or questions:
 
-- **GitHub Issues**: obsidian-AI-assistant repository
+- **GitHub Issues**: obsidian-ai-agent repository
 
 - **Documentation**: See `docs/COMPREHENSIVE_SPECIFICATION.md`
 
@@ -367,3 +367,4 @@ For issues or questions:
 **Last Updated**: 2025-10-15
 **Maintainer**: Development Team
 **Status**: Production Ready ✅
+

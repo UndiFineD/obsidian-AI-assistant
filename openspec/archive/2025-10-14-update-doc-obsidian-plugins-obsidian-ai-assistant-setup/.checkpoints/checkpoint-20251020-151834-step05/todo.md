@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Obsidian Plugins Obsidian Ai Assistant Setup
+# TODO: 2025 10 14 Update Doc Obsidian Plugins Obsidian AI Agent Setup
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup`
+- **Change ID**: `2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,15 +104,15 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 
@@ -140,3 +140,4 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+

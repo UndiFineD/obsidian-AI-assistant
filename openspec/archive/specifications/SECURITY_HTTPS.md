@@ -22,7 +22,7 @@ Example (PowerShell):
 $env:SSL_CERTFILE = "C:/path/to/cert.pem"
 $env:SSL_KEYFILE = "C:/path/to/key.pem"
 $env:FORCE_HTTPS = "true"
-python -m uvicorn backend.backend:app --host 0.0.0.0 --port 8000 --ssl-keyfile $env:SSL_KEYFILE --ssl-certfile $env
+python -m uvicorn agent.agent:app --host 0.0.0.0 --port 8000 --ssl-keyfile $env:SSL_KEYFILE --ssl-certfile $env
 :SSL_CERTFILE
 ```
 

@@ -9,12 +9,22 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
+# Skip all tests in this module if plugin is not deployed
+pytestmark = pytest.mark.skipif(
+    not Path(".obsidian/plugins/obsidian-ai-agent").exists(),
+    reason="Plugin not deployed to .obsidian/plugins/obsidian-ai-agent. "
+    "These tests require a deployed Obsidian plugin. "
+    "Run './setup-plugin.ps1' to deploy to your Obsidian vault.",
+)
+
 
 def test_plugin_files():
     """Test that all plugin files exist and are properly structured."""
     print("Testing plugin file structure...")
 
-    plugin_dir = Path(".obsidian/plugins/obsidian-ai-assistant")
+    plugin_dir = Path(".obsidian/plugins/obsidian-ai-agent")
     required_files = [
         "main.js",
         "adminDashboard.js",
@@ -39,7 +49,7 @@ def test_enterprise_imports():
     """Test that main.js properly imports enterprise modules."""
     print("\nTesting enterprise imports in main.js...")
 
-    main_js = Path(".obsidian/plugins/obsidian-ai-assistant/main.js")
+    main_js = Path(".obsidian/plugins/obsidian-ai-agent/main.js")
     if not main_js.exists():
         print("❌ main.js not found")
         raise AssertionError("main.js not found")
@@ -63,13 +73,11 @@ def test_enterprise_classes():
     print("\nTesting enterprise class definitions...")
 
     files_to_check = {
-        ".obsidian/plugins/obsidian-ai-assistant/adminDashboard.js": [
+        ".obsidian/plugins/obsidian-ai-agent/adminDashboard.js": [
             "EnterpriseAdminDashboard"
         ],
-        ".obsidian/plugins/obsidian-ai-assistant/enterpriseAuth.js": ["EnterpriseAuth"],
-        ".obsidian/plugins/obsidian-ai-assistant/enterpriseConfig.js": [
-            "EnterpriseConfig"
-        ],
+        ".obsidian/plugins/obsidian-ai-agent/enterpriseAuth.js": ["EnterpriseAuth"],
+        ".obsidian/plugins/obsidian-ai-agent/enterpriseConfig.js": ["EnterpriseConfig"],
     }
 
     for file, classes in files_to_check.items():
@@ -90,11 +98,11 @@ def test_enterprise_classes():
     assert True
 
 
-def test_backend_modules():
+def test_agent_modules():
     """Test that backend enterprise modules exist."""
     print("\nTesting backend enterprise modules...")
 
-    enterprise_dir = Path("backend/enterprise")
+    enterprise_dir = Path("agent/enterprise")
     if not enterprise_dir.exists():
         print("⚠️ Enterprise backend directory not found - this is optional")
         assert True  # This is optional, so we pass
@@ -124,7 +132,7 @@ def test_css_styles():
     """Test that enterprise CSS styles are included."""
     print("\nTesting enterprise CSS styles...")
 
-    styles_path = Path(".obsidian/plugins/obsidian-ai-assistant/styles.css")
+    styles_path = Path(".obsidian/plugins/obsidian-ai-agent/styles.css")
     if not styles_path.exists():
         print("❌ styles.css not found")
         raise AssertionError("styles.css not found")
@@ -153,7 +161,7 @@ def test_plugin_integration():
     """Test that plugin properly integrates enterprise features."""
     print("\nTesting plugin enterprise integration...")
 
-    main_js = Path(".obsidian/plugins/obsidian-ai-assistant/main.js")
+    main_js = Path(".obsidian/plugins/obsidian-ai-agent/main.js")
     content = main_js.read_text(encoding="utf-8")
 
     integration_points = [
@@ -180,7 +188,7 @@ def test_configuration():
     print("\nTesting configuration structure...")
 
     # Test plugin manifest
-    manifest_path = Path(".obsidian/plugins/obsidian-ai-assistant/manifest.json")
+    manifest_path = Path(".obsidian/plugins/obsidian-ai-agent/manifest.json")
     if manifest_path.exists():
         try:
             manifest = json.loads(manifest_path.read_text())
@@ -197,7 +205,7 @@ def test_configuration():
         raise AssertionError("Plugin manifest not found")
 
     # Test backend config template exists
-    config_path = Path("backend/config.yaml")
+    config_path = Path("agent/config.yaml")
     if config_path.exists():
         print("✅ Backend config found")
     else:
@@ -215,7 +223,7 @@ def run_all_tests():
         ("Plugin Files", test_plugin_files),
         ("Enterprise Imports", test_enterprise_imports),
         ("Enterprise Classes", test_enterprise_classes),
-        ("Backend Modules", test_backend_modules),
+        ("Backend Modules", test_agent_modules),
         ("CSS Styles", test_css_styles),
         ("Plugin Integration", test_plugin_integration),
         ("Configuration", test_configuration),

@@ -1,14 +1,14 @@
 # Backend Module Audit
 
 **Date**: October 11, 2025
-**Task**: T001 - Audit backend modules in `backend/` and list all major files/classes/functions
+**Task**: T001 - Audit backend modules in `agent/` and list all major files/classes/functions
 
 ---
 
 ## Backend Directory Structure
 
 ```text
-backend/
+agent/
 ├── __init__.py                 # Package initialization
 ├── backend.py                  # Main FastAPI application
 ├── caching.py                  # Caching layer implementation

@@ -1,12 +1,12 @@
-# Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete
+# Change Proposal: update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete
 
 ## Why
 
-Ensure `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
+Ensure `.obsidian/plugins/obsidian-ai-agent/SETUP_COMPLETE.md` is governed by OpenSpec so material updates are reviewed and stay consistent with project standards.
 
 ## What Changes
 
-- Add a documentation governance requirement for `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md` under the `project-documentation` capability.
+- Add a documentation governance requirement for `.obsidian/plugins/obsidian-ai-agent/SETUP_COMPLETE.md` under the `project-documentation` capability.
 
 - Track material updates via OpenSpec proposals (no functional code changes).
 
@@ -31,4 +31,5 @@ Describe the background and motivation.
 
 - Owner: [owner]
 - Reviewers: [reviewers]
+
 

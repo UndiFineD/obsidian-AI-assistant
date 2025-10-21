@@ -112,7 +112,7 @@
 - [ ] `openspec/changes/issue-6-ci-cd-pipline-issue-1/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 

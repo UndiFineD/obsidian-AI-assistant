@@ -1,6 +1,6 @@
 # 🔒 **SECURITY SPECIFICATION**
 
-_Obsidian AI Assistant - Security Architecture & Controls_
+_Obsidian AI Agent - Security Architecture & Controls_
 _Version: 1.1_
 _Date: October 6, 2025_
 _Scope: Authentication, Encryption, Validation, API Security, Privacy, Threat Model_
@@ -9,7 +9,7 @@ _Scope: Authentication, Encryption, Validation, API Security, Privacy, Threat Mo
 
 ## 🎯 **SECURITY OVERVIEW**
 
-The Obsidian AI Assistant is designed with a **defense-in-depth security
+The Obsidian AI Agent is designed with a **defense-in-depth security
 architecture** to protect user data, system integrity, and privacy. This
 specification covers all aspects of authentication, encryption, input
 validation, API security, privacy controls, and compliance requirements.
@@ -276,7 +276,7 @@ validation, tenant isolation, prompt sanitization
 - ✅ Security testing & validation
 
 **This Security Specification establishes a robust, multi-layered security
-framework for the Obsidian AI Assistant, ensuring data protection, privacy, and
+framework for the Obsidian AI Agent, ensuring data protection, privacy, and
 compliance across all operational scenarios.**
 
 ---
@@ -285,3 +285,4 @@ _Security Specification Version: 1.1_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

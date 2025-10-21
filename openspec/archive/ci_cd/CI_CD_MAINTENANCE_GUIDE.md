@@ -287,7 +287,7 @@ gh run view <run-id> --log
 **Diagnosis**:
 ```bash
 # Run test multiple times locally
-pytest tests/backend/test_name.py --count=10
+pytest tests/agent/test_name.py --count=10
 ```
 
 **Solutions**:
@@ -466,7 +466,7 @@ gh pr checks
 - `.github/workflows/*.yml` - All workflow definitions
 - `pytest.ini` - pytest configuration
 - `requirements.txt` - Python dependencies
-- `backend/config.yaml` - Backend configuration
+- `agent/config.yaml` - Backend configuration
 
 ### Team Contacts
 - CI/CD Issues: Create issue with `ci` label

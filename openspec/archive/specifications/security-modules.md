@@ -17,7 +17,7 @@ testing. This is causing systematic authentication failures.
 
 ### Investigation Required
 
-1. Enterprise Middleware Detection: `backend/backend.py` line 142-150 shows enterprise features initialization
+1. Enterprise Middleware Detection: `agent/backend.py` line 142-150 shows enterprise features initialization
 
 1. Authentication Bypass: Need test environment configuration to bypass authentication
 
@@ -27,7 +27,7 @@ testing. This is causing systematic authentication failures.
 
 #### 1. Authentication & Authorization Core
 
-Module: `backend/enterprise_integration.py`
+Module: `agent/enterprise_integration.py`
 Risk Level: CRITICAL
 Coverage: ~37%
 Security Functions:
@@ -54,7 +54,7 @@ Security Test Requirements:
 
 #### 2. JWT Token Management
 
-Module: `backend/enterprise_auth.py`
+Module: `agent/enterprise_auth.py`
 Risk Level: CRITICAL
 Coverage: ~47%
 Security Functions:
@@ -81,7 +81,7 @@ Security Test Requirements:
 
 #### 3. Encryption Services
 
-Module: `backend/security.py`
+Module: `agent/security.py`
 Risk Level: HIGH
 Coverage: 79%
 Security Functions:
@@ -110,7 +110,7 @@ Security Test Requirements:
 
 #### 4. Role-Based Access Control (RBAC)
 
-Module: `backend/enterprise_rbac.py`
+Module: `agent/enterprise_rbac.py`
 Risk Level: HIGH
 Coverage: ~33%
 Security Functions:
@@ -139,7 +139,7 @@ Security Test Requirements:
 
 #### 5. Admin Dashboard Security
 
-Module: `backend/enterprise_admin.py`
+Module: `agent/enterprise_admin.py`
 Risk Level: HIGH
 Coverage: 25%
 Security Functions:
@@ -168,7 +168,7 @@ Security Test Requirements:
 
 #### 6. GDPR Compliance Module
 
-Module: `backend/enterprise_gdpr.py`
+Module: `agent/enterprise_gdpr.py`
 Risk Level: MEDIUM-HIGH
 Coverage: 34%
 Security Functions:
@@ -195,7 +195,7 @@ Security Test Requirements:
 
 #### 7. SOC2 Security Controls
 
-Module: `backend/enterprise_soc2.py`
+Module: `agent/enterprise_soc2.py`
 Risk Level: MEDIUM-HIGH
 Coverage: 40%
 Security Functions:
@@ -224,7 +224,7 @@ Security Test Requirements:
 
 #### 8. Tenant Management
 
-Module: `backend/enterprise_tenant.py`
+Module: `agent/enterprise_tenant.py`
 Risk Level: MEDIUM
 Coverage: 35%
 Security Functions:
@@ -280,7 +280,7 @@ Security Test Requirements:
 
 #### 10. Main Backend API Security
 
-Module: `backend/backend.py`
+Module: `agent/backend.py`
 Risk Level: MEDIUM
 Coverage: 46%
 Security Functions:

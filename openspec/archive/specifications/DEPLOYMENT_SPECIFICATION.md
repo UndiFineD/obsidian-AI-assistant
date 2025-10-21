@@ -1,6 +1,6 @@
 # 🚀 **DEPLOYMENT SPECIFICATION**
 
-_Obsidian AI Assistant - Deployment Architecture & Operations_
+_Obsidian AI Agent - Deployment Architecture & Operations_
 _Version: 1.0_
 _Date: October 6, 2025_
 _Scope: Environment Setup, Infrastructure, Monitoring, Backup, Recovery_
@@ -9,7 +9,7 @@ _Scope: Environment Setup, Infrastructure, Monitoring, Backup, Recovery_
 
 ## 🎯 **DEPLOYMENT OVERVIEW**
 
-The Obsidian AI Assistant is designed for flexible deployment across
+The Obsidian AI Agent is designed for flexible deployment across
 development, staging, and production environments. This specification defines
 all requirements for environment setup, infrastructure, monitoring,
 containerization, orchestration, backup, and disaster recovery.
@@ -188,7 +188,7 @@ containerization, orchestration, backup, and disaster recovery.
 
 - ✅ Operational workflows and incident response documented
 
-**This Deployment Specification ensures the Obsidian AI Assistant can be
+**This Deployment Specification ensures the Obsidian AI Agent can be
 reliably deployed, monitored, and maintained across all environments, supporting
 production-grade operations and rapid recovery.**
 
@@ -198,3 +198,4 @@ _Deployment Specification Version: 1.0_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

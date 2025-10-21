@@ -1,4 +1,4 @@
-# 📋 **OBSIDIAN AI ASSISTANT - COMPREHENSIVE TECHNICAL SPECIFICATION**
+# 📋 **Obsidian AI Agent - COMPREHENSIVE TECHNICAL SPECIFICATION**
 
 _Version: 2.1_
 _Date: October 11, 2025_
@@ -8,7 +8,7 @@ _Status: Complete & Authoritative - Code Quality Enhanced_
 
 ## 🎯 **EXECUTIVE SUMMARY**
 
-The Obsidian AI Assistant is a sophisticated, production-ready AI-powered plugin
+The Obsidian AI Agent is a sophisticated, production-ready AI-powered plugin
 for Obsidian that provides semantic search, conversational AI, voice
 interaction, and intelligent document processing capabilities. This
 specification documents the complete technical architecture, API endpoints, data
@@ -37,8 +37,8 @@ models, performance requirements, and integration standards.
 ### **📦 Core Module Structure**
 
 ```text
-obsidian-AI-assistant/
-├── backend/                     # FastAPI Backend Services
+obsidian-ai-agent/
+├── agent/                     # FastAPI Backend Services
 │   ├── backend.py              # 🚀 Main FastAPI application (16 endpoints)
 │   ├── settings.py             # ⚙️ Centralized configuration management
 │   ├── modelmanager.py         # 🤖 AI model management & routing
@@ -61,15 +61,15 @@ obsidian-AI-assistant/
 ├── tests/                       # Comprehensive Test Suite
 │   ├── comprehensive_async_test_runner.py  # Multi-worker test runner
 │   ├── conftest.py             # Global test configuration
-│   ├── backend/                # Backend module tests (90%+ coverage)
+│   ├── agent/                # Backend module tests (90%+ coverage)
 │   ├── integration/            # API integration tests
 │   └── plugin/                 # Plugin functionality tests
-├── backend/cache/               # Caching Infrastructure
+├── agent/cache/               # Caching Infrastructure
 │   ├── embeddings/             # Vector cache storage
 │   ├── pdf/                    # PDF processing cache
 │   └── web/                    # Web content cache
 ├── vector_db/                   # ChromaDB Vector Database
-├── backend/models/              # AI Model Storage
+├── agent/models/              # AI Model Storage
 ├── vault/                       # Obsidian Vault Directory
 └── specs/                       # Project Specifications & Documentation
 ```
@@ -109,7 +109,7 @@ Host: 127.0.0.1
 Port: 8000
 Framework: FastAPI v0.104+
 Base URL: http://127.0.0.1:8000
-Title: 'Obsidian AI Assistant'
+Title: 'Obsidian AI Agent'
 
 CORS Settings:
     allow_origins: ['*']
@@ -138,11 +138,11 @@ Documentation:
 {
     "status": "ok",
     "timestamp": 1728123456,
-    "backend_url": "http://127.0.0.1:8000",
+    "agent_url": "http://127.0.0.1:8000",
     "api_port": 8000,
     "vault_path": "vault",
-    "models_dir": "backend/models",
-    "cache_dir": "backend/cache",
+    "models_dir": "agent/models",
+    "cache_dir": "agent/cache",
     "model_backend": "llama_cpp",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
     "vector_db": "chroma",
@@ -618,7 +618,7 @@ class TranscribeRequest(BaseModel):
 {
     "status": str,                          # "ok" or error status
     "timestamp": int,                       # Unix timestamp
-    "backend_url": str,                     # Backend service URL
+    "agent_url": str,                     # Backend service URL
     "api_port": int,                        # API server port
     "vault_path": str,                      # Vault directory path
     "models_dir": str,                      # Models storage directory
@@ -863,8 +863,8 @@ TranscribeRequest:
 tests/
 ├── comprehensive_async_test_runner.py    # Multi-worker test executor (6.2x speedup)
 ├── conftest.py                          # Global fixtures & service mocking
-├── backend/                             # Backend module tests
-│   ├── test_backend_comprehensive.py    # Complete API endpoint Performance Issues
+├── agent/                             # Backend module tests
+│   ├── test_agent_comprehensive.py    # Complete API endpoint Performance Issues
 │   ├── test_config_endpoints.py        # Configuration management tests
 │   ├── test_caching.py                 # Cache management tests
 │   ├── test_embeddings.py             # Vector operations tests
@@ -1013,8 +1013,8 @@ Memory Usage: <2GB during test execution
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
     "description": "AI-powered assistant with semantic search and conversational capabilities",
-    "author": "Obsidian AI Assistant Team",
-    "authorUrl": "https://github.com/UndiFineD/obsidian-AI-assistant",
+    "author": "Obsidian AI Agent Team",
+    "authorUrl": "https://github.com/UndiFineD/obsidian-ai-agent",
     "isDesktopOnly": false,
     "main": "main.js",
     "styles": "styles.css"
@@ -1253,7 +1253,7 @@ npm install
 version: '3.8'
 services:
     ai-assistant-backend:
-        image: obsidian-ai-assistant:latest
+        image: obsidian-ai-agent:latest
         ports:
 
 - '8000:8000'
@@ -1261,9 +1261,9 @@ services:
 
 - ./vault:/app/vault:ro
 
-- ./backend/cache:/app/backend/cache
+- ./agent/cache:/app/agent/cache
 
-- ./backend/models:/app/backend/models
+- ./agent/models:/app/agent/models
 
 - ./vector_db:/app/vector_db
         environment:
@@ -1288,18 +1288,18 @@ services:
 
 ```python
 
-# backend/settings.py
+# agent/settings.py
 
 class Settings(BaseModel):
     # Server Configuration
     api_port: int = 8000
-    backend_url: str = "http://127.0.0.1:8000"
+    agent_url: str = "http://127.0.0.1:8000"
     host: str = "127.0.0.1"
 
     # Storage Paths
     vault_path: Path = Path("./vault")
-    models_dir: Path = Path("./backend/models")
-    cache_dir: Path = Path("./backend/cache")
+    models_dir: Path = Path("./agent/models")
+    cache_dir: Path = Path("./agent/cache")
 
     # AI Configuration
     model_backend: str = "llama_cpp"
@@ -1434,7 +1434,7 @@ repos:
     hooks:
 
 - id: bandit
-        args: [-r, backend/, -f, json, -o, bandit-report.json]
+        args: [-r, agent/, -f, json, -o, bandit-report.json]
 ```
 
 #### **Type Coverage Requirements**
@@ -1591,7 +1591,7 @@ curl http://127.0.0.1:8000/health
 # Debug model initialization
 
 python -c "
-from backend.modelmanager import ModelManager
+from agent.modelmanager import ModelManager
 mm = ModelManager()
 print('Models available:', mm.list_models())
 "
@@ -1682,7 +1682,7 @@ netstat -an | grep 8000  # Network connections
 
 ### **🎯 Specification Summary**
 
-This comprehensive specification establishes the **Obsidian AI Assistant** as a **production-ready, enterprise-grade AI
+This comprehensive specification establishes the **Obsidian AI Agent** as a **production-ready, enterprise-grade AI
 integration** for Obsidian. The specification covers:
 
 1. **✅ Complete API Documentation**: All 16 endpoints with request/response models
@@ -1718,7 +1718,7 @@ standards
 
 ## Status: Authoritative & Complete
 
-## This specification serves as the definitive technical reference for the Obsidian AI Assistant project
+## This specification serves as the definitive technical reference for the Obsidian AI Agent project
 
 All development, deployment, and maintenance activities must comply with the standards established herein.
 
@@ -1726,3 +1726,4 @@ All development, deployment, and maintenance activities must comply with the sta
 
 > Excellence in specification leads to excellence in implementation. This document establishes the foundation for
 world-class AI integration.
+

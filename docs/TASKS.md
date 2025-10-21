@@ -34,7 +34,7 @@
 
 ### Phase 1: Setup & Audit
 
-- [ ] T001 Audit backend modules in `backend/` and list all major files/classes/functions in `docs/audit-backend.md`
+- [ ] T001 Audit backend modules in `agent/` and list all major files/classes/functions in `docs/audit-backend.md`
 
 - [ ] T002 Audit plugin modules in `plugin/` and list all major files/classes/functions in `docs/audit-plugin.md`
 
@@ -73,7 +73,7 @@
 
 ### Phase 5: Reporting & Validation
 
-- [ ] T015 Run `pytest --cov backend/` and output Markdown report to `docs/backend-test-report.md`
+- [ ] T015 Run `pytest --cov agent/` and output Markdown report to `docs/backend-test-report.md`
 
 - [ ] T016 Run `jest --coverage plugin/` and output Markdown report to `docs/plugin-test-report.md`
 

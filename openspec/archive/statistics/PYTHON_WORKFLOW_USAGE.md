@@ -270,7 +270,7 @@ Found automation requirements in spec.md
 Detected Script Requirements:
   Purpose: testing/validation
   Script Types: Python
-  Affected Files: backend/test.py, frontend/app.js
+  Affected Files: agent/test.py, frontend/app.js
 
 Generating test script: test.py
 Generated: test.py

@@ -9,8 +9,8 @@ from pathlib import Path
 def test_caching_files_exist():
     """Test that enhanced caching files exist and are readable."""
     files_to_check = [
-        "backend/enhanced_caching.py",
-        "backend/cache_management.py",
+        "agent/enhanced_caching.py",
+        "agent/cache_management.py",
     ]
 
     for file_path in files_to_check:
@@ -34,8 +34,8 @@ def test_caching_files_exist():
 def test_caching_syntax():
     """Test that enhanced caching files have valid Python syntax."""
     files_to_check = [
-        "backend/enhanced_caching.py",
-        "backend/cache_management.py",
+        "agent/enhanced_caching.py",
+        "agent/cache_management.py",
     ]
 
     for file_path in files_to_check:
@@ -58,7 +58,7 @@ def test_caching_syntax():
 
 def test_enhanced_caching_structure():
     """Test that enhanced_caching.py has expected structure."""
-    file_path = "backend/enhanced_caching.py"
+    file_path = "agent/enhanced_caching.py"
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -91,7 +91,7 @@ def test_enhanced_caching_structure():
 
 def test_cache_management_structure():
     """Test that cache_management.py has expected structure."""
-    file_path = "backend/cache_management.py"
+    file_path = "agent/cache_management.py"
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -123,9 +123,9 @@ def test_cache_management_structure():
         return False
 
 
-def test_backend_integration():
+def test_agent_integration():
     """Test that backend.py has enhanced caching integration."""
-    file_path = "backend/backend.py"
+    file_path = "agent/backend.py"
 
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -157,7 +157,7 @@ def test_backend_integration():
 
 def test_cache_features():
     """Test that caching features are properly implemented."""
-    enhanced_caching_path = "backend/enhanced_caching.py"
+    enhanced_caching_path = "agent/enhanced_caching.py"
 
     try:
         with open(enhanced_caching_path, "r", encoding="utf-8") as f:
@@ -207,7 +207,7 @@ def main():
         test_caching_syntax,
         test_enhanced_caching_structure,
         test_cache_management_structure,
-        test_backend_integration,
+        test_agent_integration,
         test_cache_features,
     ]
 

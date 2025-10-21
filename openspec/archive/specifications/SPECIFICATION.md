@@ -1,4 +1,4 @@
-# 📋 Obsidian AI Assistant - Technical Specification
+# 📋 Obsidian AI Agent - Technical Specification
 
 ## 📌 Document Overview
 
@@ -8,9 +8,9 @@
 
 - **Author**: Keimpe de Jong
 
-- **Project**: Obsidian AI Assistant
+- **Project**: Obsidian AI Agent
 
-- **Repository**: obsidian-AI-assistant
+- **Repository**: obsidian-ai-agent
 
 ---
 
@@ -61,7 +61,7 @@ Offline-first AI assistant for Obsidian with comprehensive backend services, sem
 
 ### FastAPI Architecture Overview
 
-The Obsidian AI Assistant backend is built on FastAPI, providing a modern,
+The Obsidian AI Agent backend is built on FastAPI, providing a modern,
 high-performance Python web framework with automatic API documentation, request
 validation, and type safety. The API follows RESTful principles with
 comprehensive error handling and standardized response formats.
@@ -88,7 +88,7 @@ comprehensive error handling and standardized response formats.
 ### Module Structure
 
 ```text
-backend/
+agent/
 ├── backend.py          # FastAPI application & endpoints
 ├── settings.py         # Centralized configuration
 ├── embeddings.py       # Vector operations & ChromaDB
@@ -114,7 +114,7 @@ plugin/
 
 ---
 
-The Obsidian AI Assistant backend is built on FastAPI, providing a modern,
+The Obsidian AI Agent backend is built on FastAPI, providing a modern,
 high-performance Python web framework with automatic API documentation, request
 validation, and type safety. The API follows RESTful principles with
 comprehensive error handling and standardized response formats.
@@ -164,12 +164,12 @@ app.add_middleware(
 | Variable        | Default                 | Description                   |
 | --------------- | ----------------------- | ----------------------------- |
 | `API_PORT`      | 8000                    | Server port                   |
-| `BACKEND_URL`   | `http://127.0.0.1:8000` | Full backend URL              |
+| `agent_URL`   | `http://127.0.0.1:8000` | Full backend URL              |
 | `ALLOW_NETWORK` | false                   | Enable network-based features |
 | `GPU`           | true                    | Enable GPU acceleration       |
 | `MODEL_BACKEND` | `llama_cpp`             | AI model backend type         |
 | `VAULT_PATH`    | `vault`                 | Default vault directory       |
-| `CACHE_DIR`     | `backend/cache`         | Cache storage directory       |
+| `CACHE_DIR`     | `agent/cache`         | Cache storage directory       |
 
 ---
 
@@ -189,11 +189,11 @@ app.add_middleware(
 interface HealthResponse {
     status: 'ok' | 'degraded' | 'error';
     timestamp: number; // Unix timestamp
-    backend_url: string; // Configured backend URL
+    agent_url: string; // Configured backend URL
     api_port: number; // Active API port
     vault_path: string; // Vault directory path
-    models_dir: string; // Models directory path (now backend/models)
-    cache_dir: string; // Cache directory path (now backend/cache)
+    models_dir: string; // Models directory path (now agent/models)
+    cache_dir: string; // Cache directory path (now agent/cache)
     model_backend: string; // Active model backend
     embed_model: string; // Embedding model name
     vector_db: string; // Vector database type
@@ -215,11 +215,11 @@ interface HealthResponse {
 {
     "status": "ok",
     "timestamp": 1728123456,
-    "backend_url": "http://127.0.0.1:8000",
+    "agent_url": "http://127.0.0.1:8000",
     "api_port": 8000,
     "vault_path": "vault",
-    "models_dir": "backend/models",
-    "cache_dir": "backend/cache",
+    "models_dir": "agent/models",
+    "cache_dir": "agent/cache",
     "model_backend": "llama_cpp",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
     "vector_db": "chroma",
@@ -293,16 +293,16 @@ interface ConfigResponse {
     // Core Settings
     allow_network: boolean;
     model_backend: string;
-    model_path: string; // Path under backend/models
+    model_path: string; // Path under agent/models
     embed_model: string;
     vector_db: string;
     api_port: number;
     gpu: boolean;
 
     // Directory Paths
-    cache_dir: string; // Path under backend/cache
+    cache_dir: string; // Path under agent/cache
     vault_path: string;
-    models_dir: string; // Path under backend/models
+    models_dir: string; // Path under agent/models
 
     // Processing Parameters
     top_k: number;
@@ -312,7 +312,7 @@ interface ConfigResponse {
     continuous_mode: boolean;
 
     // Voice Settings (if available)
-    vosk_model_path?: string; // Path under backend/models
+    vosk_model_path?: string; // Path under agent/models
 }
 ```
 
@@ -322,20 +322,20 @@ interface ConfigResponse {
 {
     "allow_network": true,
     "model_backend": "llama_cpp",
-    "model_path": "backend/models/llama-7b.gguf",
+    "model_path": "agent/models/llama-7b.gguf",
     "embed_model": "sentence-transformers/all-MiniLM-L6-v2",
     "vector_db": "chroma",
     "api_port": 8000,
     "gpu": false,
-    "cache_dir": "backend/cache",
+    "cache_dir": "agent/cache",
     "vault_path": "tests_vault",
-    "models_dir": "backend/models",
+    "models_dir": "agent/models",
     "top_k": 10,
     "chunk_size": 2000,
     "chunk_overlap": 200,
     "similarity_threshold": 0.75,
     "continuous_mode": false,
-    "vosk_model_path": "backend/models/vosk-model-small-en-us-0.15"
+    "vosk_model_path": "agent/models/vosk-model-small-en-us-0.15"
 }
 ```
 
@@ -358,19 +358,19 @@ interface ConfigUpdateRequest {
     // Optional fields - only provided fields will be updated
     allow_network?: boolean;
     model_backend?: string;
-    model_path?: string; // Path under backend/models
+    model_path?: string; // Path under agent/models
     embed_model?: string;
     vector_db?: string;
     gpu?: boolean;
-    cache_dir?: string; // Path under backend/cache
+    cache_dir?: string; // Path under agent/cache
     vault_path?: string;
-    models_dir?: string; // Path under backend/models
+    models_dir?: string; // Path under agent/models
     top_k?: number;
     chunk_size?: number;
     chunk_overlap?: number;
     similarity_threshold?: number;
     continuous_mode?: boolean;
-    vosk_model_path?: string; // Path under backend/models
+    vosk_model_path?: string; // Path under agent/models
 }
 ```
 
@@ -433,7 +433,7 @@ interface ConfigUpdateResponse {
 
 #### POST /api/config/reload
 
-**Purpose**: Reload configuration from `backend/config.yaml` file
+**Purpose**: Reload configuration from `agent/config.yaml` file
 
 **Authentication**: None required
 
@@ -1244,7 +1244,7 @@ FastAPI automatically generates OpenAPI 3.0 specifications accessible at:
 
 1. **Environment Variables** (highest priority)
 
-1. **backend/config.yaml** (medium priority)
+1. **agent/config.yaml** (medium priority)
 
 1. **Code Defaults** (lowest priority)
 
@@ -1253,7 +1253,7 @@ FastAPI automatically generates OpenAPI 3.0 specifications accessible at:
 ```python
 class Settings(BaseModel):
     # Core server
-    backend_url: str = "http://127.0.0.1:8000"
+    agent_url: str = "http://127.0.0.1:8000"
     api_port: int = 8000
     allow_network: bool = False
     continuous_mode: bool = False
@@ -1261,12 +1261,12 @@ class Settings(BaseModel):
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
     vault_path: str = "vault"
-    models_dir: str = "backend/models"
-    cache_dir: str = "backend/cache"
+    models_dir: str = "agent/models"
+    cache_dir: str = "agent/cache"
 
     # LLM Settings
     model_backend: str = "llama_cpp"
-    model_path: str = "backend/models/llama-7b.gguf"
+    model_path: str = "agent/models/llama-7b.gguf"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: str = "chroma"
     gpu: bool = True
@@ -1278,7 +1278,7 @@ class Settings(BaseModel):
     similarity_threshold: float = 0.75
 
     # Voice Settings
-    vosk_model_path: str = "backend/models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "agent/models/vosk-model-small-en-us-0.15"
 ```
 
 ### Environment Variables
@@ -1288,19 +1288,19 @@ class Settings(BaseModel):
 # Core Settings
 
 API_PORT=8000
-BACKEND_URL=http://127.0.0.1:8000
+agent_URL=http://127.0.0.1:8000
 ALLOW_NETWORK=false
 
 # Paths
 
 VAULT_PATH=./vault
-MODELS_DIR=./backend/models
-CACHE_DIR=./backend/cache
+MODELS_DIR=./agent/models
+CACHE_DIR=./agent/cache
 
 # LLM Configuration
 
 MODEL_BACKEND=llama_cpp
-MODEL_PATH=backend/models/llama-7b.gguf
+MODEL_PATH=agent/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 GPU=true
 
@@ -1313,7 +1313,7 @@ SIMILARITY_THRESHOLD=0.75
 
 # Voice
 
-VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
+VOSK_MODEL_PATH=agent/models/vosk-model-small-en-us-0.15
 ```
 
 ---
@@ -1334,9 +1334,9 @@ VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
 
 ```text
 tests/
-├── backend/                     # Backend module tests
+├── agent/                     # Backend module tests
 │   ├── test_backend.py         # FastAPI endpoints & integration
-│   ├── test_backend_simple.py  # Simple tests avoiding PyTorch conflicts
+│   ├── test_agent_simple.py  # Simple tests avoiding PyTorch conflicts
 │   ├── test_caching.py         # Cache management
 │   ├── test_settings.py        # Settings management
 │   ├── test_llm_router.py      # Model routing logic
@@ -1654,13 +1654,13 @@ jobs:
 
 - name: Run linting
               run: |
-                  flake8 backend/ tests/
-                  black --check backend/ tests/
-                  mypy backend/
+                  flake8 agent/ tests/
+                  black --check agent/ tests/
+                  mypy agent/
 
 - name: Run security scan
               run: |
-                  bandit -r backend/
+                  bandit -r agent/
                   safety check
 
 - name: Run unit tests
@@ -1708,7 +1708,7 @@ repos:
       hooks:
 
 - id: bandit
-            args: [-r, backend/]
+            args: [-r, agent/]
 ```
 
 #### Quality Metrics Dashboard
@@ -1743,7 +1743,7 @@ pytest --cov=backend --cov-report=term-missing --cov-report=html
 
 # Individual module tests
 
-pytest tests/backend/test_backend_simple.py -v
+pytest tests/agent/test_agent_simple.py -v
 
 # Coverage target validation
 
@@ -1810,7 +1810,7 @@ tox -e py311
 
 ### Security Architecture Overview
 
-The Obsidian AI Assistant implements a defense-in-depth security model with local-first processing, configurable
+The Obsidian AI Agent implements a defense-in-depth security model with local-first processing, configurable
 network isolation, and comprehensive data protection mechanisms.
 
 #### Security Principles
@@ -2367,10 +2367,10 @@ class MultiLevelCache:
         self.memory_ttl: Dict[str, datetime] = {}
 
         # L2: Disk cache (persistent)
-    self.disk_cache_dir = "backend/cache/responses"
+    self.disk_cache_dir = "agent/cache/responses"
 
         # L3: Vector embeddings cache
-    self.embedding_cache_dir = "backend/cache/embeddings"
+    self.embedding_cache_dir = "agent/cache/embeddings"
 
         # Cache configuration
         self.max_memory_entries = 1000
@@ -2679,7 +2679,7 @@ class ComplianceAuditor:
 
 ### Deployment Architecture Overview
 
-The Obsidian AI Assistant supports multiple deployment scenarios from local
+The Obsidian AI Agent supports multiple deployment scenarios from local
 development to production environments. The architecture is designed for
 flexibility, scalability, and maintainability across different infrastructure
 patterns.
@@ -2733,13 +2733,13 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 # Download and run setup script
 
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.ps1" -OutFile
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/UndiFineD/obsidian-ai-agent/main/setup.ps1" -OutFile
 "setup.ps1"
 .\setup.ps1 -InstallType Production -EnableGPU $true
 
 # Verify installation
 
-python -m backend.backend --version
+python -m agent.agent --version
 ```
 
 **Linux/macOS Bash**:
@@ -2748,18 +2748,18 @@ python -m backend.backend --version
 
 # Download and run setup script
 
-curl -fsSL https://raw.githubusercontent.com/UndiFineD/obsidian-AI-assistant/main/setup.sh | bash -s --
+curl -fsSL https://raw.githubusercontent.com/UndiFineD/obsidian-ai-agent/main/setup.sh | bash -s --
 --install-type=production --enable-gpu
 
 # Verify installation
 
-python -m backend.backend --version
+python -m agent.agent --version
 
 # Set up systemd service (Linux)
 
-sudo cp deployment/obsidian-ai-assistant.service /etc/systemd/system/
-sudo systemctl enable obsidian-ai-assistant
-sudo systemctl start obsidian-ai-assistant
+sudo cp deployment/obsidian-ai-agent.service /etc/systemd/system/
+sudo systemctl enable obsidian-ai-agent
+sudo systemctl start obsidian-ai-agent
 ```
 
 #### Manual Installation
@@ -2829,7 +2829,7 @@ Create a `.env` file in the project root:
 
 # Core Configuration
 
-BACKEND_URL=http://127.0.0.1:8000
+agent_URL=http://127.0.0.1:8000
 API_PORT=8000
 ALLOW_NETWORK=false
 CONTINUOUS_MODE=false
@@ -2837,13 +2837,13 @@ CONTINUOUS_MODE=false
 # Paths (relative to project root)
 
 VAULT_PATH=vault
-MODELS_DIR=backend/models
-CACHE_DIR=backend/cache
+MODELS_DIR=agent/models
+CACHE_DIR=agent/cache
 
 # AI/ML Configuration
 
 MODEL_BACKEND=llama_cpp
-MODEL_PATH=backend/models/llama-7b.gguf
+MODEL_PATH=agent/models/llama-7b.gguf
 EMBED_MODEL=sentence-transformers/all-MiniLM-L6-v2
 VECTOR_DB=chroma
 GPU=true
@@ -2857,7 +2857,7 @@ SIMILARITY_THRESHOLD=0.75
 
 # Voice Processing
 
-VOSK_MODEL_PATH=backend/models/vosk-model-small-en-us-0.15
+VOSK_MODEL_PATH=agent/models/vosk-model-small-en-us-0.15
 
 # Security (Production)
 
@@ -2872,7 +2872,7 @@ HUGGINGFACE_TOKEN=your-hf-token-here
 OPENAI_API_KEY=your-openai-key-here
 ```
 
-#### Configuration File (backend/config.yaml)
+#### Configuration File (agent/config.yaml)
 
 ```yaml
 
@@ -2915,7 +2915,7 @@ backup:
 
 - vault
 
-- backend/cache/embeddings
+- agent/cache/embeddings
 
 - logs
 ```
@@ -2982,7 +2982,7 @@ COPY --chown=aiassist:aiassist . .
 
 # Create necessary directories
 
-RUN mkdir -p logs backend/cache backend/models vault && \
+RUN mkdir -p logs agent/cache agent/models vault && \
     chown -R aiassist:aiassist logs backend vault
 
 # Switch to non-root user
@@ -3001,7 +3001,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
 
 # Start command
 
-CMD ["python", "-m", "uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "agent.agent:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 #### Docker Compose
@@ -3021,7 +3021,7 @@ services:
 - '8000:8000'
         environment:
 
-- BACKEND_URL=http://localhost:8000
+- agent_URL=http://localhost:8000
 
 - GPU=true
 
@@ -3030,13 +3030,13 @@ services:
 
 - ./vault:/app/vault:ro
 
-- ./backend/models:/app/backend/models
+- ./agent/models:/app/agent/models
 
-- ./backend/cache:/app/backend/cache
+- ./agent/cache:/app/agent/cache
 
 - ./logs:/app/logs
 
-- ./backend/config.yaml:/app/backend/config.yaml:ro
+- ./agent/config.yaml:/app/agent/config.yaml:ro
         restart: unless-stopped
         deploy:
             resources:
@@ -3100,7 +3100,7 @@ volumes:
 
 ```yaml
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Obsidian AI Assistant Infrastructure'
+Description: 'Obsidian AI Agent Infrastructure'
 
 Parameters:
     InstanceType:
@@ -3182,8 +3182,8 @@ Resources:
 
                     # Clone repository
                     cd /home/ec2-user
-                    git clone https://github.com/UndiFineD/obsidian-AI-assistant.git
-                    cd obsidian-AI-assistant
+                    git clone https://github.com/UndiFineD/obsidian-ai-agent.git
+                    cd obsidian-ai-agent
 
                     # Set up environment
                     cp .env.example .env
@@ -3268,7 +3268,7 @@ spec:
             containers:
 
 - name: ai-assistant
-                  image: obsidian-ai-assistant:latest
+                  image: obsidian-ai-agent:latest
                   ports:
 
 - containerPort: 8000
@@ -3282,7 +3282,7 @@ spec:
                   volumeMounts:
 
 - name: config
-                        mountPath: /app/backend/config.yaml
+                        mountPath: /app/agent/config.yaml
                         subPath: config.yaml
 
 - name: storage
@@ -3410,7 +3410,7 @@ alerting:
 
 ```python
 
-# backend/metrics.py
+# agent/metrics.py
 
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
 import time
@@ -3508,7 +3508,7 @@ async def get_metrics():
 ```json
 {
     "dashboard": {
-        "title": "Obsidian AI Assistant Dashboard",
+        "title": "Obsidian AI Agent Dashboard",
         "panels": [
             {
                 "title": "Request Rate",
@@ -3608,14 +3608,14 @@ class BackupManager:
                         tar.add('vector_db', arcname='vector_db')
 
                     # Backup cache (embeddings only)
-                    cache_embeddings = Path('backend/cache/embeddings')
+                    cache_embeddings = Path('agent/cache/embeddings')
                     if cache_embeddings.exists():
-                        tar.add(cache_embeddings, arcname='backend/cache/embeddings')
+                        tar.add(cache_embeddings, arcname='agent/cache/embeddings')
 
                 if backup_type in ['full', 'config']:
                     # Backup configuration
-                    if Path('backend/config.yaml').exists():
-                        tar.add('backend/config.yaml', arcname='config.yaml')
+                    if Path('agent/config.yaml').exists():
+                        tar.add('agent/config.yaml', arcname='config.yaml')
 
                     if Path('.env').exists():
                         tar.add('.env', arcname='.env')
@@ -3698,7 +3698,7 @@ class BackupManager:
         # Restore embeddings cache
         embeddings_backup = restore_dir / 'cache' / 'embeddings'
         if embeddings_backup.exists():
-            embeddings_dir = Path('backend/cache/embeddings')
+            embeddings_dir = Path('agent/cache/embeddings')
             embeddings_dir.mkdir(parents=True, exist_ok=True)
             if embeddings_dir.exists():
                 shutil.rmtree(embeddings_dir)
@@ -3757,7 +3757,7 @@ python -m backend.modelmanager verify --model llama-7b.gguf
 # Solutions
 
 1. Check model file exists and has correct permissions:
-    ls -la backend/models/llama-7b.gguf
+    ls -la agent/models/llama-7b.gguf
 
 1. Verify model file integrity:
    python -m backend.modelmanager checksum --model llama-7b.gguf
@@ -3766,7 +3766,7 @@ python -m backend.modelmanager verify --model llama-7b.gguf
    python -m backend.modelmanager download --model llama-7b-chat --force
 
 1. Check available disk space:
-    df -h backend/models/
+    df -h agent/models/
 
 1. Verify memory requirements:
    python -c "import psutil; print(f'Available RAM: {psutil.virtual_memory().available / 1e9:.1f}GB')"
@@ -3788,7 +3788,7 @@ python -m backend.diagnostics memory-profile
 
 1. Reduce model size in config:
    MODEL_BACKEND=llama_cpp
-    MODEL_PATH=backend/models/llama-7b-q4.gguf  # Quantized version
+    MODEL_PATH=agent/models/llama-7b-q4.gguf  # Quantized version
 
 1. Lower concurrent request limits:
    MAX_CONCURRENT_AI_REQUESTS=1
@@ -3826,14 +3826,14 @@ python -m backend.diagnostics performance-profile --duration 300
    CACHE_TTL=3600
 
 1. Use faster model:
-    MODEL_PATH=backend/models/llama-7b-q4-fast.gguf
+    MODEL_PATH=agent/models/llama-7b-q4-fast.gguf
 ```
 
 #### Diagnostic Tools
 
 ```python
 
-# backend/diagnostics.py
+# agent/diagnostics.py
 
 import subprocess
 import psutil
@@ -3883,8 +3883,8 @@ class SystemDiagnostics:
 
         # Check required files
         required_files = [
-            'backend/backend.py',
-            'backend/config.yaml',
+            'agent/backend.py',
+            'agent/config.yaml',
             'requirements.txt'
         ]
 
@@ -3897,7 +3897,7 @@ class SystemDiagnostics:
             }
 
         # Check models
-    models_dir = Path('backend/models')
+    models_dir = Path('agent/models')
     if models_dir.exists():
             for model_file in models_dir.glob('*.gguf'):
                 checks['models'][model_file.name] = {
@@ -3957,7 +3957,7 @@ if __name__ == "__main__":
 
 ### Architecture Overview
 
-The Obsidian AI Assistant plugin follows a modular, event-driven architecture
+The Obsidian AI Agent plugin follows a modular, event-driven architecture
 that integrates seamlessly with the Obsidian ecosystem. The plugin implements a
 clean separation between UI components, business logic, and backend
 communication.
@@ -3978,7 +3978,7 @@ communication.
 
 ```json
 {
-    "id": "obsidian-ai-assistant",
+    "id": "obsidian-ai-agent",
     "name": "AI Assistant",
     "version": "1.0.0",
     "minAppVersion": "0.15.0",
@@ -4059,7 +4059,7 @@ interface Task {
 #### Main Plugin Class
 
 ```typescript
-class ObsidianAIAssistant extends Plugin {
+class ObsidianAIAgent extends Plugin {
     settings: PluginConfig;
     taskQueue: TaskQueue;
     voiceRecorder: VoiceRecorder;
@@ -4124,7 +4124,7 @@ async onload() {
 
 ```typescript
 class AIAssistantModal extends Modal {
-    constructor(app: App, plugin: ObsidianAIAssistant);
+    constructor(app: App, plugin: ObsidianAIAgent);
 
     // Modal lifecycle
     onOpen(): void;
@@ -4334,7 +4334,7 @@ class VoiceRecorder {
 
 ```typescript
 class AIAssistantSettingTab extends PluginSettingTab {
-    plugin: ObsidianAIAssistant;
+    plugin: ObsidianAIAgent;
 
     display(): void {
         const { containerEl } = this;
@@ -4630,4 +4630,5 @@ class PluginTestSuite {
 
 ---
 
-© 2025 Obsidian AI Assistant - Offline-First AI for Enhanced Knowledge Management
+© 2025 Obsidian AI Agent - Offline-First AI for Enhanced Knowledge Management
+

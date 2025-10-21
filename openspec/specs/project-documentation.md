@@ -1288,17 +1288,17 @@ Material changes to `docs/QUICK_FIX.md` include:
 
 ## R47: Obsidian Plugin Setup Governance
 
-The project SHALL govern material changes to `obsidian-plugins/obsidian-ai-assistant/setup.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `obsidian-plugins/obsidian-ai-agent/setup.md` via OpenSpec change proposals to maintain consistency and review.
 
 ### R47.1: Plugin Setup Change Process
 
-- **WHEN** a contributor plans a material update to `obsidian-plugins/obsidian-ai-assistant/setup.md`
+- **WHEN** a contributor plans a material update to `obsidian-plugins/obsidian-ai-agent/setup.md`
 
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 #### R47.2: Plugin Setup Material Changes
 
-Material changes to `obsidian-plugins/obsidian-ai-assistant/setup.md` include:
+Material changes to `obsidian-plugins/obsidian-ai-agent/setup.md` include:
 
 - Plugin installation procedures and requirements
 
@@ -1318,17 +1318,17 @@ Material changes to `obsidian-plugins/obsidian-ai-assistant/setup.md` include:
 
 ## R48: Obsidian Plugin Setup Complete Governance
 
-The project SHALL govern material changes to `obsidian-plugins/obsidian-ai-assistant/setup-complete.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `obsidian-plugins/obsidian-ai-agent/setup-complete.md` via OpenSpec change proposals to maintain consistency and review.
 
 ### R48.1: Plugin Setup Complete Change Process
 
-- **WHEN** a contributor plans a material update to `obsidian-plugins/obsidian-ai-assistant/setup-complete.md`
+- **WHEN** a contributor plans a material update to `obsidian-plugins/obsidian-ai-agent/setup-complete.md`
 
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 #### R48.2: Plugin Setup Complete Material Changes
 
-Material changes to `obsidian-plugins/obsidian-ai-assistant/setup-complete.md` include:
+Material changes to `obsidian-plugins/obsidian-ai-agent/setup-complete.md` include:
 
 - Post-installation verification procedures
 
@@ -1460,3 +1460,4 @@ for particular documentation files through spec deltas that reference this
 capability.
 
 The governance framework is designed to be lightweight enough to encourage updates while comprehensive enough to maintain quality and consistency across the project's documentation ecosystem.
+

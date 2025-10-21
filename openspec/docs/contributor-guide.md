@@ -31,8 +31,8 @@ openspec --version
 git --version
 
 # Clone repository (if not already done)
-git clone https://github.com/UndiFineD/obsidian-AI-assistant.git
-cd obsidian-AI-assistant/openspec
+git clone https://github.com/UndiFineD/obsidian-ai-agent.git
+cd obsidian-ai-agent/openspec
 ```
 
 ### 5-Minute Setup
@@ -732,3 +732,4 @@ Want to improve the governance system?
 **Questions or feedback?** Open an issue or discussion on GitHub.
 
 **Found an error in this guide?** Submit a PR - this guide is governed by OpenSpec too! 😊
+

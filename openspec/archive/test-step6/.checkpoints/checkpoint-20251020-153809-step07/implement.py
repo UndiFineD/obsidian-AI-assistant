@@ -135,8 +135,8 @@ def main() -> int:
 
     # Process affected files
     invoke_task(
-        "Verify File: backend/test.py",
-        lambda: verify_file(project_root / "backend/test.py"),
+        "Verify File: agent/test.py",
+        lambda: verify_file(project_root / "agent/test.py"),
         "Check that affected file exists"
     )
     invoke_task(

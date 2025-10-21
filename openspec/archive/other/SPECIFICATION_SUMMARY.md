@@ -1,6 +1,6 @@
 # 📋 Specification Summary
 
-## **✅ Specification Complete: Obsidian AI Assistant**
+## **✅ Specification Complete: Obsidian AI Agent**
 
 I've created a comprehensive **Technical Specification** document (`docs/SPECIFICATION.md`) that covers:
 
@@ -82,7 +82,7 @@ I've created a comprehensive **Technical Specification** document (`docs/SPECIFI
 
 1. **Environment Variables** (highest priority)
 
-1. **backend/config.yaml** (medium priority)
+1. **agent/config.yaml** (medium priority)
 
 1. **Code Defaults** (lowest priority)
 
@@ -122,3 +122,4 @@ I've created a comprehensive **Technical Specification** document (`docs/SPECIFI
 **The specification provides a complete technical blueprint for the Obsidian AI
 Assistant, ensuring consistent development, maintenance, and future enhancements
 while maintaining the offline-first, user-centric mission.**
+

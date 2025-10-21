@@ -39,9 +39,9 @@ generation, validation, deactivation, and rotation via REST endpoints.
 4. **Deactivated keys are rejected
 
 ## Implementation Reference
-- See `backend/api_key_management.py` for logic
-- See `tests/backend/test_api_key_rotation.py` for tests
-- Endpoint defined in `backend/backend.py`
+- See `agent/api_key_management.py` for logic
+- See `tests/agent/test_api_key_rotation.py` for tests
+- Endpoint defined in `agent/backend.py`
 
 ## TODO
 - Add persistent storage for keys

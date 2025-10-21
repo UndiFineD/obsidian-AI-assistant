@@ -1,4 +1,4 @@
-# Obsidian AI Assistant Project Constitution
+# Obsidian AI Agent Project Constitution
 
 ## Governance Notice
 
@@ -9,7 +9,7 @@ principles, decision-making processes, roles, responsibilities, and community st
 
 ## 1. Mission and Scope
 
-The Obsidian AI Assistant project aims to deliver a secure, scalable, and
+The Obsidian AI Agent project aims to deliver a secure, scalable, and
 extensible AI-powered assistant for Obsidian users, integrating advanced
 language models, voice recognition, and knowledge management features.
 
@@ -332,7 +332,7 @@ All contributions must:
 ### Enterprise vs. Standard Code
 
 **Enterprise-specific code**:
-- Located in `backend/enterprise_*.py` or `plugin/enterprise*.js`
+- Located in `agent/enterprise_*.py` or `plugin/enterprise*.js`
 - Loaded dynamically with try-catch fallback
 - Must not break standard deployments if unavailable
 - Separate test suite: `tests/enterprise/`
@@ -914,7 +914,8 @@ deltas under the 'project-documentation' capability.
 
 ---
 
-This constitution establishes the governance framework for the Obsidian AI Assistant
+This constitution establishes the governance framework for the Obsidian AI Agent
 project. All contributors are expected to uphold these principles to ensure a healthy,
 productive, inclusive, and sustainable project environment. Questions or suggestions
 about governance should be raised in GitHub Discussions or via email to the project lead.
+

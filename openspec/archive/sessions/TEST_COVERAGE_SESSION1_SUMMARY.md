@@ -51,7 +51,7 @@
 
 ## 📝 Test Files Created
 
-### 1. `tests/backend/test_https_utils.py` (300+ lines)
+### 1. `tests/agent/test_https_utils.py` (300+ lines)
 
 **Test Classes**:
 
@@ -62,7 +62,7 @@
 
 **Coverage**: Comprehensive testing of HTTPS utilities including middleware, SSL configuration, and edge cases.
 
-### 2. `tests/backend/test_simple_backend.py` (340+ lines)
+### 2. `tests/agent/test_simple_backend.py` (340+ lines)
 
 **Test Classes**:
 

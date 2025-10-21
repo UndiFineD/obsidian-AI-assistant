@@ -1,6 +1,6 @@
 # 📚 Document Archive
 
-This directory contains historical documentation from the Obsidian AI Assistant project.
+This directory contains historical documentation from the Obsidian AI Agent project.
 
 **Archive Created**: October 20, 2025  
 **Total Archived Documents**: 147+  
@@ -178,3 +178,4 @@ If you need to:
 
 **Last Updated**: October 20, 2025  
 **Archive Version**: 1.0
+

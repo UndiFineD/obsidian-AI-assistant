@@ -393,7 +393,7 @@ If you have auto-fix scripts:
 python fix_js_quality.py
 
 # Fix Python formatting (if applicable)
-black backend/
+black agent/
 ```
 
 For markdown, manually adjust or disable rules in `.markdownlint.json`.

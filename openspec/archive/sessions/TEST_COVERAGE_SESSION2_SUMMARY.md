@@ -202,7 +202,7 @@ modules), Session 2 demonstrated precision testing for edge cases.
 
 1. Run coverage report: `python -m pytest --cov=backend.embeddings --cov-report=term-missing`
 2. Identify uncovered lines (error handling, edge cases)
-3. Review existing tests in tests/backend/test_embeddings.py
+3. Review existing tests in tests/agent/test_embeddings.py
 4. Add targeted tests for specific uncovered scenarios
 5. Aim for 90%+ coverage (4% improvement needed)
 

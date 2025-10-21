@@ -128,7 +128,7 @@ def main() -> int:
     )
 
 # Test: Verify affected files exist
-    test_file_exists(project_root / "backend/test.py", "Affected file: backend/test.py")
+    test_file_exists(project_root / "agent/test.py", "Affected file: agent/test.py")
     test_file_exists(project_root / "frontend/app.js", "Affected file: frontend/app.js")
 
     # Test: Validate todo.md completion status

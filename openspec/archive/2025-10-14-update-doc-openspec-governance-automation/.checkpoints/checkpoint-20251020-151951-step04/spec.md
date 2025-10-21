@@ -32,7 +32,7 @@ This change adds the OpenSpec governance automation capability for tracking, val
 
 - AGENTS.md
 
-- backend/backend.py
+- agent/backend.py
 
 ## Acceptance Criteria
 

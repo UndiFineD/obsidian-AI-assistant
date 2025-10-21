@@ -25,11 +25,11 @@ def test_logging_framework_structure():
     """Test that the logging framework files exist and have required components"""
 
     # Check that logging framework file exists
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
     assert logging_framework_path.exists(), "Logging framework file should exist"
 
     # Check that log management API exists
-    log_management_path = Path("backend/log_management.py")
+    log_management_path = Path("agent/log_management.py")
     assert log_management_path.exists(), "Log management API file should exist"
 
     # Read logging framework file
@@ -76,7 +76,7 @@ def test_logging_framework_structure():
 def test_log_management_api_structure():
     """Test that the log management API has required endpoints"""
 
-    log_management_path = Path("backend/log_management.py")
+    log_management_path = Path("agent/log_management.py")
 
     with open(log_management_path, "r") as f:
         api_content = f.read()
@@ -112,13 +112,13 @@ def test_log_management_api_structure():
     print("✓ Log management API structure validation passed")
 
 
-def test_backend_integration():
+def test_agent_integration():
     """Test that backend.py properly integrates the logging framework"""
 
-    backend_path = Path("backend/backend.py")
+    agent_path = Path("agent/backend.py")
 
-    with open(backend_path, "r") as f:
-        backend_content = f.read()
+    with open(agent_path, "r") as f:
+        agent_content = f.read()
 
     # Check for logging imports
     required_imports = [
@@ -134,15 +134,15 @@ def test_backend_integration():
     ]
 
     for import_item in required_imports:
-        assert import_item in backend_content, f"Missing required import: {import_item}"
+        assert import_item in agent_content, f"Missing required import: {import_item}"
 
     # Check for router inclusion
     assert (
-        "app.include_router(log_router)" in backend_content
+        "app.include_router(log_router)" in agent_content
     ), "Log management router not included"
 
     # Check for logging initialization
-    assert "initialize_logging(" in backend_content, "Logging initialization not found"
+    assert "initialize_logging(" in agent_content, "Logging initialization not found"
 
     print("✓ Backend integration validation passed")
 
@@ -150,7 +150,7 @@ def test_backend_integration():
 def test_settings_integration():
     """Test that settings.py includes logging configuration"""
 
-    settings_path = Path("backend/settings.py")
+    settings_path = Path("agent/settings.py")
 
     with open(settings_path, "r") as f:
         settings_content = f.read()
@@ -231,7 +231,7 @@ def test_pii_redaction():
 def test_log_categories_and_levels():
     """Test that log categories and levels are properly defined"""
 
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
 
     with open(logging_framework_path, "r") as f:
         framework_content = f.read()
@@ -274,7 +274,7 @@ def test_log_categories_and_levels():
 def test_performance_tracking():
     """Test performance tracking functionality"""
 
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
 
     with open(logging_framework_path, "r") as f:
         framework_content = f.read()
@@ -298,7 +298,7 @@ def test_performance_tracking():
 def test_audit_and_security_logging():
     """Test audit and security logging capabilities"""
 
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
 
     with open(logging_framework_path, "r") as f:
         framework_content = f.read()
@@ -321,7 +321,7 @@ def test_audit_and_security_logging():
 def test_api_error_handling():
     """Test that log management API has proper error handling"""
 
-    log_management_path = Path("backend/log_management.py")
+    log_management_path = Path("agent/log_management.py")
 
     with open(log_management_path, "r") as f:
         api_content = f.read()
@@ -350,7 +350,7 @@ def test_api_error_handling():
 def test_structured_logging_format():
     """Test structured logging format requirements"""
 
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
 
     with open(logging_framework_path, "r") as f:
         framework_content = f.read()
@@ -381,7 +381,7 @@ def test_structured_logging_format():
 def test_log_rotation_and_cleanup():
     """Test log rotation and cleanup functionality"""
 
-    logging_framework_path = Path("backend/logging_framework.py")
+    logging_framework_path = Path("agent/logging_framework.py")
 
     with open(logging_framework_path, "r") as f:
         framework_content = f.read()
@@ -413,7 +413,7 @@ def run_all_tests():
     try:
         test_logging_framework_structure()
         test_log_management_api_structure()
-        test_backend_integration()
+        test_agent_integration()
         test_settings_integration()
         test_pii_redaction()
         test_log_categories_and_levels()

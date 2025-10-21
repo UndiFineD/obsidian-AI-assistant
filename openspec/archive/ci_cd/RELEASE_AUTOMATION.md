@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide documents the comprehensive release automation system for Obsidian AI Assistant, including automated version
+This guide documents the comprehensive release automation system for Obsidian AI Agent, including automated version
 bumping, changelog generation, asset building, and GitHub releases.
 
 ## 🚀 Release Workflow Features
@@ -104,7 +104,7 @@ Releases are automatically created based on commit activity:
 
 Each release creates three distribution packages:
 
-### 1. Plugin Package (`obsidian-ai-assistant-plugin-vX.Y.Z.zip`)
+### 1. Plugin Package (`obsidian-ai-agent-plugin-vX.Y.Z.zip`)
 
 Contains Obsidian plugin files ready for installation:
 - `main.js` - Core plugin functionality
@@ -113,26 +113,26 @@ Contains Obsidian plugin files ready for installation:
 - Enterprise modules (if available)
 
 **Installation:**
-1. Download and extract to `.obsidian/plugins/obsidian-ai-assistant/`
+1. Download and extract to `.obsidian/plugins/obsidian-ai-agent/`
 2. Enable plugin in Obsidian settings
 
-### 2. Backend Package (`obsidian-ai-assistant-backend-vX.Y.Z.tar.gz`)
+### 2. Backend Package (`obsidian-ai-agent-backend-vX.Y.Z.tar.gz`)
 
 Contains FastAPI backend server and dependencies:
-- `backend/` - Server modules
+- `agent/` - Server modules
 - `requirements.txt` - Python dependencies
 - Setup scripts (`setup.ps1`, `setup.sh`)
 - Documentation
 
 **Installation:**
 ```bash
-tar -xzf obsidian-ai-assistant-backend-vX.Y.Z.tar.gz
+tar -xzf obsidian-ai-agent-backend-vX.Y.Z.tar.gz
 cd backend-source
 ./setup.ps1  # Windows
 ./setup.sh   # Linux/macOS
 ```
 
-### 3. Complete Package (`obsidian-ai-assistant-complete-vX.Y.Z.tar.gz`)
+### 3. Complete Package (`obsidian-ai-agent-complete-vX.Y.Z.tar.gz`)
 
 Full project distribution with both plugin and backend:
 - Complete source code
@@ -142,8 +142,8 @@ Full project distribution with both plugin and backend:
 
 **Installation:**
 ```bash
-tar -xzf obsidian-ai-assistant-complete-vX.Y.Z.tar.gz
-cd obsidian-ai-assistant
+tar -xzf obsidian-ai-agent-complete-vX.Y.Z.tar.gz
+cd obsidian-ai-agent
 ./setup.ps1  # Complete setup
 ```
 
@@ -192,8 +192,8 @@ Commits are automatically categorized using conventional commit patterns:
 The system maintains version consistency across:
 
 1. **`package.json`** - Primary version source
-2. **`.obsidian/plugins/obsidian-ai-assistant/manifest.json`** - Plugin version
-3. **`backend/__init__.py`** - Python package version
+2. **`.obsidian/plugins/obsidian-ai-agent/manifest.json`** - Plugin version
+3. **`agent/__init__.py`** - Python package version
 4. **`setup.py`** - Distribution version (if exists)
 
 ### Version Validation
@@ -437,3 +437,4 @@ A successful release includes:
 ---
 
 *This documentation is automatically maintained as part of the release automation system.*
+

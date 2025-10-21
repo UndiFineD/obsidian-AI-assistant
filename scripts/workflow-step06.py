@@ -507,19 +507,23 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     helpers.write_info("")
 
     # Display detected requirements (for informational purposes)
-    if any([
-        requirements["needs_setup"],
-        requirements["needs_test"],
-        requirements["needs_validation"],
-        requirements["needs_ci"],
-        len(requirements["script_types"]) > 0,
-        len(requirements["purposes"]) > 0,
-    ]):
+    if any(
+        [
+            requirements["needs_setup"],
+            requirements["needs_test"],
+            requirements["needs_validation"],
+            requirements["needs_ci"],
+            len(requirements["script_types"]) > 0,
+            len(requirements["purposes"]) > 0,
+        ]
+    ):
         helpers.write_info("Detected Additional Requirements:")
         if requirements["purposes"]:
             helpers.write_info(f"  Purpose: {', '.join(requirements['purposes'])}")
         if requirements["script_types"]:
-            helpers.write_info(f"  Script Types: {', '.join(requirements['script_types'])}")
+            helpers.write_info(
+                f"  Script Types: {', '.join(requirements['script_types'])}"
+            )
         if requirements["affected_files"]:
             helpers.write_info(
                 f"  Affected Files: {', '.join(requirements['affected_files'][:3])}"
@@ -599,7 +603,7 @@ if __name__ == "__main__":
     # Create minimal test documents for requirements analysis
     (test_dir / "proposal.md").write_text(
         "## Why\n\nTest proposal\n\n## What Changes\n\n"
-        "- **Affected files**: backend/test.py, frontend/app.js\n\n"
+        "- **Affected files**: agent/test.py, frontend/app.js\n\n"
         "## Impact\n\nNeed testing and validation scripts.",
         encoding="utf-8",
     )

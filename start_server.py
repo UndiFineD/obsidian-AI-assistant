@@ -5,7 +5,7 @@
 
 
 import uvicorn
-from backend.backend import app
+from agent.backend import app
 
 #!/usr/bin/env python3
 """Simple backend server starter"""

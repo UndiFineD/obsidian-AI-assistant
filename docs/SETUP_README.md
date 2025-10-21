@@ -1,6 +1,6 @@
-# 🚀 Obsidian AI Assistant - Complete Setup Guide
+# 🚀 Obsidian AI Agent - Complete Setup Guide
 
-This guide provides comprehensive setup instructions for the Obsidian AI Assistant, including automated scripts, manual
+This guide provides comprehensive setup instructions for the Obsidian AI Agent, including automated scripts, manual
 installation, and advanced configuration options.
 
 ## 🎯 Quick Start Options
@@ -207,7 +207,7 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 ### Step 3: Plugin Installation
 
-- 📁 Creates `.obsidian/plugins/obsidian-ai-assistant/` directory
+- 📁 Creates `.obsidian/plugins/obsidian-ai-agent/` directory
 
 - 📄 Copies 8 essential plugin files (25+ KB total)
 
@@ -230,7 +230,7 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 The setup script installs these files to your vault:
 
 ```text
-.obsidian/plugins/obsidian-ai-assistant/
+.obsidian/plugins/obsidian-ai-agent/
 ├── manifest.json          (306 bytes)   - Plugin metadata
 ├── main.js                (7.4 KB)      - Core plugin logic
 ├── styles.css             (3.0 KB)      - Plugin styling
@@ -414,7 +414,7 @@ pip install fastapi uvicorn python-multipart
 
 # Start server manually
 
-python -m uvicorn backend.backend:app --host 127.0.0.1 --port 8000 --reload
+python -m uvicorn agent.agent:app --host 127.0.0.1 --port 8000 --reload
 
 # Test health endpoint
 
@@ -434,3 +434,4 @@ If you encounter issues:
 1. Verify all prerequisites are met
 
 1. Try running setup with `-Force` parameter
+

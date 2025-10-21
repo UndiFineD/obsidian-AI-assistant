@@ -14,7 +14,7 @@ Automated dependency security scan detected 29 security issues in project depend
 ## Context
 - Issue created by GitHub Actions security scan workflow
 - Reports available: Safety scan, Bandit analysis, outdated packages, dependency tree
-- Workflow run: [#1](https://github.com/UndiFineD/obsidian-AI-assistant/actions/runs/18592976232)
+- Workflow run: [#1](https://github.com/UndiFineD/obsidian-ai-agent/actions/runs/18592976232)
 
 ## Alternatives Considered
 - Ignore vulnerabilities (unacceptable)
@@ -30,3 +30,4 @@ Automated dependency security scan detected 29 security issues in project depend
 - No new security issues introduced
 - All tests pass after updates
 - Documentation updated
+

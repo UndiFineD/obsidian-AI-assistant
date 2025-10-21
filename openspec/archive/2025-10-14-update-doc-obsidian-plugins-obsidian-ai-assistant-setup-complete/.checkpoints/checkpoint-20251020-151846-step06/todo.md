@@ -1,7 +1,7 @@
-# TODO: 2025 10 14 Update Doc Obsidian Plugins Obsidian Ai Assistant Setup Complete
+# TODO: 2025 10 14 Update Doc Obsidian Plugins Obsidian AI Agent Setup Complete
 
 ## Change Information
-- **Change ID**: `2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete`
+- **Change ID**: `2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete`
 - **Created**: 2025-10-20
 - **Owner**: @Keimpe de Jong
 - **Status**: In Progress
@@ -104,15 +104,15 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/todo.md` (this file)
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/proposal.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/spec.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/tasks.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/test_plan.md`
-- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete/retrospective.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/todo.md` (this file)
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/proposal.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/spec.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/tasks.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/test_plan.md`
+- [ ] `openspec/changes/2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 
@@ -140,3 +140,4 @@
 - **Pull Request**: #XXX
 - **Related Changes**:
     - `openspec/changes/<other-change-id>/`
+

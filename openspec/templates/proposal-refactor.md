@@ -1,5 +1,7 @@
 # Proposal: [Refactoring Title]
 
+## Why
+
 ## Context
 
 **Technical Debt**: Describe the code quality issues being addressed.

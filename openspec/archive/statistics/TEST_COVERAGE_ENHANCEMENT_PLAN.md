@@ -60,8 +60,8 @@
 **Target**: Increase overall coverage from 59% → 70%
 
 1. **Create Missing Test Files** ⚫
-   - `tests/backend/test_https_utils.py` (0% → 85%)
-   - `tests/backend/test_simple_backend.py` (0% → 85%)
+   - `tests/agent/test_https_utils.py` (0% → 85%)
+   - `tests/agent/test_simple_backend.py` (0% → 85%)
 
 1. **Improve Near-Target Modules** 🟢
    - `voice.py`: 86% → 90% (add error path tests)
@@ -183,8 +183,8 @@
 ### Immediate (This Session)
 
 1. ✅ Create coverage enhancement plan (this document)
-2. 🎯 Create `tests/backend/test_https_utils.py`
-3. 🎯 Create `tests/backend/test_simple_backend.py`
+2. 🎯 Create `tests/agent/test_https_utils.py`
+3. 🎯 Create `tests/agent/test_simple_backend.py`
 4. 🎯 Improve `voice.py` coverage (86% → 90%)
 
 ### Short-term (Next 2 Sessions)
@@ -205,9 +205,9 @@
 
 ### Test File Templates
 
-- Unit test template: `tests/backend/test_modelmanager.py` (94% coverage)
+- Unit test template: `tests/agent/test_modelmanager.py` (94% coverage)
 - Integration test template: `tests/integration/test_full_workflow.py`
-- Async test template: `tests/backend/test_backend_comprehensive.py`
+- Async test template: `tests/agent/test_agent_comprehensive.py`
 
 ### Coverage Analysis
 

@@ -13,7 +13,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
 # Import the app and client for true API testing
-from backend.backend import app
+from agent.backend import app
 
 # Add project paths
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -38,7 +38,7 @@ class TestServiceInitialization:
             yield {
                 "models_dir": temp_path / "backend" / "models",
                 "cache_dir": temp_path / "backend" / "cache",
-                "vector_db_dir": temp_path / "backend/vector_db",
+                "vector_db_dir": temp_path / "agent/vector_db",
                 "vault_dir": temp_path / "vault",
             }
 
@@ -52,7 +52,7 @@ class TestServiceInitialization:
     #          patch('backend.embeddings.EmbeddingsManager') as MockEM, \
     #          patch('backend.indexing.VaultIndexer') as MockVI, \
     #          patch('backend.caching.CacheManager') as MockCM, \
-    #          patch('backend.backend.get_settings') as mock_settings:
+    #          patch('agent.agent.get_settings') as mock_settings:
     #
     #         # Configure settings mock
     #         settings_mock = Mock()
@@ -67,7 +67,7 @@ class TestServiceInitialization:
     #         MockCM.return_value = Mock()
     #
     #         # Import and initialize services
-    #         from backend.backend import init_services
+    #         from agent.backend import init_services
     #
     #         init_services()
     #
@@ -101,7 +101,7 @@ class TestServiceInitialization:
             MockVI.return_value = mock_vi
             MockCM.return_value = mock_cm
 
-            from backend.backend import init_services
+            from agent.backend import init_services
 
             init_services()
 
@@ -127,7 +127,7 @@ class TestServiceInitialization:
     #         MockVI.return_value = Mock()
     #         MockCM.return_value = Mock()
     #
-    #         from backend.backend import init_services
+    #         from agent.backend import init_services
     #
     #         # Should not crash on partial failure
     #         init_services()
@@ -165,7 +165,7 @@ class TestConfigurationIntegration:
     #         mock_get_settings.return_value = settings_mock
     #
     #         # Initialize services
-    #         from backend.backend import init_services
+    #         from agent.backend import init_services
     #         init_services()
     #
     #         # Verify services used settings
@@ -177,8 +177,8 @@ class TestConfigurationIntegration:
     # async def test_configuration_reload_integration(self, client):
     #     """Test configuration reload affects all services."""
     #     with patch('backend.settings.reload_settings') as mock_reload, \
-    #          patch('backend.backend.model_manager'), \
-    #          patch('backend.backend.emb_manager'):
+    #          patch('agent.agent.model_manager'), \
+    #          patch('agent.agent.emb_manager'):
     #
     #         # Configure reload mock
     #         new_settings = Mock()
@@ -237,7 +237,7 @@ class TestCrossServiceCommunication:
     # @pytest.mark.asyncio
     # async def test_cache_workflow_integration(self, client):
     #     """Test cache integration across services."""
-    #     with patch('backend.performance.get_cache_manager') as mock_get_cache, patch('backend.backend.model_manager') as mock_mm:
+    #     with patch('backend.performance.get_cache_manager') as mock_get_cache, patch('agent.agent.model_manager') as mock_mm:
     #         # First call: cache miss
     #         mock_cache = Mock()
     #         mock_cache.get.return_value = None
@@ -266,7 +266,7 @@ class TestCrossServiceCommunication:
     # @pytest.mark.asyncio
     # async def test_cache_invalidation_on_reindex(self, client):
     #     """Test that reindexing clears the embeddings collection."""
-    #     with patch('backend.backend.vault_indexer') as mock_vi, patch('backend.backend.emb_manager') as mock_em:
+    #     with patch('agent.agent.vault_indexer') as mock_vi, patch('agent.agent.emb_manager') as mock_em:
     #
     #         mock_vi.reindex.return_value = {"files": 5, "chunks": 25}
     #         # Ensure clear_collection exists on the mock
@@ -313,7 +313,7 @@ class TestCrossServiceCommunication:
     # @pytest.mark.asyncio
     # async def test_model_and_embeddings_context_integration(self, client):
     #     """Test integration between model generation and embeddings context."""
-    #     with patch('backend.backend.model_manager') as mock_mm, patch('backend.backend.emb_manager') as mock_em:
+    #     with patch('agent.agent.model_manager') as mock_mm, patch('agent.agent.emb_manager') as mock_em:
     #
     #         # Configure embeddings to provide context
     #         context_results = [

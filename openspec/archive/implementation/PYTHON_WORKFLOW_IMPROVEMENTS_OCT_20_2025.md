@@ -18,7 +18,7 @@ building upon the Phase 1 and Phase 2 enhancements completed earlier.
 - **`scripts/workflow-step01.py`**:
     - Added `release_type` parameter (optional: `patch|minor|major`)
     - Integrated `version_manager.py` for semantic version bumping
-    - Updates `package.json`, `manifest.json`, `backend/__init__.py`, `setup.py`
+    - Updates `package.json`, `manifest.json`, `agent/__init__.py`, `setup.py`
     - Always creates/updates `version_snapshot.md` with current and new versions
     - Full dry-run support (shows version bump preview without modifying files)
 

@@ -12,7 +12,7 @@ import pytest
 import pytest_asyncio
 
 # Import FastAPI app
-from backend.backend import app
+from agent.backend import app
 
 
 @pytest_asyncio.fixture
@@ -32,7 +32,7 @@ async def client():
         import hmac
         from hashlib import sha256
 
-        from backend.settings import get_settings
+        from agent.settings import get_settings
 
         secret = get_settings().csrf_secret.encode()
         csrf_token = hmac.new(secret, b"csrf", sha256).hexdigest()
@@ -52,7 +52,7 @@ async def client():
 
 
 @pytest_asyncio.fixture(scope="session")
-async def backend_available():
+async def agent_available():
     """Check if backend health endpoint is reachable."""
     try:
         async with httpx.AsyncClient(base_url="http://localhost:8000") as client:
@@ -70,10 +70,10 @@ class TestAPIIntegration:
     # @pytest.fixture
     # def mock_all_services(self):
     #     """Mock all backend services for API testing using standardized patterns."""
-    #     with patch("backend.backend.model_manager") as mock_mm, patch(
-    #         "backend.backend.emb_manager"
-    #     ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
-    #         "backend.backend.cache_manager"
+    #     with patch("agent.agent.model_manager") as mock_mm, patch(
+    #         "agent.agent.emb_manager"
+    #     ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi, patch(
+    #         "agent.agent.cache_manager"
     #     ) as mock_cm:
     #
     #         # Configure realistic service responses matching actual API behavior
@@ -121,7 +121,7 @@ class TestAPIIntegration:
         print("✓ Health endpoint integration test passed")
 
     @pytest.mark.asyncio
-    async def test_ask_endpoint_integration(self, client, backend_available):
+    async def test_ask_endpoint_integration(self, client, agent_available):
         """Test complete ask endpoint workflow using actual backend services.
 
         Expect 500 if no valid model.
@@ -148,7 +148,7 @@ class TestAPIIntegration:
 
     @pytest.mark.asyncio
     async def test_reindex_endpoint_integration(
-        self, client, backend_available, mock_all_services
+        self, client, agent_available, mock_all_services
     ):
         """Test reindex endpoint integration."""
         request_data = {"vault_path": "./test_vault"}
@@ -222,7 +222,7 @@ class TestAPIIntegration:
     @pytest.mark.asyncio
     async def test_config_reload_endpoint_integration(self, client):
         """Test config reload endpoint integration."""
-        with patch("backend.backend.reload_settings") as mock_reload:
+        with patch("agent.agent.reload_settings") as mock_reload:
             # Configure settings mock
             settings_mock = Mock()
             settings_mock.dict.return_value = {
@@ -244,7 +244,7 @@ class TestAPIIntegration:
     @pytest.mark.asyncio
     async def test_config_update_endpoint_integration(self, client):
         """Test config update endpoint integration."""
-        with patch("backend.backend.update_settings") as mock_update:
+        with patch("agent.agent.update_settings") as mock_update:
             # Configure settings mock
             updated_settings = Mock()
             updated_settings.dict.return_value = {
@@ -297,8 +297,8 @@ class TestAPIErrorHandling:
     @pytest.mark.asyncio
     async def test_service_failure_error_handling(self, client):
         """Test API error handling when services fail."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
         ) as mock_em:
             # Configure service to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
@@ -332,7 +332,7 @@ class TestAPIErrorHandling:
     @pytest.mark.asyncio
     async def test_config_endpoint_error_handling(self, client):
         """Test config endpoint error handling."""
-        with patch("backend.backend.reload_settings") as mock_reload:
+        with patch("agent.agent.reload_settings") as mock_reload:
             # Configure reload to fail
             mock_reload.side_effect = Exception("Settings file not found")
 

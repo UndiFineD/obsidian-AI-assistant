@@ -24,11 +24,11 @@ def test_security_hardening_structure():
     """Test that the security hardening files exist and have required components"""
 
     # Check that security hardening file exists
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
     assert security_hardening_path.exists(), "Security hardening file should exist"
 
     # Check that security management API exists
-    security_management_path = Path("backend/security_management.py")
+    security_management_path = Path("agent/security_management.py")
     assert (
         security_management_path.exists()
     ), "Security management API file should exist"
@@ -68,7 +68,7 @@ def test_security_hardening_structure():
 def test_security_management_api_structure():
     """Test that the security management API has required endpoints"""
 
-    security_management_path = Path("backend/security_management.py")
+    security_management_path = Path("agent/security_management.py")
 
     with open(security_management_path, "r") as f:
         api_content = f.read()
@@ -112,13 +112,13 @@ def test_security_management_api_structure():
     print("✓ Security management API structure validation passed")
 
 
-def test_backend_security_integration():
+def test_agent_security_integration():
     """Test that backend.py properly integrates the security hardening"""
 
-    backend_path = Path("backend/backend.py")
+    agent_path = Path("agent/backend.py")
 
-    with open(backend_path, "r") as f:
-        backend_content = f.read()
+    with open(agent_path, "r") as f:
+        agent_content = f.read()
 
     # Check for security imports
     required_imports = [
@@ -130,20 +130,20 @@ def test_backend_security_integration():
     ]
 
     for import_item in required_imports:
-        assert import_item in backend_content, f"Missing required import: {import_item}"
+        assert import_item in agent_content, f"Missing required import: {import_item}"
 
     # Check for router inclusion
     assert (
-        "app.include_router(security_router)" in backend_content
+        "app.include_router(security_router)" in agent_content
     ), "Security management router not included"
 
     # Check for middleware initialization
     assert (
-        "create_security_hardening_middleware" in backend_content
+        "create_security_hardening_middleware" in agent_content
     ), "Security middleware initialization not found"
 
     # Check for security level configuration
-    assert "SECURITY_LEVEL" in backend_content, "Security level configuration not found"
+    assert "SECURITY_LEVEL" in agent_content, "Security level configuration not found"
 
     print("✓ Backend security integration validation passed")
 
@@ -151,7 +151,7 @@ def test_backend_security_integration():
 def test_settings_security_integration():
     """Test that settings.py includes security configuration"""
 
-    settings_path = Path("backend/settings.py")
+    settings_path = Path("agent/settings.py")
 
     with open(settings_path, "r") as f:
         settings_content = f.read()
@@ -220,7 +220,7 @@ def test_settings_security_integration():
 def test_security_levels_and_methods():
     """Test that security levels and authentication methods are properly defined"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -247,7 +247,7 @@ def test_security_levels_and_methods():
 def test_session_management():
     """Test session management functionality"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -287,7 +287,7 @@ def test_session_management():
 def test_api_key_management():
     """Test API key management functionality"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -327,7 +327,7 @@ def test_api_key_management():
 def test_threat_detection():
     """Test threat detection functionality"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -370,7 +370,7 @@ def test_threat_detection():
 def test_request_signing():
     """Test request signing functionality"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -399,7 +399,7 @@ def test_request_signing():
 def test_security_middleware():
     """Test security middleware functionality"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -437,7 +437,7 @@ def test_security_middleware():
 def test_error_handling_integration():
     """Test that security features integrate with error handling"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -466,7 +466,7 @@ def test_error_handling_integration():
 def test_logging_integration():
     """Test that security features integrate with logging framework"""
 
-    security_hardening_path = Path("backend/security_hardening.py")
+    security_hardening_path = Path("agent/security_hardening.py")
 
     with open(security_hardening_path, "r") as f:
         hardening_content = f.read()
@@ -496,7 +496,7 @@ def test_logging_integration():
 def test_configuration_management():
     """Test security configuration management"""
 
-    security_management_path = Path("backend/security_management.py")
+    security_management_path = Path("agent/security_management.py")
 
     with open(security_management_path, "r") as f:
         management_content = f.read()
@@ -528,7 +528,7 @@ def test_configuration_management():
 def test_compliance_and_audit():
     """Test compliance and audit functionality"""
 
-    security_management_path = Path("backend/security_management.py")
+    security_management_path = Path("agent/security_management.py")
 
     with open(security_management_path, "r") as f:
         management_content = f.read()
@@ -567,7 +567,7 @@ def run_all_tests():
     try:
         test_security_hardening_structure()
         test_security_management_api_structure()
-        test_backend_security_integration()
+        test_agent_security_integration()
         test_settings_security_integration()
         test_security_levels_and_methods()
         test_session_management()

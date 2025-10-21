@@ -1,7 +1,7 @@
 # Platform Documentation Overview
 
 This document describes the platform context, supported environments, and integration points
-for the Obsidian AI Assistant project. It is governed by OpenSpec and must be updated
+for the Obsidian AI Agent project. It is governed by OpenSpec and must be updated
 via change proposals for material changes.
 
 ## Supported Platforms
@@ -53,3 +53,4 @@ via change proposals for material changes.
 ---
 
 **Last Updated:** October 16, 2025
+

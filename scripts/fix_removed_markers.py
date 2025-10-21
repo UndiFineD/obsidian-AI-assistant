@@ -7,15 +7,15 @@ from pathlib import Path
 
 # Files that contain the corrupted marker
 FILES_TO_FIX = [
-    "backend/backend.py",
-    "backend/enterprise_integration.py",
+    "agent/backend.py",
+    "agent/enterprise_integration.py",
     "scripts/auto_fix_issues.py",
-    "tests/backend/test_backend.py",
-    "tests/backend/test_enterprise_auth.py",
-    "tests/backend/test_indexing.py",
-    "tests/backend/test_indexing_comprehensive.py",
-    "tests/backend/test_modelmanager.py",
-    "tests/backend/test_modelmanager_comprehensive.py"
+    "tests/agent/test_backend.py",
+    "tests/agent/test_enterprise_auth.py",
+    "tests/agent/test_indexing.py",
+    "tests/agent/test_indexing_comprehensive.py",
+    "tests/agent/test_modelmanager.py",
+    "tests/agent/test_modelmanager_comprehensive.py"
 ]
 
 # Mapping of variable names to replacement values

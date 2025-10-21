@@ -1,4 +1,4 @@
-# Cross-Validation Report for 2025-10-14-update-doc-obsidian-plugins-obsidian-ai-assistant-setup
+# Cross-Validation Report for 2025-10-14-update-doc-obsidian-plugins-obsidian-ai-agent-setup
 
 Overall: FAIL
 
@@ -9,7 +9,7 @@ Overall: FAIL
 
 ## Warnings
 
--   → Missing in tasks.md: 'Add a documentation governance requirement for `.obsidian/plugins/obsidian-ai-assistant/SETUP.md` under the `project-documentation` capability.'
+-   → Missing in tasks.md: 'Add a documentation governance requirement for `.obsidian/plugins/obsidian-ai-agent/SETUP.md` under the `project-documentation` capability.'
 -   → Missing in tasks.md: 'Track material updates via OpenSpec proposals (no functional code changes).'
 - Acceptance criteria may lack test coverage: 2 item(s)
 -   → Possibly untested: 'AC-01: ...'
@@ -24,3 +24,4 @@ Overall: FAIL
 - spec_to_test_plan: []
 - tasks_to_spec: []
 - orphaned_references: []
+

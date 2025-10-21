@@ -1,4 +1,4 @@
-# Makefile for Obsidian AI Assistant
+# Makefile for Obsidian AI Agent
 # Prov	@echo "BATS not installed. Install with package manager or from github.com/bats-core/bats-core";des convenient commands for development, testing, and maintenance
 
 .PHONY: help install install-dev test test-backend test-setup test-coverage lint format clean setup-models run-backend build-plugin
@@ -166,10 +166,10 @@ docs:
 
 # Docker targets (if Docker is used in the future)
 docker-build:
-	docker build -t obsidian-ai-assistant .
+	docker build -t obsidian-ai-agent .
 
 docker-run:
-	docker run -p 8000:8000 obsidian-ai-assistant
+	docker run -p 8000:8000 obsidian-ai-agent
 
 # Backup and restore
 backup:
@@ -185,7 +185,7 @@ backup:
 
 # Information targets
 info:
-	@echo "=== Obsidian AI Assistant Development Info ==="
+	@echo "=== Obsidian AI Agent Development Info ==="
 	@echo "Python version: $(shell python --version 2>&1)"
 	@echo "Pip version: $(shell pip --version)"
 	@echo "Virtual environment: $(shell echo $$VIRTUAL_ENV)"

@@ -1,12 +1,12 @@
 """
-Obsidian AI Assistant Test Suite
+Obsidian AI Agent Test Suite
 
-This package contains comprehensive tests for the Obsidian AI Assistant.
+This package contains comprehensive tests for the Obsidian AI Agent.
 
 Test Organization:
-- backend/: Backend module tests
+- agent/: Backend module tests
 - integration/: Integration and end-to-end tests
-.obsidian/plugins/obsidian-ai-assistant/: Plugin-specific tests
+.obsidian/plugins/obsidian-ai-agent/: Plugin-specific tests
 - Root level: Utility and general tests
 
 Run all tests with:
@@ -17,4 +17,4 @@ Or use pytest directly:
 """
 
 __version__ = "1.0.0"
-__author__ = "Obsidian AI Assistant Team"
+__author__ = "Obsidian AI Agent Team"

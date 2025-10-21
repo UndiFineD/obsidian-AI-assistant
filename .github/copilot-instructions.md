@@ -1,8 +1,8 @@
-# Obsidian AI Assistant - AI Agent Instructions
+# Obsidian AI Agent - AI Agent Instructions
 
 ## Architecture Overview
 
-This is a **modular, service-oriented offline-first AI assistant** for Obsidian with separated concerns:
+This is a **modular, service-oriented offline-first AI agent** for Obsidian with separated concerns:
 
 - **Backend**: FastAPI server (`backend/`) with REST APIs, vector search (ChromaDB), LLM routing, caching layers
 
@@ -239,7 +239,7 @@ cd backend && python -m uvicorn backend:app --host 0.0.0.0 --port 8000 --workers
 
 # Process management with systemd/supervisor
 
-sudo systemctl start obsidian-ai-assistant
+sudo systemctl start obsidian-ai-agent
 
 # Health monitoring
 
@@ -270,18 +270,18 @@ CMD ["uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-    name: obsidian-ai-assistant
+    name: obsidian-ai-agent
 spec:
     replicas: 3
     selector:
         matchLabels:
-            app: obsidian-ai-assistant
+            app: obsidian-ai-agent
     template:
         spec:
             containers:
 
 - name: backend
-                  image: obsidian-ai-assistant:latest
+                  image: obsidian-ai-agent:latest
                   ports:
 
 - containerPort: 8000
@@ -307,7 +307,7 @@ spec:
 
 ```javascript
 // Plugin initialization with backend discovery
-class ObsidianAIAssistant extends Plugin {
+class ObsidianAIAgent extends Plugin {
     async onload() {
         // Auto-discover backend endpoint
         this.backendClient = new BackendClient({
@@ -1263,3 +1263,4 @@ This file is governed by OpenSpec documentation requirements:
 - See `README.md` and `AGENTS.md` for compliance details
 
 Refer to `openspec/specs/project-documentation.md` for full specification.
+

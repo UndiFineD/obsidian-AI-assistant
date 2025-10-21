@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Test Runner for Obsidian AI Assistant
+Comprehensive Test Runner for Obsidian AI Agent
 Provides numbered tests with timing and colored status results.
 """
 
@@ -143,7 +143,7 @@ class ComprehensiveTestRunner:
         print("\n" + "=" * 80)
         print(
             Colors.colorize(
-                "🧪 OBSIDIAN AI ASSISTANT - COMPREHENSIVE TEST SUITE",
+                "🧪 Obsidian AI Agent - COMPREHENSIVE TEST SUITE",
                 Colors.BOLD + Colors.CYAN,
             )
         )
@@ -491,8 +491,8 @@ def cleanup_old_test_files():
 
     files_to_remove = [
         # Redundant backend tests
-        "backend/test_caching_extended.py",
-        "backend/test_modelmanager_fixed.py",
+        "agent/test_caching_extended.py",
+        "agent/test_modelmanager_fixed.py",
         "test_plugin.py",
         "test_server.py",
     ]

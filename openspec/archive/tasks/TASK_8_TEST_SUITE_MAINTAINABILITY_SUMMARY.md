@@ -32,7 +32,7 @@
 
 ### 1. Voice Transcribe Tests (7 failures → 9 passing)
 
-**File**: `tests/backend/test_api_voice_transcribe.py`
+**File**: `tests/agent/test_api_voice_transcribe.py`
 
 **Issue**: Tests expected only `[200, 400]` status codes, but endpoint returns `422` for validation errors (Pydantic).
 
@@ -65,7 +65,7 @@ if response.status_code != 200:
 
 ### 2. Security Hardening Tests (18 failures → 18 skipped)
 
-**File**: `tests/backend/test_security_hardening_advanced.py`
+**File**: `tests/agent/test_security_hardening_advanced.py`
 
 **Issue**: Tests expected APIs that don't match current implementation:
 
@@ -103,7 +103,7 @@ that are partially implemented or have API mismatches.
 
 ### 3. JavaScript Code Quality (2 failures → 20 passing)
 
-**Files**: All 13 JavaScript files in `.obsidian/plugins/obsidian-ai-assistant/`
+**Files**: All 13 JavaScript files in `.obsidian/plugins/obsidian-ai-agent/`
 
 **Issue**:
 
@@ -130,7 +130,7 @@ that are partially implemented or have API mismatches.
 - No updates needed (already thorough)
 
 ### Test Organization
-- Backend tests: `tests/backend/` (85%+ coverage)
+- Backend tests: `tests/agent/` (85%+ coverage)
 - Plugin tests: `tests/plugin/` (90%+ coverage)  
 - Integration tests: `tests/integration/` (70%+ coverage)
 - Total test files: 46 Python files
@@ -199,13 +199,13 @@ that are partially implemented or have API mismatches.
 ## 📦 Files Changed
 
 ### Tests Modified
-1. `tests/backend/test_api_voice_transcribe.py` (7 tests fixed)
-2. `tests/backend/test_security_hardening_advanced.py` (18 tests skipped with docs)
-3. `tests/obsidian-ai-assistant/test_js_code_quality.py` (verified passing)
+1. `tests/agent/test_api_voice_transcribe.py` (7 tests fixed)
+2. `tests/agent/test_security_hardening_advanced.py` (18 tests skipped with docs)
+3. `tests/obsidian-ai-agent/test_js_code_quality.py` (verified passing)
 
 ### Source Files Fixed
 
-- `.obsidian/plugins/obsidian-ai-assistant/*.js` (13 files)
+- `.obsidian/plugins/obsidian-ai-agent/*.js` (13 files)
     - `adminDashboard.js`
     - `analyticsPane.js`
     - `backendClient.js` ← Primary issue (line 49)
@@ -295,4 +295,5 @@ that are partially implemented or have API mismatches.
 
 *Last Updated: October 17, 2025*  
 *Author: AI Assistant (Task Completion)*  
-*Project: Obsidian AI Assistant*
+*Project: Obsidian AI Agent*
+

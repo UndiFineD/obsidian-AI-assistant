@@ -1,7 +1,7 @@
 # OpenSpec: Project Workflow Specification
 
 ## Overview
-This OpenSpec defines the standardized workflow for all major changes and contributions to the Obsidian AI Assistant project. It ensures traceability, quality, and repeatability for every feature, fix, or refactor.
+This OpenSpec defines the standardized workflow for all major changes and contributions to the Obsidian AI Agent project. It ensures traceability, quality, and repeatability for every feature, fix, or refactor.
 
 ---
 
@@ -96,7 +96,7 @@ python scripts/openspec_new_change.py --id 2025-10-18-my-new-change --title "My 
 
 ### 7. Implementation [HARD REQUIREMENT]
 **Purpose:** Make code changes as defined in the spec and tasks.
-**Artifacts:** `backend/`, `plugin/`, `tests/`, etc.
+**Artifacts:** `agent/`, `plugin/`, `tests/`, etc.
 **Contents:** Code, refactors, documentation updates, commit messages.
 
 ### 8. Test Run & Validation [HARD REQUIREMENT]
@@ -185,3 +185,4 @@ openspec/
 - `docs/PROJECT_SPECIFICATION.md`
 - `openspec/AGENTS.md`
 - `openspec/CONSTITUTION.md`
+

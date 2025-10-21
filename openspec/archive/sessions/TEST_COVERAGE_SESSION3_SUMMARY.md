@@ -279,7 +279,7 @@ cover previously untested code paths.
 **Approach**:
 1. Run coverage report: `python -m pytest --cov=backend.settings --cov-report=term-missing`
 2. Identify uncovered lines (configuration loading, validation, env vars)
-3. Review existing tests in tests/backend/test_settings.py
+3. Review existing tests in tests/agent/test_settings.py
 4. Add targeted tests for specific uncovered scenarios
 5. Aim for 85%+ coverage (2% improvement needed)
 

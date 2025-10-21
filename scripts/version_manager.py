@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Version Management Script for Obsidian AI Assistant
+Version Management Script for Obsidian AI Agent
 Handles version bumping, validation, and synchronization across all project files.
 """
 
@@ -20,8 +20,8 @@ class VersionManager:
         self.project_root = Path(project_root).resolve()
         self.version_files = [
             "package.json",
-            ".obsidian/plugins/obsidian-ai-assistant/manifest.json",
-            "backend/__init__.py",
+            ".obsidian/plugins/obsidian-ai-agent/manifest.json",
+            "agent/__init__.py",
             "setup.py",
         ]
 
@@ -182,7 +182,7 @@ class VersionManager:
     def update_manifest_json(self, version: str) -> bool:
         """Update version in Obsidian plugin manifest."""
         manifest_path = (
-            self.project_root / ".obsidian/plugins/obsidian-ai-assistant/manifest.json"
+            self.project_root / ".obsidian/plugins/obsidian-ai-agent/manifest.json"
         )
         if not manifest_path.exists():
             return False
@@ -203,7 +203,7 @@ class VersionManager:
 
     def update_python_init(self, version: str) -> bool:
         """Update version in Python __init__.py file."""
-        init_path = self.project_root / "backend/__init__.py"
+        init_path = self.project_root / "agent/__init__.py"
         if not init_path.exists():
             return False
 
@@ -259,7 +259,7 @@ class VersionManager:
 
         results["package.json"] = self.update_package_json(version)
         results["manifest.json"] = self.update_manifest_json(version)
-        results["backend/__init__.py"] = self.update_python_init(version)
+        results["agent/__init__.py"] = self.update_python_init(version)
         results["setup.py"] = self.update_setup_py(version)
 
         return results
@@ -279,8 +279,7 @@ class VersionManager:
         # Check manifest.json
         try:
             manifest_path = (
-                self.project_root
-                / ".obsidian/plugins/obsidian-ai-assistant/manifest.json"
+                self.project_root / ".obsidian/plugins/obsidian-ai-agent/manifest.json"
             )
             with open(manifest_path, "r") as f:
                 data = json.load(f)
@@ -290,14 +289,14 @@ class VersionManager:
 
         # Check __init__.py
         try:
-            with open(self.project_root / "backend/__init__.py", "r") as f:
+            with open(self.project_root / "agent/__init__.py", "r") as f:
                 content = f.read()
                 match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
-                versions["backend/__init__.py"] = (
+                versions["agent/__init__.py"] = (
                     match.group(1) if match else "NOT_FOUND"
                 )
         except:
-            versions["backend/__init__.py"] = "ERROR"
+            versions["agent/__init__.py"] = "ERROR"
 
         # Check setup.py
         try:

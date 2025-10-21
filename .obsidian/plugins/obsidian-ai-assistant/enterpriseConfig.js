@@ -1,5 +1,5 @@
 // EnterpriseConfig.js
-// Provides enterprise configuration management for Obsidian AI Assistant plugin
+// Provides enterprise configuration management for Obsidian AI Agent plugin
 
 class EnterpriseConfig {
     constructor(plugin) {
@@ -37,3 +37,4 @@ class EnterpriseConfig {
 }
 
 module.exports = EnterpriseConfig;
+

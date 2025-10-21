@@ -1,4 +1,4 @@
-# tests/integration/test_backend_integration.py
+# tests/integration/test_agent_integration.py
 """
 Simplified integration tests that validate backend functionality
 without complex mocking that conflicts with real service initialization.
@@ -17,12 +17,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 class TestBackendHealthAndBasics:
     """Test basic backend health and initialization."""
 
-    def test_backend_module_imports(self):
+    def test_agent_module_imports(self):
         """Test that all backend modules can be imported successfully."""
         import importlib.util
 
         modules = [
-            "backend.backend",
+            "agent.agent",
             "backend.modelmanager",
             "backend.embeddings",
             "backend.indexing",
@@ -39,12 +39,12 @@ class TestBackendHealthAndBasics:
 
     def test_fastapi_app_creation(self):
         """Test that FastAPI app is created correctly."""
-        from backend.backend import app
+        from agent.backend import app
 
         assert app is not None
         # Accept both standard and enterprise edition titles
         assert (
-            "Obsidian AI Assistant" in app.title
+            "Obsidian AI Agent" in app.title
         )  # Accepts both standard and enterprise edition
         print("✓ FastAPI app created successfully")
 
@@ -52,15 +52,15 @@ class TestBackendHealthAndBasics:
     def test_service_initialization_runs(self):
         """Test that service initialization runs without crashing."""
         # Clear any existing services first
-        import backend.backend
+        import agent.backend
 
-        backend.backend.model_manager = None
-        backend.backend.emb_manager = None
-        backend.backend.vault_indexer = None
-        backend.backend.cache_manager = None
+        agent.agent.model_manager = None
+        agent.agent.emb_manager = None
+        agent.agent.vault_indexer = None
+        agent.agent.cache_manager = None
 
         try:
-            from backend.backend import init_services
+            from agent.backend import init_services
 
             init_services()
             print("✓ Service initialization completed without errors")
@@ -76,13 +76,13 @@ class TestBackendServiceAccess:
 
     def setUp(self):
         """Initialize services before tests."""
-        from backend.backend import init_services
+        from agent.backend import init_services
 
         init_services()
 
     def test_service_singletons_exist(self):
         """Test that service singletons are accessible."""
-        from backend import backend
+        from agent import agentimport backend
 
         # Services might be None if initialization failed in test env, that's OK
         print(f"✓ model_manager: {type(backend.model_manager)}")
@@ -99,7 +99,7 @@ class TestBackendServiceAccess:
     def test_settings_access(self):
         """Test that settings can be loaded."""
         try:
-            from backend.settings import get_settings
+            from agent.settings import get_settings
 
             settings = get_settings()
 
@@ -121,10 +121,10 @@ class TestMockedWorkflowIntegration:
     @pytest.fixture
     def mock_services(self):
         """Create comprehensive service mocks."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
-            "backend.backend.cache_manager"
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi, patch(
+            "agent.agent.cache_manager"
         ) as mock_cm:
 
             # Configure realistic mock responses using standardized patterns
@@ -156,7 +156,7 @@ class TestMockedWorkflowIntegration:
 
     def test_ask_workflow_integration(self, mock_services):
         """Test complete ask workflow with mocked services."""
-        from backend.backend import AskRequest, _ask_impl
+        from agent.backend import AskRequest, _ask_impl
 
         request = AskRequest(
             question="What is machine learning?",
@@ -183,7 +183,7 @@ class TestMockedWorkflowIntegration:
         """Test search functionality integration."""
         import asyncio
 
-        from backend.backend import search
+        from agent.backend import search
 
         try:
             response = asyncio.run(search("test query", top_k=3))
@@ -202,7 +202,7 @@ class TestMockedWorkflowIntegration:
         """Test vault indexing integration."""
         import asyncio
 
-        from backend.backend import scan_vault
+        from agent.backend import scan_vault
 
         try:
             response = asyncio.run(scan_vault("./test_vault"))
@@ -225,7 +225,7 @@ class TestConfigurationIntegration:
     def test_settings_loading(self):
         """Test that settings can be loaded and accessed."""
         try:
-            from backend.settings import get_settings
+            from agent.settings import get_settings
 
             settings = get_settings()
 
@@ -246,7 +246,7 @@ class TestConfigurationIntegration:
 
         import asyncio
 
-        from backend.backend import post_reload_config
+        from agent.backend import post_reload_config
 
         try:
             response = asyncio.run(post_reload_config())
@@ -268,7 +268,7 @@ class TestConfigurationIntegration:
         mock_update.return_value = mock_settings
         import asyncio
 
-        from backend.backend import post_update_config
+        from agent.backend import post_update_config
 
         update_data = {"model_backend": "new-model"}
 
@@ -291,15 +291,15 @@ class TestErrorHandlingIntegration:
     def test_missing_services_handling(self):
         """Test behavior when services are not initialized."""
         # Force services to None
-        import backend.backend
+        import agent.backend
 
-        original_mm = backend.backend.model_manager
-        original_em = backend.backend.emb_manager
+        original_mm = agent.agent.model_manager
+        original_em = agent.agent.emb_manager
 
         try:
-            backend.backend.model_manager = None
-            backend.backend.emb_manager = None
-            from backend.backend import AskRequest, _ask_impl
+            agent.agent.model_manager = None
+            agent.agent.emb_manager = None
+            from agent.backend import AskRequest, _ask_impl
 
             request = AskRequest(question="Test", vault_path="./vault")
 
@@ -312,15 +312,15 @@ class TestErrorHandlingIntegration:
 
         finally:
             # Restore original services
-            backend.backend.model_manager = original_mm
-            backend.backend.emb_manager = original_em
+            agent.agent.model_manager = original_mm
+            agent.agent.emb_manager = original_em
 
-    @patch("backend.backend.model_manager")
+    @patch("agent.agent.model_manager")
     def test_service_failure_handling(self, mock_mm):
         """Test handling of service failures."""
         # Make model manager fail
         mock_mm.generate.side_effect = Exception("Model service failed")
-        from backend.backend import AskRequest, _ask_impl
+        from agent.backend import AskRequest, _ask_impl
 
         request = AskRequest(question="Test", vault_path="./vault")
 

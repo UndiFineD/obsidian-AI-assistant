@@ -1,6 +1,6 @@
 # ⚡ **PERFORMANCE REQUIREMENTS SPECIFICATION**
 
-_Obsidian AI Assistant - Performance Standards & Benchmarks_
+_Obsidian AI Agent - Performance Standards & Benchmarks_
 _Version: 1.0_
 _Date: October 6, 2025_
 _Scope: Response Times, Throughput, Scalability & Resource Management_
@@ -9,7 +9,7 @@ _Scope: Response Times, Throughput, Scalability & Resource Management_
 
 ## 🎯 **PERFORMANCE OVERVIEW**
 
-The Obsidian AI Assistant is designed to deliver **sub-second response times**
+The Obsidian AI Agent is designed to deliver **sub-second response times**
 for most operations while maintaining **high throughput** and **efficient
 resource utilization**. Performance requirements are categorized into **five
 tiers** based on operation complexity and user expectations.
@@ -1109,3 +1109,4 @@ _Performance Requirements Version: 1.0_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

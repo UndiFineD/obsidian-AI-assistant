@@ -55,7 +55,7 @@ read -r -p "Enter the full path to your Obsidian vault (or leave blank to skip):
 if [ -n "${VAULT_PATH:-}" ] && [ -d "$VAULT_PATH" ]; then
     MANIFEST="$PLUGIN_DIR/manifest.json"
     if [ -f "$MANIFEST" ]; then
-        PLUGIN_ID="$(python3 -c "import json; print(json.load(open('$MANIFEST')).get('id', 'obsidian-ai-assistant'))" 2>/dev/null || echo "obsidian-ai-assistant")"
+        PLUGIN_ID="$(python3 -c "import json; print(json.load(open('$MANIFEST')).get('id', 'obsidian-ai-agent'))" 2>/dev/null || echo "obsidian-ai-agent")"
         TARGET_DIR="$VAULT_PATH/.obsidian/plugins/$PLUGIN_ID"
         mkdir -p "$TARGET_DIR"
         echo "Installing plugin to $TARGET_DIR ..."
@@ -71,3 +71,4 @@ fi
 
 echo "=== Setup Complete ==="
 echo "Activate backend with: source $ENV_DIR/bin/activate && python $BACKEND_ENTRY"
+

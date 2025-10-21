@@ -13,9 +13,9 @@ sys.path.insert(0, str(project_root))
 def test_syntax_check():
     """Test that our error handling files have valid Python syntax."""
     files_to_check = [
-        "backend/error_handling.py",
-        "backend/exception_handlers.py",
-        "backend/backend.py",
+        "agent/error_handling.py",
+        "agent/exception_handlers.py",
+        "agent/backend.py",
     ]
 
     for file_path in files_to_check:
@@ -38,7 +38,7 @@ def test_syntax_check():
 
 def test_error_handling_file_structure():
     """Test that our error handling files have the expected structure."""
-    error_handling_path = "backend/error_handling.py"
+    error_handling_path = "agent/error_handling.py"
 
     try:
         with open(error_handling_path, "r", encoding="utf-8") as f:
@@ -71,7 +71,7 @@ def test_error_handling_file_structure():
 
 def test_exception_handlers_file_structure():
     """Test that our exception handlers file has the expected structure."""
-    handlers_path = "backend/exception_handlers.py"
+    handlers_path = "agent/exception_handlers.py"
 
     try:
         with open(handlers_path, "r", encoding="utf-8") as f:
@@ -101,12 +101,12 @@ def test_exception_handlers_file_structure():
         return False
 
 
-def test_backend_integration():
+def test_agent_integration():
     """Test that backend.py has proper error handling integration."""
-    backend_path = "backend/backend.py"
+    agent_path = "agent/backend.py"
 
     try:
-        with open(backend_path, "r", encoding="utf-8") as f:
+        with open(agent_path, "r", encoding="utf-8") as f:
             content = f.read()
 
         # Check for integration points
@@ -133,9 +133,9 @@ def test_backend_integration():
 def test_file_permissions():
     """Test that files have proper permissions and are readable."""
     files_to_check = [
-        "backend/error_handling.py",
-        "backend/exception_handlers.py",
-        "backend/backend.py",
+        "agent/error_handling.py",
+        "agent/exception_handlers.py",
+        "agent/backend.py",
     ]
 
     for file_path in files_to_check:
@@ -166,7 +166,7 @@ def main():
         test_syntax_check,
         test_error_handling_file_structure,
         test_exception_handlers_file_structure,
-        test_backend_integration,
+        test_agent_integration,
     ]
 
     passed = 0

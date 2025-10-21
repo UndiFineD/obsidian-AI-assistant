@@ -1,12 +1,12 @@
 # 📜 PROJECT CONSTITUTION
 
-## Obsidian AI Assistant - Governing Principles & Standards
+## Obsidian AI Agent - Governing Principles & Standards
 
 ---
 
 ## 🎯 **MISSION STATEMENT**
 
-The Obsidian AI Assistant project exists to create a robust, intelligent, and extensible AI-powered plugin for Obsidian
+The Obsidian AI Agent project exists to create a robust, intelligent, and extensible AI-powered plugin for Obsidian
 that provides:
 
 - **Semantic search** across vault contents
@@ -78,8 +78,8 @@ that provides:
 ### 📦 **Module Structure**
 
 ```text
-obsidian-AI-assistant/
-├── backend/                 # Core backend services
+obsidian-ai-agent/
+├── agent/                 # Core backend services
 │   ├── __init__.py         # Package initialization
 │   ├── backend.py          # FastAPI application
 │   ├── modelmanager.py     # AI model management
@@ -95,7 +95,7 @@ obsidian-AI-assistant/
 │   └── taskQueue.ts        # Task management
 ├── tests/                   # Comprehensive test suite
 │   ├── comprehensive_async_test_runner.py
-│   ├── backend/            # Backend tests
+│   ├── agent/            # Backend tests
 │   ├── plugin/             # Plugin tests
 │   └── integration/        # Integration tests
 └── docs/                   # Documentation
@@ -556,7 +556,7 @@ We commit to maintaining the highest standards of software craftsmanship:
 ---
 
 _This constitution serves as the foundational document governing all aspects of
-the Obsidian AI Assistant project. All contributors are expected to understand
+the Obsidian AI Agent project. All contributors are expected to understand
 and adhere to these principles and standards._
 
 **Version**: 1.0
@@ -617,3 +617,4 @@ herein.
 **Next Review**: January 6, 2026
 
 > "Excellence is not a skill, it's an attitude. This Constitution embodies our unwavering commitment to that attitude."
+

@@ -51,7 +51,7 @@ command
 
 - `tests/test_enterprise_async_failures.py`
 
-- `tests/backend/test_backend_comprehensive.py.backup`
+- `tests/agent/test_agent_comprehensive.py.backup`
 
 #### **OpenSpec Fixes**
 

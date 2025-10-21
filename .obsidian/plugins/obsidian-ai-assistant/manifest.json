@@ -1,5 +1,5 @@
 {
-    "id": "obsidian-ai-assistant",
+    "id": "obsidian-ai-agent",
     "name": "AI Assistant",
     "version": "0.1.30",
     "description": "Local AI assistant integration with backend server, vector search, and optional enterprise features.",

@@ -10,7 +10,7 @@
 | ... (see below for full list)              | Yes                    | ...                                              |
 
 ## Purpose
-Provide authoritative, governed documentation for the Obsidian AI Assistant. This capability ensures all project knowledge (architecture, backend agent orchestration, offline/connected modes, API and enterprise features, testing, performance, security, deployment, and plugin integration) is accurate, consistent, and easy to navigate.
+Provide authoritative, governed documentation for the Obsidian AI Agent. This capability ensures all project knowledge (architecture, backend agent orchestration, offline/connected modes, API and enterprise features, testing, performance, security, deployment, and plugin integration) is accurate, consistent, and easy to navigate.
 
 Scope and artifacts:
 - Core docs under `docs/` (architecture, security, testing, performance, deployment, enterprise, specs)
@@ -356,20 +356,20 @@ The project SHALL govern material changes to `docs/QUICK_FIX.md` via OpenSpec ch
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 ### Requirement: Governance for SETUP.md
-The project SHALL govern material changes to `.obsidian/plugins/obsidian-ai-assistant/SETUP.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `.obsidian/plugins/obsidian-ai-agent/SETUP.md` via OpenSpec change proposals to maintain consistency and review.
 
 #### Scenario: Material change to SETUP.md requires proposal
 
-- **WHEN** a contributor plans a material update to `.obsidian/plugins/obsidian-ai-assistant/SETUP.md`
+- **WHEN** a contributor plans a material update to `.obsidian/plugins/obsidian-ai-agent/SETUP.md`
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
 ### Requirement: Governance for SETUP_COMPLETE.md
 
-The project SHALL govern material changes to `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md` via OpenSpec change proposals to maintain consistency and review.
+The project SHALL govern material changes to `.obsidian/plugins/obsidian-ai-agent/SETUP_COMPLETE.md` via OpenSpec change proposals to maintain consistency and review.
 
 #### Scenario: Material change to SETUP_COMPLETE.md requires proposal
 
-- **WHEN** a contributor plans a material update to `.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md`
+- **WHEN** a contributor plans a material update to `.obsidian/plugins/obsidian-ai-agent/SETUP_COMPLETE.md`
 
 - **THEN** they MUST create or update an OpenSpec change with deltas under `project-documentation`
 
@@ -501,4 +501,5 @@ The project SHALL govern material changes to `AGENTS.md` via OpenSpec change pro
 	- A `tasks.md` with three or more actionable checklist items and a validation step
 	- A delta spec at `changes/update-doc-agents/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
 	- A documented validation command: `openspec validate update-doc-agents --strict`
+
 

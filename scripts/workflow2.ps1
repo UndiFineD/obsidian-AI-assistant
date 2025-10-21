@@ -3,7 +3,7 @@
     OpenSpec Workflow Automation Script
 
 .DESCRIPTION
-    Automates the OpenSpec workflow for change management in the Obsidian AI Assistant project.
+    Automates the OpenSpec workflow for change management in the Obsidian AI Agent project.
     Implements the 13-stage workflow defined in openspec/PROJECT_WORKFLOW.md.
     
     This script manages the complete lifecycle of project changes from proposal through
@@ -40,12 +40,12 @@
 
 .NOTES
     File Name      : workflow.ps1
-    Author         : Obsidian AI Assistant Team
+    Author         : Obsidian AI Agent Team
     Prerequisite   : PowerShell 5.1+, Git, GitHub CLI (gh) recommended
-    Copyright 2025 - Obsidian AI Assistant Project
+    Copyright 2025 - Obsidian AI Agent Project
 
 .LINK
-    https://github.com/UndiFineD/obsidian-AI-assistant
+    https://github.com/UndiFineD/obsidian-ai-agent
 
 .EXAMPLE
     .\scripts\workflow.ps1 -ChangeId "update-doc-readme" -Title "Update README.md" -Owner "@johndoe"
@@ -2567,7 +2567,7 @@ function Invoke-Step12 {
             } else {
                 Write-Error "Failed to create PR: $prOutput"
                 Write-Info "You can create it manually at:"
-                Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...${branch}?expand=1"
+                Write-Info "  https://github.com/UndiFineD/obsidian-ai-agent/compare/main...${branch}?expand=1"
                 return $false
             }
         }
@@ -2577,7 +2577,7 @@ function Invoke-Step12 {
         }
         Write-Info ""
         Write-Info "Create PR manually at:"
-        Write-Info "  https://github.com/UndiFineD/obsidian-AI-assistant/compare/main...${branch}?expand=1"
+        Write-Info "  https://github.com/UndiFineD/obsidian-ai-agent/compare/main...${branch}?expand=1"
         Write-Info ""
         Write-Info ("Computed PR title: " + $prTitle)
         # Show a brief preview of the PR body (first ~12 lines)
@@ -2830,3 +2830,4 @@ catch {
     exit 1
 }
 } # End of main execution guard
+

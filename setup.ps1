@@ -13,7 +13,7 @@ Windows setup # ----- 4. Node.js dependencies removed -----
 - Installs/updates the plugin in the specified Obsidian vault
 #>
 
-Write-Host "=== Obsidian AI Assistant Setup (Windows) ===`n"
+Write-Host "=== Obsidian AI Agent Setup (Windows) ===`n"
 
 # ----- Resolve repo root -----
 $RepoRoot = $PSScriptRoot
@@ -144,3 +144,4 @@ if (Test-Path $BackendEntry) {
 }
 
 Write-Host "`n=== Setup Complete ==="
+
