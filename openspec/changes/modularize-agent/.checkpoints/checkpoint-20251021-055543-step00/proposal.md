@@ -328,25 +328,3 @@ This proposal follows OpenSpec governance:
 **Created**: October 21, 2025  
 **Last Updated**: October 21, 2025  
 **Stakeholders**: Architecture team, Backend team, QA team
-
-## Context
-
-Describe the background and motivation.
-
-
-## What Changes
-
-List the proposed changes at a high level.
-
-
-## Goals
-
-- Goal 1: ...
-- Goal 2: ...
-
-
-## Stakeholders
-
-- Owner: [owner]
-- Reviewers: [reviewers]
-
