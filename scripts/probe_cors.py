@@ -2,7 +2,7 @@ import asyncio
 
 import httpx
 
-from backend.backend import app
+from agent.backend import app
 
 
 async def main():

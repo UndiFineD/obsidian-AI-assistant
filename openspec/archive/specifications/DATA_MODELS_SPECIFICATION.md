@@ -1,6 +1,6 @@
 # 📊 **DATA MODELS SPECIFICATION**
 
-_Obsidian AI Assistant - Complete Data Schema & Validation_
+_Obsidian AI Agent - Complete Data Schema & Validation_
 _Version: 1.0_
 _Date: October 6, 2025_
 _Scope: All Pydantic Models, Database Schemas & Configuration Structures_
@@ -9,7 +9,7 @@ _Scope: All Pydantic Models, Database Schemas & Configuration Structures_
 
 ## 🎯 **DATA MODEL OVERVIEW**
 
-The Obsidian AI Assistant employs **strongly-typed data models** throughout the
+The Obsidian AI Agent employs **strongly-typed data models** throughout the
 system, ensuring data integrity, validation, and API contract compliance. All
 models use **Pydantic BaseModel** for automatic validation, serialization, and
 documentation generation.
@@ -596,7 +596,7 @@ class HealthResponse(BaseModel):
     )
 
     # Configuration Snapshot
-    backend_url: str = Field(
+    agent_url: str = Field(
         ...,
         description="Backend service URL",
         example="http://127.0.0.1:8000"
@@ -620,13 +620,13 @@ class HealthResponse(BaseModel):
     models_dir: str = Field(
         ...,
         description="AI models directory",
-        example="./backend/models"
+        example="./agent/models"
     )
 
     cache_dir: str = Field(
         ...,
         description="Cache directory path",
-        example="./backend/cache"
+        example="./agent/cache"
     )
 
     # AI Configuration
@@ -727,7 +727,7 @@ class Settings(BaseModel):
         example=8000
     )
 
-    backend_url: str = Field(
+    agent_url: str = Field(
         "http://127.0.0.1:8000",
         pattern=r"^https?://[^\s/$.?#].[^\s]*$",
         description="Full backend URL",
@@ -749,15 +749,15 @@ class Settings(BaseModel):
     )
 
     models_dir: Path = Field(
-        Path("./backend/models"),
+        Path("./agent/models"),
         description="AI models storage directory",
-        example="./backend/models"
+        example="./agent/models"
     )
 
     cache_dir: Path = Field(
-        Path("./backend/cache"),
+        Path("./agent/cache"),
         description="Cache storage directory",
-        example="./backend/cache"
+        example="./agent/cache"
     )
 
     vector_db_path: Path = Field(
@@ -880,8 +880,8 @@ class Settings(BaseModel):
 
         return v
 
-    @validator("backend_url")
-    def validate_backend_url(cls, v, values):
+    @validator("agent_url")
+    def validate_agent_url(cls, v, values):
         """Ensure backend URL consistency."""
         if "host" in values and "api_port" in values:
             expected = f"http://{values['host']}:{values['api_port']}"
@@ -1849,7 +1849,7 @@ invalid_settings = [
 
 - **API Contract Clarity**: Clear request/response contracts
 
-**The data models establish a comprehensive, type-safe foundation for the Obsidian AI Assistant, ensuring data
+**The data models establish a comprehensive, type-safe foundation for the Obsidian AI Agent, ensuring data
 integrity, security, and API contract compliance throughout the system.**
 
 ---
@@ -1858,3 +1858,4 @@ _Data Models Version: 1.0_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

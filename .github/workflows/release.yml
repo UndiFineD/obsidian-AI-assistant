@@ -175,7 +175,7 @@ jobs:
       - name: Update plugin manifest version
         run: |
           NEW_VERSION="${{ needs.prepare-release.outputs.new_version }}"
-          MANIFEST_PATH=".obsidian/plugins/obsidian-ai-assistant/manifest.json"
+          MANIFEST_PATH=".obsidian/plugins/obsidian-ai-agent/manifest.json"
           if [[ -f "$MANIFEST_PATH" ]]; then
             jq --arg version "$NEW_VERSION" '.version = $version' "$MANIFEST_PATH" > "$MANIFEST_PATH.tmp"
             mv "$MANIFEST_PATH.tmp" "$MANIFEST_PATH"
@@ -263,8 +263,8 @@ jobs:
           echo "" >> changelog.md
           echo "#### Backend Server" >> changelog.md
           echo '```bash' >> changelog.md
-          echo "git clone https://github.com/UndiFineD/obsidian-AI-assistant.git" >> changelog.md
-          echo "cd obsidian-AI-assistant" >> changelog.md
+          echo "git clone https://github.com/UndiFineD/obsidian-ai-agent.git" >> changelog.md
+          echo "cd obsidian-ai-agent" >> changelog.md
           echo "./setup.ps1  # Windows" >> changelog.md
           echo "./setup.sh   # Linux/macOS" >> changelog.md
           echo '```' >> changelog.md
@@ -272,7 +272,7 @@ jobs:
           
           echo "#### Obsidian Plugin" >> changelog.md
           echo "1. Download the release assets below" >> changelog.md
-          echo "2. Extract to your vault's `.obsidian/plugins/obsidian-ai-assistant/` directory" >> changelog.md
+          echo "2. Extract to your vault's `.obsidian/plugins/obsidian-ai-agent/` directory" >> changelog.md
           echo "3. Enable the plugin in Obsidian settings" >> changelog.md
           echo "" >> changelog.md
           
@@ -331,16 +331,16 @@ jobs:
 
       - name: Create plugin release archive
         run: |
-          mkdir -p release/obsidian-ai-assistant-plugin
+          mkdir -p release/obsidian-ai-agent-plugin
           
           # Copy plugin files
-          if [[ -d ".obsidian/plugins/obsidian-ai-assistant" ]]; then
-            cp -r .obsidian/plugins/obsidian-ai-assistant/* release/obsidian-ai-assistant-plugin/
+          if [[ -d ".obsidian/plugins/obsidian-ai-agent" ]]; then
+            cp -r .obsidian/plugins/obsidian-ai-agent/* release/obsidian-ai-agent-plugin/
           fi
           
           # Create plugin archive
           cd release
-          zip -r obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip obsidian-ai-assistant-plugin/
+          zip -r obsidian-ai-agent-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip obsidian-ai-agent-plugin/
           cd ..
 
       - name: Create backend distribution
@@ -351,20 +351,20 @@ jobs:
           cp requirements.txt requirements-dev.txt setup.ps1 setup.sh README.md LICENSE release/backend-source/ 2>/dev/null || true
           
           cd release
-          tar -czf obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz backend-source/
+          tar -czf obsidian-ai-agent-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz backend-source/
           cd ..
 
       - name: Create complete release package
         run: |
           mkdir -p release/complete
-          cp -r . release/complete/obsidian-ai-assistant/
+          cp -r . release/complete/obsidian-ai-agent/
           cd release/complete
           
           # Remove unnecessary files from complete package
-          rm -rf obsidian-ai-assistant/.git obsidian-ai-assistant/.github obsidian-ai-assistant/tests obsidian-ai-assistant/__pycache__ obsidian-ai-assistant/.pytest_cache
-          rm -rf obsidian-ai-assistant/htmlcov obsidian-ai-assistant/backend/__pycache__
+          rm -rf obsidian-ai-agent/.git obsidian-ai-agent/.github obsidian-ai-agent/tests obsidian-ai-agent/__pycache__ obsidian-ai-agent/.pytest_cache
+          rm -rf obsidian-ai-agent/htmlcov obsidian-ai-agent/backend/__pycache__
           
-          tar -czf ../obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz obsidian-ai-assistant/
+          tar -czf ../obsidian-ai-agent-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz obsidian-ai-agent/
           cd ../..
 
       - name: Upload release assets
@@ -406,7 +406,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ needs.prepare-release.outputs.new_version }}
-          release_name: "🚀 Obsidian AI Assistant v${{ needs.prepare-release.outputs.new_version }}"
+          release_name: "🚀 Obsidian AI Agent v${{ needs.prepare-release.outputs.new_version }}"
           body: ${{ needs.generate-changelog.outputs.changelog }}
           draft: false
           prerelease: ${{ needs.prepare-release.outputs.is_prerelease }}
@@ -417,8 +417,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
-          asset_name: obsidian-ai-assistant-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
+          asset_path: ./release/obsidian-ai-agent-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
+          asset_name: obsidian-ai-agent-plugin-v${{ needs.prepare-release.outputs.new_version }}.zip
           asset_content_type: application/zip
 
       - name: Upload Backend Asset
@@ -427,8 +427,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
-          asset_name: obsidian-ai-assistant-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_path: ./release/obsidian-ai-agent-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_name: obsidian-ai-agent-backend-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
           asset_content_type: application/gzip
 
       - name: Upload Complete Package
@@ -437,8 +437,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./release/obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
-          asset_name: obsidian-ai-assistant-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_path: ./release/obsidian-ai-agent-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
+          asset_name: obsidian-ai-agent-complete-v${{ needs.prepare-release.outputs.new_version }}.tar.gz
           asset_content_type: application/gzip
 
   # Job 7: Post-Release Actions
@@ -471,8 +471,8 @@ jobs:
             ### 🔗 Release Links
             
             - **GitHub Release**: https://github.com/${{ github.repository }}/releases/tag/v${newVersion}
-            - **Plugin Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-assistant-plugin-v${newVersion}.zip
-            - **Backend Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-assistant-backend-v${newVersion}.tar.gz
+            - **Plugin Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-agent-plugin-v${newVersion}.zip
+            - **Backend Download**: https://github.com/${{ github.repository }}/releases/download/v${newVersion}/obsidian-ai-agent-backend-v${newVersion}.tar.gz
             
             ### 📊 Release Stats
             

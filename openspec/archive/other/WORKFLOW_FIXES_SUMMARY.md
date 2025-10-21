@@ -72,7 +72,7 @@ Using branch release-0.1.19 for all subsequent steps.
 **Configuration**:
 ```ini
 [coverage:run]
-source = backend/
+source = agent/
 dynamic_context = test_function  # Added
 
 [coverage:html]

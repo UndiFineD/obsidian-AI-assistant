@@ -361,9 +361,9 @@ flowchart TD
 ```python
 # Example: Ask a question, route to local model, fallback to web research if allowed
 def ask_question(question, allow_web=False):
-  answer = backend_agent.ask_local_model(question)
+  answer = agent_agent.ask_local_model(question)
   if not answer and allow_web:
-    answer = backend_agent.ask_web_research(question)
+    answer = agent_agent.ask_web_research(question)
   return answer
 ```
 

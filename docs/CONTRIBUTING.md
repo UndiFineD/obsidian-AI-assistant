@@ -1,6 +1,6 @@
-# Contributing to Obsidian AI Assistant
+# Contributing to Obsidian AI Agent
 
-Welcome to the Obsidian AI Assistant project! This guide will help you get up and running quickly, whether you're
+Welcome to the Obsidian AI Agent project! This guide will help you get up and running quickly, whether you're
 fixing bugs, adding features, or improving documentation.
 
 ## 🚀 Quick Start (15 minutes to first contribution)
@@ -16,8 +16,8 @@ fixing bugs, adding features, or improving documentation.
 
 ```bash
 # Clone the repository
-git clone https://github.com/UndiFineD/obsidian-AI-assistant.git
-cd obsidian-AI-assistant
+git clone https://github.com/UndiFineD/obsidian-ai-agent.git
+cd obsidian-ai-agent
 
 # Windows setup (creates venv, installs dependencies, downloads models)
 ./setup.ps1
@@ -67,8 +67,8 @@ git push origin fix/my-awesome-fix
 ## 📋 Project Structure
 
 ```
-obsidian-AI-assistant/
-├── backend/                 # FastAPI server and AI services
+obsidian-ai-agent/
+├── agent/                 # FastAPI server and AI services
 │   ├── backend.py          # Main FastAPI application
 │   ├── settings.py         # Configuration management
 │   ├── modelmanager.py     # AI model management
@@ -84,7 +84,7 @@ obsidian-AI-assistant/
 │   ├── backendClient.js    # API client
 │   └── styles.css          # Plugin styles
 ├── tests/                  # Comprehensive test suite
-│   ├── backend/            # Backend unit tests
+│   ├── agent/            # Backend unit tests
 │   ├── plugin/             # Plugin tests
 │   └── integration/        # End-to-end tests
 ├── docs/                   # Project documentation
@@ -103,7 +103,7 @@ obsidian-AI-assistant/
 
 ### Test Categories
 
-- **Unit Tests** (`tests/backend/`, `tests/plugin/`): Fast, isolated tests
+- **Unit Tests** (`tests/agent/`, `tests/plugin/`): Fast, isolated tests
 - **Integration Tests** (`tests/integration/`): API endpoint tests  
 - **Performance Tests** (`tests/test_performance.py`): Load and benchmark tests
 - **Security Tests**: Vulnerability and compliance tests
@@ -115,7 +115,7 @@ obsidian-AI-assistant/
 python -m pytest tests/ -v
 
 # Backend tests only
-python -m pytest tests/backend/ -v
+python -m pytest tests/agent/ -v
 
 # Plugin/frontend tests
 python -m pytest tests/plugin/ -v
@@ -175,15 +175,15 @@ pre-commit install
 #### Quality Commands
 ```bash
 # Python linting and security
-ruff check backend/
-bandit -r backend/ -f json -o tests/bandit_report.json
+ruff check agent/
+bandit -r agent/ -f json -o tests/bandit_report.json
 
 # JavaScript validation
 node -c plugin/main.js
 python fix_js_quality.py  # Auto-fix JS style issues
 
 # Type checking (optional)
-mypy backend/ --ignore-missing-imports
+mypy agent/ --ignore-missing-imports
 ```
 
 ### 3. Branch Strategy
@@ -324,7 +324,7 @@ python openspec/scripts/apply.py update-contributing-guide
 
 ### Adding New Endpoints
 
-1. **Define the endpoint** in `backend/backend.py`:
+1. **Define the endpoint** in `agent/backend.py`:
 ```python
 @app.post("/api/my-new-endpoint", dependencies=[Depends(require_role("user"))])
 async def my_new_endpoint(request: MyRequest):
@@ -345,7 +345,7 @@ class MyRequest(BaseModel):
 
 1. **Write tests**:
 ```python
-# tests/backend/test_my_endpoint.py
+# tests/agent/test_my_endpoint.py
 def test_my_new_endpoint(test_client):
     response = test_client.post("/api/my-new-endpoint", 
                                json={"field1": "test"})
@@ -451,7 +451,7 @@ pre-commit install
 
 ```bash
 # Security vulnerability scan
-bandit -r backend/ -f json -o tests/bandit_report.json
+bandit -r agent/ -f json -o tests/bandit_report.json
 
 # Dependency vulnerability check (if safety installed)
 safety check
@@ -469,8 +469,8 @@ python test_rate_limiting.py
 ### Before Submitting
 
 - [ ] All tests pass locally (`python -m pytest tests/ -v`)
-- [ ] Code follows quality standards (`ruff check backend/`)
-- [ ] Security scan passes (`bandit -r backend/`)
+- [ ] Code follows quality standards (`ruff check agent/`)
+- [ ] Security scan passes (`bandit -r agent/`)
 - [ ] Documentation updated (if applicable)
 - [ ] OpenSpec governance followed (for doc changes)
 
@@ -518,8 +518,8 @@ Brief description of changes.
 
 ### Support Channels
 
-- **🐛 Bug Reports**: [GitHub Issues](https://github.com/UndiFineD/obsidian-AI-assistant/issues)
-- **💡 Feature Requests**: [GitHub Discussions](https://github.com/UndiFineD/obsidian-AI-assistant/discussions)
+- **🐛 Bug Reports**: [GitHub Issues](https://github.com/UndiFineD/obsidian-ai-agent/issues)
+- **💡 Feature Requests**: [GitHub Discussions](https://github.com/UndiFineD/obsidian-ai-agent/discussions)
 - **📚 Documentation Issues**: Use OpenSpec governance workflow
 - **🤝 General Questions**: GitHub Discussions
 
@@ -543,11 +543,11 @@ pip install -r requirements.txt --force-reinstall
 #### Test Failures
 ```bash
 # Clear cache and retry
-rm -rf __pycache__ backend/__pycache__ tests/__pycache__
+rm -rf __pycache__ agent/__pycache__ tests/__pycache__
 python -m pytest tests/ -v --tb=short
 
 # Run specific test file
-python -m pytest tests/backend/test_backend.py -v
+python -m pytest tests/agent/test_backend.py -v
 
 # Skip slow tests
 python -m pytest tests/ -v -m "not slow"
@@ -563,7 +563,7 @@ cd backend
 python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Check logs for errors
-tail -f backend/logs/app.log
+tail -f agent/logs/app.log
 ```
 
 ## 🌟 Recognition
@@ -584,5 +584,6 @@ under the same license.
 
 **Happy Contributing! 🚀**
 
-Thank you for helping make Obsidian AI Assistant better for everyone. Whether you're fixing a typo, adding a feature,
+Thank you for helping make Obsidian AI Agent better for everyone. Whether you're fixing a typo, adding a feature,
 or improving documentation, every contribution matters.
+

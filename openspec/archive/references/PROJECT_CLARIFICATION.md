@@ -1,8 +1,8 @@
-# 🔍 **OBSIDIAN AI ASSISTANT - PROJECT CLARIFICATION**
+# 🔍 **Obsidian AI Agent - PROJECT CLARIFICATION**
 
 ## 📋 **EXECUTIVE SUMMARY**
 
-The Obsidian AI Assistant is a **production-ready, offline-first AI
+The Obsidian AI Agent is a **production-ready, offline-first AI
 integration** for Obsidian that provides local LLM capabilities, semantic
 search, voice input, and comprehensive task management. The project has achieved
 **exceptional maturity** with 90%+ test coverage, comprehensive documentation,
@@ -179,7 +179,7 @@ http://localhost:8000/health  # System health check
 
 1. **Environment Variables** (highest priority)
 
-1. **backend/config.yaml** (medium priority)
+1. **agent/config.yaml** (medium priority)
 
 1. **Code Defaults** (lowest priority)
 
@@ -289,7 +289,7 @@ http://localhost:8000/health  # System health check
 
 ## 🎯 **CLARIFICATION TOPICS**
 
-### **1. What is the Obsidian AI Assistant?**
+### **1. What is the Obsidian AI Agent?**
 
 **Answer**: A comprehensive AI integration that transforms Obsidian into an intelligent knowledge assistant. It
 provides:
@@ -463,7 +463,7 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 
 1. **Check Code Quality**: Review coverage reports in `htmlcov/`
 
-1. **Understand Configuration**: Review `backend/config.yaml`
+1. **Understand Configuration**: Review `agent/config.yaml`
 
 1. **Explore API**: Test endpoints using Swagger UI at `/docs`
 
@@ -523,7 +523,7 @@ Invoke-WebRequest setup.ps1 -OutFile setup.ps1; .\setup.ps1
 
 ## 📄 **CONCLUSION**
 
-The Obsidian AI Assistant represents a **mature, production-ready solution**
+The Obsidian AI Agent represents a **mature, production-ready solution**
 that successfully delivers on its core mission of providing privacy-focused,
 offline-first AI integration for Obsidian users. With exceptional test coverage
 (90%+), comprehensive documentation, and robust architecture, the project is
@@ -569,3 +569,4 @@ guide for understanding what has been accomplished and what lies ahead.
 - **Last Updated**: October 6, 2025
 
 - **Next Review**: January 6, 2026
+

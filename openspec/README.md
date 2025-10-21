@@ -30,7 +30,7 @@
 - ✅ Enterprise Features Governance (R43)
 - ✅ Constitution Documentation Governance (R38, R40)
 - ✅ Integration Tests Completion Governance (R31)
-- ✅ Backend/Plugin Audit Governance (R28, R30)
+- ✅ agent/Plugin Audit Governance (R28, R30)
 - ✅ OpenSpec Framework Governance (R50)
 
 ---
@@ -48,7 +48,7 @@
 | **Validation Pass Rate**   | > 95%                |
 | **Governed Docs Consistency** | 100%               |
 
-Welcome to the OpenSpec documentation governance system for the Obsidian AI Assistant project.
+Welcome to the OpenSpec documentation governance system for the Obsidian AI Agent project.
 This directory contains all governed specifications, change proposals, and governance documentation.
 
 ## 🎯 Quick Start
@@ -189,8 +189,8 @@ The following documentation is governed by OpenSpec change proposals:
 
 ### Plugin Documentation
 
-- **.obsidian/plugins/obsidian-ai-assistant/SETUP.md**
-- **.obsidian/plugins/obsidian-ai-assistant/SETUP_COMPLETE.md**
+- **.obsidian/plugins/obsidian-ai-agent/SETUP.md**
+- **.obsidian/plugins/obsidian-ai-agent/SETUP_COMPLETE.md**
 
 ### GitHub Integration
 
@@ -316,3 +316,4 @@ OpenSpec governance ensures:
 **Last Updated**: October 16, 2025  
 **Governance Version**: 1.0  
 **OpenSpec Compliance**: ✅ Strict validation passing
+

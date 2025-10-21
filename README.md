@@ -1,9 +1,9 @@
-# Obsidian AI Assistant
+# Obsidian AI Agent
 
-> **Version:** 0.1.30 (Unreleased)
+> **Version:** 0.1.31 (Unreleased)
 
-[![CI](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/ci.yml)
-[![Backend Tests](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-AI-assistant/actions/workflows/test-backend.yml)
+[![CI](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml)
+[![Backend Tests](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml)
 [![Tests](https://img.shields.io/badge/tests-1021%20passed%20%7C%202%20skipped-brightgreen)](#testing--quality-assurance)
 [![Coverage](https://img.shields.io/badge/coverage-88%25%2B_backend-blue)](#testing--quality-assurance)
 [![Quality](https://img.shields.io/badge/code%20quality-production%20ready-green)](#code-quality-standards)
@@ -119,9 +119,9 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 #### 3. Install Obsidian Plugin
 
-1. Copy `.obsidian/plugins/obsidian-ai-assistant/` to your vault's plugins directory
+1. Copy `.obsidian/plugins/obsidian-ai-agent/` to your vault's plugins directory
 2. Open Obsidian → Settings → Community Plugins
-3. Enable "Obsidian AI Assistant"
+3. Enable "Obsidian AI Agent"
 4. Configure plugin settings:
    - Backend URL: `http://localhost:8000`
    - Vault Path: Path to your notes directory
@@ -160,8 +160,8 @@ python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ### Project Structure
 
 ```text
-obsidian-AI-assistant/
-├── backend/                          # FastAPI backend
+obsidian-ai-agent/
+├── agent/                          # FastAPI backend
 │   ├── backend.py                   # Main application
 │   ├── settings.py                  # Configuration management
 │   ├── modelmanager.py              # AI model lifecycle
@@ -174,7 +174,7 @@ obsidian-AI-assistant/
 │   ├── models/                      # AI model files (*.gguf, embeddings)
 │   ├── cache/                       # Cached embeddings and responses
 │   └── vector_db/                   # ChromaDB storage
-├── .obsidian/plugins/obsidian-ai-assistant/  # Obsidian plugin
+├── .obsidian/plugins/obsidian-ai-agent/  # Obsidian plugin
 │   ├── main.js                      # Plugin entry point
 │   ├── manifest.json                # Plugin metadata
 │   ├── backendClient.js             # API communication
@@ -183,7 +183,7 @@ obsidian-AI-assistant/
 │   ├── enterpriseAuth.js            # SSO authentication (optional)
 │   └── styles.css                   # Plugin styling
 ├── tests/                            # Comprehensive test suite
-│   ├── backend/                     # Backend unit tests
+│   ├── agent/                     # Backend unit tests
 │   ├── integration/                 # Integration tests
 │   └── conftest.py                  # Test configuration
 ├── docs/                             # Detailed documentation
@@ -201,28 +201,28 @@ obsidian-AI-assistant/
 
 Settings are loaded in this order (later overrides earlier):
 1. **Code defaults** (lowest priority)
-2. **`backend/config.yaml`** file
+2. **`agent/config.yaml`** file
 3. **Environment variables** (highest priority)
 
 ### Key Configuration Options
 
 ```yaml
-# backend/config.yaml
+# agent/config.yaml
 
 # Server settings
-backend_url: 'http://127.0.0.1:8000'
+agent_url: 'http://127.0.0.1:8000'
 api_port: 8000
 allow_network: false          # Enable web content fetching
 continuous_mode: false        # Continuous processing mode
 
 # Paths
 vault_path: 'vault'           # Path to Obsidian vault
-models_dir: 'backend/models'  # AI models directory
-cache_dir: 'backend/cache'    # Cache directory
+models_dir: 'agent/models'  # AI models directory
+cache_dir: 'agent/cache'    # Cache directory
 
 # AI Model settings
 model_backend: 'llama_cpp'    # 'llama_cpp' or 'gpt4all'
-model_path: 'backend/models/mistral-7b-instruct-v0.1.Q4_0.gguf'
+model_path: 'agent/models/mistral-7b-instruct-v0.1.Q4_0.gguf'
 embed_model: 'sentence-transformers/all-MiniLM-L6-v2'
 gpu: true                      # Use GPU acceleration if available
 
@@ -234,7 +234,7 @@ chunk_overlap: 200            # Chunk overlap for context
 similarity_threshold: 0.7     # Minimum similarity score
 
 # Voice recognition
-vosk_model_path: 'backend/models/vosk-model-small-en-us-0.15'
+vosk_model_path: 'agent/models/vosk-model-small-en-us-0.15'
 
 # Caching
 cache_ttl: 3600               # Cache time-to-live (seconds)
@@ -356,7 +356,7 @@ and administration capabilities for organizational deployments.
 
 ### Configuration
 
-Enable enterprise features in `backend/config.yaml`:
+Enable enterprise features in `agent/config.yaml`:
 
 ```yaml
 enterprise:
@@ -424,114 +424,12 @@ POST /api/enterprise/compliance/audit
 
 ## API Documentation
 
-### Interactive Documentation
+For complete API documentation, including all endpoints, request/response examples, and interactive Swagger UI, see **[API_REFERENCE.md](docs/API_REFERENCE.md)**.
 
-- **Swagger UI**: <http://localhost:8000/docs>
-- **ReDoc**: <http://localhost:8000/redoc>
-
-### Core Endpoints
-
-#### Health & Status
-
-```bash
-# Basic health check
-GET /health
-Response: {"status": "healthy"}
-
-# Detailed service status
-GET /status
-Response: {
-  "status": "healthy",
-  "services": {
-    "model_manager": "operational",
-    "embeddings": "operational",
-    "vector_db": "operational",
-    "cache": "operational"
-  },
-  "system": {
-    "cpu_percent": 15.2,
-    "memory_percent": 42.1,
-    "disk_percent": 65.8
-  }
-}
-```
-
-#### AI Operations
-
-```bash
-# Ask question
-POST /ask
-Content-Type: application/json
-{
-  "prompt": "What is quantum computing?",
-  "context": "previous conversation...",
-  "model": "llama_cpp",
-  "temperature": 0.7
-}
-
-# Reindex vault
-POST /reindex
-Content-Type: application/json
-{
-  "vault_path": "/path/to/vault",
-  "file_types": ["md", "pdf"]
-}
-
-# Index web content
-POST /web
-Content-Type: application/json
-{
-  "url": "https://example.com",
-  "max_depth": 2,
-  "analyze": true
-}
-
-# Voice transcription
-POST /transcribe
-Content-Type: application/json
-{
-  "audio_data": "base64_encoded_audio",
-  "format": "wav",
-  "language": "en"
-}
-```
-
-#### Configuration
-
-```bash
-# Get configuration
-GET /api/config
-Response: {
-  "vault_path": "vault",
-  "model_backend": "llama_cpp",
-  "gpu": true,
-  "cache_ttl": 3600
-}
-
-# Update configuration
-POST /api/config
-Content-Type: application/json
-{
-  "vault_path": "/new/path",
-  "gpu": false
-}
-
-# Reload from file
-POST /api/config/reload
-```
-
-#### Search
-
-```bash
-# Semantic search
-POST /api/search
-Content-Type: application/json
-{
-  "query": "machine learning algorithms",
-  "top_k": 10,
-  "similarity_threshold": 0.7
-}
-```
+**Quick Links:**
+- **Swagger UI**: <http://localhost:8000/docs> (when backend is running)
+- **ReDoc**: <http://localhost:8000/redoc> (when backend is running)
+- **Complete Reference**: [docs/API_REFERENCE.md](docs/API_REFERENCE.md)
 
 ---
 
@@ -566,13 +464,13 @@ source .venv/bin/activate  # Linux/macOS
 pytest tests/ -v --cov=backend --cov-report=html
 
 # Run specific categories
-pytest tests/backend/ -v                    # Backend only
+pytest tests/agent/ -v                    # Backend only
 pytest tests/integration/ -v                # Integration only
 pytest tests/performance/ -v                # Performance only
 
 # Run specific modules
-pytest tests/backend/test_caching.py -v     # Cache tests
-pytest tests/backend/test_security.py -v    # Security tests
+pytest tests/agent/test_caching.py -v     # Cache tests
+pytest tests/agent/test_security.py -v    # Security tests
 ```
 
 **Coverage Report:**
@@ -635,11 +533,11 @@ pytest tests/plugin/test_js_code_quality.py -v
 python fix_js_quality.py
 
 # Python linting
-ruff check backend/
-bandit -r backend/ -f json -o tests/bandit_report.json
+ruff check agent/
+bandit -r agent/ -f json -o tests/bandit_report.json
 
 # Type checking
-mypy backend/ --ignore-missing-imports
+mypy agent/ --ignore-missing-imports
 ```
 
 ### Linting Framework
@@ -714,7 +612,7 @@ The project uses **Trunk** linting framework with:
 
 **Cache Configuration:**
 ```yaml
-# backend/config.yaml
+# agent/config.yaml
 cache_ttl: 3600              # Increase for better hit rate
 cache_max_size: 5000         # Increase for larger cache
 cache_cleanup_interval: 300  # Adjust cleanup frequency
@@ -723,7 +621,7 @@ cache_cleanup_interval: 300  # Adjust cleanup frequency
 **Model Selection:**
 ```yaml
 # Use smaller models for faster inference
-model_path: 'backend/models/mistral-7b-instruct-v0.1.Q4_0.gguf'  # 4-bit quantized
+model_path: 'agent/models/mistral-7b-instruct-v0.1.Q4_0.gguf'  # 4-bit quantized
 
 # Use GPU acceleration
 gpu: true
@@ -803,10 +701,10 @@ python -m uvicorn backend:app --port 8001
 **Solution:**
 ```bash
 # Check models directory exists
-ls backend/models/
+ls agent/models/
 
 # Download models manually
-cd backend/models
+cd agent/models
 curl -L -o mistral-7b-instruct-v0.1.Q4_0.gguf \
   https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_0.gguf
 ```
@@ -818,14 +716,14 @@ curl -L -o mistral-7b-instruct-v0.1.Q4_0.gguf \
 **Solution:**
 1. Check file structure:
    ```text
-   .obsidian/plugins/obsidian-ai-assistant/
+   .obsidian/plugins/obsidian-ai-agent/
    ├── main.js
    ├── manifest.json
    └── styles.css
    ```
 2. Restart Obsidian
 3. Settings → Community Plugins → Reload plugins
-4. Enable "Obsidian AI Assistant"
+4. Enable "Obsidian AI Agent"
 
 #### Slow Response Times
 
@@ -873,7 +771,7 @@ gpu_layers: 20  # Load fewer layers to GPU
 - **Permission Denied:**
   ```bash
   chmod +x setup.sh
-  sudo chown -R $USER:$USER backend/models
+  sudo chown -R $USER:$USER agent/models
   ```
 
 - **Port 8000 in use:**
@@ -884,11 +782,101 @@ gpu_layers: 20  # Load fewer layers to GPU
 
 ### Getting Help
 
-1. Check the logs: `backend/logs/app.log`
+1. Check the logs: `agent/logs/app.log`
 2. Visit the health endpoint: <http://localhost:8000/health>
 3. Check system status: <http://localhost:8000/status>
 4. Review documentation: `docs/` directory
-5. Open an issue: <https://github.com/UndiFineD/obsidian-AI-assistant/issues>
+5. Open an issue: <https://github.com/UndiFineD/obsidian-ai-agent/issues>
+
+---
+
+## Documentation Navigation
+
+### Quick Navigation by Role
+
+**For Users & Developers (5 min start)**
+- [SETUP_README.md](docs/SETUP_README.md) - Installation and first run
+- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - How to contribute
+- [API_REFERENCE.md](docs/API_REFERENCE.md) - API endpoints and usage
+
+**For Architects & Planners**
+- [PROJECT_CONSTITUTION.md](docs/PROJECT_CONSTITUTION.md) - Governance and principles
+- [SYSTEM_ARCHITECTURE_SPECIFICATION.md](docs/SYSTEM_ARCHITECTURE_SPECIFICATION.md) - System design
+- [DEPLOYMENT_SPECIFICATION.md](docs/DEPLOYMENT_SPECIFICATION.md) - Deployment guide
+
+**For Security & Operations**
+- [SECURITY_SPECIFICATION.md](docs/SECURITY_SPECIFICATION.md) - Security framework
+- [HEALTH_MONITORING.md](docs/HEALTH_MONITORING.md) - Monitoring and alerts
+- [PERFORMANCE_REQUIREMENTS_SPECIFICATION.md](docs/PERFORMANCE_REQUIREMENTS_SPECIFICATION.md) - SLAs and targets
+
+**For Testing & Quality**
+- [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) - Testing procedures
+- [TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md](docs/TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md) - Latest coverage report
+
+### Documentation Categories
+
+**Core Foundation** (6 docs):
+- PROJECT_CONSTITUTION.md - Governance, roles, and decision-making
+- SYSTEM_ARCHITECTURE_SPECIFICATION.md - Technical architecture overview
+- SETUP_README.md - Installation and setup instructions
+- CONTRIBUTING.md - Contribution guidelines
+- API_REFERENCE.md - Complete API endpoint reference
+- SECURITY_SPECIFICATION.md - Security framework and practices
+
+**Operational** (5 docs):
+- DEPLOYMENT_SPECIFICATION.md - Secure deployment procedures
+- HEALTH_MONITORING.md - System health and alerts
+- PERFORMANCE_REQUIREMENTS_SPECIFICATION.md - Performance SLAs
+- CI_CD_MAINTENANCE_GUIDE.md - CI/CD pipeline management
+- RELEASE_AUTOMATION.md - Release automation
+
+**Technical Details** (6 docs):
+- CONFIGURATION_API.md - Runtime configuration management
+- DATA_MODELS_SPECIFICATION.md - Data models and schemas
+- PLUGIN_INTEGRATION_SPECIFICATION.md - Plugin architecture
+- API_KEY_MANAGEMENT.md - API key and authentication
+- JWT_SECRET_MANAGEMENT.md - JWT and secret handling
+- ENTERPRISE_FEATURES_SPECIFICATION.md - Multi-tenant, RBAC, SSO
+
+**Quality & Testing** (3 docs):
+- TESTING_GUIDE.md - Testing procedures and patterns
+- TESTING_STANDARDS_SPECIFICATION.md - Testing standards
+- TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md - Coverage reports
+
+**Deployment & DevOps**:
+- DEPLOYMENT_SPECIFICATION.md - Deployment procedures
+- CI_CD_MAINTENANCE_GUIDE.md - CI/CD pipeline management
+- RELEASE_AUTOMATION.md - Release automation
+
+### Learning Paths by Experience Level
+
+**Beginner** (45 minutes):
+1. SETUP_README.md (15 min)
+2. CONTRIBUTING.md (10 min)
+3. API_REFERENCE.md (20 min)
+
+**Intermediate** (1.5 hours):
+1. SYSTEM_ARCHITECTURE_SPECIFICATION.md (30 min)
+2. DEPLOYMENT_SPECIFICATION.md (20 min)
+3. TESTING_GUIDE.md (20 min)
+
+**Advanced** (2 hours):
+1. SECURITY_SPECIFICATION.md (30 min)
+2. ENTERPRISE_FEATURES_SPECIFICATION.md (30 min)
+3. HEALTH_MONITORING.md (20 min)
+4. CI_CD_MAINTENANCE_GUIDE.md (20 min)
+
+### Finding Documentation by Topic
+
+| Topic | Documents |
+|-------|-----------|
+| Getting Started | SETUP_README, CONTRIBUTING |
+| Architecture | SYSTEM_ARCHITECTURE_SPECIFICATION, PLUGIN_INTEGRATION_SPECIFICATION |
+| API | API_REFERENCE, CONFIGURATION_API, API_KEY_MANAGEMENT |
+| Security | SECURITY_SPECIFICATION, DEPLOYMENT_SPECIFICATION |
+| Operations | HEALTH_MONITORING, PERFORMANCE_REQUIREMENTS_SPECIFICATION |
+| Testing | TESTING_GUIDE, TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025 |
+| Features | ENTERPRISE_FEATURES_SPECIFICATION, DATA_MODELS_SPECIFICATION |
 
 ---
 
@@ -964,7 +952,7 @@ We welcome contributions! Please follow these guidelines:
 
 **Author**: Keimpe de Jong  
 **License**: MIT  
-**Repository**: <https://github.com/UndiFineD/obsidian-AI-assistant>
+**Repository**: <https://github.com/UndiFineD/obsidian-ai-agent>
 
 ---
 
@@ -988,3 +976,4 @@ This project builds on excellent open-source tools:
 **Backend Coverage**: 88%+ (production-grade quality)
 
 **Documentation Status**: ✅ Consolidated & organized (59.8% reduction in meta-docs, 100% content preserved)
+

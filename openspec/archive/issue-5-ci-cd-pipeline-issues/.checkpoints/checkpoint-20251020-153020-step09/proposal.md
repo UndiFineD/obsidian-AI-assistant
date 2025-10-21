@@ -89,9 +89,9 @@ Why
 Masking failures hides real issues and makes CI less actionable.
 Suggested change example
 
-Replace: semgrep --config=auto backend/ --json --output=semgrep-report.json || true
-With: semgrep --config=auto backend/ --json --output=semgrep-report.json || true # or better: capture exit code and optionally fail
-Or implement: semgrep --config=auto backend/ --json --output=semgrep-report.json || echo "SEMgrep_FAILED=true" >> $GITHUB_ENV
+Replace: semgrep --config=auto agent/ --json --output=semgrep-report.json || true
+With: semgrep --config=auto agent/ --json --output=semgrep-report.json || true # or better: capture exit code and optionally fail
+Or implement: semgrep --config=auto agent/ --json --output=semgrep-report.json || echo "SEMgrep_FAILED=true" >> $GITHUB_ENV
 
 gh CLI to create gh issue create --title "Stop masking security scan failures with '|| true' so CI reflects actual failures" --body "$(cat <<'EOF' Observed issue:
 

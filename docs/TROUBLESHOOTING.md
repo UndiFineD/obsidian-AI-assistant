@@ -51,7 +51,7 @@
 
 4. **Check configuration**:
    ```bash
-   cat backend/config.yaml  # Verify settings
+   cat agent/config.yaml  # Verify settings
    ```
 
 ---
@@ -124,7 +124,7 @@
 
 4. **Review server logs**:
    ```bash
-   tail -f backend/logs/app.log
+   tail -f agent/logs/app.log
    ```
 
 ---
@@ -143,13 +143,13 @@
 
 1. **Check model files**:
    ```bash
-   ls -lh backend/models/  # Verify file sizes
-   md5sum backend/models/*.gguf  # Check integrity
+   ls -lh agent/models/  # Verify file sizes
+   md5sum agent/models/*.gguf  # Check integrity
    ```
 
 2. **Verify model configuration**:
    ```bash
-   grep "model_backend\|embed_model" backend/config.yaml
+   grep "model_backend\|embed_model" agent/config.yaml
    ```
 
 3. **Check system resources**:
@@ -160,8 +160,8 @@
 
 4. **Reinitialize models**:
    ```bash
-   rm -rf backend/models/*.cache
-   python -c "from backend.modelmanager import ModelManager; m = ModelManager()"
+   rm -rf agent/models/*.cache
+   python -c "from agent.modelmanager import ModelManager; m = ModelManager()"
    ```
 
 ---
@@ -176,12 +176,12 @@
 
 1. **Back up current database**:
    ```bash
-   cp -r backend/vector_db backend/vector_db.backup
+   cp -r agent/vector_db agent/vector_db.backup
    ```
 
 2. **Clear corrupted index**:
    ```bash
-   rm -rf backend/vector_db/chroma*
+   rm -rf agent/vector_db/chroma*
    ```
 
 3. **Rebuild from scratch**:
@@ -209,7 +209,7 @@
 
 2. **Or manually clear**:
    ```bash
-   rm -rf backend/cache/*
+   rm -rf agent/cache/*
    ```
 
 3. **Restart backend**:
@@ -233,12 +233,12 @@
 
 1. **Back up current config**:
    ```bash
-   cp backend/config.yaml backend/config.yaml.backup
+   cp agent/config.yaml agent/config.yaml.backup
    ```
 
 2. **Reset to defaults**:
    ```bash
-   rm backend/config.yaml
+   rm agent/config.yaml
    ```
 
 3. **Reconfigure**:
@@ -290,7 +290,7 @@ top -p $(pidof python)  # Real-time monitoring
 
 4. **Restart and monitor**:
    ```bash
-   systemctl restart obsidian-ai-assistant
+   systemctl restart obsidian-ai-agent
    watch free -h
    ```
 
@@ -391,7 +391,7 @@ curl -v http://localhost:8000/health  # Verbose output
 
 1. **Check if enterprise modules present**:
    ```bash
-   ls backend/enterprise_*.py
+   ls agent/enterprise_*.py
    ls plugin/enterprise*.js
    ```
 
@@ -402,7 +402,7 @@ curl -v http://localhost:8000/health  # Verbose output
 
 3. **Check backend logs** for enterprise errors:
    ```bash
-   grep -i enterprise backend/logs/app.log
+   grep -i enterprise agent/logs/app.log
    ```
 
 4. **Reinstall enterprise components** if missing
@@ -495,7 +495,7 @@ curl -v http://localhost:8000/health  # Verbose output
 
 1. **Check index size**:
    ```bash
-   du -sh backend/vector_db/
+   du -sh agent/vector_db/
    ```
 
 2. **If very large (>10GB)**:
@@ -550,7 +550,7 @@ curl -v http://localhost:8000/health  # Verbose output
 
 1. **Check access logs**:
    ```bash
-   grep "401\|403" backend/logs/app.log
+   grep "401\|403" agent/logs/app.log
    ```
 
 2. **Review recent API keys**:
@@ -613,8 +613,8 @@ free -h > /tmp/diagnostics/memory.txt
 df -h > /tmp/diagnostics/disk.txt
 curl http://localhost:8000/health > /tmp/diagnostics/health.json
 curl http://localhost:8000/api/performance/metrics > /tmp/diagnostics/metrics.json
-tail -100 backend/logs/app.log > /tmp/diagnostics/logs.txt
-cp backend/config.yaml /tmp/diagnostics/config.yaml
+tail -100 agent/logs/app.log > /tmp/diagnostics/logs.txt
+cp agent/config.yaml /tmp/diagnostics/config.yaml
 
 # Share diagnostics (sanitized)
 tar czf diagnostics.tar.gz /tmp/diagnostics/
@@ -622,7 +622,7 @@ tar czf diagnostics.tar.gz /tmp/diagnostics/
 
 ### Support Channels
 
-- **GitHub Issues**: https://github.com/UndiFineD/obsidian-AI-assistant/issues
+- **GitHub Issues**: https://github.com/UndiFineD/obsidian-ai-agent/issues
 - **Documentation**: Check [DOCUMENTATION.md](DOCUMENTATION.md)
 - **FAQ**: See [openspec/docs/faq.md](openspec/docs/faq.md)
 - **Configuration**: [CONFIGURATION_API.md](CONFIGURATION_API.md)
@@ -647,3 +647,4 @@ tar czf diagnostics.tar.gz /tmp/diagnostics/
 **Maintained By**: Development Team
 
 For more help, see [DOCUMENTATION.md](../DOCUMENTATION.md)
+

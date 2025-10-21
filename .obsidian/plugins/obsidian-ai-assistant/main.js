@@ -283,7 +283,7 @@ class AIModal extends Modal {
         }
     }
 }
-class ObsidianAIAssistant extends Plugin {
+class ObsidianAIAgent extends Plugin {
     async onload() {
         await this.loadSettings();
 
@@ -517,4 +517,5 @@ class EnterpriseLoginModal extends Modal {
 }
 
 // Export the plugin entry for Obsidian
-module.exports = ObsidianAIAssistant;
+module.exports = ObsidianAIAgent;
+

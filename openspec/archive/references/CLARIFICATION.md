@@ -1,4 +1,4 @@
-# 🔍 Obsidian AI Assistant - Project Clarification Guide
+# 🔍 Obsidian AI Agent - Project Clarification Guide
 
 ## 📋 **Overview**
 
@@ -11,7 +11,7 @@ to frequent issues encountered during development and testing.
 
 ### **1. Test File Issues & Solutions**
 
-#### **Current Test Problems in `test_backend_comprehensive.py`**
+#### **Current Test Problems in `test_agent_comprehensive.py`**
 
 **❌ Critical Issues Found:**
 
@@ -20,7 +20,7 @@ to frequent issues encountered during development and testing.
     ```python
     # These are used but not defined/imported:
     init_services()     # Function exists in backend.py but not imported
-    backend_module      # Used throughout but undefined
+    agent_module      # Used throughout but undefined
     app                 # Used in fixtures but not imported
     TestClient          # Missing from fastapi.testclient
     ```
@@ -30,7 +30,7 @@ to frequent issues encountered during development and testing.
     ```python
     # These appear without definition:
     client = TestClient(app)           # app is undefined
-    backend_module.model_manager      # backend_module is undefined
+    agent_module.model_manager      # agent_module is undefined
     ```
 
 1. **Circular Import Issues**:
@@ -38,7 +38,7 @@ to frequent issues encountered during development and testing.
     ```python
     # This pattern causes issues:
     sys.path.insert(0, ...)          # Path manipulation
-    import backend.backend as backend_module  # Late import after mocking
+    import agent.backend as agent_module  # Late import after mocking
     ```
 
 **✅ Corrected Approach:**
@@ -56,9 +56,9 @@ import sys
 
 # Add backend to Python path
 
-backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+agent_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+if agent_path not in sys.path:
+    sys.path.insert(0, agent_path)
 
 # Import with proper mocking to avoid PyTorch conflicts
 
@@ -74,15 +74,15 @@ def mock_pytorch_imports():
         yield
 
 @pytest.fixture
-def backend_app(mock_pytorch_imports):
+def agent_app(mock_pytorch_imports):
     """Get backend app with mocked dependencies."""
-    import backend.backend as backend
+    import agent.backend as backend
     return backend.app
 
 @pytest.fixture
-def client(backend_app):
+def client(agent_app):
     """Test client for FastAPI app."""
-    return TestClient(backend_app)
+    return TestClient(agent_app)
 ```
 
 #### **API Endpoint Reality Check**
@@ -93,7 +93,7 @@ Looking at the actual backend code, here are the **confirmed endpoints**:
 
 ```python
 
-# From backend/backend.py analysis
+# From agent/backend.py analysis
 
 GET  /                    # Root welcome
 GET  /health             # Health check
@@ -158,7 +158,7 @@ def init_services():
 
 # WRONG - This won't work in tests:
 
-@patch('backend.backend.ModelManager')
+@patch('agent.agent.ModelManager')
 def test_something(mock_model_cls):
     # The class is mocked but global instance may already exist
     pass
@@ -198,16 +198,16 @@ CacheManager ──┘
 ```text
 Environment Variables  (highest priority)
          ↓
-    YAML config file   (backend/config.yaml)
+    YAML config file   (agent/config.yaml)
          ↓
     Default values     (settings.py)
 ```
 
 **📁 Configuration Files:**
 
-1. **`backend/settings.py`** - Pydantic models with defaults
+1. **`agent/settings.py`** - Pydantic models with defaults
 
-1. **`backend/config.yaml`** - Runtime configuration
+1. **`agent/config.yaml`** - Runtime configuration
 
 1. **Environment variables** - Override everything
 
@@ -244,15 +244,15 @@ def test_with_config(mock_get_settings):
 
 ```text
 tests/
-├── backend/                    # Backend Python tests
+├── agent/                    # Backend Python tests
 │   ├── conftest.py            # Shared fixtures
 │   ├── test_backend.py        # Basic FastAPI tests
-│   ├── test_backend_comprehensive.py  # Full endpoint tests
+│   ├── test_agent_comprehensive.py  # Full endpoint tests
 │   ├── test_*.py              # Individual module tests
 ├── setup/                     # Setup script tests
 │   ├── test_setup_ps1.ps1     # PowerShell setup tests
 │   └── test_setup_sh.bats     # Bash setup tests
-├── .obsidian/plugins/obsidian-ai-assistant/                    # TypeScript plugin tests (planned)
+├── .obsidian/plugins/obsidian-ai-agent/                    # TypeScript plugin tests (planned)
 └── integration/               # End-to-end tests (planned)
 ```
 
@@ -298,20 +298,20 @@ def mock_ml_dependencies():
 #### **Directory Purpose Guide**
 
 ```text
-obsidian-AI-assistant/
-├── backend/                   # Python FastAPI server
+obsidian-ai-agent/
+├── agent/                   # Python FastAPI server
 │   ├── __init__.py           # ⚠️  MISSING - causes import issues
 │   ├── backend.py            # Main FastAPI app
 │   ├── settings.py           # Configuration management
 │   ├── models.txt            # Available LLM models list
 │   └── models/models.txt     # Available LLM models list
-├── .obsidian/plugins/obsidian-ai-assistant/                   # TypeScript Obsidian plugin
+├── .obsidian/plugins/obsidian-ai-agent/                   # TypeScript Obsidian plugin
 │   ├── main.ts              # Plugin entry point
 │   ├── manifest.json        # Plugin metadata
 │   └── *.ts                 # Plugin components
 ├── tests/                    # Test suites
-├── backend/cache/            # Runtime cache storage
-├── backend/models/           # Downloaded AI models
+├── agent/cache/            # Runtime cache storage
+├── agent/models/           # Downloaded AI models
 ├── vault/                    # Sample Obsidian vault
 └── vector_db/               # ChromaDB storage
 ```
@@ -320,12 +320,12 @@ obsidian-AI-assistant/
 
 ```python
 
-# CREATE: backend/__init__.py
+# CREATE: agent/__init__.py
 
 """
-Obsidian AI Assistant Backend
+Obsidian AI Agent Backend
 
-FastAPI-based backend for the Obsidian AI Assistant plugin.
+FastAPI-based backend for the Obsidian AI Agent plugin.
 Provides LLM integration, vector database, and caching services.
 """
 
@@ -361,11 +361,11 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../..'))
 
 # Option B: Create __init__.py files
 
-touch backend/__init__.py
+touch agent/__init__.py
 
 # Option C: Use relative imports
 
-from .settings import get_settings  # Within backend/
+from .settings import get_settings  # Within agent/
 ```
 
 #### **Issue 2: Test Import Conflicts**
@@ -411,8 +411,8 @@ AttributeError: 'NoneType' object has no attribute 'generate'
 @pytest.fixture
 def mock_services():
     """Mock all backend services."""
-    with patch('backend.backend.init_services'):
-        import backend.backend as backend
+    with patch('agent.agent.init_services'):
+        import agent.backend as backend
 
         # Mock the global instances
         backend.model_manager = Mock()
@@ -436,7 +436,7 @@ def mock_services():
 1. **Create Missing `__init__.py`**:
 
     ```bash
-    touch backend/__init__.py
+    touch agent/__init__.py
     ```
 
 1. **Fix Test Imports**:
@@ -444,14 +444,14 @@ def mock_services():
     ```python
     # Replace problematic imports in test files
     # OLD:
-    import backend.backend as backend_module  # Undefined variable
+    import agent.backend as agent_module  # Undefined variable
 
     # NEW:
     @pytest.fixture
-    def backend_module():
+    def agent_module():
         with patch.dict('sys.modules', {'torch': MagicMock()}):
-            import backend.backend
-            return backend.backend
+            import agent.backend
+            return agent.agent
     ```
 
 1. **Standardize Mock Pattern**:
@@ -483,7 +483,7 @@ def mock_services():
     import sys; sys.path.append('.');
     from unittest.mock import patch, MagicMock;
     with patch.dict('sys.modules', {'torch': MagicMock()}):
-        import backend.backend as b;
+        import agent.backend as b;
         routes = [r.path for r in b.app.routes if hasattr(r, 'path')];
         print('Actual routes:', routes)
     "
@@ -521,14 +521,14 @@ def fully_mocked_backend():
     }
 
     with patch.dict('sys.modules', ml_mocks):
-        # Now import backend
-        import backend.backend as backend
+        # Now import agentimport backend
+        import agent.backend as backend
 
         # Mock service classes before init_services
-        with patch('backend.backend.ModelManager') as mock_model_cls, \
-             patch('backend.backend.EmbeddingsManager') as mock_emb_cls, \
-             patch('backend.backend.VaultIndexer') as mock_vault_cls, \
-             patch('backend.backend.CacheManager') as mock_cache_cls:
+        with patch('agent.agent.ModelManager') as mock_model_cls, \
+             patch('agent.agent.EmbeddingsManager') as mock_emb_cls, \
+             patch('agent.agent.VaultIndexer') as mock_vault_cls, \
+             patch('agent.agent.CacheManager') as mock_cache_cls:
 
             # Create mock instances
             mock_model = Mock()
@@ -587,7 +587,7 @@ def fully_mocked_backend():
 
 1. **Immediate** (< 1 hour):
 
-- Create `backend/__init__.py`
+- Create `agent/__init__.py`
 
 - Fix test imports and undefined variables
 
@@ -629,7 +629,7 @@ If you encounter issues not covered here:
 
 1. **Check Existing Tests**: Look at `test_security.py` for working patterns
 
-1. **Verify API Reality**: Use `grep -r "def " backend/` to find actual method signatures
+1. **Verify API Reality**: Use `grep -r "def " agent/` to find actual method signatures
 
 1. **Test One Module**: Start with a single working test file and expand
 
@@ -639,3 +639,4 @@ If you encounter issues not covered here:
 
 _Last Updated: October 6, 2025_
 _Version: 1.0_
+

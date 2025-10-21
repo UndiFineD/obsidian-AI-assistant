@@ -1,4 +1,4 @@
-# Production Requirements for Obsidian AI Assistant
+# Production Requirements for Obsidian AI Agent
 # Core backend dependencies
 
 # FastAPI and server
@@ -78,7 +78,7 @@ urllib3>=2.0.0  # HTTP client library
 # Install CPU-only wheels explicitly if needed:
 #   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
-# Machine Learning Requirements for Obsidian AI Assistant
+# Machine Learning Requirements for Obsidian AI Agent
 # These packages may require special installation procedures or system-specific configurations
 
 # PyTorch - Install with appropriate backend
@@ -159,3 +159,4 @@ locust>=2.16.0
 
 # Development server tools
 watchdog>=3.0.0  # File watching for development
+

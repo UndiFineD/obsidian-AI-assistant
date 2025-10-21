@@ -20,11 +20,11 @@ All test runs showed multiple deprecation warnings from our backend code.
 Systematically replaced all `datetime.utcnow()` calls with `datetime.now(timezone.utc)` across:
 
 **Files Modified:**
-1. `backend/error_handling.py` - Added timezone import, fixed ObsidianAIError timestamp
-2. `backend/security_hardening.py` - Updated SecurityContext timestamp with comment explaining change
-3. `backend/health_monitoring.py` - Fixed health summary and metrics aggregation timestamps
-4. `backend/logging_framework.py` - Updated audit, security, and performance logging timestamps
-5. `backend/backend.py` - Fixed JWT token creation timestamps and all API response timestamps
+1. `agent/error_handling.py` - Added timezone import, fixed ObsidianAIError timestamp
+2. `agent/security_hardening.py` - Updated SecurityContext timestamp with comment explaining change
+3. `agent/health_monitoring.py` - Fixed health summary and metrics aggregation timestamps
+4. `agent/logging_framework.py` - Updated audit, security, and performance logging timestamps
+5. `agent/backend.py` - Fixed JWT token creation timestamps and all API response timestamps
 
 **Changes:**
 ```python
@@ -47,15 +47,15 @@ self.timestamp = datetime.now(timezone.utc)
 
 ### Problem
 Test mode detection logic was duplicated across multiple files with slight variations:
-- `backend/backend.py`: Had `_is_test_mode()` function
-- `backend/security_hardening.py`: Inline checks with `is_test` variable
-- `backend/error_handling.py`: Inline checks for debug mode
+- `agent/backend.py`: Had `_is_test_mode()` function
+- `agent/security_hardening.py`: Inline checks with `is_test` variable
+- `agent/error_handling.py`: Inline checks for debug mode
 - Inconsistent patterns made maintenance difficult
 
 ### Solution
-Created a centralized `is_test_mode()` utility function in `backend/utils.py` and updated all callers.
+Created a centralized `is_test_mode()` utility function in `agent/utils.py` and updated all callers.
 
-**New Function in backend/utils.py:**
+**New Function in agent/utils.py:**
 ```python
 def is_test_mode() -> bool:
     """
@@ -84,9 +84,9 @@ def is_test_mode() -> bool:
 ```
 
 **Files Updated:**
-1. **backend/utils.py** - Added centralized `is_test_mode()` function with full documentation
-2. **backend/backend.py** - Removed local `_is_test_mode()`, imported from utils, replaced 10+ calls
-3. **backend/security_hardening.py** - Imported `is_test_mode()`, replaced inline checks in 2 locations
+1. **agent/utils.py** - Added centralized `is_test_mode()` function with full documentation
+2. **agent/backend.py** - Removed local `_is_test_mode()`, imported from utils, replaced 10+ calls
+3. **agent/security_hardening.py** - Imported `is_test_mode()`, replaced inline checks in 2 locations
 
 ### Results
 - **Code Reduction**: Eliminated ~30 lines of duplicated test detection logic
@@ -176,14 +176,14 @@ def is_test_mode() -> bool:
 ## Code Changes Summary
 
 ### Files Modified (5)
-1. `backend/error_handling.py` - Added timezone import, fixed timestamp
-2. `backend/security_hardening.py` - Fixed timestamp, added is_test_mode() import, replaced inline checks
-3. `backend/health_monitoring.py` - Added timezone import, fixed 2 timestamps
-4. `backend/logging_framework.py` - Added timezone import, fixed 3 timestamps
-5. `backend/backend.py` - Added timezone import, fixed 10+ timestamps, imported is_test_mode()
+1. `agent/error_handling.py` - Added timezone import, fixed timestamp
+2. `agent/security_hardening.py` - Fixed timestamp, added is_test_mode() import, replaced inline checks
+3. `agent/health_monitoring.py` - Added timezone import, fixed 2 timestamps
+4. `agent/logging_framework.py` - Added timezone import, fixed 3 timestamps
+5. `agent/backend.py` - Added timezone import, fixed 10+ timestamps, imported is_test_mode()
 
 ### Files Created (1)
-1. `backend/utils.py` - Enhanced with `is_test_mode()` function (added to existing file)
+1. `agent/utils.py` - Enhanced with `is_test_mode()` function (added to existing file)
 
 ### Lines Changed
 - **Added**: ~35 lines (centralized function + documentation)
@@ -197,16 +197,16 @@ To verify these improvements:
 
 ```powershell
 # Run config endpoint tests (should see fewer warnings)
-python -m pytest tests/backend/test_config_endpoints.py -v
+python -m pytest tests/agent/test_config_endpoints.py -v
 
 # Run broader test suite
-python -m pytest tests/backend/test_config_endpoints.py tests/backend/test_health_monitoring.py -v
+python -m pytest tests/agent/test_config_endpoints.py tests/agent/test_health_monitoring.py -v
 
 # Check for deprecation warnings (should be minimal)
-python -m pytest tests/backend/ -v 2>&1 | Select-String "DeprecationWarning"
+python -m pytest tests/agent/ -v 2>&1 | Select-String "DeprecationWarning"
 
 # Verify test mode detection works
-python -c "from backend.utils import is_test_mode; import sys; print(f'Test mode: {is_test_mode()}')"
+python -c "from agent.utils import is_test_mode; import sys; print(f'Test mode: {is_test_mode()}')"
 ```
 
 ## Recommendations

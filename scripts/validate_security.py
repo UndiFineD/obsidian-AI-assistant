@@ -215,7 +215,7 @@ def scan_code_bandit() -> Tuple[bool, str]:
     """Run Bandit security scan on Python code."""
     try:
         result = subprocess.run(
-            ["bandit", "-r", "backend/", "-f", "json"],
+            ["bandit", "-r", "agent/", "-f", "json"],
             capture_output=True,
             text=True,
             timeout=60,
@@ -278,7 +278,7 @@ def print_check_result(name: str, status: bool, details: str = None):
 
 def main():
     """Main security validation function."""
-    print("🛡️  Obsidian AI Assistant - Security Validation")
+    print("🛡️  Obsidian AI Agent - Security Validation")
     print("=" * 60)
 
     all_passed = True

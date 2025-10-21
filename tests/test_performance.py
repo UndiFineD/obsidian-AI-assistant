@@ -13,7 +13,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from backend.performance import (
+from agent.performance import (
     AsyncTaskQueue,
     ConnectionPool,
     MultiLevelCache,

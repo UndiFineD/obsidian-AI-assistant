@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Obsidian AI Assistant backend provides a comprehensive REST API for AI-powered note analysis, vector search, web
+The Obsidian AI Agent backend provides a comprehensive REST API for AI-powered note analysis, vector search, web
 research, voice transcription, and enterprise features. The API is built with FastAPI and includes OpenAPI/Swagger
 documentation.
 
@@ -33,11 +33,11 @@ Comprehensive health check with system information.
 {
   "status": "ok",
   "timestamp": 1729094400,
-  "backend_url": "http://localhost:8000",
+  "agent_url": "http://localhost:8000",
   "api_port": 8000,
   "vault_path": "./vault",
-  "models_dir": "./backend/models",
-  "cache_dir": "./backend/cache",
+  "models_dir": "./agent/models",
+  "cache_dir": "./agent/cache",
   "model_backend": "gpt4all",
   "embed_model": "all-MiniLM-L6-v2",
   "vector_db": "chromadb",
@@ -70,7 +70,7 @@ Get current runtime configuration (whitelisted fields only).
   "vault_path": "./vault",
   "chunk_size": 1000,
   "gpu": false,
-  "backend/vector_db": "./backend/vector_db"
+  "agent/vector_db": "./agent/vector_db"
 }
 ```
 
@@ -99,7 +99,7 @@ Update runtime configuration.
 ```
 
 #### POST /api/config/reload
-Reload configuration from `backend/config.yaml`.
+Reload configuration from `agent/config.yaml`.
 
 **Response:**
 ```json
@@ -811,14 +811,14 @@ All endpoints return standard HTTP status codes with JSON error responses:
 
 ## Rate Limiting & Throttling
 
-Obsidian AI Assistant implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair usage for all clients.
+Obsidian AI Agent implements robust rate limiting to protect backend resources, prevent abuse, and ensure fair usage for all clients.
 
 ### Configuration
 
 Rate limiting is configured via environment variables and config.yaml:
 
 ```yaml
-# backend/config.yaml
+# agent/config.yaml
 rate_limit:
   enabled: true
   global_per_minute: 100
@@ -916,7 +916,7 @@ The health monitoring system provides comprehensive observability into the backe
 | Memory (%) | 75 | 90 | 95 |
 | Disk (%) | 80 | 90 | 95 |
 
-**For complete health monitoring documentation, see** `backend/health_monitoring.py` **source code or use** `/docs` **for interactive reference.**
+**For complete health monitoring documentation, see** `agent/health_monitoring.py` **source code or use** `/docs` **for interactive reference.**
 
 - **Allowed Origins**: Configurable via `cors_allowed_origins` setting
 - **Allowed Methods**: GET, POST, PUT, DELETE, OPTIONS
@@ -980,6 +980,7 @@ curl -X POST "http://localhost:8000/api/ask" \
 ## Deployment Notes
 
 - **Health Checks**: Use `/status` for kubernetes liveness, `/health` for readiness
-- **Configuration**: Environment variables override `backend/config.yaml`
+- **Configuration**: Environment variables override `agent/config.yaml`
 - **Scaling**: Horizontal scaling supported with shared cache (Redis recommended)
 - **Monitoring**: Comprehensive metrics available via `/api/performance/*` endpoints
+

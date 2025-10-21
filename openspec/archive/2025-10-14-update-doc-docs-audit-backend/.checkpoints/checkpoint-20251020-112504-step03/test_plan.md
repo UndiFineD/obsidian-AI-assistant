@@ -56,7 +56,7 @@ pytest tests/ -v
 pytest --cov=backend --cov-report=html --cov-report=term
 
 # Run security scan
-bandit -r backend/ -f json -o tests/bandit_report.json
+bandit -r agent/ -f json -o tests/bandit_report.json
 `
 
 ## Acceptance Criteria

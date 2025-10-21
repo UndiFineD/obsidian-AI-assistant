@@ -11,7 +11,7 @@ import pytest
 
 def test_advanced_security_config():
     """Test advanced security configuration"""
-    from backend.advanced_security import SecurityConfig
+    from agent.advanced_security import SecurityConfig
 
     config = SecurityConfig()
 
@@ -30,7 +30,7 @@ def test_advanced_security_config():
 
 def test_input_validator():
     """Test advanced input validation"""
-    from backend.advanced_security import AdvancedInputValidator
+    from agent.advanced_security import AdvancedInputValidator
 
     validator = AdvancedInputValidator()
 
@@ -61,7 +61,7 @@ def test_input_validator():
 
 def test_input_sanitization():
     """Test input sanitization"""
-    from backend.advanced_security import AdvancedInputValidator
+    from agent.advanced_security import AdvancedInputValidator
 
     validator = AdvancedInputValidator()
 
@@ -88,9 +88,9 @@ def test_input_sanitization():
 
 def test_audit_logger():
     """Test audit logging functionality"""
-    from backend.advanced_security import AuditLogger, SecurityEvent, ThreatLevel
+    from agent.advanced_security import AuditLogger, SecurityEvent, ThreatLevel
 
-    logger = AuditLogger(log_dir="backend/logs/test")
+    logger = AuditLogger(log_dir="agent/logs/test")
 
     # Create test security event
     event = SecurityEvent(
@@ -119,7 +119,7 @@ def test_rate_limiting_store():
     """Test rate limiting store functionality"""
     import time
 
-    from backend.rate_limiting import RateLimitStore
+    from agent.rate_limiting import RateLimitStore
 
     store = RateLimitStore()
 
@@ -143,7 +143,7 @@ def test_rate_limiting_store():
 
 def test_json_validation():
     """Test JSON input validation"""
-    from backend.advanced_security import AdvancedInputValidator
+    from agent.advanced_security import AdvancedInputValidator
 
     validator = AdvancedInputValidator()
 
@@ -175,9 +175,9 @@ def test_json_validation():
 
 def test_compliance_manager():
     """Test GDPR/SOC2 compliance management"""
-    from backend.advanced_security import AuditLogger, ComplianceManager
+    from agent.advanced_security import AuditLogger, ComplianceManager
 
-    audit_logger = AuditLogger(log_dir="backend/logs/test")
+    audit_logger = AuditLogger(log_dir="agent/logs/test")
     compliance = ComplianceManager(audit_logger)
 
     # Test data access logging
@@ -198,7 +198,7 @@ def test_compliance_manager():
 @pytest.mark.asyncio
 async def test_security_integration():
     """Test integration of security components"""
-    from backend.advanced_security import (
+    from agent.advanced_security import (
         get_advanced_security_config,
         validate_input_security,
     )
@@ -224,7 +224,7 @@ def test_security_configuration_env_vars():
     """Test security configuration with environment variables"""
     import os
 
-    from backend.advanced_security import SecurityConfig
+    from agent.advanced_security import SecurityConfig
 
     # Mock environment variables
     with patch.dict(
@@ -245,7 +245,7 @@ def test_security_configuration_env_vars():
 
 def test_security_status_endpoint():
     """Test security status reporting"""
-    from backend.advanced_security import get_advanced_security_config
+    from agent.advanced_security import get_advanced_security_config
 
     config = get_advanced_security_config()
     status = config.get_security_status()

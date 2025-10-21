@@ -42,10 +42,10 @@ def _execute_script(script_path: Path, dry_run: bool = False) -> tuple[bool, str
     """Execute a generated script and return (success, output)."""
     if not script_path.exists():
         return False, f"Script not found: {script_path}"
-    
+
     if dry_run:
         return True, f"[DRY RUN] Would execute: {script_path}"
-    
+
     try:
         result = subprocess.run(
             [sys.executable, str(script_path)],
@@ -72,7 +72,7 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     helpers.write_info("Step 7.1: Running test script...")
     test_success = True
     test_output = ""
-    
+
     if test_script.exists():
         if progress:
             with progress.spinner("Running tests", "Tests completed"):
@@ -81,19 +81,19 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
             test_success, test_output = _execute_script(test_script, dry_run)
             if not dry_run:
                 helpers.write_info(f"Test output:\n{test_output}")
-        
+
         if test_success or dry_run:
             helpers.write_success(f"✓ Test script executed: {test_script}")
         else:
             helpers.write_warning(f"⚠ Test script failed with output:\n{test_output}")
     else:
         helpers.write_info(f"ℹ No test.py found at {test_script}")
-    
+
     # Step 2: Execute implement.py if it exists (with --what-if first)
     helpers.write_info("Step 7.2: Running implementation script...")
     implement_success = True
     implement_output = ""
-    
+
     if implement_script.exists():
         # First run with --what-if to preview
         if not dry_run:
@@ -107,10 +107,12 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
                     implement_script, dry_run=False
                 )
                 helpers.write_info(f"Implementation preview:\n{impl_preview_output}")
-        
+
         # Then run actual implementation
         if progress:
-            with progress.spinner("Executing implementation", "Implementation completed"):
+            with progress.spinner(
+                "Executing implementation", "Implementation completed"
+            ):
                 implement_success, implement_output = _execute_script(
                     implement_script, dry_run
                 )
@@ -120,14 +122,18 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
             )
             if not dry_run:
                 helpers.write_info(f"Implementation output:\n{implement_output}")
-        
+
         if implement_success or dry_run:
-            helpers.write_success(f"✓ Implementation script executed: {implement_script}")
+            helpers.write_success(
+                f"✓ Implementation script executed: {implement_script}"
+            )
         else:
-            helpers.write_warning(f"⚠ Implementation script failed with output:\n{implement_output}")
+            helpers.write_warning(
+                f"⚠ Implementation script failed with output:\n{implement_output}"
+            )
     else:
         helpers.write_info(f"ℹ No implement.py found at {implement_script}")
-    
+
     # Step 3: Update implementation notes with results
     helpers.write_info("Step 7.3: Updating implementation notes...")
     if not dry_run:
@@ -147,7 +153,7 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
                     block += f"\n### Test Output\n```\n{test_output[:500]}\n```\n"
                 if implement_output:
                     block += f"\n### Implementation Output\n```\n{implement_output[:500]}\n```\n"
-                
+
                 helpers.set_content_atomic(notes, existing + block)
         else:
             existing = notes.read_text(encoding="utf-8") if notes.exists() else ""
@@ -163,8 +169,10 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
             if test_output:
                 block += f"\n### Test Output\n```\n{test_output[:500]}\n```\n"
             if implement_output:
-                block += f"\n### Implementation Output\n```\n{implement_output[:500]}\n```\n"
-            
+                block += (
+                    f"\n### Implementation Output\n```\n{implement_output[:500]}\n```\n"
+                )
+
             helpers.set_content_atomic(notes, existing + block)
             helpers.write_success(f"Updated: {notes}")
     else:

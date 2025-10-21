@@ -33,7 +33,7 @@ addopts =
 
 Created `.coveragerc` with optimized settings:
 
-- **Source tracking**: Focus on `backend/` directory
+- **Source tracking**: Focus on `agent/` directory
 - **Exclusions**: Skip test files, virtual environments, and development tools
 - **Branch coverage**: Track both line and branch coverage
 - **Detailed reporting**: Show missing lines and context
@@ -49,26 +49,26 @@ Based on the latest analysis:
 ### Files by Coverage Level
 
 **🏆 High Coverage (≥85%)**:
-- `backend/caching.py` - 98%
-- `backend/embeddings.py` - 94%
-- `backend/indexing.py` - 94%
-- `backend/modelmanager.py` - 94%
-- `backend/voice.py` - 97%
-- `backend/https_utils.py` - 100%
+- `agent/caching.py` - 98%
+- `agent/embeddings.py` - 94%
+- `agent/indexing.py` - 94%
+- `agent/modelmanager.py` - 94%
+- `agent/voice.py` - 97%
+- `agent/https_utils.py` - 100%
 
 **⚠️ Needs Improvement (<85%)**:
-- `backend/backend.py` - 53% (largest file, highest impact)
-- `backend/performance.py` - 39%
-- `backend/enterprise_*` modules - 25-80%
-- `backend/openspec_governance.py` - 12%
+- `agent/backend.py` - 53% (largest file, highest impact)
+- `agent/performance.py` - 39%
+- `agent/enterprise_*` modules - 25-80%
+- `agent/openspec_governance.py` - 12%
 
 ## Improvement Strategy
 
 ### Phase 1: Quick Wins (Target: 70%)
 1. **Focus on high-impact files**:
-   - `backend/backend.py` - Main API endpoints
-   - `backend/performance.py` - Performance monitoring
-   - `backend/settings.py` - Configuration management
+   - `agent/backend.py` - Main API endpoints
+   - `agent/performance.py` - Performance monitoring
+   - `agent/settings.py` - Configuration management
 
 1. **Add basic test coverage** for:
    - API endpoint happy paths
@@ -97,7 +97,7 @@ Based on the latest analysis:
 
 ```bash
 # Basic coverage run
-python -m pytest tests/backend/ --cov=backend --cov-report=html
+python -m pytest tests/agent/ --cov=backend --cov-report=html
 
 # Open coverage report
 # Windows: start htmlcov/index.html
@@ -105,7 +105,7 @@ python -m pytest tests/backend/ --cov=backend --cov-report=html
 # Linux: xdg-open htmlcov/index.html
 
 # Coverage for specific file
-python -m pytest tests/backend/test_backend.py --cov=backend/backend.py --cov-report=term-missing
+python -m pytest tests/agent/test_backend.py --cov=agent/backend.py --cov-report=term-missing
 
 # Check coverage without running all tests
 coverage report --show-missing

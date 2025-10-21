@@ -12,7 +12,7 @@ Key Features:
 - State preservation across workflow runs
 - Checkpoint listing and inspection
 
-Author: Obsidian AI Assistant Team
+Author: Obsidian AI Agent Team
 License: MIT
 """
 

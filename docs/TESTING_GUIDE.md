@@ -1,9 +1,9 @@
-# 📋 Testing Best Practices - Obsidian AI Assistant
+# 📋 Testing Best Practices - Obsidian AI Agent
 
 ## 🎯 **Overview**
 
 This document outlines the established testing patterns and best practices for
-the Obsidian AI Assistant project, based on the successfully implemented test
+the Obsidian AI Agent project, based on the successfully implemented test
 infrastructure that achieves a **perfect 100% pass rate (686 passed, 0 failed)**
 with comprehensive code quality framework and OpenSpec governance validation.
 
@@ -15,11 +15,11 @@ with comprehensive code quality framework and OpenSpec governance validation.
 
 ```text
 tests/
-├── backend/                           # Backend Python tests
+├── agent/                           # Backend Python tests
 │   ├── conftest.py                   # Global test configuration & mocking
-│   ├── test_backend_comprehensive.py  # Comprehensive FastAPI tests (28 tests)
+│   ├── test_agent_comprehensive.py  # Comprehensive FastAPI tests (28 tests)
 │   ├── test_*.py                     # Individual module tests
-│   └── test_backend_comprehensive_original.py  # Backup of problematic version
+│   └── test_agent_comprehensive_original.py  # Backup of problematic version
 ├── plugin/                           # TypeScript plugin tests (planned)
 └── integration/                      # End-to-end tests (planned)
 ```
@@ -64,7 +64,7 @@ TestClient for deterministic integration tests
 
 **Problem Solved:** PyTorch and ML library import conflicts in test environment.
 
-**Solution Pattern (`tests/backend/conftest.py`):**
+**Solution Pattern (`tests/agent/conftest.py`):**
 
 ```python
 
@@ -106,10 +106,10 @@ for module_name, mock_module in mock_modules.items():
 
 ```python
 @pytest.fixture
-def backend_app():
+def agent_app():
     """Get FastAPI app with services properly mocked."""
-    # Import backend after ML mocking is in place
-    import backend.backend as backend
+    # import agentImport backend after ML mocking is in place
+    import agent.backend as backend
 
     # Create mock service instances
     mock_model = Mock()
@@ -225,12 +225,12 @@ def test_invalid_input(self, client):
 
 ```python
 @pytest.fixture
-def client(backend_app):
+def client(agent_app):
     """FastAPI test client with mocked services."""
-    return TestClient(backend_app)
+    return TestClient(agent_app)
 
 @pytest.fixture
-def backend_app():
+def agent_app():
     """Backend app with comprehensive service mocking."""
     # See full implementation above
 
@@ -276,7 +276,7 @@ sys.modules['chromadb'].PersistentClient = MagicMock(return_value=persistent_cli
 
 **DON'T:**
 
-- ❌ Import backend modules before ML mocking is applied
+- ❌ import agentImport backend modules before ML mocking is applied
 
 - ❌ Assume exact error messages or response formats
 
@@ -353,23 +353,23 @@ class TestErrorHandling:
 
 # Run all comprehensive backend tests
 
-python -m pytest tests/backend/test_backend_comprehensive.py -v
+python -m pytest tests/agent/test_agent_comprehensive.py -v
 
 # Run specific test class
 
-python -m pytest tests/backend/test_backend_comprehensive.py::TestHealthEndpoints -v
+python -m pytest tests/agent/test_agent_comprehensive.py::TestHealthEndpoints -v
 
 # Run single test with detailed output
 
-python -m pytest tests/backend/test_backend_comprehensive.py::TestHealthEndpoints::test_health_endpoint -v -s
+python -m pytest tests/agent/test_agent_comprehensive.py::TestHealthEndpoints::test_health_endpoint -v -s
 
 # Run tests with coverage
 
-python -m pytest tests/backend/test_backend_comprehensive.py --cov=backend --cov-report=html
+python -m pytest tests/agent/test_agent_comprehensive.py --cov=backend --cov-report=html
 
 # Run tests without warnings
 
-python -m pytest tests/backend/test_backend_comprehensive.py -v --tb=short --disable-warnings
+python -m pytest tests/agent/test_agent_comprehensive.py -v --tb=short --disable-warnings
 
 # Recommended: run the safe test runner to ensure enterprise auth is bypassed during tests
 
@@ -487,7 +487,7 @@ jobs:
 
 - run: pip install -r requirements.txt
 
-- run: pytest tests/backend/test_backend_comprehensive.py -v --cov=backend
+- run: pytest tests/agent/test_agent_comprehensive.py -v --cov=backend
 ```
 
 ---
@@ -619,7 +619,7 @@ After running automation (locally or in CI):
 
 ```powershell
 # Validate OpenSpec compliance
-pytest tests/backend/test_openspec_governance.py -v
+pytest tests/agent/test_openspec_governance.py -v
 
 # Check markdown lint compliance
 # (Automation script handles MD022/MD029/MD032 formatting)
@@ -818,3 +818,4 @@ refactoring.
 _Testing Best Practices Guide v2.0_
 _Last Updated: October 11, 2025_
 _Achievement: 100% Test Pass Rate (498/498 tests)_
+

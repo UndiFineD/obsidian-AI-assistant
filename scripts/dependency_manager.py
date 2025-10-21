@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Comprehensive Dependency Management System for Obsidian AI Assistant
+Comprehensive Dependency Management System for Obsidian AI Agent
 
 This script provides comprehensive dependency management capabilities including:
 - Requirements validation and conflict detection
@@ -549,7 +549,7 @@ class DependencyManager:
 def main():
     """Main entry point for the dependency management CLI."""
     parser = argparse.ArgumentParser(
-        description="Comprehensive Dependency Management for Obsidian AI Assistant"
+        description="Comprehensive Dependency Management for Obsidian AI Agent"
     )
     parser.add_argument(
         "--project-root",

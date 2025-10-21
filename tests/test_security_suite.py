@@ -5,7 +5,7 @@ Covers authentication, authorization, input validation, rate limiting, file vali
 
 import pytest
 
-from backend.settings import sanitize_prompt_input
+from agent.settings import sanitize_prompt_input
 
 
 # Example: Prompt sanitization tests

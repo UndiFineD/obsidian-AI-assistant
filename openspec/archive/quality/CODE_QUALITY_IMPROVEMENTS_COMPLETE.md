@@ -76,7 +76,7 @@ warning: The top-level linter settings are deprecated
 
 **Files Fixed**:
 
-**`backend/enterprise_rbac.py`** (E402):
+**`agent/enterprise_rbac.py`** (E402):
 - ❌ Before: Duplicate `from typing import Optional` at line 395 (after class definitions)
 - ✅ After: Single import at top of file with other imports
 - ✅ Fixed malformed docstring that caused syntax error
@@ -130,7 +130,7 @@ warning: The top-level linter settings are deprecated
 - ✅ `pyproject.toml` - Updated ruff lint configuration
 
 ### Source Code (2)
-- ✅ `backend/enterprise_rbac.py` - Fixed E402 import order, syntax error
+- ✅ `agent/enterprise_rbac.py` - Fixed E402 import order, syntax error
 - ✅ `scripts/update_test_metrics.py` - Fixed E402 import order
 
 ### Test Files (1)

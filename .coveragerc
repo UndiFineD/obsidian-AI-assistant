@@ -1,4 +1,4 @@
-# Coverage.py configuration for Obsidian AI Assistant
+# Coverage.py configuration for Obsidian AI Agent
 # https://coverage.readthedocs.io/en/latest/config.html
 
 [run]
@@ -84,7 +84,7 @@ directory = htmlcov
 show_contexts = true
 
 # Title for HTML report
-title = Obsidian AI Assistant - Coverage Report
+title = Obsidian AI Agent - Coverage Report
 
 [xml]
 # XML output file

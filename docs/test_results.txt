@@ -1,8 +1,8 @@
 ============================= test session starts =============================
-platform win32 -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\kdejo\DEV\obsidian-llm-assistant\obsidian-AI-assistant\.venv\Scripts\python.exe
+platform win32 -- Python 3.11.9, pytest-8.4.2, pluggy-1.6.0 -- C:\Users\kdejo\DEV\obsidian-llm-assistant\obsidian-ai-agent\.venv\Scripts\python.exe
 cachedir: .pytest_cache
 benchmark: 5.1.0 (defaults: timer=time.perf_counter disable_gc=False min_rounds=5 min_time=0.000005 max_time=1.0 calibration_precision=10 warmup=False warmup_iterations=100000)
-rootdir: C:\Users\kdejo\DEV\obsidian-llm-assistant\obsidian-AI-assistant\tests
+rootdir: C:\Users\kdejo\DEV\obsidian-llm-assistant\obsidian-ai-agent\tests
 configfile: pytest.ini
 plugins: anyio-4.11.0, Faker-37.11.0, locust-2.41.6, asyncio-1.2.0, benchmark-5.1.0, cov-7.0.0, mock-3.15.1, timeout-2.4.0, xdist-3.8.0
 asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function

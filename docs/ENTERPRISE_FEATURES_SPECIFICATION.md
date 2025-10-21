@@ -1,4 +1,4 @@
-# Enterprise Features Specification - Obsidian AI Assistant
+# Enterprise Features Specification - Obsidian AI Agent
 
 **Version:** 2.0 (Implementation Complete)  
 **Last Updated:** October 2025  
@@ -14,13 +14,13 @@
 
 #### Backend Enterprise Modules (Complete)
 
-- ✅ **Authentication System** (`backend/enterprise_auth.py`) - SSO integration for Azure AD, Google, Okta, SAML, LDAP
-- ✅ **Multi-Tenant Management** (`backend/enterprise_tenant.py`) - Isolated environments for organizations
-- ✅ **Role-Based Access Control** (`backend/enterprise_rbac.py`) - Granular permissions and user roles
-- ✅ **GDPR Compliance** (`backend/enterprise_gdpr.py`) - Data export, deletion, consent management
-- ✅ **SOC2 Compliance** (`backend/enterprise_soc2.py`) - Audit logging, security monitoring
-- ✅ **Admin API** (`backend/enterprise_admin.py`) - Management endpoints for dashboards
-- ✅ **Enterprise Integrations** (`backend/enterprise_integration.py`) - External system connections
+- ✅ **Authentication System** (`agent/enterprise_auth.py`) - SSO integration for Azure AD, Google, Okta, SAML, LDAP
+- ✅ **Multi-Tenant Management** (`agent/enterprise_tenant.py`) - Isolated environments for organizations
+- ✅ **Role-Based Access Control** (`agent/enterprise_rbac.py`) - Granular permissions and user roles
+- ✅ **GDPR Compliance** (`agent/enterprise_gdpr.py`) - Data export, deletion, consent management
+- ✅ **SOC2 Compliance** (`agent/enterprise_soc2.py`) - Audit logging, security monitoring
+- ✅ **Admin API** (`agent/enterprise_admin.py`) - Management endpoints for dashboards
+- ✅ **Enterprise Integrations** (`agent/enterprise_integration.py`) - External system connections
 
 #### Frontend Enterprise Components (Complete)
 
@@ -53,7 +53,7 @@
 ### How to Enable Enterprise Features
 
 ```yaml
-# backend/config.yaml
+# agent/config.yaml
 enterprise:
     enabled: true
     sso:
@@ -154,7 +154,7 @@ SSO_Providers:
 
 ```python
 
-# backend/enterprise/auth_mfa.py
+# agent/enterprise/auth_mfa.py
 
 class MFAManager:
     """Multi-factor authentication management"""
@@ -191,7 +191,7 @@ class MFAManager:
 
 ```python
 
-# backend/enterprise/tenancy.py
+# agent/enterprise/tenancy.py
 
 from enum import Enum
 from dataclasses import dataclass
@@ -281,7 +281,7 @@ class TenantManager:
     created_at TIMESTAMP DEFAULT NOW()
 ```
 
-## backend/enterprise/rbac.py
+## agent/enterprise/rbac.py
 
 ```python
 from typing import Set, Dict, List
@@ -383,7 +383,7 @@ class RBACManager:
 
 ```python
 
-# backend/enterprise/encryption.py
+# agent/enterprise/encryption.py
 
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
@@ -474,7 +474,7 @@ class FieldLevelEncryption:
 
 ```python
 
-# backend/enterprise/compliance/gdpr.py
+# agent/enterprise/compliance/gdpr.py
 
 from datetime import datetime, timedelta
 from typing import List, Dict, Optional
@@ -569,7 +569,7 @@ class GDPRComplianceManager:
 
 ```python
 
-# backend/enterprise/compliance/soc2.py
+# agent/enterprise/compliance/soc2.py
 
 from enum import Enum
 from typing import Dict, List
@@ -685,7 +685,7 @@ class SOC2ComplianceManager:
 
 ```python
 
-# backend/enterprise/admin/user_management.py
+# agent/enterprise/admin/user_management.py
 
 from typing import Dict, List, Optional
 from dataclasses import dataclass
@@ -794,7 +794,7 @@ class EnterpriseUserManager:
 
 ```python
 
-# backend/enterprise/gateway.py
+# agent/enterprise/gateway.py
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -1013,3 +1013,4 @@ Pricing_Tiers:
 **Next Steps:** Begin Phase 1 implementation with multi-tenant architecture and SSO integration.
 
 **Status:** Planning Complete - Ready for Implementation
+

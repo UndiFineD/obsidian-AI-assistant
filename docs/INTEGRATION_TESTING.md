@@ -32,7 +32,7 @@
 ## Overview
 
 This document provides comprehensive documentation for the integration testing strategy, implementation details,
-and standards for the Obsidian AI Assistant project. It covers the 2 currently skipped integration tests,
+and standards for the Obsidian AI Agent project. It covers the 2 currently skipped integration tests,
 testing patterns, and guidelines for contributors.
 
 ## 📊 Current Test Status
@@ -55,9 +55,9 @@ testing patterns, and guidelines for contributors.
 
 **Skip Condition**:
 ```python
-async def test_ask_endpoint_integration(self, client, backend_available):
+async def test_ask_endpoint_integration(self, client, agent_available):
     """Test the /ask endpoint with real backend integration."""
-    # Skipped when backend_available fixture fails
+    # Skipped when agent_available fixture fails
 ```
 
 **Skip Reason**: Backend server is not running or `/health` endpoint is unreachable
@@ -85,9 +85,9 @@ async def test_ask_endpoint_integration(self, client, backend_available):
 
 **Skip Condition**:
 ```python
-async def test_reindex_endpoint_integration(self, client, backend_available):
+async def test_reindex_endpoint_integration(self, client, agent_available):
     """Test the /reindex endpoint with real backend integration."""
-    # Skipped when backend_available fixture fails
+    # Skipped when agent_available fixture fails
 ```
 
 **Skip Reason**: Backend server is not running or `/health` endpoint is unreachable
@@ -120,7 +120,7 @@ async def test_reindex_endpoint_integration(self, client, backend_available):
 - **Mocking**: Minimal - tests actual HTTP layer
 - **Focus**: Request validation, response formatting, error handling
 
-#### 2. Backend Integration Tests (`tests/integration/test_backend_integration.py`)
+#### 2. Backend Integration Tests (`tests/integration/test_agent_integration.py`)
 - **Purpose**: Service integration and dependency injection testing
 - **Coverage**: Service interactions, configuration loading, initialization
 - **Mocking**: Strategic mocking of external dependencies
@@ -152,7 +152,7 @@ async def test_reindex_endpoint_integration(self, client, backend_available):
 
 ```python
 # Good: Mock external dependencies, test business logic
-with patch("backend.backend.model_manager") as mock_mm:
+with patch("agent.agent.model_manager") as mock_mm:
     mock_mm.generate.return_value = "AI response"
     # Test actual endpoint logic, routing, validation
     response = await client.post("/ask", json={"question": "test"})
@@ -173,7 +173,7 @@ async def client():
     """HTTP client with CSRF token and proper configuration."""
     
 @pytest_asyncio.fixture(scope="session")
-async def backend_available():
+async def agent_available():
     """Check if backend server is running for live tests."""
 ```
 
@@ -207,13 +207,13 @@ with pytest.raises(ExpectedError):
 tests/
 ├── integration/                     # Integration test suite
 │   ├── test_api_integration.py      # HTTP API testing
-│   ├── test_backend_integration.py  # Service integration
+│   ├── test_agent_integration.py  # Service integration
 │   ├── test_e2e_workflows.py        # End-to-end scenarios
 │   ├── test_enterprise_integration.py # Enterprise features
 │   ├── test_full_workflow.py        # Complete workflows
 │   └── test_service_integration.py  # Cross-service communication
-├── backend/                         # Unit tests for backend modules
-└── obsidian-ai-assistant/           # Plugin-specific tests
+├── agent/                         # Unit tests for backend modules
+└── obsidian-ai-agent/           # Plugin-specific tests
 ```
 
 ### Test Configuration
@@ -536,7 +536,7 @@ An integration test is considered successful when:
 
 ## 🎯 Summary
 
-The integration testing strategy for Obsidian AI Assistant provides comprehensive coverage with 99.7% test
+The integration testing strategy for Obsidian AI Agent provides comprehensive coverage with 99.7% test
 success rate. The 2 skipped tests are well-documented and can be activated when a live backend is available.
 The testing framework supports both development workflows and CI/CD pipelines, ensuring system reliability and
 maintainability.
@@ -556,3 +556,4 @@ maintainability.
 
 *This documentation is maintained as part of the project's testing strategy and should be updated as the testing
 framework evolves.*
+

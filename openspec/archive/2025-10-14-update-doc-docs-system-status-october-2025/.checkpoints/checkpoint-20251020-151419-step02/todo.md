@@ -112,7 +112,7 @@
 - [ ] `openspec/changes/2025-10-14-update-doc-docs-system-status-october-2025/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 

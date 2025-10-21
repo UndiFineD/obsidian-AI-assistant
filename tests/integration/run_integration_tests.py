@@ -1,6 +1,6 @@
 # tests/integration/run_integration_tests.py
 """
-Integration test runner for the Obsidian AI Assistant.
+Integration test runner for the Obsidian AI Agent.
 Runs all integration tests in proper order and provides comprehensive reporting.
 """
 import sys
@@ -172,9 +172,9 @@ def validate_test_environment():
     print("🔍 Validating test environment...")
 
     # Check Python path
-    backend_path = Path(__file__).parent.parent.parent / "backend"
-    if not backend_path.exists():
-        print(f"❌ Backend directory not found: {backend_path}")
+    agent_path = Path(__file__).parent.parent.parent / "backend"
+    if not agent_path.exists():
+        print(f"❌ Backend directory not found: {agent_path}")
         return False
 
     # Check required dependencies
@@ -198,7 +198,7 @@ def validate_test_environment():
 
 def main():
     """Main entry point for integration test runner."""
-    print("🧪 Obsidian AI Assistant - Integration Test Runner")
+    print("🧪 Obsidian AI Agent - Integration Test Runner")
     print("==================================================")
 
     # Validate environment

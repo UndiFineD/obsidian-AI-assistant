@@ -1,4 +1,20 @@
 # 📝 CHANGELOG
+## v0.1.31 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.31 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.31 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.31 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.30 (2025-10-20)
 
 - _Released as part of OpenSpec workflow automation._
@@ -181,9 +197,9 @@ Generated from OpenSpec change proposals.
   _File: proposal.md_
 - **Change Proposal: update-doc-github-copilot-instructions** (update-doc-github-copilot-instructions, None)
   _File: proposal.md_
-- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup** (update-doc-obsidian-plugins-obsidian-ai-assistant-setup, None)
+- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-agent-setup** (update-doc-obsidian-plugins-obsidian-ai-agent-setup, None)
   _File: proposal.md_
-- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete** (update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete, None)
+- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete** (update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete, None)
   _File: proposal.md_
 - **Change Proposal: update-doc-openspec-agents** (update-doc-openspec-agents, None)
   _File: proposal.md_
@@ -283,9 +299,9 @@ Generated from OpenSpec change proposals.
   _File: proposal.md_
 - **Change Proposal: update-doc-github-copilot-instructions** (update-doc-github-copilot-instructions, None)
   _File: proposal.md_
-- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup** (update-doc-obsidian-plugins-obsidian-ai-assistant-setup, None)
+- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-agent-setup** (update-doc-obsidian-plugins-obsidian-ai-agent-setup, None)
   _File: proposal.md_
-- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete** (update-doc-obsidian-plugins-obsidian-ai-assistant-setup-complete, None)
+- **Change Proposal: update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete** (update-doc-obsidian-plugins-obsidian-ai-agent-setup-complete, None)
   _File: proposal.md_
 - **Change Proposal: update-doc-openspec-agents** (update-doc-openspec-agents, None)
   _File: proposal.md_
@@ -307,3 +323,4 @@ Generated from OpenSpec change proposals.
   _File: proposal.md_
 - **Proposal: Update backend agent specification for AI orchestration and research** (update-spec-backend-agent, None)
   _File: proposal.md_
+

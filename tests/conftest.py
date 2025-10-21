@@ -1,6 +1,6 @@
 # conftest.py
 """
-Pytest configuration and shared fixtures for Obsidian AI Assistant tests.
+Pytest configuration and shared fixtures for Obsidian AI Agent tests.
 """
 
 import os
@@ -107,7 +107,7 @@ def project_root_path() -> Path:
 
 
 @pytest.fixture(scope="session")
-def backend_path(project_root_path: Path) -> Path:
+def agent_path(project_root_path: Path) -> Path:
     """Get the backend directory path."""
     return project_root_path / "backend"
 
@@ -147,7 +147,7 @@ def mock_env_vars() -> Generator[Dict[str, str], None, None]:
     original_env = os.environ.copy()
     mock_vars = {
         "HF_TOKEN": "test_hf_token_12345",
-        "VOSK_MODEL_PATH": "backend/models/vosk-test",
+        "VOSK_MODEL_PATH": "agent/models/vosk-test",
         "TEST_MODE": "true",
         "CUDA_VISIBLE_DEVICES": "-1",  # Disable CUDA for tests
     }
@@ -430,7 +430,7 @@ def temp_models_dir() -> Generator[str, None, None]:
 @pytest.fixture
 def mock_models_file(temp_models_dir: str) -> str:
     """Create a simple models.txt file in the temporary models directory."""
-    path = Path(temp_models_dir) / "backend/models/models.txt"
+    path = Path(temp_models_dir) / "agent/models/models.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
     content = "\n".join(
         [
@@ -452,9 +452,9 @@ def mock_models_file(temp_models_dir: str) -> str:
 def mock_config():
     """Provide mock configuration for tests."""
     return {
-        "backend_url": "http://localhost:8000",
-        "models_dir": "./backend/models",
-        "cache_dir": "./backend/cache",
+        "agent_url": "http://localhost:8000",
+        "models_dir": "./agent/models",
+        "cache_dir": "./agent/cache",
         "vault_path": "./vault",
         "max_tokens": 256,
         "temperature": 0.7,
@@ -510,20 +510,20 @@ def mock_all_services():
     mock_os_path.isfile.return_value = True
     mock_os_path.isdir.return_value = True
     with (
-        patch("backend.backend.model_manager", mock_model_manager)
-        if "backend.backend" in sys.modules
+        patch("agent.agent.model_manager", mock_model_manager)
+        if "agent.agent" in sys.modules
         else patch("builtins.id", lambda x: x)
     ), (
-        patch("backend.backend.cache_manager", mock_cache_manager)
-        if "backend.backend" in sys.modules
+        patch("agent.agent.cache_manager", mock_cache_manager)
+        if "agent.agent" in sys.modules
         else patch("builtins.id", lambda x: x)
     ), (
-        patch("backend.backend.emb_manager", mock_embeddings_manager)
-        if "backend.backend" in sys.modules
+        patch("agent.agent.emb_manager", mock_embeddings_manager)
+        if "agent.agent" in sys.modules
         else patch("builtins.id", lambda x: x)
     ), (
-        patch("backend.backend.vault_indexer", mock_vault_indexer)
-        if "backend.backend" in sys.modules
+        patch("agent.agent.vault_indexer", mock_vault_indexer)
+        if "agent.agent" in sys.modules
         else patch("builtins.id", lambda x: x)
     ), patch(
         "os.path.exists", mock_os_path.exists
@@ -548,10 +548,10 @@ def client():
     try:
         # Try to import the app from our backend package/module
         try:
-            from backend.backend import app as real_app  # type: ignore
+            from agent.backend import app as real_app  # type: ignore
         except Exception:
-            # Some tests add backend/ to sys.path and import app at package level
-            from backend import app as real_app  # type: ignore
+            # Some tests add agent/ to sys.path and import app at package level
+            from agent import app as real_app  # type: ignore
         from fastapi.testclient import TestClient
 
         return TestClient(real_app)
@@ -579,9 +579,9 @@ def route_localhost_requests_to_app(monkeypatch):
     try:
         # Import the real FastAPI app
         try:
-            from backend.backend import app as real_app  # type: ignore
+            from agent.backend import app as real_app  # type: ignore
         except Exception:
-            from backend import app as real_app  # type: ignore
+            from agent import app as real_app  # type: ignore
         from urllib.parse import urlparse
 
         import requests as _requests

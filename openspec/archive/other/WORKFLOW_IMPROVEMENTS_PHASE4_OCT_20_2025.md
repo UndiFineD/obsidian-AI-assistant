@@ -173,7 +173,7 @@ Running Tests...
 Testing: Proposal document exists [PASS]
 Testing: Proposal has 'Why' section [PASS]
 Testing: Proposal has 'What Changes' section [PASS]
-Testing: Affected file: backend/test.py [FAIL]
+Testing: Affected file: agent/test.py [FAIL]
   Expected: C:\...\backend\test.py
 
 ==================================================
@@ -220,14 +220,14 @@ Implementation: my-feature
 Analyzing tasks.md...
 
 Affected files from proposal:
-  - backend/test.py
+  - agent/test.py
   - frontend/app.js
 
 ==================================================
 IMPLEMENTATION TASKS
 ==================================================
 
-Task: Verify File: backend/test.py
+Task: Verify File: agent/test.py
   Check that affected file exists
   [WHAT-IF] Would execute task
 
@@ -309,7 +309,7 @@ Found automation requirements in spec.md
 Detected Script Requirements:
   Purpose: testing/validation
   Script Types: Python
-  Affected Files: backend/test.py, frontend/app.js
+  Affected Files: agent/test.py, frontend/app.js
 
 Generating test script: test.py
 Generated: test.py
@@ -454,7 +454,7 @@ Analyzing documentation for script requirements...
 Detected Script Requirements:
   Purpose: testing/validation
   Script Types: Python
-  Affected Files: backend/test.py, frontend/app.js
+  Affected Files: agent/test.py, frontend/app.js
 [DRY-RUN] Would generate: test.py
 [DRY-RUN] Would generate: implement.py
 ```

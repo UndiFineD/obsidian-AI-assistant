@@ -44,7 +44,7 @@ def run_command(cmd, description):
 def format_python_code():
     """Format Python code with Black."""
     return run_command(
-        "python -m black backend/ scripts/ tests/ --line-length 88 --exclude .venv",
+        "python -m black agent/ scripts/ tests/ --line-length 88 --exclude .venv",
         "Formatting Python code with Black",
     )
 
@@ -52,7 +52,7 @@ def format_python_code():
 def lint_python_code():
     """Lint Python code with ruff."""
     return run_command(
-        "python -m ruff check backend/ scripts/ --select E,F,W,I --fix",
+        "python -m ruff check agent/ scripts/ --select E,F,W,I --fix",
         "Linting Python code with ruff (auto-fix enabled)",
     )
 
@@ -60,7 +60,7 @@ def lint_python_code():
 def security_scan():
     """Run security scan with bandit."""
     return run_command(
-        "python -m bandit -r backend/ -f json -o bandit_report.json -ll",
+        "python -m bandit -r agent/ -f json -o bandit_report.json -ll",
         "Security scanning with bandit",
     )
 
@@ -68,7 +68,7 @@ def security_scan():
 def check_imports():
     """Check for unused imports."""
     return run_command(
-        "python -m ruff check backend/ scripts/ --select F401 --fix",
+        "python -m ruff check agent/ scripts/ --select F401 --fix",
         "Removing unused imports",
     )
 
@@ -84,7 +84,7 @@ def sort_imports():
 
     if has_isort:
         return run_command(
-            "python -m isort backend/ scripts/ tests/ --profile black",
+            "python -m isort agent/ scripts/ tests/ --profile black",
             "Sorting imports with isort",
         )
     else:
@@ -103,7 +103,7 @@ def type_check():
 
     if has_mypy:
         return run_command(
-            "python -m mypy backend/ --ignore-missing-imports --no-error-summary",
+            "python -m mypy agent/ --ignore-missing-imports --no-error-summary",
             "Type checking with mypy",
         )
     else:

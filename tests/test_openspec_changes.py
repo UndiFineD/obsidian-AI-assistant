@@ -40,7 +40,7 @@ class TestOpenSpecChangeGeneration:
         test_cases = [
             ("README.md", "update-doc-readme"),
             ("docs/SPECIFICATION.md", "update-doc-docs-specification"),
-            ("backend/config.yaml", "update-doc-backend-config-yaml"),
+            ("agent/config.yaml", "update-doc-backend-config-yaml"),
             (
                 ".github/copilot-instructions.md",
                 "update-doc-github-copilot-instructions",

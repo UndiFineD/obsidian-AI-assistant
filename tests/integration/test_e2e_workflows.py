@@ -17,13 +17,13 @@ class TestCompleteWorkflows:
         """Test client with real caching but mocked AI services"""
         from fastapi.testclient import TestClient
 
-        from backend.backend import app
+        from agent.backend import app
 
         # Use real cache manager but mock AI services
-        with patch("backend.backend.init_services"):
-            with patch("backend.backend.model_manager") as mock_model, patch(
-                "backend.backend.emb_manager"
-            ) as mock_emb, patch("backend.backend.vault_indexer") as mock_vault:
+        with patch("agent.agent.init_services"):
+            with patch("agent.agent.model_manager") as mock_model, patch(
+                "agent.agent.emb_manager"
+            ) as mock_emb, patch("agent.agent.vault_indexer") as mock_vault:
 
                 # Configure AI service mocks
                 mock_model.generate.side_effect = (
@@ -318,12 +318,12 @@ class TestPerformanceBenchmarks:
         """Client configured for performance testing"""
         from fastapi.testclient import TestClient
 
-        from backend.backend import app
+        from agent.backend import app
 
-        with patch("backend.backend.init_services"):
+        with patch("agent.agent.init_services"):
             # Fast mock responses for benchmarking
-            with patch("backend.backend.model_manager") as mock_model, patch(
-                "backend.backend.emb_manager"
+            with patch("agent.agent.model_manager") as mock_model, patch(
+                "agent.agent.emb_manager"
             ) as mock_emb:
                 mock_model.generate.return_value = "Fast AI response"
                 mock_emb.search.return_value = [{"text": "Result", "score": 0.9}]
@@ -455,7 +455,7 @@ class TestPerformanceBenchmarks:
     def test_performance_metrics(self):
         from fastapi.testclient import TestClient
 
-        from backend.backend import app
+        from agent.backend import app
 
         client = TestClient(app)
         response = client.get("/api/performance/metrics")

@@ -90,11 +90,11 @@ python -m pytest tests/ -v  # Should show 498 passed
 
 # Production server setup
 
-python -m uvicorn backend.backend:app --host 0.0.0.0 --port 8000
+python -m uvicorn agent.agent:app --host 0.0.0.0 --port 8000
 
 # With SSL and process management
 
-gunicorn backend.backend:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+gunicorn agent.agent:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
 Windows note: If Uvicorn fails to bind to port 8000 (WinError 10013), try a
@@ -127,7 +127,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 COPY . /app
 WORKDIR /app
-CMD ["uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "agent.agent:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 **Benefits**:
@@ -260,7 +260,7 @@ python -m pytest tests/ -v
 
 # 2. Verify backend health
 
-python backend/backend.py
+python agent/backend.py
 
 # Check http://localhost:8000/health
 
@@ -358,7 +358,7 @@ python backend/backend.py
 
 ### **Deployment Recommendation: GO FOR PRODUCTION** 🚀
 
-**The Obsidian AI Assistant is production-ready** with:
+**The Obsidian AI Agent is production-ready** with:
 
 - ✅ **Exceptional Quality**: 99.8% test success rate
 
@@ -378,3 +378,4 @@ python backend/backend.py
 
 _Deployment Status Report v1.0_
 _Assessment: PRODUCTION DEPLOYMENT APPROVED_ ✅🚀
+

@@ -12,7 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent / "backend"))
 def test_error_handling_imports():
     """Test that error handling modules can be imported successfully."""
     try:
-        import backend.error_handling as eh
+        import agent.error_handling as eh
 
         # Test key classes exist
         assert hasattr(eh, "ObsidianAIError")
@@ -33,7 +33,7 @@ def test_error_handling_imports():
 def test_exception_handlers_imports():
     """Test that exception handlers can be imported successfully."""
     try:
-        import backend.exception_handlers as handlers
+        import agent.exception_handlers as handlers
 
         # Test key functions/classes exist
         assert hasattr(handlers, "setup_exception_handlers")
@@ -49,7 +49,7 @@ def test_exception_handlers_imports():
 def test_error_context():
     """Test that error context works correctly."""
     try:
-        import backend.error_handling as eh
+        import agent.error_handling as eh
 
         # Test successful operation
         with eh.error_context("test_operation", reraise=False):
@@ -74,7 +74,7 @@ def test_error_context():
 def test_error_hierarchy():
     """Test that error hierarchy works correctly."""
     try:
-        import backend.error_handling as eh
+        import agent.error_handling as eh
 
         # Test error creation
         val_error = eh.ValidationError("Test validation", field="test")
@@ -93,7 +93,7 @@ def test_error_hierarchy():
         return False
 
 
-def test_backend_integration():
+def test_agent_integration():
     """Test that backend can import error handling without issues."""
     try:
         # Mock required modules to avoid actual service initialization
@@ -105,8 +105,8 @@ def test_backend_integration():
         sys.modules["transformers"] = MagicMock()
         sys.modules["sentence_transformers"] = MagicMock()
 
-        # Import backend (this will test the error handling integration)
-        from backend.backend import app
+        # import agentImport backend (this will test the error handling integration)
+        from agent.backend import app
 
         print("✓ Backend integration successful")
         return True
@@ -125,7 +125,7 @@ def main():
         test_exception_handlers_imports,
         test_error_context,
         test_error_hierarchy,
-        test_backend_integration,
+        test_agent_integration,
     ]
 
     passed = 0

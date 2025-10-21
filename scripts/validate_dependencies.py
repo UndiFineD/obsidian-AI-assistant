@@ -128,7 +128,7 @@ def quick_security_check() -> Dict:
                         "-m",
                         "bandit",
                         "-r",
-                        "backend/",
+                        "agent/",
                         "-f",
                         "json",
                         "--skip",

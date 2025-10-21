@@ -2,21 +2,21 @@
 
 ## Overview
 
-The health monitoring system provides comprehensive observability into the Obsidian AI Assistant backend, including
+The health monitoring system provides comprehensive observability into the Obsidian AI Agent backend, including
 service health checks, system metrics collection, alert management, and performance tracking.
 
 ## Architecture
 
 ### Components
 
-1. **HealthMonitor** (`backend/health_monitoring.py`)
+1. **HealthMonitor** (`agent/health_monitoring.py`)
    - Central monitoring coordinator
    - Service health check orchestration
    - System metrics aggregation
    - Alert threshold management
    - Historical data retention
 
-1. **Health API Endpoints** (`backend/backend.py`)
+1. **Health API Endpoints** (`agent/backend.py`)
    - `/api/health/detailed` - Enhanced health with service status
    - `/api/health/metrics` - Aggregated metrics over time windows
    - `/api/health/alerts` - Active and resolved alerts
@@ -182,7 +182,7 @@ Acknowledge an alert to indicate awareness.
 Thresholds are initialized in `HealthMonitor._initialize_thresholds()` and can be customized:
 
 ```python
-from backend.health_monitoring import get_health_monitor
+from agent.health_monitoring import get_health_monitor
 
 monitor = get_health_monitor()
 monitor.alert_thresholds["cpu"]["warning"] = 60.0  # Lower threshold
@@ -323,7 +323,7 @@ Resolved alerts are excluded from default alert listings but available with `inc
 Register custom health checks for new services:
 
 ```python
-from backend.health_monitoring import get_health_monitor
+from agent.health_monitoring import get_health_monitor
 
 monitor = get_health_monitor()
 
@@ -413,7 +413,7 @@ Health monitoring is designed to have minimal overhead:
 
 ### Unit Tests
 
-Comprehensive unit tests in `tests/backend/test_health_monitoring.py`:
+Comprehensive unit tests in `tests/agent/test_health_monitoring.py`:
 - Service health check success/failure/timeout
 - Consecutive failure tracking
 - System metrics collection
@@ -440,7 +440,7 @@ Integration tests in `tests/integration/test_health_endpoints.py`:
 
 ```bash
 # Run health monitoring tests only
-pytest tests/backend/test_health_monitoring.py -v
+pytest tests/agent/test_health_monitoring.py -v
 
 # Run integration tests
 pytest tests/integration/test_health_endpoints.py -v
@@ -449,7 +449,7 @@ pytest tests/integration/test_health_endpoints.py -v
 pytest tests/ -v
 
 # With coverage
-pytest --cov=backend.health_monitoring --cov-report=html tests/backend/test_health_monitoring.py
+pytest --cov=backend.health_monitoring --cov-report=html tests/agent/test_health_monitoring.py
 ```
 
 ## Troubleshooting
@@ -570,8 +570,9 @@ pytest --cov=backend.health_monitoring --cov-report=html tests/backend/test_heal
 
 ## References
 
-- Source Code: `backend/health_monitoring.py`
-- API Endpoints: `backend/backend.py` (lines 731-859)
-- Unit Tests: `tests/backend/test_health_monitoring.py`
+- Source Code: `agent/health_monitoring.py`
+- API Endpoints: `agent/backend.py` (lines 731-859)
+- Unit Tests: `tests/agent/test_health_monitoring.py`
 - Integration Tests: `tests/integration/test_health_endpoints.py`
 - Dependencies: psutil, pydantic, FastAPI
+

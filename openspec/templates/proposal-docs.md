@@ -1,5 +1,7 @@
 # Proposal: [Documentation Update]
 
+## Why
+
 ## Context
 
 **Documentation Gap**: What information is missing or unclear?

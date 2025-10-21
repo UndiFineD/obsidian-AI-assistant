@@ -17,11 +17,11 @@
 New-Item -Path "backend\__init__.py" -ItemType File -Force
 ```
 
-**Add Content to `backend/__init__.py`:**
+**Add Content to `agent/__init__.py`:**
 
 ```python
 """
-Obsidian AI Assistant Backend Package
+Obsidian AI Agent Backend Package
 
 FastAPI-based backend for LLM integration, vector database, and caching.
 """
@@ -43,11 +43,11 @@ except ImportError:
 
 ### **2. Fix Current Test File**
 
-**Replace `test_backend_comprehensive.py` with working version:**
+**Replace `test_agent_comprehensive.py` with working version:**
 
 ```python
 
-# tests/backend/test_backend_comprehensive.py
+# tests/agent/test_agent_comprehensive.py
 
 """
 Fixed comprehensive backend tests with proper imports and mocking.
@@ -60,9 +60,9 @@ from pathlib import Path
 
 # Add backend to Python path BEFORE any imports
 
-backend_path = str(Path(__file__).parent.parent.parent)
-if backend_path not in sys.path:
-    sys.path.insert(0, backend_path)
+agent_path = str(Path(__file__).parent.parent.parent)
+if agent_path not in sys.path:
+    sys.path.insert(0, agent_path)
 
 # Mock ML libraries globally to avoid import conflicts
 
@@ -109,8 +109,8 @@ def client():
         mock_cache.get_cached_answer.return_value = None
         mock_vault.reindex.return_value = {"files": 5, "chunks": 25}
 
-        # Now import backend
-        import backend.backend as backend
+        # Now import agentimport backend
+        import agent.backend as backend
 
         # Set global instances
         backend.model_manager = mock_model
@@ -194,13 +194,13 @@ if __name__ == "__main__":
 
 # Test the basic functionality
 
-python -m pytest tests/backend/test_backend_comprehensive.py::TestBasicEndpoints::test_health_endpoint -v
+python -m pytest tests/agent/test_agent_comprehensive.py::TestBasicEndpoints::test_health_endpoint -v
 ```
 
 **Expected Output:**
 
 ```text
-tests/backend/test_backend_comprehensive.py::TestBasicEndpoints::test_health_endpoint PASSED
+tests/agent/test_agent_comprehensive.py::TestBasicEndpoints::test_health_endpoint PASSED
 ```
 
 ---
@@ -237,18 +237,18 @@ Get-ChildItem backend\
 
 # Run all backend tests
 
-python -m pytest tests/backend/ -v --tb=short
+python -m pytest tests/agent/ -v --tb=short
 
 # Or run just the comprehensive test
 
-python -m pytest tests/backend/test_backend_comprehensive.py -v
+python -m pytest tests/agent/test_agent_comprehensive.py -v
 ```
 
 ---
 
 ## 🎯 **What This Fixes**
 
-1. **✅ Import Errors**: `backend/__init__.py` makes backend a proper Python package
+1. **✅ Import Errors**: `agent/__init__.py` makes backend a proper Python package
 
 1. **✅ Undefined Variables**: Proper fixtures define all needed variables
 
@@ -265,13 +265,13 @@ python -m pytest tests/backend/test_backend_comprehensive.py -v
 ### **Step 1: Verify Package Structure**
 
 ```powershell
-python -c "import backend; print('Backend package imported successfully')"
+python -c "import agentimport backend; print('Backend package imported successfully')"
 ```
 
 ### **Step 2: Verify Test Infrastructure**
 
 ```powershell
-python -c "from tests.backend.test_backend_comprehensive import mock_ml_dependencies; print('Test fixtures working')"
+python -c "from tests.backend.test_agent_comprehensive import mock_ml_dependencies; print('Test fixtures working')"
 ```
 
 ### **Step 3: Verify Endpoint Access**
@@ -279,7 +279,7 @@ python -c "from tests.backend.test_backend_comprehensive import mock_ml_dependen
 ```powershell
 python -c "
 with __import__('unittest.mock').patch.dict('sys.modules', {'torch': __import__('unittest.mock').MagicMock()}):
-    import backend.backend as b
+    import agent.backend as b
     print('Routes:', [r.path for r in b.app.routes if hasattr(r, 'path')])
 "
 ```
@@ -290,9 +290,9 @@ with __import__('unittest.mock').patch.dict('sys.modules', {'torch': __import__(
 
 After implementing these fixes:
 
-1. **Run Tests**: Use `pytest tests/backend/test_backend_comprehensive.py -v`
+1. **Run Tests**: Use `pytest tests/agent/test_agent_comprehensive.py -v`
 
-1. **Check Coverage**: Use `pytest --cov=backend tests/backend/`
+1. **Check Coverage**: Use `pytest --cov=backend tests/agent/`
 
 1. **Fix Remaining Issues**: Address any remaining test failures one by one
 
@@ -323,3 +323,4 @@ After implementing these fixes:
 ---
 
 ## Ready for validation! 🎯
+

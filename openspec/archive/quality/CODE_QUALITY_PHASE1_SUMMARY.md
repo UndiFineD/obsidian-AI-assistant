@@ -36,7 +36,7 @@ issues, and resolving import order violations.
 
 ### 3. Import Order Violations Fixed ✅
 
-- **`backend/enterprise_rbac.py`**:
+- **`agent/enterprise_rbac.py`**:
 
     - Removed duplicate `from typing import Optional` at line 395
     - Moved import to top of file with other imports
@@ -124,7 +124,7 @@ SKIPPED: 2 tests (expected)
 
 ### Source Code
 
-- ✅ `backend/enterprise_rbac.py` - Fixed E402 import order
+- ✅ `agent/enterprise_rbac.py` - Fixed E402 import order
 - ✅ `scripts/update_test_metrics.py` - Fixed E402 import order
 
 ### New Files
@@ -170,7 +170,7 @@ SKIPPED: 2 tests (expected)
 
 ### Long-term (This Sprint)
 
-- Achieve 100% mypy compliance for backend/
+- Achieve 100% mypy compliance for agent/
 - Establish quality gates: no E/F errors, 90%+ type coverage
 - Integrate quality checks into CI/CD pipeline
 

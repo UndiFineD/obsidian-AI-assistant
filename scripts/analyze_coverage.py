@@ -27,7 +27,7 @@ def run_coverage_analysis() -> Tuple[float, Dict[str, Dict[str, any]]]:
                 python_exe,
                 "-m",
                 "pytest",
-                "tests/backend/",
+                "tests/agent/",
                 "--cov=backend",
                 "--cov-report=xml",
                 "--cov-report=json",
@@ -58,7 +58,7 @@ def run_coverage_analysis() -> Tuple[float, Dict[str, Dict[str, any]]]:
             for package in root.findall(".//package"):
                 for class_elem in package.findall("classes/class"):
                     filename = class_elem.get("filename", "")
-                    if filename.startswith("backend/"):
+                    if filename.startswith("agent/"):
                         lines_valid = int(class_elem.get("lines-valid", 0))
                         lines_covered = int(class_elem.get("lines-covered", 0))
                         line_rate = float(class_elem.get("line-rate", 0))
@@ -249,7 +249,7 @@ def generate_improvement_plan(opportunities: List[Dict]) -> str:
     plan.append("")
     plan.append("```bash")
     plan.append("# Run tests with coverage report")
-    plan.append("python -m pytest tests/backend/ --cov=backend --cov-report=html")
+    plan.append("python -m pytest tests/agent/ --cov=backend --cov-report=html")
     plan.append("")
     plan.append("# Open coverage report in browser")
     plan.append("# Windows: start htmlcov/index.html")
@@ -258,7 +258,7 @@ def generate_improvement_plan(opportunities: List[Dict]) -> str:
     plan.append("")
     plan.append("# Test specific file with coverage")
     plan.append(
-        "python -m pytest tests/backend/test_specific.py --cov=backend/specific.py --cov-report=term-missing"
+        "python -m pytest tests/agent/test_specific.py --cov=agent/specific.py --cov-report=term-missing"
     )
     plan.append("```")
     plan.append("")

@@ -1,7 +1,7 @@
 {
-    "name": "obsidian-ai-assistant-plugin",
-    "version": "0.1.30",
-    "description": "Obsidian AI Assistant plugin",
+    "name": "obsidian-ai-agent",
+    "version": "0.1.31",
+    "description": "Obsidian AI Agent",
     "main": "main.js",
     "scripts": {
         "lint": "eslint . --ext .js",

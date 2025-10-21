@@ -28,7 +28,7 @@ validation workflows, archiving operations, bulk processing, and metrics calcula
 
 ### Before (Baseline)
 ```
-Module: backend/openspec_governance.py
+Module: agent/openspec_governance.py
 Total Lines: 474
 Statements: 231
 Coverage: 8.0% (19 statements covered, 212 missing)
@@ -38,7 +38,7 @@ Priority: CRITICAL (governance infrastructure)
 
 ### After (Current)
 ```
-Module: backend/openspec_governance.py
+Module: agent/openspec_governance.py
 Total Lines: 474
 Statements: 231 (216 covered, 15 missing)
 Branches: 106 (99 covered, 7 partial)
@@ -101,7 +101,7 @@ Priority: WELL-COVERED
 
 ## Test Suite Structure
 
-### Test File: `tests/backend/test_openspec_governance.py`
+### Test File: `tests/agent/test_openspec_governance.py`
 **Total Tests**: 49  
 **Status**: 49 passing, 0 failing  
 **Lines**: 784

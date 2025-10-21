@@ -1,6 +1,6 @@
 # 🧪 **TESTING STANDARDS SPECIFICATION**
 
-_Obsidian AI Assistant - Testing Framework & Quality Gates_
+_Obsidian AI Agent - Testing Framework & Quality Gates_
 _Version: 2.0 (October 15, 2025)_
 _Status: Production Ready_
 _Scope: Unit, Integration, Performance, Security, Automation, Coverage_
@@ -45,7 +45,7 @@ _Scope: Unit, Integration, Performance, Security, Automation, Coverage_
 
 ## 🎯 **TESTING OVERVIEW**
 
-The Obsidian AI Assistant employs a **comprehensive, multi-layered testing
+The Obsidian AI Agent employs a **comprehensive, multi-layered testing
 strategy** to ensure reliability, security, and performance. This specification
 defines all testing requirements, coverage targets, automation protocols, and
 quality gates for production readiness.
@@ -248,7 +248,7 @@ quality gates for production readiness.
 
 - ✅ Plugin and UI testing requirements specified
 
-**This Testing Standards Specification ensures the Obsidian AI Assistant
+**This Testing Standards Specification ensures the Obsidian AI Agent
 maintains high reliability, security, and performance through rigorous,
 automated, and comprehensive testing at every stage of development and
 deployment.**
@@ -259,3 +259,4 @@ _Testing Standards Version: 1.0_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

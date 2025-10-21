@@ -1,6 +1,6 @@
 # 🏗️ **SYSTEM ARCHITECTURE SPECIFICATION**
 
-_Obsidian AI Assistant - Technical Architecture Design_
+_Obsidian AI Agent - Technical Architecture Design_
 _Version: 1.0_
 _Date: October 6, 2025_
 _Scope: Complete System Design & Data Flow_
@@ -9,7 +9,7 @@ _Scope: Complete System Design & Data Flow_
 
 ## 🎯 **ARCHITECTURE OVERVIEW**
 
-The Obsidian AI Assistant employs a **modular, service-oriented architecture**
+The Obsidian AI Agent employs a **modular, service-oriented architecture**
 designed for scalability, maintainability, and high performance. The system
 consists of three primary layers: **Frontend Plugin**, **Backend API Services**,
 and **Data Storage Layer**.
@@ -79,7 +79,7 @@ graph TB
 
 ## 📦 **MODULE SPECIFICATIONS**
 
-### **🚀 Backend Core (`backend/`)**
+### **🚀 Backend Core (`agent/`)**
 
 #### **`backend.py` - FastAPI Application**
 
@@ -801,13 +801,13 @@ VectorCollections = {
 class Settings(BaseModel):
     # Server Configuration
     api_port: int = Field(8000, ge=1024, le=65535)
-    backend_url: str = Field("http://127.0.0.1:8000")
+    agent_url: str = Field("http://127.0.0.1:8000")
     host: str = Field("127.0.0.1")
 
     # Storage Configuration
     vault_path: Path = Field(Path("./vault"))
-        models_dir: Path = Field(Path("./backend/models"))
-        cache_dir: Path = Field(Path("./backend/cache"))
+        models_dir: Path = Field(Path("./agent/models"))
+        cache_dir: Path = Field(Path("./agent/cache"))
     vector_db_path: Path = Field(Path("./vector_db"))
 
     # AI Model Configuration
@@ -1232,7 +1232,7 @@ ArchitectureMetrics = {
 
 - ✅ **Extensibility**: Plugin-ready architecture for future enhancements
 
-**This architecture establishes the Obsidian AI Assistant as a production-ready,
+**This architecture establishes the Obsidian AI Agent as a production-ready,
 enterprise-grade system capable of scaling to meet diverse user needs while
 maintaining high performance, security, and reliability standards.**
 
@@ -1242,3 +1242,4 @@ _Architecture Version: 1.0_
 _Last Updated: October 6, 2025_
 _Next Review: January 6, 2026_
 _Status: Production Ready_
+

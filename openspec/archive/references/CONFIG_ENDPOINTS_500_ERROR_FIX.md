@@ -2,7 +2,7 @@
 
 ## Problem Summary
 
-All configuration endpoint tests (`tests/backend/test_config_endpoints.py`) were failing with 500 Internal Server Error
+All configuration endpoint tests (`tests/agent/test_config_endpoints.py`) were failing with 500 Internal Server Error
 responses. The root cause was traced through multiple layers:
 
 1. **Initial symptom**: All config endpoint tests returned 500 status codes
@@ -14,7 +14,7 @@ responses. The root cause was traced through multiple layers:
 ### Phase 1: Error Tracing
 - Added debug logging to config endpoints and test files
 - Confirmed CSRF middleware was not the issue (properly bypassed in test mode)
-- Traced error to `SecurityHardeningMiddleware` in `backend/security_hardening.py`
+- Traced error to `SecurityHardeningMiddleware` in `agent/security_hardening.py`
 
 ### Phase 2: Root Cause Identification
 - Enhanced `SecurityHardeningMiddleware` exception handler with full traceback logging
@@ -29,7 +29,7 @@ accept them
 
 ## Changes Made
 
-### 1. Fixed `SecurityError` class initialization (`backend/error_handling.py`)
+### 1. Fixed `SecurityError` class initialization (`agent/error_handling.py`)
 
 **Problem**: `SecurityError` passed arbitrary kwargs to `ObsidianAIError.__init__()`, which only accepts specific
 parameters.
@@ -63,7 +63,7 @@ class SecurityError(ObsidianAIError):
         )
 ```
 
-### 2. Added test mode bypass to `SecurityHardeningMiddleware` (`backend/security_hardening.py`)
+### 2. Added test mode bypass to `SecurityHardeningMiddleware` (`agent/security_hardening.py`)
 
 **Problem**: Middleware was enforcing authentication even in test mode, causing 403 Forbidden responses.
 
@@ -86,7 +86,7 @@ async def dispatch(self, request: Request, call_next):
     # ... rest of security processing
 ```
 
-### 3. Enhanced exception logging in `SecurityHardeningMiddleware` (`backend/security_hardening.py`)
+### 3. Enhanced exception logging in `SecurityHardeningMiddleware` (`agent/security_hardening.py`)
 
 **Problem**: Generic error messages didn't reveal the underlying issue.
 
@@ -129,7 +129,7 @@ except Exception as e:
     )
 ```
 
-### 4. Fixed config endpoint error handling (`backend/backend.py`)
+### 4. Fixed config endpoint error handling (`agent/backend.py`)
 
 **Problem**: `post_update_config()` and `post_reload_config()` returned 200 responses with error details in test mode
 instead of raising exceptions.
@@ -196,10 +196,10 @@ authentication checks.
 
 ## Related Files
 
-- `backend/error_handling.py` - Exception class definitions
-- `backend/security_hardening.py` - Security middleware implementation
-- `backend/backend.py` - Config endpoint implementations
-- `tests/backend/test_config_endpoints.py` - Test suite
+- `agent/error_handling.py` - Exception class definitions
+- `agent/security_hardening.py` - Security middleware implementation
+- `agent/backend.py` - Config endpoint implementations
+- `tests/agent/test_config_endpoints.py` - Test suite
 
 ## Impact Assessment
 
@@ -237,13 +237,13 @@ To verify the fix works correctly:
 
 ```powershell
 # Run config endpoint tests
-python -m pytest tests/backend/test_config_endpoints.py -v
+python -m pytest tests/agent/test_config_endpoints.py -v
 
 # Run broader backend tests
-python -m pytest tests/backend/test_config_endpoints.py tests/backend/test_health_monitoring.py -v
+python -m pytest tests/agent/test_config_endpoints.py tests/agent/test_health_monitoring.py -v
 
 # Check specific test
-python -m pytest tests/backend/test_config_endpoints.py::TestConfigEndpoints::test_get_config_endpoint -xvs
+python -m pytest tests/agent/test_config_endpoints.py::TestConfigEndpoints::test_get_config_endpoint -xvs
 ```
 
 Expected output: All tests pass with proper HTTP status codes.

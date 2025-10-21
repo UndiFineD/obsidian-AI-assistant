@@ -401,7 +401,7 @@ jobs:
                   # Create basic mkdocs structure if it doesn't exist
                   if [ ! -f mkdocs.yml ]; then
                     cat > mkdocs.yml << EOF
-                  site_name: Obsidian AI Assistant
+                  site_name: Obsidian AI Agent
                   nav:
                     - Home: README.md
                     - API: api/index.md
@@ -416,28 +416,28 @@ jobs:
             - name: Create Release Archive
               run: |
                   # Create release directory
-                  mkdir -p release/obsidian-ai-assistant
+                  mkdir -p release/obsidian-ai-agent
 
                   # Copy essential files
-                  cp -r backend/ release/obsidian-ai-assistant/
-                  cp -r plugin/ release/obsidian-ai-assistant/
-                  cp requirements*.txt release/obsidian-ai-assistant/ || true
-                  cp README.md docs/SPECIFICATION.md release/obsidian-ai-assistant/
-                  cp setup.sh setup.ps1 release/obsidian-ai-assistant/ || true
+                  cp -r backend/ release/obsidian-ai-agent/
+                  cp -r plugin/ release/obsidian-ai-agent/
+                  cp requirements*.txt release/obsidian-ai-agent/ || true
+                  cp README.md docs/SPECIFICATION.md release/obsidian-ai-agent/
+                  cp setup.sh setup.ps1 release/obsidian-ai-agent/ || true
 
                   # Create version file
-                  echo "version=$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)" > release/obsidian-ai-assistant/VERSION
+                  echo "version=$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)" > release/obsidian-ai-agent/VERSION
 
                   # Create archive
                   cd release
-                  tar -czf obsidian-ai-assistant-$(date +%Y%m%d).tar.gz obsidian-ai-assistant/
+                  tar -czf obsidian-ai-agent-$(date +%Y%m%d).tar.gz obsidian-ai-agent/
 
                   ls -la *.tar.gz
 
             - name: Upload Release Artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: obsidian-ai-assistant-release
+                  name: obsidian-ai-agent-release
                   path: release/*.tar.gz
 
     # Job 7: Deployment (if on main branch)
@@ -450,7 +450,7 @@ jobs:
             - name: Download Release Artifact
               uses: actions/download-artifact@v4
               with:
-                  name: obsidian-ai-assistant-release
+                  name: obsidian-ai-agent-release
                   path: ./release
 
             - name: Deploy to Staging Environment
@@ -496,3 +496,4 @@ jobs:
                   else
                     echo "❌ Some tests failed. Please review." >> $GITHUB_STEP_SUMMARY
                   fi
+

@@ -1,4 +1,4 @@
-# Enterprise Features Specification - Obsidian AI Assistant
+# Enterprise Features Specification - Obsidian AI Agent
 
 **Version:** 1.0
 **Date:** October 6, 2025
@@ -97,7 +97,7 @@ Implementation_Approach:
 
 ```python
 
-# backend/enterprise/auth_mfa.py
+# agent/enterprise/auth_mfa.py
 
 class MFAManager:
     """Multi-factor authentication management"""
@@ -136,7 +136,7 @@ class MFAManager:
 
 ```python
 
-# backend/enterprise/tenancy.py
+# agent/enterprise/tenancy.py
 
 from enum import Enum
 from dataclasses import dataclass
@@ -349,3 +349,4 @@ Pricing_Tiers:
 **Next Steps:** Begin Phase 1 implementation with multi-tenant architecture and SSO integration.
 
 **Status:** Planning Complete - Ready for Implementation
+

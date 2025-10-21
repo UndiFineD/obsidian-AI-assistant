@@ -112,7 +112,7 @@
 - [ ] `openspec/changes/test-step6/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
-- [ ] Code changes in `backend/` and/or `plugin/`
+- [ ] Code changes in `agent/` and/or `plugin/`
 
 ---
 

@@ -14,8 +14,8 @@ are passing with 100% success rate.
 ## Module Coverage Improvements
 
 ### 1. Cache Operations Module
-**File**: `backend/caching.py`  
-**Test File**: `tests/backend/test_caching.py`
+**File**: `agent/caching.py`  
+**Test File**: `tests/agent/test_caching.py`
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
@@ -35,8 +35,8 @@ are passing with 100% success rate.
 ---
 
 ### 2. Log Management Module
-**File**: `backend/log_management.py`  
-**Test File**: `tests/backend/test_log_management.py` (Created)
+**File**: `agent/log_management.py`  
+**Test File**: `tests/agent/test_log_management.py` (Created)
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
@@ -64,8 +64,8 @@ are passing with 100% success rate.
 ---
 
 ### 3. Enterprise Tenant Module
-**File**: `backend/enterprise_tenant.py`  
-**Test File**: `tests/backend/test_enterprise_tenant.py`
+**File**: `agent/enterprise_tenant.py`  
+**Test File**: `tests/agent/test_enterprise_tenant.py`
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
@@ -95,8 +95,8 @@ are passing with 100% success rate.
 ---
 
 ### 4. Enterprise Auth / JWT Module
-**File**: `backend/enterprise_auth.py`  
-**Test File**: `tests/backend/test_enterprise_auth.py`
+**File**: `agent/enterprise_auth.py`  
+**Test File**: `tests/agent/test_enterprise_auth.py`
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|

@@ -1,6 +1,6 @@
 # tests/integration/test_full_workflow.py
 """
-Integration tests for the complete Obsidian AI Assistant workflow.
+Integration tests for the complete Obsidian AI Agent workflow.
 Tests end-to-end scenarios from request to response, covering core user journeys
 like asking questions, indexing the vault, and performing semantic searches.
 """
@@ -15,8 +15,8 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 
-# Import backend components at the top for clarity
-from backend.backend import app
+# import agentImport backend components at the top for clarity
+from agent.backend import app
 
 
 class TestFullWorkflowIntegration:
@@ -57,10 +57,10 @@ class TestFullWorkflowIntegration:
     @pytest.fixture(scope="class")
     def mock_services(self, temp_workspace):
         """Set up mocked services for integration testing."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
-            "backend.backend.cache_manager"
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi, patch(
+            "agent.agent.cache_manager"
         ) as mock_cm:
             # Configure ModelManager mock
             mock_mm.generate.return_value = "AI generated response based on your query."
@@ -203,9 +203,9 @@ class TestErrorScenarios:
     @pytest.fixture(scope="class")
     def failing_services(self):
         """Set up services that simulate failures."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi:
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi:
             # Configure services to fail
             mock_mm.generate.side_effect = Exception("Model service unavailable")
             mock_em.search.side_effect = Exception("Embeddings service down")
@@ -262,10 +262,10 @@ class TestRealWorldScenarios:
     @pytest.fixture(scope="class")
     def realistic_services(self):
         """Set up services with realistic responses."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.vault_indexer") as mock_vi, patch(
-            "backend.backend.cache_manager"
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi, patch(
+            "agent.agent.cache_manager"
         ) as mock_cm:
             # Realistic AI responses
             mock_mm.generate.return_value = """Based on your notes about machine learning, here are the key concepts:
@@ -365,9 +365,9 @@ class TestPerformanceAndLimits:
     @pytest.mark.asyncio
     async def test_concurrent_requests_handling(self, client):
         """Test handling of multiple concurrent requests."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.init_services") as mock_init:
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.init_services") as mock_init:
             # Configure mocks to avoid backend initialization issues
             mock_mm.generate.return_value = "Quick response"
             mock_mm.is_None = False
@@ -389,10 +389,10 @@ class TestPerformanceAndLimits:
     @pytest.mark.asyncio
     async def test_large_context_handling(self, client):
         """Test handling of large context from many search results."""
-        with patch("backend.backend.model_manager") as mock_mm, patch(
-            "backend.backend.emb_manager"
-        ) as mock_em, patch("backend.backend.init_services") as mock_init, patch(
-            "backend.backend.get_settings"
+        with patch("agent.agent.model_manager") as mock_mm, patch(
+            "agent.agent.emb_manager"
+        ) as mock_em, patch("agent.agent.init_services") as mock_init, patch(
+            "agent.agent.get_settings"
         ) as mock_settings:
             # Configure mocks to avoid backend initialization issues
             mock_mm.generate.return_value = "Response based on extensive context"
@@ -421,7 +421,7 @@ class TestPerformanceAndLimits:
 
             # The use_context field needs to be added to the AskRequest model
             # For now, we'll patch the _ask_impl directly to force the context usage
-            with patch("backend.backend._ask_impl") as mock_ask_impl:
+            with patch("agent.agent._ask_impl") as mock_ask_impl:
                 mock_ask_impl.return_value = {
                     "answer": "Response based on extensive context",
                     "cached": False,

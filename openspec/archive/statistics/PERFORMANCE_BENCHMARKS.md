@@ -1,6 +1,6 @@
 # ⚡ Performance Benchmarking Guide
 
-_Obsidian AI Assistant - Performance Testing & Benchmark Interpretation_  
+_Obsidian AI Agent - Performance Testing & Benchmark Interpretation_  
 _Version: 1.0_  
 _Date: October 16, 2025_
 
@@ -9,7 +9,7 @@ _Date: October 16, 2025_
 ## 📋 Overview
 
 This guide documents the **automated performance benchmarking workflow**, expected **SLA targets**, and how to
-**interpret benchmark results** for the Obsidian AI Assistant.
+**interpret benchmark results** for the Obsidian AI Agent.
 
 Performance benchmarks are automatically collected via the **`.github/workflows/benchmark.yml`** workflow and validated
 against the comprehensive targets defined in **`docs/PERFORMANCE_REQUIREMENTS_SPECIFICATION.md`**.
@@ -403,7 +403,7 @@ pytest tests/benchmarks/ --benchmark-only --benchmark-autosave --benchmark-save-
 
 ```powershell
 # Profile slow operations
-python -m cProfile -o profile.stats backend/backend.py
+python -m cProfile -o profile.stats agent/backend.py
 
 # Analyze with snakeviz
 snakeviz profile.stats
@@ -421,7 +421,7 @@ pytest --benchmark-only --benchmark-save=before-optimization
 Example: Add caching layer
 
 ```python
-from backend.performance import cached
+from agent.performance import cached
 
 @cached(ttl=3600, key_func=lambda req: f"ask:{req.prompt}")
 async def ask_endpoint(request: QueryRequest):
@@ -557,3 +557,4 @@ _Performance Benchmarking Guide Version: 1.0_
 _Last Updated: October 16, 2025_  
 _Next Review: January 16, 2026_  
 _Status: Production Ready_
+

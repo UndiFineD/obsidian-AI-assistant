@@ -5,7 +5,7 @@ OpenSpec Workflow - Helper Functions
 This module provides shared utility functions for the OpenSpec workflow system,
 including output formatting, file operations, validation, and cross-referencing.
 
-Author: Obsidian AI Assistant Team
+Author: Obsidian AI Agent Team
 License: MIT
 """
 

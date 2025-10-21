@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Security-focused Dependency Scanner for Obsidian AI Assistant
+Security-focused Dependency Scanner for Obsidian AI Agent
 
 This script focuses specifically on security aspects of dependency management:
 - CVE vulnerability scanning
@@ -150,8 +150,8 @@ class SecurityScanner:
         }
 
         try:
-            backend_path = self.project_root / "backend"
-            if not backend_path.exists():
+            agent_path = self.project_root / "backend"
+            if not agent_path.exists():
                 results["status"] = "no_backend"
                 return results
 
@@ -160,7 +160,7 @@ class SecurityScanner:
                 "-m",
                 "bandit",
                 "-r",
-                str(backend_path),
+                str(agent_path),
                 "-f",
                 "json",
                 "--skip",

@@ -22,47 +22,47 @@
 
 #### High Coverage (>90%)
 
-- backend/utils.py: 100% (10/10 statements)
+- agent/utils.py: 100% (10/10 statements)
 
-- backend/caching.py: 98% (87/89 statements)
+- agent/caching.py: 98% (87/89 statements)
 
-- backend/settings.py: 97% (116/119 statements)
+- agent/settings.py: 97% (116/119 statements)
 
-- backend/modelmanager.py: 95% (165/173 statements)
+- agent/modelmanager.py: 95% (165/173 statements)
 
-- backend/indexing.py: 94% (194/206 statements)
+- agent/indexing.py: 94% (194/206 statements)
 
-- backend/llm_router.py: 90% (79/88 statements)
+- agent/llm_router.py: 90% (79/88 statements)
 
 #### Medium Coverage (60-89%)
 
-- backend/voice.py: 85% (58/68 statements)
+- agent/voice.py: 85% (58/68 statements)
 
-- backend/embeddings.py: 86% (121/141 statements)
+- agent/embeddings.py: 86% (121/141 statements)
 
-- backend/security.py: 79% (23/29 statements)
+- agent/security.py: 79% (23/29 statements)
 
-- backend/performance.py: 72% (210/293 statements)
+- agent/performance.py: 72% (210/293 statements)
 
-- backend/**init**.py: 71% (15/21 statements)
+- agent/**init**.py: 71% (15/21 statements)
 
 #### Low Coverage (<60%)
 
-- backend/backend.py: 46% (228/496 statements) - CRITICAL
+- agent/backend.py: 46% (228/496 statements) - CRITICAL
 
-- backend/enterprise_soc2.py: 40% (95/239 statements)
+- agent/enterprise_soc2.py: 40% (95/239 statements)
 
-- backend/enterprise_integration.py: 37% (64/174 statements)
+- agent/enterprise_integration.py: 37% (64/174 statements)
 
-- backend/enterprise_tenant.py: 35% (58/167 statements)
+- agent/enterprise_tenant.py: 35% (58/167 statements)
 
-- backend/enterprise_gdpr.py: 34% (66/196 statements)
+- agent/enterprise_gdpr.py: 34% (66/196 statements)
 
-- backend/enterprise_rbac.py: 33% (66/199 statements)
+- agent/enterprise_rbac.py: 33% (66/199 statements)
 
-- backend/enterprise_admin.py: 25% (48/193 statements)
+- agent/enterprise_admin.py: 25% (48/193 statements)
 
-- backend/simple_backend.py: 0% (0/22 statements)
+- agent/simple_backend.py: 0% (0/22 statements)
 
 ### Critical Issues Identified
 
@@ -84,8 +84,8 @@ Affected Test Categories:
 Sample Failures:
 
 ```text
-FAILED tests/backend/test_backend.py::TestBackendAPI::test_ask_endpoint_invalid_request - assert 401 == 422
-FAILED tests/backend/test_config_endpoints.py::TestConfigEndpoints::test_get_config_endpoint - assert 401 == 200
+FAILED tests/agent/test_backend.py::TestBackendAPI::test_ask_endpoint_invalid_request - assert 401 == 422
+FAILED tests/agent/test_config_endpoints.py::TestConfigEndpoints::test_get_config_endpoint - assert 401 == 200
 FAILED tests/integration/test_api_integration.py::TestAPIIntegration::test_ask_endpoint_integration - assert 401 == 200
 ```
 
