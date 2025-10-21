@@ -2,6 +2,8 @@
 
 ## Why
 
+## Impact
+
 ## Context
 
 **Bug Description**: Clear description of the incorrect behavior.
