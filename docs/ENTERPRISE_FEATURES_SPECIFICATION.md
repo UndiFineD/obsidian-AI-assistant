@@ -74,6 +74,682 @@ Enterprise features automatically load when the backend is available with gracef
 
 ---
 
+## 🚀 Enterprise Setup & Configuration Guide
+
+### Enterprise Feature Enablement
+
+#### Step 1: Enable Enterprise Mode
+
+Set environment variables:
+```bash
+# Enable enterprise features
+export ENTERPRISE_ENABLED=true
+
+# Set JWT security
+export JWT_SECRET_KEY="your-secure-random-key-min-32-chars"
+export JWT_ALGORITHM="HS256"
+export JWT_EXPIRY_HOURS=24
+
+# Set encryption keys
+export ENCRYPTION_KEY="your-master-encryption-key"
+export PII_ENCRYPTION_KEY="your-pii-encryption-key"
+export MASTER_ENCRYPTION_KEY="your-master-key-for-tenant-isolation"
+```
+
+Or in `agent/config.yaml`:
+```yaml
+enterprise:
+    enabled: true
+    jwt:
+        secret_key: ${JWT_SECRET_KEY}
+        algorithm: HS256
+        expiry_hours: 24
+    encryption:
+        master_key: ${ENCRYPTION_KEY}
+        pii_key: ${PII_ENCRYPTION_KEY}
+        tenant_isolation: true
+    features:
+        - sso
+        - multi_tenant
+        - rbac
+        - compliance
+        - admin_dashboard
+```
+
+#### Step 2: Configure Security Settings
+
+```yaml
+# agent/config.yaml
+enterprise:
+    security:
+        # Authentication
+        require_mfa: true
+        password_min_length: 12
+        password_require_uppercase: true
+        password_require_numbers: true
+        password_require_special_chars: true
+        session_timeout_hours: 24
+        
+        # Rate limiting
+        rate_limit_requests_per_minute: 1000
+        rate_limit_requests_per_hour: 50000
+        
+        # HTTPS and transport security
+        require_https: true
+        ssl_cert_path: /path/to/cert.pem
+        ssl_key_path: /path/to/key.pem
+        hsts_max_age: 31536000
+        
+        # CORS and cross-origin
+        cors_origins:
+            - "https://yourdomain.com"
+            - "https://*.yourdomain.com"
+        cors_allow_credentials: true
+        
+        # Request signing
+        request_signing_enabled: true
+        request_signature_ttl_seconds: 300
+```
+
+#### Step 3: Verify Enterprise Setup
+
+```bash
+# Check health endpoint includes enterprise status
+curl http://localhost:8000/health | jq .enterprise
+
+# Expected output:
+# {
+#   "enterprise": {
+#     "enabled": true,
+#     "features": ["sso", "multi_tenant", "rbac", "compliance"],
+#     "status": "healthy"
+#   }
+# }
+
+# Test admin endpoint access
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/enterprise/status
+```
+
+#### Step 4: Security Hardening Checklist
+
+Before production deployment:
+
+- [ ] Encryption keys generated and secured (not in code)
+- [ ] JWT secret key configured (minimum 32 characters)
+- [ ] HTTPS enabled with valid certificate
+- [ ] CORS origins restricted to your domains
+- [ ] Session timeout configured (recommended: 24 hours)
+- [ ] MFA requirement enabled
+- [ ] Database backups configured
+- [ ] Audit logging enabled
+- [ ] Rate limiting configured per tier
+- [ ] Admin dashboard password changed from defaults
+
+---
+
+## 🔐 Single Sign-On (SSO) Configuration
+
+### SSO Overview
+
+Enterprise deployment supports 5 SSO providers for seamless authentication:
+- **Azure AD** (Microsoft enterprise directory)
+- **Google Workspace** (Google business accounts)
+- **Okta** (Identity management platform)
+- **SAML 2.0** (Generic SAML provider)
+- **LDAP/AD** (On-premises directory)
+
+### Azure AD Configuration
+
+**Step 1: Register Application in Azure**
+
+1. Go to Azure Portal → App registrations
+2. Click "New registration"
+3. Name: `Obsidian AI Assistant`
+4. Redirect URI: `https://yourdomain.com/auth/callback`
+5. Create the app
+
+**Step 2: Configure Credentials**
+
+1. Go to Certificates & secrets
+2. Create new client secret (save the value!)
+3. Note the secret expiry and create new one before expiry
+
+**Step 3: Configure Permissions**
+
+1. Go to API permissions
+2. Add permissions for:
+   - `openid` (OpenID Connect)
+   - `profile` (User profile)
+   - `email` (Email address)
+   - `User.Read` (Read user profile)
+   - `Directory.Read.All` (Read directory)
+
+**Step 4: Set Environment Variables**
+
+```bash
+export SSO_PROVIDER=azure_ad
+export AZURE_TENANT_ID="your-tenant-id.onmicrosoft.com"
+export AZURE_CLIENT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+export AZURE_CLIENT_SECRET="your-client-secret-from-step-2"
+export AZURE_REDIRECT_URI="https://yourdomain.com/auth/callback"
+```
+
+**Step 5: Test Azure AD Integration**
+
+```bash
+# Start SSO flow
+curl -X POST http://localhost:8000/api/enterprise/auth/sso \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "azure_ad"}'
+
+# Expected response: SSO login URL
+```
+
+### Google Workspace Configuration
+
+**Step 1: Create OAuth Application**
+
+1. Go to Google Cloud Console
+2. Create new project
+3. Enable Google+ API
+4. Create OAuth 2.0 consent screen
+5. Add test users
+
+**Step 2: Create OAuth Credentials**
+
+1. Go to Credentials
+2. Create "OAuth 2.0 Client ID"
+3. Type: Web application
+4. Authorized redirect URIs: `https://yourdomain.com/auth/callback`
+
+**Step 3: Set Environment Variables**
+
+```bash
+export SSO_PROVIDER=google_workspace
+export GOOGLE_CLIENT_ID="xxxxxxxx.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-client-secret"
+export GOOGLE_REDIRECT_URI="https://yourdomain.com/auth/callback"
+```
+
+### Okta Configuration
+
+**Step 1: Create Okta Organization**
+
+1. Sign up for Okta developer account
+2. Create new organization
+
+**Step 2: Create OIDC Application**
+
+1. Go to Applications → Applications
+2. Create app integration
+3. Choose OIDC - OpenID Connect
+4. Application type: Web
+5. Grant type: Authorization Code
+
+**Step 3: Configure Application**
+
+1. Sign-in redirect URI: `https://yourdomain.com/auth/callback`
+2. Save client ID and client secret
+
+**Step 3: Set Environment Variables**
+
+```bash
+export SSO_PROVIDER=okta
+export OKTA_ORG_URL="https://your-org.okta.com"
+export OKTA_CLIENT_ID="xxxxxxxx"
+export OKTA_CLIENT_SECRET="your-client-secret"
+export OKTA_REDIRECT_URI="https://yourdomain.com/auth/callback"
+```
+
+### SAML 2.0 Configuration
+
+**Step 1: Generate Service Provider Metadata**
+
+```bash
+# Get SAML metadata from backend
+curl http://localhost:8000/api/enterprise/auth/saml/metadata > sp-metadata.xml
+```
+
+**Step 2: Upload to Identity Provider**
+
+1. Go to your IdP (e.g., Okta, PingIdentity, Shibboleth)
+2. Import SP metadata or configure manually
+3. Get IdP metadata XML
+
+**Step 3: Set Environment Variables**
+
+```bash
+export SSO_PROVIDER=saml
+export SAML_IDP_METADATA_URL="https://your-idp.com/metadata.xml"
+export SAML_SP_ENTITY_ID="https://yourdomain.com"
+export SAML_ACS_URL="https://yourdomain.com/auth/acs"
+```
+
+### LDAP/AD Configuration
+
+**Step 1: Prepare LDAP Directory**
+
+Ensure LDAP server is accessible:
+```bash
+# Test LDAP connectivity
+ldapsearch -H ldap://ldap.yourdomain.com -x -D "CN=admin,DC=yourdomain,DC=com" -W -b "DC=yourdomain,DC=com" "(&(objectClass=*)(cn=*))"
+```
+
+**Step 2: Set Environment Variables**
+
+```bash
+export SSO_PROVIDER=ldap
+export LDAP_SERVER="ldap://ldap.yourdomain.com"
+export LDAP_PORT=389
+export LDAP_USE_SSL=false
+export LDAP_USE_TLS=true
+export LDAP_BIND_DN="CN=admin,DC=yourdomain,DC=com"
+export LDAP_BIND_PASSWORD="admin-password"
+export LDAP_BASE_DN="DC=yourdomain,DC=com"
+export LDAP_USER_SEARCH_FILTER="(&(objectClass=person)(sAMAccountName={username}))"
+export LDAP_GROUP_SEARCH_FILTER="(&(objectClass=group)(member={user_dn}))"
+```
+
+### SSO Troubleshooting
+
+**Problem**: Redirect URI mismatch error
+
+**Solution**: Ensure redirect URI exactly matches:
+- In IdP configuration (case-sensitive)
+- In backend environment variable
+- In frontend redirect handler
+
+**Problem**: Invalid token or JWT decode error
+
+**Solution**: 
+- Verify JWT_SECRET_KEY is set consistently across all nodes
+- Check token expiry not exceeded (default: 24 hours)
+- Ensure clock sync between IdP and backend (<5 minutes drift)
+
+**Problem**: User groups not synced
+
+**Solution**:
+- Verify LDAP/AD group memberships visible to service account
+- Check LDAP_GROUP_SEARCH_FILTER matches your directory schema
+- Enable debug logging: `export LOG_LEVEL=debug`
+
+---
+
+## 👥 Multi-Tenant Management
+
+### Tenant Tiers and Limits
+
+```yaml
+# Tenant tier configuration (automatically enforced)
+
+BASIC Tier:
+    max_users: 10
+    max_documents: 1,000
+    max_storage_gb: 5
+    max_api_calls_per_hour: 1,000
+    max_concurrent_requests: 5
+    features:
+        - basic_ai
+        - document_search
+    use_case: "Small teams or trials"
+
+PROFESSIONAL Tier:
+    max_users: 100
+    max_documents: 10,000
+    max_storage_gb: 50
+    max_api_calls_per_hour: 5,000
+    max_concurrent_requests: 20
+    features:
+        - basic_ai
+        - document_search
+        - voice_processing
+        - analytics
+    use_case: "Growing teams"
+
+ENTERPRISE Tier:
+    max_users: 1,000
+    max_documents: 100,000
+    max_storage_gb: 500
+    max_api_calls_per_hour: 25,000
+    max_concurrent_requests: 100
+    features:
+        - all_features
+        - sso
+        - audit_logging
+        - custom_models
+        - priority_support
+    use_case: "Large organizations"
+
+CUSTOM Tier:
+    max_users: unlimited
+    max_documents: unlimited
+    max_storage_gb: unlimited
+    max_api_calls_per_hour: unlimited
+    max_concurrent_requests: 500
+    features:
+        - all_features
+    use_case: "Enterprise deployments"
+```
+
+### Tenant Management API
+
+**Create Tenant**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/tenants \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Corporation",
+    "admin_email": "admin@acme.com",
+    "tier": "professional",
+    "custom_domain": "acme.obsidian.app",
+    "sso_config": {
+      "provider": "azure_ad",
+      "tenant_id": "xxxx.onmicrosoft.com"
+    }
+  }'
+
+# Response:
+# {
+#   "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+#   "name": "Acme Corporation",
+#   "tier": "professional",
+#   "status": "active",
+#   "created_at": "2025-10-21T12:00:00Z"
+# }
+```
+
+**List Tenants**
+
+```bash
+curl -X GET http://localhost:8000/api/enterprise/tenants \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+**Get Tenant Details**
+
+```bash
+curl -X GET http://localhost:8000/api/enterprise/tenants/{tenant_id} \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+**Update Tenant**
+
+```bash
+curl -X PUT http://localhost:8000/api/enterprise/tenants/{tenant_id} \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "tier": "enterprise",
+    "custom_limits": {
+      "max_users": 500
+    }
+  }'
+```
+
+**Delete Tenant**
+
+```bash
+curl -X DELETE http://localhost:8000/api/enterprise/tenants/{tenant_id} \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+### Tenant Usage Monitoring
+
+**Get Tenant Usage**
+
+```bash
+curl -X GET http://localhost:8000/api/enterprise/tenants/{tenant_id}/usage \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Response:
+# {
+#   "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+#   "current_users": 25,
+#   "current_documents": 2500,
+#   "storage_used_gb": 12.5,
+#   "api_calls_this_hour": 450,
+#   "concurrent_requests": 5,
+#   "last_updated": "2025-10-21T12:05:00Z"
+# }
+```
+
+---
+
+## 🔐 Role-Based Access Control (RBAC)
+
+### User Roles and Permissions Matrix
+
+```
+Role                 Permissions
+─────────────────────────────────────────────────────────────
+
+READONLY             • read_config
+                     • read_documents
+                     
+USER                 • read_config
+                     • read_documents
+                     • write_documents
+                     • ask_questions
+                     • voice_processing
+                     
+POWER_USER          • read_config
+                     • read_documents
+                     • write_documents
+                     • delete_documents
+                     • ask_questions
+                     • voice_processing
+                     • custom_models
+                     • view_analytics
+                     
+TEAM_ADMIN          • read_config
+                     • write_config
+                     • all_document_permissions
+                     • view_users
+                     • manage_users
+                     • assign_roles
+                     • view_analytics
+                     • view_logs
+                     
+TENANT_ADMIN        • all_team_admin_permissions
+                     • reload_config
+                     • manage_vault
+                     • reindex_vault
+                     • tenant_admin (tenant management)
+                     • view_audit_logs
+                     • export_data
+                     
+SYSTEM_ADMIN        • system_admin (all permissions)
+                     • All cross-tenant management
+```
+
+### User Management API
+
+**Create User**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/users \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john.doe@acme.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "tenant_id": "550e8400-e29b-41d4-a716-446655440000",
+    "roles": ["user"]
+  }'
+```
+
+**Assign Role**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/users/{user_id}/roles \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "roles": ["power_user", "team_admin"]
+  }'
+```
+
+**List Users in Tenant**
+
+```bash
+curl -X GET http://localhost:8000/api/enterprise/tenants/{tenant_id}/users \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+
+---
+
+## 📋 Compliance & Audit Operations
+
+### GDPR Data Subject Rights
+
+**Submit Data Access Request**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/compliance/gdpr/requests \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_type": "access",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+
+# Response includes download link for user data
+```
+
+**Submit Erasure Request (Right to be Forgotten)**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/compliance/gdpr/requests \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_type": "erasure",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000"
+  }'
+```
+
+**Export User Data (Portability)**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/compliance/gdpr/requests \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "request_type": "portability",
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "format": "json"
+  }'
+```
+
+### SOC2 Compliance Reporting
+
+**Generate SOC2 Report**
+
+```bash
+curl -X POST http://localhost:8000/api/enterprise/compliance/soc2/report \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "period_start": "2025-01-01",
+    "period_end": "2025-03-31",
+    "include_sections": ["security", "availability", "confidentiality"]
+  }'
+
+# Returns PDF report with compliance details
+```
+
+**Security Incident Tracking**
+
+```bash
+# Report security incident
+curl -X POST http://localhost:8000/api/enterprise/compliance/incidents \
+  -H "Authorization: Bearer $ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Unauthorized access attempt",
+    "description": "Multiple failed login attempts from IP X.X.X.X",
+    "severity": "high",
+    "affected_systems": ["authentication", "audit_logging"]
+  }'
+```
+
+### Audit Log Access
+
+**View Audit Logs**
+
+```bash
+curl -X GET "http://localhost:8000/api/enterprise/audit?user_id=xxx&start_date=2025-10-01&end_date=2025-10-21" \
+  -H "Authorization: Bearer $ADMIN_TOKEN"
+
+# Response includes all actions with timestamps and user info
+```
+
+---
+
+## 🔧 Enterprise Configuration Reference
+
+### All Enterprise Environment Variables
+
+```bash
+# === ENTERPRISE FEATURES ===
+ENTERPRISE_ENABLED=true
+ENTERPRISE_LICENSE_KEY="your-license-key"
+
+# === AUTHENTICATION ===
+SSO_PROVIDER="azure_ad|google_workspace|okta|saml|ldap"
+JWT_SECRET_KEY="your-jwt-secret-key"
+JWT_ALGORITHM="HS256"
+JWT_EXPIRY_HOURS=24
+
+# === AZURE AD ===
+AZURE_TENANT_ID="your-tenant-id.onmicrosoft.com"
+AZURE_CLIENT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+AZURE_CLIENT_SECRET="your-client-secret"
+AZURE_REDIRECT_URI="https://yourdomain.com/auth/callback"
+
+# === GOOGLE WORKSPACE ===
+GOOGLE_CLIENT_ID="xxxxxxxx.apps.googleusercontent.com"
+GOOGLE_CLIENT_SECRET="your-client-secret"
+GOOGLE_REDIRECT_URI="https://yourdomain.com/auth/callback"
+
+# === OKTA ===
+OKTA_ORG_URL="https://your-org.okta.com"
+OKTA_CLIENT_ID="xxxxxxxx"
+OKTA_CLIENT_SECRET="your-client-secret"
+OKTA_REDIRECT_URI="https://yourdomain.com/auth/callback"
+
+# === LDAP/AD ===
+LDAP_SERVER="ldap://ldap.yourdomain.com"
+LDAP_PORT=389
+LDAP_BIND_DN="CN=admin,DC=yourdomain,DC=com"
+LDAP_BIND_PASSWORD="admin-password"
+LDAP_BASE_DN="DC=yourdomain,DC=com"
+
+# === ENCRYPTION ===
+ENCRYPTION_KEY="your-master-encryption-key"
+PII_ENCRYPTION_KEY="your-pii-encryption-key"
+MASTER_ENCRYPTION_KEY="your-master-key-for-tenant-isolation"
+
+# === COMPLIANCE ===
+GDPR_ENABLED=true
+SOC2_ENABLED=true
+ENABLE_AUDIT_LOGGING=true
+AUDIT_LOG_RETENTION_DAYS=2555
+
+# === SECURITY ===
+REQUIRE_HTTPS=true
+REQUIRE_MFA=true
+PASSWORD_MIN_LENGTH=12
+SESSION_TIMEOUT_HOURS=24
+RATE_LIMIT_PER_MINUTE=1000
+RATE_LIMIT_PER_HOUR=50000
+```
+
+---
+
 ## Original Enterprise Features Specification
 
 This document originally outlined the enterprise features roadmap for the Obsidian AI
