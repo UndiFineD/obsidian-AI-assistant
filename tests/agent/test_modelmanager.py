@@ -33,7 +33,7 @@ class TestModelManager:
     @pytest.fixture
     def mock_models_file(self, temp_models_dir):
         """Create a mock models.txt file."""
-        models_file = Path(temp_models_dir) / "agent/models/models.txt"
+        models_file = Path(temp_models_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("gpt4all-lora\nllama-7b-q4\ncode-llama-13b")
         return str(models_file)
@@ -44,7 +44,7 @@ class TestModelManager:
             "backend.modelmanager.huggingface_hub.login"
         ), patch("pathlib.Path.exists", return_value=False):
             manager = ModelManager()
-            assert manager.models_dir == "./agent/models"
+            assert manager.models_dir == "./models"
             assert manager.env_file == ".env"
             assert manager.models_file == "models.txt"
             assert manager.default_model == "gpt4all-lora"

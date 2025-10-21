@@ -12,7 +12,7 @@ from fastapi.testclient import TestClient
 from agent.voice import router
 
 # Define MODEL_PATH for tests based on the default path
-MODEL_PATH = "agent/models/vosk-model-small-en-us-0.15"
+MODEL_PATH = "./models/vosk/vosk-model-small-en-us-0.15"
 
 
 class TestVoiceModule:
@@ -358,7 +358,7 @@ class TestVoiceUtilities:
 
         importlib.reload(voice)
         mock_getenv.assert_called_with(
-            "VOSK_MODEL_PATH", "agent/models/vosk-model-small-en-us-0.15"
+            "VOSK_MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
         )
 
     @patch("backend.voice.os.getenv")
@@ -372,7 +372,7 @@ class TestVoiceUtilities:
 
         importlib.reload(voice)
         # Should use default path
-        expected_default = "agent/models/vosk-model-small-en-us-0.15"
+        expected_default = "./models/vosk/vosk-model-small-en-us-0.15"
         mock_getenv.assert_called_with("VOSK_MODEL_PATH", expected_default)
 
     def test_temporary_file_cleanup(self):
@@ -581,11 +581,11 @@ class TestVoiceModuleEdgeCases:
         from unittest.mock import patch
 
         with patch(
-            "backend.voice.MODEL_PATH", "agent/models/vosk-model-small-en-us-0.15"
+            "backend.voice.MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
         ):
             with patch(
                 "backend.voice._DEFAULT_MODEL_PATH",
-                "agent/models/vosk-model-small-en-us-0.15",
+                "./models/vosk/vosk-model-small-en-us-0.15",
             ):
                 with patch("backend.voice.os.path.exists", return_value=False):
                     from agent.voice import get_vosk_model

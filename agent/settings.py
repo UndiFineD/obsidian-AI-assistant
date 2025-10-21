@@ -207,7 +207,7 @@ class Settings(BaseModel):
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
     vault_path: str = "vault"
-    models_dir: str = "agent/models"
+    models_dir: str = "./models"
     cache_dir: str = "agent/cache"
     log_dir: str = "agent/logs"
 

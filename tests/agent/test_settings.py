@@ -28,7 +28,7 @@ class TestSettings:
         assert s.allow_network is False
         assert s.continuous_mode is False
         assert s.vault_path == "vault"
-        assert s.models_dir == "agent/models"
+        assert s.models_dir == "./models"
         assert s.cache_dir == "agent/cache"
         assert s.model_backend == "llama_cpp"
         assert s.embed_model == "sentence-transformers/all-MiniLM-L6-v2"
