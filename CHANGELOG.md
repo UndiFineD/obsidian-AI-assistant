@@ -52,6 +52,14 @@
 - _Released as part of OpenSpec workflow automation._
 
 # 📝 CHANGELOG
+## v0.1.35 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.35 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.34 (2025-10-21)
 
 - _Released as part of OpenSpec workflow automation._

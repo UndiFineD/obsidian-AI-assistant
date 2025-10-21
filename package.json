@@ -1,6 +1,6 @@
 {
     "name": "obsidian-ai-agent",
-    "version": "0.1.34",
+    "version": "0.1.35",
     "description": "Obsidian AI Agent",
     "main": "main.js",
     "scripts": {
