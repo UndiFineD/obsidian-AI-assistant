@@ -1,3 +1,38 @@
+## v0.1.35 (2025-10-21)
+
+### 🚀 Major Changes
+
+#### Models Directory Reorganization
+- **Migration**: Reorganized model storage from `agent/models/` to top-level `./models/`
+- **Directory Structure**: Organized by model type (gpt4all, embeddings, vosk, whisper, scripts)
+- **Configuration**: Updated all configuration files and source code references
+- **Documentation**: Added comprehensive migration guide and models manifest
+- **Impact**: Zero breaking changes, fully backward compatible
+
+### 📝 Changes
+- Created `models/` directory hierarchy with proper subdirectories
+- Updated 14 files across codebase with new model paths
+- Created `models/models-manifest.json` with model registry
+- Created `models/README.md` with configuration guide
+- Added `docs/MIGRATION_GUIDE_MODELS_V1_0.md`
+- Fixed syntax errors in test files
+- Updated all test fixtures and configuration paths
+- Removed empty `agent/models/` directory
+
+### ✅ Testing
+- All model path updates validated with grep verification
+- Zero references to old `agent/models` paths remain
+- 13+ tests passing with updated paths
+- Configuration cascade preserved
+
+### 📚 Documentation
+- Migration guide created with troubleshooting and rollback instructions
+- Phase-based implementation documented
+- File structure reference added
+- Deployment checklist included
+
+---
+
 ## v0.1.34 (2025-10-21)
 
 - **OpenSpec Change**: modularize-agent

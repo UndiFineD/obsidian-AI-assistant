@@ -381,7 +381,7 @@ class TenantIsolation:
         """Get isolated models path for tenant. Enforce tenant_id presence."""
         if not tenant_id or not self.tenant_manager.get_tenant(tenant_id):
             raise ValueError("Invalid or missing tenant_id for models access")
-        return f"./agent/models/tenant_{tenant_id}"
+        return f"./models/tenant_{tenant_id}"
 
     def get_tenant_logs_path(self, tenant_id: str) -> str:
         """Get isolated logs path for tenant. Enforce tenant_id presence."""

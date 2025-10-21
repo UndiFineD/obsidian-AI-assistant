@@ -4,7 +4,7 @@ Unified single source of truth for voice functionality.
 
 Notes for tests:
 - Import-time reads VOSK_MODEL_PATH with default
-    "agent/models/vosk-model-small-en-us-0.15"
+    "./models/vosk/vosk-model-small-en-us-0.15"
 - If default model path is missing, get_vosk_model() raises RuntimeError
 - If env-provided path is missing, we log and return None
 - Router exposes POST /api/voice_transcribe using vosk.KaldiRecognizer
@@ -26,7 +26,7 @@ from .settings import get_settings
 from .utils import safe_call
 
 # Robust voice transcription endpoint
-_DEFAULT_MODEL_PATH: str = "agent/models/vosk-model-small-en-us-0.15"
+_DEFAULT_MODEL_PATH: str = "./models/vosk/vosk-model-small-en-us-0.15"
 
 # Provide a patchable 'vosk' attribute on this module
 try:

@@ -207,13 +207,13 @@ class Settings(BaseModel):
     # Paths
     project_root: str = str(Path(__file__).resolve().parents[1])
     vault_path: str = "vault"
-    models_dir: str = "agent/models"
+    models_dir: str = "./models"
     cache_dir: str = "agent/cache"
     log_dir: str = "agent/logs"
 
     # LLM / embeddings / vector DB
     model_backend: str = "llama_cpp"
-    model_path: str = "agent/models/llama-7b.gguf"
+    model_path: str = "./models/gpt4all/llama-7b.gguf"
     embed_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     vector_db: str = "chroma"
     gpu: bool = True
@@ -223,7 +223,7 @@ class Settings(BaseModel):
     similarity_threshold: float = 0.75
 
     # Voice
-    vosk_model_path: str = "agent/models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "./models/vosk/vosk-model-small-en-us-0.15"
 
     # File Validation & Security
     pdf_max_size_mb: int = 50

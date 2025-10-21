@@ -1,0 +1,74 @@
+{
+  "manifest_version": "1.0",
+  "description": "AI Models manifest for Obsidian AI Agent",
+  "created_date": "2025-10-21",
+  "models": {
+    "llm": {
+      "type": "language_model",
+      "provider": "GPT4All",
+      "directory": "./gpt4all",
+      "description": "Large Language Models using GPT4All backend",
+      "models": [
+        {
+          "name": "mistral-7b",
+          "file": "mistral-7b.gguf",
+          "size_mb": 4096,
+          "quantization": "Q4_0",
+          "status": "optional"
+        }
+      ]
+    },
+    "embeddings": {
+      "type": "embedding_model",
+      "provider": "Sentence Transformers",
+      "directory": "./embeddings/sentence-transformers",
+      "description": "Embedding models for semantic search and vector operations",
+      "default": "all-MiniLM-L6-v2",
+      "models": [
+        {
+          "name": "all-MiniLM-L6-v2",
+          "directory": "all-MiniLM-L6-v2",
+          "model_type": "SentenceTransformer",
+          "dimensions": 384,
+          "status": "recommended"
+        }
+      ]
+    },
+    "voice": {
+      "type": "voice_recognition",
+      "provider": "Vosk",
+      "directory": "./vosk",
+      "description": "Speech recognition models",
+      "models": [
+        {
+          "name": "vosk-model-small-en-us",
+          "directory": "vosk-model-small-en-us-0.15",
+          "language": "en-US",
+          "status": "optional"
+        }
+      ]
+    },
+    "transcription": {
+      "type": "speech_to_text",
+      "provider": "OpenAI Whisper",
+      "directory": "./whisper",
+      "description": "Speech transcription models",
+      "models": [
+        {
+          "name": "whisper-base",
+          "file": "whisper-base.pt",
+          "size_mb": 140,
+          "status": "optional"
+        }
+      ]
+    }
+  },
+  "download_instructions": {
+    "windows": "Run: .\\models\\scripts\\download-models.ps1",
+    "linux_mac": "Run: ./models/scripts/download-models.sh"
+  },
+  "verification_instructions": {
+    "windows": "Run: .\\models\\scripts\\verify-models.ps1",
+    "linux_mac": "Run: ./models/scripts/verify-models.sh"
+  }
+}

@@ -82,7 +82,7 @@ class TestBackendServiceAccess:
 
     def test_service_singletons_exist(self):
         """Test that service singletons are accessible."""
-        from agent import agentimport backend
+        from agent import backend
 
         # Services might be None if initialization failed in test env, that's OK
         print(f"✓ model_manager: {type(backend.model_manager)}")

@@ -12,7 +12,8 @@ gpu: true
 log_level: DEBUG
 malicious_key: hack_attempt
 model_backend: gpt4all
-model_path: agent/models/llama-7b.gguf
+model_path: ./models/gpt4all/llama-7b.gguf
+models_dir: ./models
 similarity_threshold: 0.8
 ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmp8w8mkm06.crt
 ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmp8oiyr9wt.pem

@@ -1005,7 +1005,7 @@ class TestTenantIsolation:
     def test_get_tenant_models_path(self):
         """Test getting isolated models path."""
         path = self.isolation.get_tenant_models_path(self.tenant_id)
-        assert path == f"./agent/models/tenant_{self.tenant_id}"
+        assert path == f"./models/tenant_{self.tenant_id}"
         assert self.tenant_id in path
 
     def test_get_tenant_models_path_invalid_tenant(self):

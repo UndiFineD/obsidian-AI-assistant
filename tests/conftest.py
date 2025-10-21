@@ -147,7 +147,7 @@ def mock_env_vars() -> Generator[Dict[str, str], None, None]:
     original_env = os.environ.copy()
     mock_vars = {
         "HF_TOKEN": "test_hf_token_12345",
-        "VOSK_MODEL_PATH": "agent/models/vosk-test",
+        "VOSK_MODEL_PATH": "./models/vosk-test",
         "TEST_MODE": "true",
         "CUDA_VISIBLE_DEVICES": "-1",  # Disable CUDA for tests
     }
@@ -430,7 +430,7 @@ def temp_models_dir() -> Generator[str, None, None]:
 @pytest.fixture
 def mock_models_file(temp_models_dir: str) -> str:
     """Create a simple models.txt file in the temporary models directory."""
-    path = Path(temp_models_dir) / "agent/models/models.txt"
+    path = Path(temp_models_dir) / "models/models.txt"
     path.parent.mkdir(parents=True, exist_ok=True)
     content = "\n".join(
         [
@@ -453,7 +453,7 @@ def mock_config():
     """Provide mock configuration for tests."""
     return {
         "agent_url": "http://localhost:8000",
-        "models_dir": "./agent/models",
+        "models_dir": "./models",
         "cache_dir": "./agent/cache",
         "vault_path": "./vault",
         "max_tokens": 256,

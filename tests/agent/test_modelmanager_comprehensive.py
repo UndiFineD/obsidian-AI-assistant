@@ -68,7 +68,7 @@ class TestModelManagerIntegration:
         ):
             manager = ModelManager.from_settings()
             # Should use default values
-            assert manager.models_dir == "./agent/models"
+            assert manager.models_dir == "./models"
             # Default model might be changed by fallback logic, just check it's set
             assert manager.default_model is not None
 
@@ -137,7 +137,7 @@ class TestModelManagerUpdateLogic:
 
     def test_update_models_success(self, temp_cache_dir):
         """Test _update_models downloads latest revision for all models."""
-        models_file = Path(temp_cache_dir) / "agent/models/models.txt"
+        models_file = Path(temp_cache_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("org/model1\norg/model2\n")
         with patch(
@@ -157,7 +157,7 @@ class TestModelManagerUpdateLogic:
 
     def test_update_models_error(self, temp_cache_dir):
         """Test _update_models handles download errors gracefully."""
-        models_file = Path(temp_cache_dir) / "agent/models/models.txt"
+        models_file = Path(temp_cache_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("org/model1\norg/model2\n")
         with patch(
@@ -232,7 +232,7 @@ def temp_cache_dir():
 def mock_settings():
     """Mock settings object."""
     settings = Mock()
-    settings.abs_models_dir = Path("./tests/agent/models")
+    settings.abs_models_dir = Path("./models")
     settings.model_backend = "test-model"
     return settings
 
@@ -368,7 +368,7 @@ class TestModelManagerInit:
 
     def test_default_model_fallback(self, temp_cache_dir):
         """Test default model fallback when specified default not available."""
-        models_file = Path(temp_cache_dir) / "agent/models/models.txt"
+        models_file = Path(temp_cache_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("model-a\nmodel-b\nmodel-c\n")
 
@@ -401,7 +401,7 @@ class TestModelsFileLoading:
 
     def test_load_models_file_success(self, temp_cache_dir):
         """Test successful models file loading."""
-        models_file = Path(temp_cache_dir) / "agent/models/models.txt"
+        models_file = Path(temp_cache_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("# Comment line\n\nmodel-1/submodel\nmodel-2\n")
 
@@ -453,7 +453,7 @@ class TestModelsFileLoading:
 
     def test_load_models_file_read_error(self, temp_cache_dir):
         """Test handling of file read errors."""
-        models_file = Path(temp_cache_dir) / "agent/models/models.txt"
+        models_file = Path(temp_cache_dir) / "models/models.txt"
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("model-1\nmodel-2\n")
 
@@ -696,7 +696,7 @@ class TestFromSettings:
     def test_from_settings_success(self, mock_settings):
         """Test successful from_settings initialization."""
         # Set up the mock to return the expected values
-        mock_settings.abs_models_dir = Path("./tests/agent/models")
+        mock_settings.abs_models_dir = Path("./models")
         mock_settings.model_backend = "test-model"
         with patch(
             "backend.modelmanager.get_settings", return_value=mock_settings
@@ -753,7 +753,7 @@ class TestFromSettings:
             manager = ModelManager.from_settings()
 
             # Should use default values
-            assert manager.models_dir == "./agent/models"
+            assert manager.models_dir == "./models"
             # Default model might be changed by fallback logic, just check it's set
             assert manager.default_model is not None
 
