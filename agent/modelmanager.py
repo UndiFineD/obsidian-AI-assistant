@@ -16,7 +16,7 @@ class ModelManager:
 
     def __init__(
         self,
-        models_dir="./agent/models",
+        models_dir="./models",
         env_file=".env",
         models_file="models.txt",
         default_model="gpt4all-lora",

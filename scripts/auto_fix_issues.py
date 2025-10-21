@@ -40,7 +40,7 @@ SKIP_DIRS = {
     ".venv",
     "venv",
     "node_modules",
-    "agent/models",
+    "models",
     "agent/cache",
     "htmlcov",
 }
