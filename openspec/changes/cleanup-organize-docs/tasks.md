@@ -1,9 +1,9 @@
 # Cleanup & Organize Docs - Tasks
 
 **Change ID**: cleanup-organize-docs  
-**Total Tasks**: 8  
-**Total Subtasks**: 45  
-**Estimated Effort**: 3-5 hours  
+**Total Tasks**: 5  
+**Total Subtasks**: 25  
+**Estimated Effort**: 2-3 hours  
 **Timeline**: 1 day  
 
 ---
@@ -13,31 +13,29 @@
 ### TASK 1: Inventory & Categorize Files (1 hour)
 **Subtasks**:
 - [ ] List all markdown files in root directory
-- [ ] Categorize as: KEEP, MOVE, or DELETE
-- [ ] Create categorization spreadsheet
-- [ ] Identify duplicates and consolidation candidates
-- [ ] Check if any "DELETE" files contain critical info
-- [ ] Document rationale for each file's category
-- [ ] Get stakeholder review on categorization
-- [ ] Finalize categorization list
+- [ ] Categorize as: KEEP, MOVE, or DELETE (use provided lists)
+- [ ] Identify any files not yet categorized
+- [ ] Verify 00_START_HERE.md is in DELETE category (not MOVE)
+- [ ] Verify no critical project info in files marked for deletion
+- [ ] Document categorization decisions
+- [ ] Ready to proceed with structure creation
 
 **Success Criteria**:
-- All files categorized
-- No questions about categorization
-- Ready to proceed with structure creation
+- All files categorized correctly
+- 00_START_HERE.md confirmed for deletion
+- No critical info will be lost
+- Ready to create directory structure
 
 ---
 
-### TASK 2: Design & Create Directory Structure (0.5 hours)
+### TASK 2: Create Directory Structure (0.5 hours)
 **Subtasks**:
 - [ ] Create `docs/` directory
-- [ ] Create `docs/getting-started/` subdirectory
-- [ ] Create `docs/phase-1/` subdirectory
-- [ ] Create `docs/phase-2/` subdirectory
-- [ ] Create `docs/guides/` subdirectory
 - [ ] Create `docs/architecture/` subdirectory
-- [ ] Create `docs/production/` subdirectory
+- [ ] Create `docs/guides/` subdirectory
 - [ ] Create `docs/reference/` subdirectory
+- [ ] Create `docs/production/` subdirectory
+- [ ] Create `docs/historical/` subdirectory
 - [ ] Create `docs/README.md` (navigation guide)
 
 **Success Criteria**:
@@ -47,108 +45,73 @@
 
 ---
 
-### TASK 3: Consolidate & Move Documentation Files (1 hour)
+### TASK 3: Move Documentation Files (1 hour)
 **Subtasks**:
-- [ ] Consolidate Phase 1 docs into single PHASE_1_SUMMARY.md
-- [ ] Move consolidated Phase 1 to docs/phase-1/
-- [ ] Move Phase 2 planning docs to docs/phase-2/
-  - [ ] PHASE_2_STARTER.md → OVERVIEW.md
-  - [ ] PHASE_2_OPTIONS.md → OPTIONS.md
-  - [ ] PHASE_2_PLAN.md → PLAN.md
-  - [ ] PHASE2_READY_FOR_DECISION.md → DECISION_FRAMEWORK.md
-  - [ ] FINAL_SESSION_SUMMARY_PROPOSALS.md → SUMMARY.md
-- [ ] Move Git guides to docs/guides/
+- [ ] Move PRODUCTION_READINESS_V0.1.35.md to docs/architecture/
+- [ ] Move MODELS_MIGRATION_COMPLETE.md to docs/architecture/
+- [ ] Move Git workflow docs to docs/guides/
   - [ ] GIT_BRANCHES_STATUS.md
   - [ ] GIT_PULL_REQUEST.md
   - [ ] GIT_WORKFLOW_REFERENCE.md
-- [ ] Move architecture docs to docs/architecture/
-  - [ ] Architecture overview
-  - [ ] Design documents
-- [ ] Move production docs to docs/production/
-  - [ ] PRODUCTION_READINESS_V0.1.35.md
-- [ ] Move 00_START_HERE.md to docs/getting-started/
-- [ ] Move other project guides to docs/guides/
+  - [ ] MIGRATION_EXECUTION_SUMMARY.md
+  - [ ] NEXT_STEPS_GUIDE.md
+  - [ ] README_PHASE_1_SUMMARY.md
+- [ ] Move reference docs to docs/reference/
+  - [ ] MASTER_DOCUMENTATION_INDEX.md
+  - [ ] IMPLEMENTATION_SUMMARY_TASKS_2_3.md
+- [ ] Move remaining project docs to docs/historical/
+  - [ ] All PHASE_2_*.md files
+  - [ ] All PHASE2_*.md files
+  - [ ] Other planning/summary documents
+- [ ] Verify all files moved correctly
 
 **Success Criteria**:
-- All files moved
-- Directory structure follows plan
+- All files moved to correct locations
 - No files missed
+- Directory structure matches plan
 
 ---
 
 ### TASK 4: Delete Redundant & Celebration Files (0.5 hours)
 **Subtasks**:
-- [ ] Delete 🎉_FINAL_CELEBRATION_100_PERCENT_COMPLETE.md
-- [ ] Delete 🎉_SESSION_COMPLETE_FINAL_SUMMARY.md
+- [ ] Delete all 🎉_*.md celebration files
 - [ ] Delete all COMPLETION_CERTIFICATE_*.md files
-- [ ] Delete all FINAL_*.md files (status/celebration)
-- [ ] Delete all SESSION_*.md files (except if critical)
+- [ ] Delete 00_START_HERE.md
+- [ ] Delete all FINAL_PROJECT_COMPLETION_*.md files
+- [ ] Delete all SESSION_*.md status/tracking files
 - [ ] Delete all DELIVERABLES_*.md files
-- [ ] Delete all EXECUTIVE_SUMMARY_*.md files (keep strategy docs)
-- [ ] Delete DOCUMENTATION_*.md duplicates
-- [ ] Delete PROJECT_COMPLETE_LIVE.md
-- [ ] Delete READY_FOR_COMMIT.md
-- [ ] Delete READY_TO_DEPLOY.md
-- [ ] Delete other celebration/status files
+- [ ] Delete all EXECUTIVE_SUMMARY_*.md files
+- [ ] Delete READY_FOR_COMMIT.md, READY_TO_DEPLOY.md
+- [ ] Delete RELEASE_STATUS_V0.1.35.txt
+- [ ] Delete other celebration/status files per categorization
 - [ ] Verify git history preserves all deleted content
-- [ ] Confirm no critical info lost
 
 **Success Criteria**:
 - All redundant files deleted
-- Root is clean
-- No critical info lost (all in git history)
+- Root directory significantly cleaner
+- All deleted content in git history
 
 ---
 
-### TASK 5: Update Internal Links & References (1 hour)
+### TASK 5: Update Documentation Structure (0.5 hours)
 **Subtasks**:
-- [ ] Update README.md with docs/ structure guide
-- [ ] Update links in PHASE_2_*.md files (now in docs/phase-2/)
-- [ ] Update links in GIT_*.md files (now in docs/guides/)
-- [ ] Update links in setup scripts if they reference docs
-- [ ] Update links in Makefile if applicable
-- [ ] Search for hardcoded file references in code
-- [ ] Update references in openspec/ docs
-- [ ] Update references in plugin/ code
+- [ ] Update README.md with docs/ structure overview
+- [ ] Add "Documentation" section to README linking to docs/
+- [ ] Add "Governance" section linking to openspec/
 - [ ] Create docs/README.md with:
   - [ ] Overview of doc structure
   - [ ] Quick links to common docs
-  - [ ] Navigation guide for contributors
-  - [ ] Links to openspec/
-- [ ] Test all links manually
-
-**Success Criteria**:
-- No broken links
-- All references updated
-- Contributors can navigate easily
-
----
-
-### TASK 6: Update Root README.md (0.5 hours)
-**Subtasks**:
-- [ ] Add section: "Documentation Structure"
-- [ ] Add links to docs/README.md
-- [ ] Update any outdated information in root README
-- [ ] Add clear "Getting Started" link to docs/getting-started/
-- [ ] Add "Governance" section linking to openspec/
-- [ ] Remove outdated status information
-- [ ] Keep README focused on: purpose, quick start, structure
-- [ ] Remove any celebration language
+  - [ ] Navigation guide
+- [ ] Update any hardcoded links in README or setup scripts
+- [ ] Remove outdated status information from root README
+- [ ] Test critical navigation paths
+- [ ] Run link checker on markdown files
 
 **Success Criteria**:
 - README is clean and focused
-- Clear navigation to docs
-- Professional tone
-
----
-
-### TASK 7: Verify & Test (0.5 hours)
-**Subtasks**:
-- [ ] Run link checker on all markdown files
-- [ ] Manually test critical navigation paths
-- [ ] Verify openspec/ structure unchanged
-- [ ] Check git diff for expected changes
-- [ ] Confirm no files lost (use git log)
+- Clear navigation to docs/ and openspec/
+- No broken links
+- Professional appearance
 - [ ] Test cloning repo fresh and finding key docs
 - [ ] Verify build scripts still work
 - [ ] Check that plugin can still find resources

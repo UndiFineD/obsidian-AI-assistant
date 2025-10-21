@@ -66,10 +66,7 @@ A. KEEP IN ROOT (essential infrastructure):
    - setup-config.ps1
    - setup-venv311.ps1
 
-B. MOVE TO docs/ (project documentation):
-   - 00_START_HERE.md
-   - PHASE_2_*.md (5 files)
-   - PHASE2_*.md
+B. MOVE TO docs/ (user-facing reference & guides):
    - PRODUCTION_READINESS_V0.1.35.md
    - README_PHASE_1_SUMMARY.md
    - NEXT_STEPS_GUIDE.md
@@ -78,15 +75,19 @@ B. MOVE TO docs/ (project documentation):
    - GIT_BRANCHES_STATUS.md
    - GIT_PULL_REQUEST.md
    - GIT_WORKFLOW_REFERENCE.md
-   - Others (architecture, guides)
+   - Other architecture and technical guides
 
-C. DELETE (redundant celebration/status):
+C. DELETE (redundant celebration/status/project tracking):
+   - 00_START_HERE.md (project milestone document, not user guide)
    - 🎉_FINAL_CELEBRATION_100_PERCENT_COMPLETE.md
    - 🎉_SESSION_COMPLETE_FINAL_SUMMARY.md
    - COMPLETION_CERTIFICATE_OCT21_2025.md
    - FINAL_PROJECT_COMPLETION_100_PERCENT.md
    - FINAL_STATUS_REPORT_100_PERCENT.md
    - PROJECT_COMPLETE_LIVE.md
+   - PHASE_2_*.md (5 files - already have detailed versions in openspec/)
+   - PHASE2_*.md (consolidation summaries, not authoritative)
+   - FINAL_SESSION_SUMMARY_PROPOSALS.md (session tracking, not reference)
    - SESSION_COMPLETE_TASKS_*.md (3 files)
    - SESSION_FINAL_COMPLETION_REPORT.md
    - SESSION_COMPLETE_PROPOSALS_ENHANCED.md
@@ -97,38 +98,24 @@ C. DELETE (redundant celebration/status):
    - EXECUTIVE_SUMMARY_*.md (2 files)
    - *_COMPLETE.md (15+ files)
    - *_COMPLETE_FINAL_*.md
-   - *_READY_*.md (unless critical)
+   - *_READY_*.md
    - CHANGES (folder - this is not a document)
 ```
 
 ### Phase 2: Create Structure (0.5 hours)
 
-Create `docs/` directory with subdirectories:
+Create `docs/` directory with subdirectories to organize moved files:
 ```
 docs/
-├── README.md (guide to docs)
-├── getting-started/ (for new users)
-│   └── 00_START_HERE.md
-│   └── QUICK_START.md
-├── architecture/ (technical reference)
-│   └── ARCHITECTURE.md
-│   └── DESIGN.md
+├── README.md (guide to docs structure)
+├── architecture/ (technical architecture and design)
 ├── guides/ (how-to and tutorials)
-│   └── GIT_WORKFLOW_REFERENCE.md
-│   └── CONTRIBUTION_GUIDE.md
-├── phase-1/ (historical - Phase 1 completion)
-│   └── COMPLETION_SUMMARY.md (consolidated from all Phase 1 docs)
-├── phase-2/ (Phase 2 planning)
-│   └── OVERVIEW.md (consolidated from PHASE_2_*.md)
-│   └── OPTIONS.md
-│   └── DECISION_FRAMEWORK.md
+├── reference/ (API and config reference)
 ├── production/ (deployment and operations)
-│   └── PRODUCTION_READINESS_V0.1.35.md
-│   └── DEPLOYMENT_GUIDE.md
-└── reference/ (API and config reference)
-    └── API_REFERENCE.md
-    └── CONFIG_REFERENCE.md
+└── historical/ (archived project docs and completion summaries)
 ```
+
+**Key Point**: Only create directory structure. Do NOT create new content—we're organizing existing files only.
 
 ### Phase 3: Move Files (1 hour)
 
@@ -169,14 +156,14 @@ Update all references:
 
 ## 🎓 Success Criteria
 
-- [x] All non-OpenSpec docs moved to `docs/`
-- [x] No critical info lost in consolidation
-- [x] All links updated correctly
+- [x] All non-OpenSpec, non-infrastructure docs moved to `docs/`
+- [x] 00_START_HERE.md correctly categorized and deleted (not moved)
+- [x] All 20-30 celebration/status files removed
 - [x] Root directory contains only essential files
 - [x] Clear subdirectory structure in `docs/`
-- [x] README.md updated with doc structure
-- [x] All 15-25 celebration files removed
-- [x] Contributors can easily find information
+- [x] README.md updated with doc structure guide
+- [x] All links updated correctly in README and references
+- [x] Contributors can easily find reference documentation
 
 ---
 
@@ -213,6 +200,7 @@ COMPLETION_CERTIFICATE_OCT21_2025.md
 FINAL_PROJECT_COMPLETION_100_PERCENT.md
 FINAL_STATUS_REPORT_100_PERCENT.md
 PROJECT_COMPLETE_LIVE.md
+00_START_HERE.md (project milestone, not user guide)
 SESSION_COMPLETE_TASKS_5_6.md
 SESSION_COMPLETE_TASKS_7_8.md
 SESSION_COMPLETE_PROPOSALS_ENHANCED.md
@@ -236,18 +224,11 @@ RELEASE_STATUS_V0.1.35.txt
 And ~10 more celebration/status files
 ```
 
-### Move to docs/ (Project Documentation - ~20 files)
+### Move to docs/ (Project Reference Documentation)
 ```
-docs/getting-started/
-  00_START_HERE.md
-  QUICK_START.md
-
-docs/phase-2/
-  PHASE_2_STARTER.md → OVERVIEW.md
-  PHASE_2_OPTIONS.md → OPTIONS.md
-  PHASE_2_PLAN.md → PLAN.md
-  PHASE2_READY_FOR_DECISION.md → DECISION_FRAMEWORK.md
-  FINAL_SESSION_SUMMARY_PROPOSALS.md → SUMMARY.md
+docs/architecture/
+  PRODUCTION_READINESS_V0.1.35.md
+  MODELS_MIGRATION_COMPLETE.md
 
 docs/guides/
   GIT_BRANCHES_STATUS.md
@@ -255,19 +236,18 @@ docs/guides/
   GIT_WORKFLOW_REFERENCE.md
   MIGRATION_EXECUTION_SUMMARY.md
   NEXT_STEPS_GUIDE.md
-
-docs/architecture/
-  ARCHITECTURE.md
-  DESIGN.md
-  MODELS_MIGRATION_COMPLETE.md
-
-docs/production/
-  PRODUCTION_READINESS_V0.1.35.md
+  README_PHASE_1_SUMMARY.md
 
 docs/reference/
-  MASTER_DOCUMENTATION_INDEX.md → consolidated
-  README_PHASE_1_SUMMARY.md → PHASE_1_SUMMARY.md
+  MASTER_DOCUMENTATION_INDEX.md
   IMPLEMENTATION_SUMMARY_TASKS_2_3.md
+
+docs/historical/
+  PHASE_2_STARTER.md
+  PHASE_2_OPTIONS.md
+  PHASE_2_PLAN.md
+  PHASE2_READY_FOR_DECISION.md
+  (all remaining project completion and phase documentation)
 ```
 
 ### Keep in Root (~10 files)
