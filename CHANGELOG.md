@@ -1,5 +1,11 @@
 ## v0.1.35 (2025-10-21)
 
+- **OpenSpec Change**: cleanup-organize-docs
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.35 (2025-10-21)
+
 ### 🚀 Major Changes
 
 #### Models Directory Reorganization
@@ -52,6 +58,14 @@
 - _Released as part of OpenSpec workflow automation._
 
 # 📝 CHANGELOG
+## v0.1.35 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.35 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.34 (2025-10-21)
 
 - _Released as part of OpenSpec workflow automation._
