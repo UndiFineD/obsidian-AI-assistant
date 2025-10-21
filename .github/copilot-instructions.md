@@ -4,13 +4,13 @@
 
 This is a **modular, service-oriented offline-first AI agent** for Obsidian with separated concerns:
 
-- **Backend**: FastAPI server (`backend/`) with REST APIs, vector search (ChromaDB), LLM routing, caching layers
+- **Backend**: FastAPI server (`agent/`) with REST APIs, vector search (ChromaDB), LLM routing, caching layers
 
-- **Plugin**: Obsidian plugin (`plugin/`) with vanilla JavaScript (no build step), enterprise features optional
+- **Plugin**: Obsidian plugin (JavaScript in plugin directory) with vanilla JS (no build step), enterprise features optional
 
-- **Models**: Local AI models (GPT4All, LLaMA) stored in `backend/models/` directory
+- **Models**: Local AI models (GPT4All, LLaMA, embeddings, Vosk) stored in `./models/` root directory (organized by type)
 
-- **Configuration**: Hierarchical settings (env vars → `backend/config.yaml` → code defaults)
+- **Configuration**: Hierarchical settings (env vars → `agent/config.yaml` → `agent/settings.py` defaults)
 
 ## API Endpoint Reference
 
@@ -32,7 +32,7 @@ This is a **modular, service-oriented offline-first AI agent** for Obsidian with
 
 - `POST /api/config`: Updates runtime config (only keys in `_ALLOWED_UPDATE_KEYS`).
 
-- `POST /api/config/reload`: Reloads config from `backend/config.yaml`.
+- `POST /api/config/reload`: Reloads config from `agent/config.yaml`.
 
 ### AI Operations
 
@@ -164,7 +164,7 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 - `pytest tests/plugin/ -v` (plugin only)
 
-- `pytest --cov=backend --cov-report=html` (coverage)
+- `pytest --cov=agent --cov-report=html` (coverage)
 
 - `python -m locust -f tests/load_test.py` (load testing)
 
@@ -188,7 +188,7 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 1. Environment variables (highest)
 
-2. `backend/config.yaml` (medium)
+2. `agent/config.yaml` (medium)
 
 3. Code defaults (lowest)
 
@@ -198,11 +198,11 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 - **Models**: `gpu` (auto-detect), `model_backend` (gpt4all), `model_path`, `embed_model` (all-MiniLM-L6-v2)
 
-- **Storage**: `vault_path`, `models_dir` (./backend/models), `cache_dir` (./backend/cache)
+- **Storage**: `vault_path`, `models_dir` (./models), `cache_dir` (./agent/cache)
 
 - **Vector DB**: `vector_db` (chromadb), `top_k` (5), `chunk_size` (1000), `chunk_overlap` (200), `similarity_threshold` (0.7)
 
-- **Voice**: `vosk_model_path` (./backend/models/vosk-model-small-en-us-0.15)
+- **Voice**: `vosk_model_path` (./models/vosk-model-small-en-us-0.15)
 
 - **Enterprise**: `enterprise_enabled`, `sso_providers`, `tenant_isolation`, `compliance_mode`
 
@@ -218,7 +218,7 @@ See `docs/HEALTH_MONITORING.md` for complete documentation.
 
 # Start backend with hot reload
 
-cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
+cd agent && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Install plugin to Obsidian vault
 
@@ -235,7 +235,7 @@ cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reloa
 
 # Run with production settings
 
-cd backend && python -m uvicorn backend:app --host 0.0.0.0 --port 8000 --workers 4
+cd agent && python -m uvicorn backend:app --host 0.0.0.0 --port 8000 --workers 4
 
 # Process management with systemd/supervisor
 
@@ -256,9 +256,9 @@ FROM python:3.11-slim as backend
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-COPY backend/ backend/
+COPY agent/ agent/
 EXPOSE 8000
-CMD ["uvicorn", "backend.backend:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "agent.backend:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
 #### Enterprise Cloud Deployment
@@ -469,11 +469,11 @@ export TENANT_STORAGE_QUOTA=100GB
 
 ### Common Issues
 
-- Plugin not loading: Check `manifest.json`, all `.js` files present
+- Plugin not loading: Check `plugin/manifest.json`, all `.js` files present
 
 - Backend connection: Verify `http://localhost:8000/health`
 
-- Model loading: Check `backend/models/` for `.gguf` files
+- Model loading: Check `models/` for `.gguf` files
 
 - Cache issues: Clear with `POST /api/performance/cache/clear`
 
@@ -482,7 +482,7 @@ export TENANT_STORAGE_QUOTA=100GB
 ### Error-Safe Execution
 
 ```python
-from backend.utils import safe_call
+from agent.utils import safe_call
 result = safe_call(risky_function, default=None, error_msg="Custom error message")
 ```
 
@@ -515,23 +515,29 @@ try {
 ## File Structure Reference
 
 ```text
-├── backend/          # FastAPI server modules
+├── agent/            # FastAPI server modules (main backend)
 ├── plugin/           # Obsidian plugin (no build step)
-├── backend/models/   # AI models (GPT4All, LLaMA)
+├── models/           # AI models (GPT4All, LLaMA, embeddings, Vosk)
 ├── tests/            # Comprehensive test suite (1042 tests)
-├── backend/cache/    # Cached embeddings and responses
+├── agent/cache/      # Cached embeddings and responses
+├── agent/logs/       # Application logs
+├── agent/vector_db/  # ChromaDB vector database storage
+├── docs/             # Documentation and specifications
+├── openspec/         # OpenSpec governance and compliance
+├── scripts/          # Utility scripts
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
+├── setup-venv311.ps1 # Virtual environment setup
 └── Makefile          # Development commands
 ```
 
 ## Key Development Patterns
 
-### 1. Backend Architecture (`backend/`)
+### 1. Backend Architecture (`agent/`)
 
-- **Entry point**: `backend.py` - FastAPI app with auto-documentation
+- **Entry point**: `agent/backend.py` - FastAPI app with auto-documentation
 
-- **Settings cascade**: `settings.py` uses Pydantic BaseModel with `_ALLOWED_UPDATE_KEYS` for runtime updates
+- **Settings cascade**: `agent/settings.py` uses Pydantic BaseModel with `_ALLOWED_UPDATE_KEYS` for runtime updates
 
 - **Service pattern**: Each module (embeddings, indexing, caching, security) is self-contained with clear interfaces
 
@@ -610,7 +616,7 @@ python -m pytest tests/ -v  # Expected: 441 passed, 1 skipped
 
 # Start backend with auto-reload
 
-cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
+cd agent && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Code quality validation
 
@@ -624,7 +630,7 @@ python -m locust -f tests/load_test.py  # Load testing with web UI
 
 # Coverage reporting
 
-pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage reports
+pytest --cov=agent --cov-report=html --cov-report=term  # Generate coverage reports
 ```
 
 ### API Health Checks
@@ -659,17 +665,17 @@ pytest --cov=backend --cov-report=html --cov-report=term  # Generate coverage re
 
 ### Model Management
 
-- **ModelManager** (`backend/modelmanager.py`): Unified interface for GPT4All, LLaMA-cpp, embeddings
+- **ModelManager** (`agent/modelmanager.py`): Unified interface for GPT4All, LLaMA-cpp, embeddings
 
-- **LLM Router** (`backend/llm_router.py`): Intelligent model selection with fallbacks
+- **LLM Router** (`agent/llm_router.py`): Intelligent model selection with fallbacks
 
-- **Model storage**: `backend/models/` directory with automated downloads via setup scripts
+- **Model storage**: `models/` directory with automated downloads via setup scripts
 
 - **Connection pooling**: `performance.py` manages AI model instance pools (1-3 instances)
 
 ### Vector Search Pipeline
 
-- **Indexing** (`backend/indexing.py`): Markdown, PDF, web content → embeddings
+- **Indexing** (`agent/indexing.py`): Markdown, PDF, web content → embeddings
 
 - **ChromaDB**: Vector database with HNSW indexing for similarity search
 
@@ -886,16 +892,16 @@ node -c plugin/filename.js  # Syntax validation
 
 # Linting and security
 
-ruff check backend/
-bandit -r backend/ -f json -o tests/bandit_report.json
+ruff check agent/
+bandit -r agent/ -f json -o tests/bandit_report.json
 
 # Type checking
 
-mypy backend/ --ignore-missing-imports
+mypy agent/ --ignore-missing-imports
 
 # Test coverage
 
-pytest --cov=backend --cov-report=html --cov-report=term
+pytest --cov=agent --cov-report=html --cov-report=term
 ```
 
 ## Enterprise Features (Optional)
@@ -1017,7 +1023,7 @@ class EnterpriseFeatures {
 
 ```yaml
 
-# backend/config.yaml enterprise settings
+# agent/config.yaml enterprise settings
 
 enterprise:
     enabled: true
@@ -1062,7 +1068,7 @@ enterprise:
 
 2. **Backend connection**: Verify `http://localhost:8000/health` responds
 
-3. **Model loading**: Check `backend/models/` directory exists and contains `.gguf` files
+3. **Model loading**: Check `models/` directory exists and contains `.gguf` files
 
 4. **Tests failing**: Run `python -m pytest tests/backend/ -v` to isolate backend issues
 
@@ -1137,11 +1143,16 @@ enterprise:
 ## File Structure Reference (Summary)
 
 ```text
-├── backend/          # FastAPI server modules
+├── agent/            # FastAPI server modules
 ├── plugin/           # Obsidian plugin (no build step)
-├── backend/models/   # AI models (GPT4All, LLaMA)
+├── models/           # AI models (GPT4All, LLaMA, embeddings, Vosk)
 ├── tests/            # Comprehensive test suite (1042 tests)
-├── backend/cache/    # Cached embeddings and responses
+├── agent/cache/      # Cached embeddings and responses
+├── agent/logs/       # Application logs
+├── agent/vector_db/  # ChromaDB vector database storage
+├── docs/             # Documentation and specifications
+├── openspec/         # OpenSpec governance and compliance
+├── scripts/          # Utility scripts
 ├── setup.ps1/.sh     # Primary installation scripts
 ├── setup-plugin.ps1  # Plugin-focused setup
 └── Makefile          # Development commands
@@ -1249,6 +1260,169 @@ These instructions are successful when:
 - ✅ Performance targets are met or exceeded
 
 - ✅ Security and compliance requirements are properly implemented
+
+## Architecture Migration Notes (v0.1.34 → v0.1.35)
+
+This section documents key architectural changes from v0.1.34 to v0.1.35 that affect development workflows.
+
+### Module Naming & Directory Structure
+
+**Changes:**
+- Renamed `backend/` directory to `agent/` for clarity about the service's role
+- Restructured models directory from `backend/models/` to root-level `models/`
+- All FastAPI-related files now in `agent/` with consistent import patterns
+
+**Migration Impact:**
+- Update all imports from `backend.*` to `agent.*`
+- Update all file paths referencing `backend/` to use `agent/`
+- Model references should use `./models/` (relative to workspace root)
+- Cache and logs now stored in `agent/cache/` and `agent/logs/`
+
+**Example Migration:**
+```python
+# Old (v0.1.34)
+from backend.modelmanager import ModelManager
+from backend.settings import get_settings
+
+# New (v0.1.35)
+from agent.modelmanager import ModelManager
+from agent.settings import get_settings
+```
+
+### Service Interfaces & Patterns
+
+**New Conventions:**
+- **Factory Methods**: All services use `from_settings()` class method for instantiation
+- **Dependency Injection**: Services accept dependencies in `__init__`, not instantiated internally
+- **Async-First**: All I/O operations use async/await pattern
+- **Error Handling**: HTTPException with specific status codes over generic exceptions
+
+**Application Pattern:**
+```python
+# Initialize services with dependency injection
+embeddings = EmbeddingsManager.from_settings()
+cache = CacheManager.from_settings()
+model_manager = ModelManager.from_settings()
+
+# Services use async operations
+embeddings_vector = await embeddings.embed_text(text)
+cached_result = await cache.get(cache_key)
+```
+
+### Configuration Management
+
+**Three-Level Hierarchy (unchanged but reinforced):**
+1. Environment variables (highest priority)
+2. `agent/config.yaml` (medium priority)
+3. Code defaults in `agent/settings.py` (lowest priority)
+
+**Runtime Configuration Updates:**
+- Only whitelisted keys in `_ALLOWED_UPDATE_KEYS` can be updated via API
+- Changes are in-memory; restart required to reload from `config.yaml`
+- Use `/api/config` endpoint to view current runtime configuration
+
+### Testing Strategy Updates
+
+**Key Changes:**
+- Consolidated test structure under `tests/` with clear subdirectories
+- Backend tests in `tests/backend/` for agent module testing
+- Plugin tests in `tests/plugin/` for JavaScript validation
+- Integration tests in `tests/integration/` for end-to-end workflows
+
+**Updated Test Commands:**
+```bash
+# Run tests against agent/ module
+pytest tests/backend/ -v
+
+# Run plugin quality checks
+pytest tests/plugin/test_js_code_quality.py -v
+
+# Full suite with coverage
+pytest --cov=agent --cov-report=html tests/
+```
+
+### Performance Architecture
+
+**Enhancements:**
+- Multi-level caching now consistently implemented across all services
+- Connection pooling for model instances (1-3 per pool)
+- Async task queue for background operations
+- Health monitoring with alert thresholds and escalation
+
+**Performance Tiers (SLA):**
+- Tier 1: <100ms (health checks, status)
+- Tier 2: <500ms (cached operations)
+- Tier 3: <2s (AI generation)
+- Tier 4: <10s (complex operations)
+- Tier 5: <60s (batch operations)
+
+### Development Workflow Updates
+
+**Setup Process:**
+```powershell
+# Primary setup script handles all initialization
+./setup.ps1
+
+# Plugin-specific setup
+./setup-plugin.ps1 -VaultPath "C:\Path\To\Vault"
+
+# Verify backend health
+curl http://localhost:8000/health
+```
+
+**Development Server:**
+```bash
+# From workspace root, NOT from agent/ directory
+cd agent && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
+```
+
+**Code Quality:**
+```bash
+# Validate Python code in agent/ directory
+ruff check agent/
+bandit -r agent/
+mypy agent/ --ignore-missing-imports
+
+# Validate JavaScript code in plugin/
+pytest tests/plugin/test_js_code_quality.py -v
+```
+
+### Key Files to Understand
+
+1. **`agent/backend.py`**: FastAPI application entry point with all route definitions
+2. **`agent/settings.py`**: Pydantic-based settings with hierarchical configuration
+3. **`agent/modelmanager.py`**: Unified interface for different model backends
+4. **`agent/embeddings.py`**: Vector embedding operations and caching
+5. **`agent/indexing.py`**: Document processing and vector database management
+6. **`agent/performance.py`**: Multi-level caching, connection pooling, monitoring
+7. **`plugin/main.js`**: Obsidian plugin entry point
+8. **`plugin/backendClient.js`**: Plugin-to-backend communication layer
+
+### Common Development Tasks
+
+#### Adding a New API Endpoint
+
+1. Define request/response models in `agent/backend.py` using Pydantic
+2. Create service method in appropriate module (e.g., `agent/indexing.py`)
+3. Add route handler with dependency injection
+4. Add unit tests in `tests/backend/`
+5. Add integration test in `tests/integration/`
+
+#### Adding a New Service
+
+1. Create module in `agent/` (e.g., `agent/my_service.py`)
+2. Implement `from_settings()` class method
+3. Use async/await for all I/O operations
+4. Add error handling with HTTPException
+5. Create tests in `tests/backend/test_my_service.py`
+
+#### Debugging Performance Issues
+
+1. Check real-time metrics: `GET /api/performance/metrics`
+2. Review cache hit rates and pool utilization
+3. Check system metrics: `/api/health/detailed`
+4. Use trace logging: Set `LOG_LEVEL=debug` and restart backend
+5. Run performance tests: `pytest tests/test_performance.py -v`
 
 # Copilot Instructions
 
