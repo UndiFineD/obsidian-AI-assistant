@@ -237,7 +237,7 @@ def main() -> int:
     test_file_exists(change_root / "tasks.md", "Tasks document exists")
     test_content_matches(
         change_root / "tasks.md",
-        r"- \\[[\\sx]\\]",
+        r"- \[[\sx]\]",
         "Tasks has checkboxes"
     )
 

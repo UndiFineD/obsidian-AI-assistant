@@ -12,7 +12,7 @@ This package contains the core backend modules for the Obsidian AI Agent:
 - Voice processing capabilities
 """
 
-__version__ = "0.1.31"
+__version__ = "0.1.32"
 __author__ = "Obsidian AI Agent"
 
 

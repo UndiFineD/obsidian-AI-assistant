@@ -2,6 +2,8 @@
 
 ## Why
 
+## Impact
+
 ## Context
 
 **Technical Debt**: Describe the code quality issues being addressed.

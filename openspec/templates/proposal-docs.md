@@ -2,6 +2,8 @@
 
 ## Why
 
+## Impact
+
 ## Context
 
 **Documentation Gap**: What information is missing or unclear?

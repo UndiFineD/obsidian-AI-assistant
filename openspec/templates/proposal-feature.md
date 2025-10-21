@@ -2,6 +2,8 @@
 
 ## Why
 
+## Impact
+
 ## Context
 
 **Background**: Describe what problem this feature solves or what capability it adds.

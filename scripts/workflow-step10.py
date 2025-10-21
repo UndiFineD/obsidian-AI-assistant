@@ -43,6 +43,175 @@ def _mark_complete(change_path: Path) -> None:
         helpers.set_content_atomic(todo, updated)
 
 
+def _get_git_diff_summary() -> str:
+    """Get a summary of all changes in the working tree.
+
+    Returns:
+        Formatted string with git diff statistics and file changes
+    """
+    try:
+        # Get diff statistics
+        result = subprocess.run(
+            ["git", "diff", "--stat"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
+        return "Unable to generate diff summary"
+
+
+def _get_git_status_details() -> str:
+    """Get detailed git status of changed, added, deleted files.
+
+    Returns:
+        Formatted string with file status details
+    """
+    try:
+        result = subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=PROJECT_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        if not result.stdout.strip():
+            return "No changes"
+        
+        lines = result.stdout.strip().split("\n")
+        modified = [l for l in lines if l.startswith(" M")]
+        added = [l for l in lines if l.startswith("??")]
+        deleted = [l for l in lines if l.startswith(" D")]
+        
+        summary = f"Changed: {len(modified)}, Added: {len(added)}, Deleted: {len(deleted)}"
+        return summary
+    except subprocess.CalledProcessError:
+        return "Unable to get status details"
+
+
+def _build_comprehensive_commit_message(
+    change_name: str,
+    new_version: Optional[str],
+    change_path: Path,
+) -> str:
+    """Build a comprehensive commit message with scope, description, and details.
+
+    Args:
+        change_name: Name of the OpenSpec change
+        new_version: Version number if this is a release
+        change_path: Path to the change folder
+
+    Returns:
+        Multi-line commit message in conventional commit format
+    """
+    if new_version:
+        scope = "release"
+        subject = f"Bump version to v{new_version}"
+    else:
+        scope = "openspec"
+        subject = f"Implement {change_name}"
+
+    # Build body with details
+    body_lines = [
+        f"OpenSpec Change: {change_name}",
+        "",
+        "Changes:",
+        _get_git_status_details(),
+    ]
+
+    # Add change documentation if available
+    proposal_path = change_path / "proposal.md"
+    if proposal_path.exists():
+        try:
+            proposal_content = proposal_path.read_text(encoding="utf-8")
+            # Extract first few lines of proposal for context
+            lines = proposal_content.split("\n")
+            for line in lines[1:4]:  # Skip title, get next 3 lines
+                if line.strip() and not line.startswith("#"):
+                    body_lines.append(line)
+                    break
+        except Exception:
+            pass
+
+    body_lines.extend(
+        [
+            "",
+            "Automated by OpenSpec workflow (Step 10)",
+        ]
+    )
+
+    # Build complete message: subject + blank line + body
+    message = f"{scope}: {subject}\n\n" + "\n".join(body_lines)
+    return message
+
+
+def _update_changelog(
+    new_version: Optional[str],
+    change_name: str,
+) -> bool:
+    """Update CHANGELOG.md with new version and changes.
+
+    Args:
+        new_version: Version number if this is a release
+        change_name: Name of the OpenSpec change
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if not new_version:
+        return True  # No changelog update needed for non-release changes
+
+    changelog_path = PROJECT_ROOT / "CHANGELOG.md"
+    if not changelog_path.exists():
+        helpers.write_warning("CHANGELOG.md not found")
+        return False
+
+    try:
+        current_content = changelog_path.read_text(encoding="utf-8")
+
+        # Get current date
+        from datetime import date
+
+        today = date.today().strftime("%Y-%m-%d")
+
+        # Build changelog entry
+        entry = (
+            f"## v{new_version} ({today})\n\n"
+            f"- **OpenSpec Change**: {change_name}\n"
+            f"- **Git Status**: Changes staged, committed, and pushed\n"
+            f"- _Released as part of OpenSpec workflow automation._\n\n"
+        )
+
+        # Find insertion point (after the header)
+        lines = current_content.split("\n")
+        insert_index = 0
+        for i, line in enumerate(lines):
+            if line.startswith("## v") or line.startswith("# 📝"):
+                insert_index = i
+                break
+
+        # If first version section found, insert before it
+        if insert_index > 0:
+            new_content = (
+                "\n".join(lines[:insert_index])
+                + "\n"
+                + entry
+                + "\n".join(lines[insert_index:])
+            )
+        else:
+            new_content = entry + current_content
+
+        changelog_path.write_text(new_content, encoding="utf-8")
+        helpers.write_success("CHANGELOG.md updated")
+        return True
+
+    except Exception as error:
+        helpers.write_error(f"Failed to update CHANGELOG.md: {error}")
+        return False
+
+
 def _git(args: List[str]) -> str:
     """Execute a git command and return output."""
     try:
@@ -345,12 +514,21 @@ def invoke_step10(
     branch = version_branch or _git(["rev-parse", "--abbrev-ref", "HEAD"])
     branch = branch if branch else "unknown"
 
+    # Build comprehensive commit message
+    commit_message = _build_comprehensive_commit_message(
+        change_path.name, new_version, change_path
+    )
+
     content = (
         f"## Git Context\n\n"
         f"- Branch: {branch}\n"
-        f"- Suggested commit message: chore(release): v{new_version}\n"
+        f"- Version: {new_version}\n"
+        f"- Commit: See git log for full message\n"
+        f"- Tag: v{new_version}\n"
         if new_version
-        else f"- Suggested commit message: chore(openspec): {change_path.name}\n"
+        else f"## Git Context\n\n"
+        f"- Branch: {branch}\n"
+        f"- Commit: See git log for full message\n"
     )
 
     if dry_run:
@@ -405,16 +583,12 @@ def invoke_step10(
 
                 helpers.write_success("Changes staged")
 
-                # Build commit message with version if available
-                if new_version:
-                    commit_msg = f"chore(release): Bump version to v{new_version}"
-                else:
-                    commit_msg = f"chore(openspec): {change_path.name}"
-
-                helpers.write_info(f"Committing: {commit_msg}")
+                # Use comprehensive commit message
+                helpers.write_info("Committing changes...")
+                helpers.write_info(f"Scope: {'release' if new_version else 'openspec'}")
 
                 result = subprocess.run(
-                    ["git", "commit", "-m", commit_msg],
+                    ["git", "commit", "-m", commit_message],
                     cwd=PROJECT_ROOT,
                     capture_output=True,
                     text=True,
@@ -424,6 +598,26 @@ def invoke_step10(
                     return False
 
                 helpers.write_success("Changes committed")
+
+                # Create git tag if version available
+                if new_version:
+                    tag_name = f"v{new_version}"
+                    tag_message = f"Release {tag_name}: {change_path.name}"
+
+                    helpers.write_info(f"Creating git tag: {tag_name}")
+
+                    result = subprocess.run(
+                        ["git", "tag", "-a", tag_name, "-m", tag_message],
+                        cwd=PROJECT_ROOT,
+                        capture_output=True,
+                        text=True,
+                    )
+                    if result.returncode == 0:
+                        helpers.write_success(f"Git tag created: {tag_name}")
+                    else:
+                        helpers.write_warning(
+                            f"Failed to create tag (may already exist): {result.stderr}"
+                        )
 
                 # Push changes
                 helpers.write_info(f"Pushing to {branch}...")
@@ -439,6 +633,57 @@ def invoke_step10(
                     return False
 
                 helpers.write_success(f"Changes pushed to {branch}")
+
+                # Push tags if version available
+                if new_version:
+                    helpers.write_info("Pushing git tags...")
+
+                    result = subprocess.run(
+                        ["git", "push", "origin", "--tags"],
+                        cwd=PROJECT_ROOT,
+                        capture_output=True,
+                        text=True,
+                    )
+                    if result.returncode == 0:
+                        helpers.write_success("Git tags pushed")
+                    else:
+                        helpers.write_warning(f"Failed to push tags: {result.stderr}")
+
+                # Update CHANGELOG.md
+                if new_version:
+                    helpers.write_info("Updating CHANGELOG.md...")
+                    if _update_changelog(new_version, change_path.name):
+                        # Stage and commit CHANGELOG update
+                        result = subprocess.run(
+                            ["git", "add", "CHANGELOG.md"],
+                            cwd=PROJECT_ROOT,
+                            capture_output=True,
+                            text=True,
+                        )
+                        if result.returncode == 0:
+                            changelog_commit_msg = (
+                                f"docs(changelog): Document v{new_version} release"
+                            )
+                            result = subprocess.run(
+                                [
+                                    "git",
+                                    "commit",
+                                    "-m",
+                                    changelog_commit_msg,
+                                ],
+                                cwd=PROJECT_ROOT,
+                                capture_output=True,
+                                text=True,
+                            )
+                            if result.returncode == 0:
+                                helpers.write_success("CHANGELOG.md committed")
+                                # Push the changelog update
+                                subprocess.run(
+                                    ["git", "push", "origin", branch],
+                                    cwd=PROJECT_ROOT,
+                                    capture_output=True,
+                                    text=True,
+                                )
             else:
                 helpers.write_info("No changes to commit")
         except Exception as error:
