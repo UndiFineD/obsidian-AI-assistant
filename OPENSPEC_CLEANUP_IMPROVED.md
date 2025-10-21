@@ -24,12 +24,10 @@ The OpenSpec cleanup-organize-docs proposal has been revised to remove unnecessa
 - Required creating FIRST_STEPS.md
 - Required creating TROUBLESHOOTING.md
 - Required creating 4+ new getting-started documents
-- Total effort: 3-5 hours for content creation
 
 **After**:
 - No new content creation required
 - Focus only on reorganizing existing files
-- Total effort: 2-3 hours for moves and deletions
 
 #### ✅ Simplified: Directory Structure
 
@@ -45,9 +43,9 @@ The OpenSpec cleanup-organize-docs proposal has been revised to remove unnecessa
 
 #### ✅ Reduced: Task Count
 
-**Before**: 8 main tasks, 85 subtasks, 5.5 hours effort
+**Before**: 8 main tasks, 85 subtasks
 
-**After**: 5 main tasks, 46 subtasks, 3.5 hours effort
+**After**: 5 main tasks, 46 subtasks
 
 **Tasks**:
 1. Inventory & Categorize Files (1h, 7 subtasks)
@@ -130,10 +128,9 @@ The OpenSpec cleanup-organize-docs proposal has been revised to remove unnecessa
 
 | Aspect | Before | After | Improvement |
 |--------|--------|-------|-------------|
-| Content Creation | Required | None | -100% overhead |
-| Main Tasks | 8 | 5 | -37% complexity |
-| Subtasks | 85 | 46 | -46% detail |
-| Effort | 5.5 hours | 3.5 hours | -36% time |
+| Content Creation | Required | None | Removed |
+| Main Tasks | 8 | 5 | Simplified |
+| Subtasks | 85 | 46 | Reduced |
 | 00_START_HERE.md | Categorized as MOVE | DELETE | ✅ Fixed |
 | Directory Levels | 8 | 6 | Simpler |
 | Focus | Mix of move & create | Just organize | Clearer scope |

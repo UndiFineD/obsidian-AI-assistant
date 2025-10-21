@@ -20,7 +20,7 @@ Your feedback about unnecessary content creation in the OpenSpec proposal was **
 - Requirement to create TROUBLESHOOTING.md
 - All other content creation overhead
 
-**Result**: Effort reduced from 5.5 hours → 3.5 hours (-36%)
+**Result**: Scope is now focused on reorganization only
 
 ### ✅ Simplified Scope
 **Before**:
@@ -37,13 +37,11 @@ Your feedback about unnecessary content creation in the OpenSpec proposal was **
 
 The proposal now focuses on **organizing what we have**, not creating new content:
 
-1. **Inventory** (1h) - Categorize files correctly
-2. **Create Structure** (0.5h) - Build docs/ directories  
-3. **Move Files** (1h) - Organize existing documentation
-4. **Delete Redundant** (0.5h) - Remove celebration/status files
-5. **Update Docs** (0.5h) - Fix links and README
-
-**Total: 3.5 hours** of focused, practical work
+1. **Inventory** - Categorize files correctly
+2. **Create Structure** - Build docs/ directories  
+3. **Move Files** - Organize existing documentation
+4. **Delete Redundant** - Remove celebration/status files
+5. **Update Docs** - Fix links and README
 
 ## What Gets Done
 

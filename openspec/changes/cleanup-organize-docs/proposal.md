@@ -3,8 +3,6 @@
 **Change ID**: cleanup-organize-docs  
 **Status**: Proposed  
 **Priority**: High  
-**Effort**: 3-5 hours  
-**Timeline**: 1 day  
 **Owner**: Documentation & Project Management  
 **Stakeholders**: All contributors, repository maintainers  
 
@@ -52,7 +50,7 @@ Clean, hierarchical documentation structure:
 
 ## 🎯 Scope of Changes
 
-### Phase 1: Inventory (1 hour)
+### Phase 1: Inventory
 
 Categorize all root markdown files:
 ```
@@ -102,7 +100,7 @@ C. DELETE (redundant celebration/status/project tracking):
    - CHANGES (folder - this is not a document)
 ```
 
-### Phase 2: Create Structure (0.5 hours)
+### Phase 2: Create Structure
 
 Create `docs/` directory with subdirectories to organize moved files:
 ```
@@ -117,21 +115,21 @@ docs/
 
 **Key Point**: Only create directory structure. Do NOT create new content—we're organizing existing files only.
 
-### Phase 3: Move Files (1 hour)
+### Phase 3: Move Files
 
 Move categorized files to `docs/`:
 - Move 15-20 project documentation files
 - Consolidate similar documents (e.g., all Phase 1 completions → single file)
 - Update cross-references in moved files
 
-### Phase 4: Delete Redundant Files (0.5 hours)
+### Phase 4: Delete Redundant Files
 
 Remove celebration and redundant status files:
 - Delete 15-25 celebration/status files
 - Keep only one master summary per phase
 - Verify no critical info lost
 
-### Phase 5: Update References (1 hour)
+### Phase 5: Update References
 
 Update all references:
 - Update links in README.md
@@ -169,14 +167,14 @@ Update all references:
 
 ## 📅 Timeline
 
-| Phase | Duration | Activities |
-|-------|----------|-----------|
-| **Inventory** | 1 hour | Categorize all files |
-| **Structure** | 0.5 hours | Create docs/ hierarchy |
-| **Move** | 1 hour | Move and consolidate files |
-| **Delete** | 0.5 hours | Remove redundant files |
-| **Update** | 1 hour | Fix references and links |
-| **Verify** | 0.5 hours | Test structure, check links |
+| Phase | Activities |
+|-------|-----------|
+| **Inventory** | Categorize all files |
+| **Structure** | Create docs/ hierarchy |
+| **Move** | Move and consolidate files |
+| **Delete** | Remove redundant files |
+| **Update** | Fix references and links |
+| **Verify** | Test structure, check links |
 
 ---
 
@@ -272,10 +270,8 @@ setup-venv311.ps1
 - [x] File categorization complete
 - [x] Directory structure designed
 - [x] Impact assessed
-- [x] Timeline realistic (1 day)
 - [x] Success criteria clear
 - [x] Risks identified
-- [x] Ready for team review
 
 ---
 
@@ -349,6 +345,4 @@ obsidian-AI-assistant/
 ---
 
 **Status**: Ready for implementation  
-**Effort**: 3-5 hours  
-**Timeline**: 1 day  
-**Impact**: High (better organization, clearer structure)
+**Impact**: Better organization, clearer structure

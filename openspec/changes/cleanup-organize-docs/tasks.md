@@ -3,14 +3,12 @@
 **Change ID**: cleanup-organize-docs  
 **Total Tasks**: 5  
 **Total Subtasks**: 25  
-**Estimated Effort**: 2-3 hours  
-**Timeline**: 1 day  
 
 ---
 
 ## 📋 Task List
 
-### TASK 1: Inventory & Categorize Files (1 hour)
+### TASK 1: Inventory & Categorize Files
 **Subtasks**:
 - [ ] List all markdown files in root directory
 - [ ] Categorize as: KEEP, MOVE, or DELETE (use provided lists)
@@ -28,7 +26,7 @@
 
 ---
 
-### TASK 2: Create Directory Structure (0.5 hours)
+### TASK 2: Create Directory Structure
 **Subtasks**:
 - [ ] Create `docs/` directory
 - [ ] Create `docs/architecture/` subdirectory
@@ -45,7 +43,7 @@
 
 ---
 
-### TASK 3: Move Documentation Files (1 hour)
+### TASK 3: Move Documentation Files
 **Subtasks**:
 - [ ] Move PRODUCTION_READINESS_V0.1.35.md to docs/architecture/
 - [ ] Move MODELS_MIGRATION_COMPLETE.md to docs/architecture/
@@ -72,7 +70,7 @@
 
 ---
 
-### TASK 4: Delete Redundant & Celebration Files (0.5 hours)
+### TASK 4: Delete Redundant & Celebration Files
 **Subtasks**:
 - [ ] Delete all 🎉_*.md celebration files
 - [ ] Delete all COMPLETION_CERTIFICATE_*.md files
@@ -93,7 +91,7 @@
 
 ---
 
-### TASK 5: Update Documentation Structure (0.5 hours)
+### TASK 5: Update Documentation Structure
 **Subtasks**:
 - [ ] Update README.md with docs/ structure overview
 - [ ] Add "Documentation" section to README linking to docs/
@@ -148,17 +146,14 @@
 
 ## 📊 Summary
 
-| Task | Duration | Subtasks | Status |
-|------|----------|----------|--------|
-| 1. Inventory | 1h | 8 | 📋 |
-| 2. Create Structure | 0.5h | 9 | 📋 |
-| 3. Move Files | 1h | 12 | 📋 |
-| 4. Delete Redundant | 0.5h | 14 | 📋 |
-| 5. Update Links | 1h | 12 | 📋 |
-| 6. Update README | 0.5h | 8 | 📋 |
-| 7. Verify | 0.5h | 8 | 📋 |
-| 8. Commit | 1h | 14 | 📋 |
-| **TOTAL** | **5.5h** | **85** | **📋** |
+| Task | Subtasks | Status |
+|------|----------|--------|
+| 1. Inventory | 7 | 📋 |
+| 2. Create Structure | 7 | 📋 |
+| 3. Move Files | 13 | 📋 |
+| 4. Delete Redundant | 11 | 📋 |
+| 5. Update Documentation | 8 | 📋 |
+| **TOTAL** | **46** | **📋** |
 
 ---
 
