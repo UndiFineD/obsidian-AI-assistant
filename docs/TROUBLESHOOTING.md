@@ -7,18 +7,590 @@
 
 ## Table of Contents
 
-1. [Common Issues](#common-issues)
-2. [Error Recovery](#error-recovery)
-3. [Backend Issues](#backend-issues)
-4. [Plugin Issues](#plugin-issues)
-5. [API Issues](#api-issues)
-6. [Performance Issues](#performance-issues)
-7. [Security Issues](#security-issues)
-8. [Getting Help](#getting-help)
+1. [Quick Reference](#quick-reference)
+2. [Common Issues](#common-issues)
+3. [20+ Error Scenarios](#20-error-scenarios)
+4. [Error Recovery](#error-recovery)
+5. [Backend Issues](#backend-issues)
+6. [Plugin Issues](#plugin-issues)
+7. [API Issues](#api-issues)
+8. [Performance Issues](#performance-issues)
+9. [Security Issues](#security-issues)
+10. [Getting Help](#getting-help)
 
 ---
 
-## Common Issues
+## Quick Reference
+
+**Quick Diagnosis Checklist**:
+1. ✅ Backend running? `curl http://localhost:8000/health`
+2. ✅ Correct Python version? `python --version` (should be 3.11+)
+3. ✅ Agent paths updated? Should be `agent/` not `backend/`
+4. ✅ Models location? Should be `./models/` not `agent/models/`
+5. ✅ Tests passing? `python -m pytest tests/ -v`
+6. ✅ Logs checked? `tail -f agent/logs/app.log`
+
+**Emergency Fixes**:
+```bash
+# Clear everything and restart
+rm -rf agent/cache agent/vector_db agent/logs
+python -m uvicorn agent.backend:app --reload
+```
+
+---
+
+## 20+ Error Scenarios
+
+### Error 1: ModuleNotFoundError: No module named 'backend'
+
+**Cause**: Code still references old `backend` module (pre-v0.1.35)
+
+**Error Message**:
+```
+ModuleNotFoundError: No module named 'backend'
+```
+
+**Solution**:
+```bash
+# Update all imports
+find . -type f -name "*.py" -exec sed -i 's/from backend/from agent/g' {} \;
+find . -type f -name "*.py" -exec sed -i 's/import backend/import agent/g' {} \;
+
+# Or manually update file
+# OLD: from backend.modelmanager import ModelManager
+# NEW: from agent.modelmanager import ModelManager
+```
+
+---
+
+### Error 2: FileNotFoundError: agent/models/ directory not found
+
+**Cause**: Models directory path changed in v0.1.35
+
+**Error Message**:
+```
+FileNotFoundError: [Errno 2] No such file or directory: 'agent/models/'
+```
+
+**Solution**:
+```bash
+# Models moved to ./models/ at root level
+ls ./models/  # Should exist with gpt4all, embeddings, vosk subdirs
+
+# If missing, create and re-download
+python setup.py --download-models
+# OR
+./setup.ps1  # On Windows
+```
+
+---
+
+### Error 3: Port 8000 Already in Use
+
+**Cause**: Another process running on port 8000
+
+**Error Message**:
+```
+ERROR: Uvicorn server failed to start. Address already in use (Windows)
+ERROR: Address already in use (Unix)
+```
+
+**Solution** (PowerShell):
+```powershell
+# Find process on port 8000
+Get-NetTCPConnection -LocalPort 8000 | Select-Object -Property OwningProcess
+Get-Process -Id <PID>
+
+# Kill process
+Stop-Process -Id <PID> -Force
+
+# Or use different port
+python -m uvicorn agent.backend:app --port 8001
+```
+
+---
+
+### Error 4: CUDA/GPU Not Available
+
+**Cause**: GPU requested but not available
+
+**Error Message**:
+```
+RuntimeError: No CUDA GPUs available
+```
+
+**Solution**:
+```yaml
+# agent/config.yaml - Set to use CPU
+gpu: false
+
+# Or disable GPU in environment
+export GPU=false
+python -m uvicorn agent.backend:app
+```
+
+---
+
+### Error 5: Insufficient Memory for Model Loading
+
+**Cause**: Not enough RAM for model
+
+**Error Message**:
+```
+MemoryError: Unable to allocate X GiB for an array
+```
+
+**Solution**:
+```yaml
+# agent/config.yaml - Use smaller model or reduce threads
+model_backend: gpt4all
+model_args:
+  n_threads: 2  # Reduce from 4
+  n_gpu_layers: 0  # Force CPU instead of GPU
+```
+
+---
+
+### Error 6: Vector DB Corruption
+
+**Cause**: Chroma database corrupted
+
+**Error Message**:
+```
+ValueError: Chroma index is corrupted
+sqlite3.DatabaseError: database disk image is malformed
+```
+
+**Solution**:
+```bash
+# Backup and rebuild
+cp -r agent/vector_db agent/vector_db.backup
+rm -rf agent/vector_db/chroma*
+
+# Reindex from API
+curl -X POST http://localhost:8000/api/reindex
+
+# Or delete and restart
+rm -rf agent/vector_db
+python -m uvicorn agent.backend:app --reload
+```
+
+---
+
+### Error 7: Configuration File Not Found
+
+**Cause**: Missing agent/config.yaml
+
+**Error Message**:
+```
+FileNotFoundError: agent/config.yaml not found
+```
+
+**Solution**:
+```bash
+# Regenerate from defaults
+python -c "from agent.settings import Settings; print(Settings().dict(indent=2))" > agent/config.yaml
+
+# Or copy from backup
+cp agent/config.yaml.backup agent/config.yaml
+```
+
+---
+
+### Error 8: Invalid JSON in Config File
+
+**Cause**: Syntax error in YAML/JSON
+
+**Error Message**:
+```
+yaml.YAMLError: mapping values are not allowed
+```
+
+**Solution**:
+```bash
+# Validate YAML syntax
+python -c "import yaml; yaml.safe_load(open('agent/config.yaml'))"
+
+# Or use online validator
+# Copy contents to https://www.yamllint.com/
+
+# Fix common issues:
+# - Missing colons after keys
+# - Inconsistent indentation (use spaces, not tabs)
+# - Quotes around values with special characters
+```
+
+---
+
+### Error 9: Plugin Not Loading in Obsidian
+
+**Cause**: Plugin file missing or syntax error
+
+**Error Message**:
+```
+Plugin failed to load: SyntaxError in main.js:10
+```
+
+**Solution**:
+```bash
+# Verify plugin files exist
+ls -la plugin/main.js plugin/manifest.json
+
+# Check JavaScript syntax
+node -c plugin/main.js
+
+# Fix syntax and reload Obsidian
+# Settings → Community Plugins → Reload
+# Or restart Obsidian completely
+
+# Check plugin console
+# Dev Tools → Console (F12 in most browsers)
+```
+
+---
+
+### Error 10: 401 Unauthorized - Invalid Token
+
+**Cause**: Expired or invalid authentication token
+
+**Error Message**:
+```
+401 Unauthorized: Invalid or expired token
+```
+
+**Solution**:
+```bash
+# Get new token
+curl -X POST http://localhost:8000/api/auth/token \
+  -d "username=user&password=pass"
+
+# Or use new bearer token
+curl -H "Authorization: Bearer <new_token>" \
+  http://localhost:8000/api/ask
+
+# In development/testing, skip auth by setting:
+export PYTEST_CURRENT_TEST=true
+```
+
+---
+
+### Error 11: 422 Validation Error - Missing Fields
+
+**Cause**: Required field missing from request
+
+**Error Message**:
+```json
+{
+  "detail": [
+    {"loc": ["body", "question"], "msg": "field required", "type": "value_error.missing"}
+  ]
+}
+```
+
+**Solution**:
+```bash
+# Include all required fields
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "What is in my vault?",
+    "model": "gpt4all"
+  }'
+
+# Check API docs for required fields
+# http://localhost:8000/docs
+```
+
+---
+
+### Error 12: 429 Rate Limit Exceeded
+
+**Cause**: Too many requests in time window
+
+**Error Message**:
+```json
+{"error": "Rate limit exceeded", "retry_after": 60}
+```
+
+**Solution**:
+```bash
+# Implement exponential backoff
+# Wait 60 seconds (from Retry-After header)
+sleep 60
+curl http://localhost:8000/api/ask
+
+# Or increase rate limit in config
+export RATE_LIMIT=200
+export RATE_LIMIT_BURST=20
+```
+
+---
+
+### Error 13: 500 Internal Server Error
+
+**Cause**: Unhandled exception in backend
+
+**Error Message**:
+```
+500 Internal Server Error
+```
+
+**Solution**:
+```bash
+# Check backend logs
+tail -50 agent/logs/app.log
+
+# Enable debug logging
+export LOG_LEVEL=debug
+python -m uvicorn agent.backend:app --reload
+
+# Common causes:
+# 1. Model not loaded - check agent/logs/app.log
+# 2. Database connection failed - verify agent/vector_db/
+# 3. Out of memory - check system resources
+# 4. Unhandled exception - review stack trace in logs
+```
+
+---
+
+### Error 14: Search Returns No Results
+
+**Cause**: Vector DB not indexed or similarity threshold too high
+
+**Symptoms**:
+```json
+{"results": []}
+```
+
+**Solution**:
+```bash
+# Check if vault indexed
+curl http://localhost:8000/api/scan_vault
+
+# Reindex if needed
+curl -X POST http://localhost:8000/api/reindex
+
+# Verify with specific search
+curl -X POST http://localhost:8000/api/search \
+  -d '{
+    "query": "test",
+    "top_k": 5,
+    "similarity_threshold": 0.5  # Lower threshold
+  }'
+```
+
+---
+
+### Error 15: Voice Transcription Fails
+
+**Cause**: Vosk model missing or audio format wrong
+
+**Error Message**:
+```
+RuntimeError: Vosk model not initialized
+ValueError: Unsupported audio format
+```
+
+**Solution**:
+```bash
+# Verify Vosk model exists
+ls ./models/vosk/
+
+# If missing, download
+python -c "from agent.voice import VoiceTranscriber; v = VoiceTranscriber()"
+
+# Use supported format (WebM or WAV)
+curl -X POST http://localhost:8000/api/voice_transcribe \
+  -d '{
+    "audio_data": "base64_encoded_data",
+    "format": "webm",
+    "language": "en"
+  }'
+```
+
+---
+
+### Error 16: Cache Inconsistency Issues
+
+**Cause**: Stale cache or multi-instance cache conflicts
+
+**Symptoms**:
+```
+Inconsistent results, old data returned
+```
+
+**Solution**:
+```bash
+# Clear all caches
+curl -X POST http://localhost:8000/api/performance/cache/clear
+
+# Or manually
+rm -rf agent/cache/*
+
+# Restart backend
+python -m uvicorn agent.backend:app --reload
+
+# For multi-instance, use Redis
+# Update config.yaml:
+# cache_backend: redis
+# redis_url: redis://localhost:6379
+```
+
+---
+
+### Error 17: Embedding Model Not Found
+
+**Cause**: Embedding model not downloaded
+
+**Error Message**:
+```
+FileNotFoundError: Model 'all-MiniLM-L6-v2' not found
+```
+
+**Solution**:
+```bash
+# Download embeddings model
+python -c "from agent.embeddings import EmbeddingsManager; e = EmbeddingsManager.from_settings()"
+
+# Or verify it exists
+ls ./models/embeddings/
+
+# Verify model config
+grep embed_model agent/config.yaml
+```
+
+---
+
+### Error 18: Obsidian Plugin Backend Connection Fails
+
+**Cause**: Backend URL misconfigured or backend down
+
+**Error Message** (in Obsidian console):
+```
+Error: Failed to connect to backend at http://localhost:8000
+```
+
+**Solution**:
+```javascript
+// In plugin settings, verify backend URL
+// Default: http://localhost:8000
+// If behind proxy: http://your-domain.com/agent-api
+
+// Check from Obsidian console
+fetch('http://localhost:8000/health')
+  .then(r => r.json())
+  .then(d => console.log('Backend OK:', d))
+  .catch(e => console.log('Backend error:', e.message))
+
+// Or from terminal
+curl http://localhost:8000/health
+```
+
+---
+
+### Error 19: Enterprise SSO Not Working
+
+**Cause**: Enterprise module not enabled or SSO not configured
+
+**Error Message**:
+```
+404 Not Found: /api/enterprise/auth/sso
+```
+
+**Solution**:
+```yaml
+# agent/config.yaml - Enable enterprise
+enterprise_enabled: true
+sso_providers:
+  - azure_ad
+  - google
+  - okta
+azure_tenant_id: "your-tenant-id"
+google_client_id: "your-client-id"
+```
+
+---
+
+### Error 20: Health Check Fails But Backend Running
+
+**Cause**: Health check endpoint issue, but API working
+
+**Symptoms**:
+```
+GET /health → 500 error
+But POST /api/ask → 200 OK
+```
+
+**Solution**:
+```bash
+# Try detailed health check
+curl http://localhost:8000/api/health/detailed
+
+# Check which service failed
+# Response will show service status
+
+# Common causes:
+# 1. Model manager timeout - restart models
+# 2. Vector DB issue - reindex
+# 3. Cache corrupted - clear cache
+
+# Workaround: Use lightweight status check
+curl http://localhost:8000/status  # <100ms response
+```
+
+---
+
+### Error 21: API Documentation (Swagger) Won't Load
+
+**Cause**: FastAPI/Swagger initialization issue
+
+**Symptoms**:
+```
+http://localhost:8000/docs → Blank or error
+```
+
+**Solution**:
+```bash
+# Verify docs are generated
+curl http://localhost:8000/openapi.json
+
+# If JSON returns successfully but UI doesn't load:
+# 1. Clear browser cache
+# 2. Try different browser
+# 3. Check browser console for JS errors
+
+# Workaround: Use ReDoc alternative
+# http://localhost:8000/redoc
+```
+
+---
+
+### Error 22: Tests Failing with Import Errors
+
+**Cause**: Module paths not updated from backend→agent migration
+
+**Error Message**:
+```
+ImportError: cannot import name 'backend' from 'agent'
+```
+
+**Solution**:
+```bash
+# Update test imports
+find tests/ -type f -name "*.py" -exec sed -i 's/from backend/from agent/g' {} \;
+find tests/ -type f -name "*.py" -exec sed -i 's/import backend/import agent/g' {} \;
+
+# Also update conftest.py
+# OLD: sys.path.insert(0, os.path.join(basedir, "backend"))
+# NEW: sys.path.insert(0, os.path.join(basedir, "agent"))
+
+# Verify tests pass
+python -m pytest tests/ -v
+```
+
+---
+
+## Error Recovery
 
 ### Backend Won't Start
 
@@ -143,8 +715,7 @@
 
 1. **Check model files**:
    ```bash
-   ls -lh agent/models/  # Verify file sizes
-   md5sum agent/models/*.gguf  # Check integrity
+   ls -lh ./models/  # Verify file sizes (moved from agent/models/ in v0.1.35)
    ```
 
 2. **Verify model configuration**:

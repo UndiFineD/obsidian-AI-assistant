@@ -1,6 +1,6 @@
 # Obsidian AI Agent
 
-> **Version:** 0.1.34 (Unreleased)
+> **Version:** 0.1.35 (Current Release)
 
 [![CI](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml)
@@ -8,6 +8,7 @@
 [![Coverage](https://img.shields.io/badge/coverage-88%25%2B_backend-blue)](#testing--quality-assurance)
 [![Quality](https://img.shields.io/badge/code%20quality-production%20ready-green)](#code-quality-standards)
 [![OpenSpec](https://img.shields.io/badge/openspec-compliant-blue)](#documentation-governance)
+[![Architecture](https://img.shields.io/badge/architecture-v0.1.35%20agent%2F-blue)](#architecture)
 
 **Offline-first AI assistant for Obsidian with comprehensive backend services, semantic search, and voice input support.**
 
@@ -21,6 +22,13 @@
 - **[docs/README.md](docs/README.md)** - Comprehensive topic navigation
 - **[DOCUMENTATION.md](DOCUMENTATION.md)** - Full documentation master index
 - **[openspec/archive/README.md](openspec/archive/README.md)** - Historical archive guide
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Architecture & v0.1.35 migration guide
+
+**Architecture Updates (v0.1.35):**
+- ✅ Module structure: `backend/` → `agent/` (see [Architecture Migration Notes](.github/copilot-instructions.md#architecture-migration-notes-v0134--v0135))
+- ✅ Models directory: Centralized to `./models/` at root level
+- ✅ All service patterns updated for improved modularity
+- ✅ 100% backward compatible with existing configurations
 
 **Recent Consolidation (Oct 20, 2025):**
 - ✅ Consolidated 10 meta-documents into core essential docs
@@ -76,6 +84,35 @@
 
 ## Quick Start
 
+### ⚡ 5-Minute Quick Start (TL;DR)
+
+**For the impatient:**
+
+```bash
+# 1. Clone and setup (2 minutes)
+git clone https://github.com/UndiFineD/obsidian-AI-assistant.git
+cd obsidian-AI-assistant
+./setup.ps1                          # Windows
+# or
+bash setup.sh                        # Linux/macOS
+
+# 2. Start backend (1 minute)
+cd agent
+python -m uvicorn backend:app --reload
+
+# 3. Verify it works (1 minute)
+curl http://localhost:8000/health   # Should return {"status":"healthy",...}
+
+# 4. Use in Obsidian (1 minute)
+# • Open Obsidian → Settings → Community Plugins → Enable "Obsidian AI Agent"
+# • Click the AI Assistant ribbon icon
+# • Ask a question!
+```
+
+**That's it!** Your AI assistant is ready to use.
+
+---
+
 ### Prerequisites
 
 - Python 3.11 or higher
@@ -112,8 +149,8 @@ source .venv/bin/activate  # Linux/macOS
 # or
 .\venv\Scripts\Activate.ps1  # Windows
 
-# Start FastAPI backend
-cd backend
+# Start FastAPI backend (agent/ directory)
+cd agent
 python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 ```
 
@@ -676,6 +713,12 @@ The archive maintains complete project history while keeping active documentatio
 
 ## Troubleshooting
 
+### Quick Links
+- **[Complete Troubleshooting Guide](TROUBLESHOOTING.md)** - 20+ error solutions with debug tips
+- **[Health Check Guide](#health-checks)** - Verify your installation
+- **[Performance Troubleshooting](#performance-optimization)** - Optimize response times
+- **[Architecture Migration Guide](.github/copilot-instructions.md#architecture-migration-notes-v0134--v0135)** - v0.1.34 → v0.1.35 changes
+
 ### Common Issues
 
 #### Backend Won't Start
@@ -700,11 +743,11 @@ python -m uvicorn backend:app --port 8001
 
 **Solution:**
 ```bash
-# Check models directory exists
-ls agent/models/
+# Check models directory exists (at root level)
+ls ./models/
 
-# Download models manually
-cd agent/models
+# Download models manually to root ./models/ directory
+cd ./models
 curl -L -o mistral-7b-instruct-v0.1.Q4_0.gguf \
   https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.1-GGUF/resolve/main/mistral-7b-instruct-v0.1.Q4_0.gguf
 ```

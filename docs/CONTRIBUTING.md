@@ -36,11 +36,11 @@ The setup script will:
 ### 2. Verify Installation
 
 ```bash
-# Run the test suite (should show ~785 tests passing)
+# Run the test suite (should show ~1042 tests passing)
 python -m pytest tests/ -v
 
 # Start the backend server
-cd backend && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
+cd agent && python -m uvicorn backend:app --host 127.0.0.1 --port 8000 --reload
 
 # Check health endpoint
 curl http://localhost:8000/health
@@ -67,8 +67,8 @@ git push origin fix/my-awesome-fix
 ## 📋 Project Structure
 
 ```
-obsidian-ai-agent/
-├── agent/                 # FastAPI server and AI services
+obsidian-ai-assistant/
+├── agent/                 # FastAPI server and AI services (formerly backend/)
 │   ├── backend.py          # Main FastAPI application
 │   ├── settings.py         # Configuration management
 │   ├── modelmanager.py     # AI model management
@@ -77,27 +77,51 @@ obsidian-ai-agent/
 │   ├── voice.py            # Speech-to-text
 │   ├── performance.py      # Caching and optimization
 │   ├── security.py         # Authentication and security
+│   ├── health_monitoring.py # System health checks and alerts
 │   └── enterprise_*.py     # Enterprise features (optional)
 ├── plugin/                 # Obsidian plugin (vanilla JavaScript)
 │   ├── main.js             # Plugin entry point
 │   ├── manifest.json       # Plugin metadata
 │   ├── backendClient.js    # API client
 │   └── styles.css          # Plugin styles
-├── tests/                  # Comprehensive test suite
-│   ├── agent/            # Backend unit tests
+├── models/                 # AI models (root-level, formerly agent/models/)
+│   ├── gpt4all/            # GPT4All models
+│   ├── embeddings/         # Embedding models
+│   └── vosk/               # Voice recognition models
+├── tests/                  # Comprehensive test suite (1042+ tests)
+│   ├── backend/            # Backend unit tests
 │   ├── plugin/             # Plugin tests
-│   └── integration/        # End-to-end tests
+│   ├── integration/        # End-to-end tests
+│   └── test_performance.py # Load and stress tests
 ├── docs/                   # Project documentation
 │   ├── API_REFERENCE.md    # Complete API documentation
 │   ├── PERFORMANCE_BENCHMARKS.md  # Performance testing
+│   ├── CONTRIBUTING.md     # This file
 │   └── *.md                # Specifications and guides
 ├── openspec/               # Documentation governance
 │   ├── AGENTS.md           # AI agent workflow guide
 │   ├── changes/            # Change proposals and deltas
 │   └── specs/              # Capability specifications
-├── .github/workflows/      # CI/CD automation
+├── .github/                # GitHub configuration
+│   ├── workflows/          # CI/CD automation
+│   └── copilot-instructions.md # AI agent instructions
 └── scripts/                # Utility scripts
 ```
+
+### Version 0.1.35 Architecture Changes
+
+**From v0.1.34 to v0.1.35**, major structural improvements were made:
+
+| Aspect | v0.1.34 | v0.1.35 | Reason |
+|--------|---------|---------|--------|
+| Backend directory | `backend/` | `agent/` | Clearer naming: AI service context |
+| Models location | `agent/models/` | `./models/` | Centralized, easier management |
+| Module structure | Mixed concerns | Clear separation | Maintainability, testing |
+| Test count | ~785 tests | 1042+ tests | Better coverage |
+| Performance SLA | Target only | Implemented | Production-ready |
+| Health monitoring | Basic | Enhanced | Proactive issue detection |
+
+**Migration Guide**: See `.github/copilot-instructions.md` for complete v0.1.35 migration notes.
 
 ## 🧪 Testing Strategy
 
@@ -111,7 +135,7 @@ obsidian-ai-agent/
 ### Running Tests
 
 ```bash
-# Full test suite (785 tests, ~2 minutes)
+# Full test suite (1042+ tests, ~3 minutes)
 python -m pytest tests/ -v
 
 # Backend tests only
@@ -127,7 +151,16 @@ python -m pytest tests/integration/ -v
 python -m pytest tests/test_performance.py -v
 
 # Coverage report (requires pytest-cov)
-python -m pytest --cov=backend --cov-report=html --cov-report=term
+python -m pytest --cov=agent --cov-report=html --cov-report=term
+
+# Run specific test file
+python -m pytest tests/agent/test_backend.py -v
+
+# Run with output on first failure
+python -m pytest tests/ -x -v
+
+# Run only tests containing "search" in name
+python -m pytest tests/ -k "search" -v
 ```
 
 ### Test Standards
@@ -135,8 +168,34 @@ python -m pytest --cov=backend --cov-report=html --cov-report=term
 - **Coverage Target**: 85%+ for backend code
 - **Test Isolation**: Use mocks for external dependencies (models, APIs)
 - **Async Testing**: Use `pytest-asyncio` for async code
-- **Performance**: Tests should complete in <2 minutes total
+- **Performance**: Tests should complete in <3 minutes total
 - **Reliability**: Tests must be deterministic and not flaky
+
+### Writing Tests
+
+**Example Unit Test**:
+```python
+# tests/agent/test_my_feature.py
+import pytest
+from agent.my_feature import my_function
+
+@pytest.fixture
+def test_data():
+    return {"input": "test", "expected": "result"}
+
+def test_my_function_basic(test_data):
+    result = my_function(test_data["input"])
+    assert result == test_data["expected"]
+
+@pytest.mark.asyncio
+async def test_async_function():
+    result = await async_function()
+    assert result is not None
+
+def test_error_handling():
+    with pytest.raises(ValueError):
+        my_function(None)  # Should raise
+```
 
 ## 💻 Development Workflow
 
@@ -165,6 +224,7 @@ pre-commit install
 - **Security**: `bandit` for vulnerability scanning
 - **Type Hints**: Required for all public functions
 - **Imports**: Use `isort` for organized imports
+- **Module Structure**: Clear separation of concerns, use agent/ paths
 
 #### JavaScript Plugin
 - **Style**: 4-space indentation, double quotes
@@ -184,7 +244,58 @@ python fix_js_quality.py  # Auto-fix JS style issues
 
 # Type checking (optional)
 mypy agent/ --ignore-missing-imports
+
+# All checks together
+echo "=== Python Linting ===" && ruff check agent/ && \
+echo "=== Security Scan ===" && bandit -r agent/ && \
+echo "=== JavaScript Check ===" && node -c plugin/main.js && \
+echo "✅ All checks passed!"
 ```
+
+### Pre-Submission Code Quality Checklist
+
+Use this checklist before submitting a pull request:
+
+**Code Standards:**
+- [ ] Python code follows PEP 8 (`ruff check` passes)
+- [ ] No security vulnerabilities (`bandit` scan passes)
+- [ ] Type hints on all public functions
+- [ ] No unnecessary imports
+- [ ] Error messages are descriptive
+- [ ] Logging is appropriate (not too verbose)
+
+**Testing:**
+- [ ] All new code has unit tests
+- [ ] Test coverage ≥85% for new modules
+- [ ] All tests pass locally (`pytest tests/ -v`)
+- [ ] No flaky or timing-dependent tests
+- [ ] Performance tests included for performance-critical code
+
+**Documentation:**
+- [ ] Code comments for complex logic
+- [ ] Docstrings on classes and functions
+- [ ] README updated (if applicable)
+- [ ] API documentation updated (if API changes)
+- [ ] Error scenarios documented
+
+**Git:**
+- [ ] Commit messages follow template
+- [ ] Feature branch from main, not develop
+- [ ] No merge conflicts
+- [ ] No extraneous commits/history cleanup done
+
+**API Changes (if applicable):**
+- [ ] Request/response models defined with Pydantic
+- [ ] Error responses documented
+- [ ] Authentication/authorization defined
+- [ ] Rate limiting considered
+- [ ] Example cURL request provided
+
+**Plugin Changes (if applicable):**
+- [ ] No console errors in Obsidian
+- [ ] Works in light and dark themes
+- [ ] Mobile responsiveness considered
+- [ ] No performance degradation
 
 ### 3. Branch Strategy
 
@@ -362,6 +473,205 @@ Add the endpoint to `docs/API_REFERENCE.md` with examples.
 - **Roles**: `user` (basic access), `admin` (system management)
 - **Test Mode**: Authentication bypassed when `PYTEST_CURRENT_TEST` set
 - **Dependencies**: Use `Depends(require_role("user"))` or `Depends(require_role("admin"))`
+
+## 📝 Git Workflow & Best Practices
+
+### Complete Workflow Example
+
+**Step 1: Create Feature Branch**
+```bash
+# Update main branch
+git checkout main
+git pull origin main
+
+# Create feature branch
+git checkout -b feature/add-semantic-search-filter
+```
+
+**Step 2: Make Changes**
+```bash
+# Make your code changes
+# Edit files, add features, fix bugs
+
+# Check what changed
+git status
+# Output:
+# On branch feature/add-semantic-search-filter
+# Changes not staged for commit:
+#   modified:   agent/indexing.py
+#   modified:   tests/agent/test_search.py
+# Untracked files:
+#   new_feature.py
+```
+
+**Step 3: Stage and Commit**
+```bash
+# Stage specific files
+git add agent/indexing.py tests/agent/test_search.py
+
+# Verify staged changes
+git diff --cached
+
+# Commit with descriptive message
+git commit -m "feat(search): add semantic filter to search results
+
+- Add similarity_threshold parameter to search endpoint
+- Filter results based on configured threshold
+- Add integration tests for filter functionality
+- Update API documentation with examples
+
+Closes #123"
+```
+
+**Step 4: Push and Create Pull Request**
+```bash
+# Push to remote
+git push origin feature/add-semantic-search-filter
+
+# Create PR on GitHub (or use command line)
+gh pr create --title "Add semantic search filter" \
+  --body "Adds configurable similarity threshold filtering"
+```
+
+**Step 5: Handle Review Comments**
+```bash
+# Make requested changes
+# Edit files based on feedback
+
+# Commit additional changes
+git commit -m "refactor(search): address PR feedback
+
+- Improve threshold validation
+- Add unit tests for edge cases
+- Update documentation clarity"
+
+# Push updates (same branch)
+git push origin feature/add-semantic-search-filter
+```
+
+**Step 6: Merge After Approval**
+```bash
+# Option 1: Merge via GitHub UI (recommended)
+# Click "Merge pull request" on GitHub
+
+# Option 2: Command line merge
+git checkout main
+git pull origin main
+git merge --no-ff feature/add-semantic-search-filter
+git push origin main
+
+# Delete feature branch
+git branch -d feature/add-semantic-search-filter
+git push origin --delete feature/add-semantic-search-filter
+```
+
+### Commit Message Template
+
+Use this template for consistent, clear commit messages:
+
+```
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+```
+
+**Types**:
+- `feat`: New feature
+- `fix`: Bug fix
+- `docs`: Documentation changes
+- `style`: Code style changes (formatting, missing semicolons, etc.)
+- `refactor`: Code refactor without feature changes
+- `test`: Adding or updating tests
+- `chore`: Build process, dependencies, tooling
+
+**Scopes** (optional but recommended):
+- `backend`: Agent/FastAPI changes
+- `plugin`: Obsidian plugin changes
+- `docs`: Documentation
+- `test`: Test infrastructure
+- `ci`: CI/CD configuration
+
+**Examples**:
+```bash
+git commit -m "feat(backend): add voice transcription endpoint"
+git commit -m "fix(plugin): resolve UI rendering bug in dark mode"
+git commit -m "docs(api): update API reference with new endpoints"
+git commit -m "test(integration): add end-to-end search tests"
+git commit -m "refactor(performance): optimize cache invalidation logic"
+```
+
+### Handling Merge Conflicts
+
+**Scenario: Merge conflict in agent/backend.py**
+
+```bash
+# Try to merge
+git merge origin/main
+# Conflict in agent/backend.py
+
+# See conflicting files
+git status
+# Both modified: agent/backend.py
+
+# Edit the file to resolve conflict
+# Look for conflict markers:
+# <<<<<<< HEAD
+# your changes
+# =======
+# their changes
+# >>>>>>> origin/main
+
+# After editing, stage the file
+git add agent/backend.py
+
+# Complete the merge
+git commit -m "Merge origin/main into feature branch"
+git push origin feature/branch-name
+```
+
+### Keeping Fork in Sync
+
+```bash
+# Add upstream remote (one-time)
+git remote add upstream https://github.com/UndiFineD/obsidian-ai-assistant.git
+
+# Fetch latest changes
+git fetch upstream main
+
+# Update your main branch
+git checkout main
+git rebase upstream/main
+git push origin main --force-with-lease
+
+# Update feature branches
+git checkout feature/your-feature
+git rebase main
+```
+
+### Code Quality Checklist Before Push
+
+```bash
+# 1. Run tests locally
+python -m pytest tests/ -v
+# All tests should pass
+
+# 2. Check code style
+ruff check agent/
+
+# 3. Security scan
+bandit -r agent/
+
+# 4. Type checking (optional)
+mypy agent/ --ignore-missing-imports
+
+# 5. Review your changes
+git diff origin/main
+
+# Only then push
+git push origin feature/your-feature
+```
 
 ## 🎯 Performance Guidelines
 
