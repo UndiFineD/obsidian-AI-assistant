@@ -408,31 +408,129 @@ Legacy alias for `/api/web`.
 ### Voice Transcription
 
 #### POST /transcribe
-Speech-to-text transcription from base64 audio.
+Speech-to-text transcription from WAV audio file (legacy endpoint, deprecated - use `/api/voice_transcribe`).
 
 **Authentication:** Requires `user` role
 
-**Request Body:**
-```json
-{
-  "audio_data": "base64-encoded-audio-data",
-  "format": "webm",
-  "language": "en"
-}
+**Request**:
+```
+POST /transcribe
+Content-Type: multipart/form-data
+
+file: [binary WAV audio file]
 ```
 
-**Response:**
+**Response (Success 200)**:
 ```json
 {
-  "transcription": "Hello, this is a test transcription",
-  "language": "en",
-  "confidence": 0.95,
-  "processing_time": 2.1
+  "transcription": "Hello, this is a test transcription"
 }
 ```
 
 #### POST /api/voice_transcribe
-Voice transcription endpoint from voice router.
+Convert audio to text using Vosk speech recognition.
+
+**Authentication:** Requires `user` role
+
+**Audio Requirements**:
+- Format: PCM WAV (.wav files)
+- Channels: Mono (1 channel)
+- Sample Rate: 16kHz or 8kHz
+- Bit Depth: 16-bit
+
+**Request**:
+```
+POST /api/voice_transcribe
+Content-Type: multipart/form-data
+
+file: [binary WAV audio file]
+```
+
+**Response (Success 200)**:
+```json
+{
+  "transcription": "the recognized text from audio"
+}
+```
+
+**Response (Format Error 422)**:
+```json
+{
+  "detail": "Audio must be mono PCM WAV with 16kHz or 8kHz sample rate."
+}
+```
+
+**cURL Examples**:
+
+*Basic transcription*:
+```bash
+curl -X POST http://localhost:8000/api/voice_transcribe \
+  -F "file=@audio.wav"
+```
+
+*With verbose output*:
+```bash
+curl -v -X POST http://localhost:8000/api/voice_transcribe \
+  -F "file=@audio.wav"
+```
+
+*Get transcription and save to file*:
+```bash
+curl -X POST http://localhost:8000/api/voice_transcribe \
+  -F "file=@audio.wav" > result.json
+
+# Extract text:
+cat result.json | jq '.transcription'
+```
+
+*Generate test audio and transcribe*:
+```bash
+# Generate 5 seconds of silence as test audio
+ffmpeg -f lavfi -i anullsrc=r=16000:cl=mono -t 5 test_audio.wav
+
+# Transcribe it
+curl -X POST http://localhost:8000/api/voice_transcribe \
+  -F "file=@test_audio.wav"
+```
+
+**Audio Format Conversion**:
+
+Convert MP3 to required WAV format:
+```bash
+# Convert to 16kHz mono WAV
+ffmpeg -i input.mp3 -acodec pcm_s16le -ar 16000 -ac 1 output.wav
+
+# Convert to 8kHz mono WAV
+ffmpeg -i input.mp3 -acodec pcm_s16le -ar 8000 -ac 1 output.wav
+```
+
+Verify audio format:
+```bash
+ffprobe -v error -select_streams a:0 \
+  -show_entries stream=channels,sample_rate,codec_type \
+  -of default=noprint_wrappers=1:nokey=1 output.wav
+```
+
+**Performance Notes**:
+- Processing time depends on audio length and sample rate
+- 10 seconds of 16kHz mono audio typically takes <2 seconds
+- Vosk model initialization on first request may take 1-2 seconds
+- Use `/api/performance/metrics` to monitor
+
+**Error Handling**:
+
+| Error | Cause | Solution |
+|-------|-------|----------|
+| `Audio must be mono PCM WAV` | Wrong format or stereo | Convert with ffmpeg: `-acodec pcm_s16le -ac 1` |
+| `16kHz or 8kHz sample rate` | Wrong sample rate | Resample: `-ar 16000` or `-ar 8000` |
+| `413 Payload Too Large` | File > upload limit | Split audio into smaller chunks |
+| `503 Service Unavailable` | Model not initialized | Check `/health` endpoint |
+| `500 Internal Server Error` | Audio file corrupted | Re-encode audio file |
+
+**Related Endpoints**:
+- `GET /health` - Check service health
+- `GET /api/performance/metrics` - Monitor performance
+- `POST /api/ask` - Ask questions about transcribed text
 
 ## Performance & Monitoring
 

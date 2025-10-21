@@ -170,37 +170,406 @@ def init_services():
 
 ```python
 
-# Architecture: Centralized model lifecycle management
+# Architecture: Centralized model lifecycle management with HF integration
 
-# Responsibility: Model loading, routing, generation, resource management
+# Responsibility: Model loading, routing, generation, resource management, security
 
-# Dependencies: HybridLLMRouter, external AI APIs, local model storage
+# Dependencies: HybridLLMRouter, huggingface_hub, local model storage
 
 class ModelManager:
     """
     AI Model Management Service:
 
-- Multi-model support (OpenAI, Hugging Face, Local)
-
-- Intelligent model routing based on request characteristics
-
-- Resource optimization and memory management
-
-- Model health monitoring and failover
+- Multi-source model support (Hugging Face, Local .gguf/.bin files)
+- Automatic model discovery and initialization
+- Intelligent model routing via HybridLLMRouter
+- Resource optimization with connection pooling (1-3 instances)
+- Model health monitoring and graceful error handling
+- Security: Revision pinning for Hugging Face downloads
+- Environment-based configuration with sensible defaults
     """
 
-    llm_router: HybridLLMRouter
-    model_cache: Dict[str, Any]
-    resource_monitor: ResourceMonitor
+    # Initialization & Configuration
+    models_dir: str = "./models"
+    available_models: Dict[str, str]  # Model name -> Model ID or path
+    loaded_models: Dict[str, Any]     # Model name -> Model instance
+    default_model: str
+    hf_token: Optional[str]
+    llm_router: HybridLLMRouter       # Routing to appropriate model
 
-    async def generate(text: str, **kwargs) -> str:
-        """Primary generation interface with routing."""
+    # Model Lifecycle Management
+    def __init__(
+        self,
+        models_dir: str = "./models",
+        models_file: str = "models.txt",
+        default_model: str = "gpt4all-lora",
+        hf_token: Optional[str] = None,
+        minimal_models: Optional[List[str]] = None,
+        check_interval_hours: int = 24,
+    ):
+        """
+        Initialize ModelManager with smart defaults.
 
-    def list_available_models() -> Dict[str, bool]:
-        """Check model availability and status."""
+        Key Features:
+        - Auto-downloads minimal models on first run (optimized for 2GB VRAM)
+        - Discovers local .gguf and .bin files in models_dir
+        - Configures Hugging Face token from parameter or HF_TOKEN env var
+        - Scheduled model update checks (daily by default)
+        - Graceful fallback if model loading fails
 
-    def get_model_health() -> Dict[str, HealthStatus]:
-        """Monitor model performance and availability."""
+        Environment Variables:
+        - HF_TOKEN: Hugging Face API token (required for gated models)
+        - VOSK_MODEL_PATH: Override for Vosk speech recognition model
+        - SKIP_MODEL_DOWNLOADS: Set to "1" to skip automatic downloads
+
+        Minimal Models (Downloaded by Default):
+        - deepseek-ai/Janus-Pro-1B (1B params, lightweight)
+        - unsloth/Qwen2.5-Omni-3B-GGUF (3B quantized, balanced)
+        - Alternative: ggml-org/Qwen2.5-Omni-3B-GGUF
+        """
+
+    # Model Discovery & Loading
+    def _load_models_file(self, models_file: str) -> Dict[str, str]:
+        """Load available models from models.txt.
+
+        Format (one per line):
+        - org/model-name (for Hugging Face)
+        - local:filename.gguf (for local files)
+        - # Comments start with hash
+
+        Returns:
+        {
+            "model-key": "org/model-name",
+            "deepseek": "deepseek-ai/Janus-Pro-1B"
+        }
+        """
+
+    def _download_minimal_models(self):
+        """Download minimal model set suitable for low-end GPU (2GB VRAM).
+
+        Called automatically on init unless SKIP_MODEL_DOWNLOADS=1.
+        Uses revision='main' with bypass for security checks.
+        Failed downloads are logged but don't block initialization.
+        """
+
+    def _check_and_update_models(self):
+        """Periodically check for model updates (default: daily).
+
+        Stores last check time in .models_dir/.last_model_check.
+        Only runs if check_interval_hours has elapsed.
+        Respects SKIP_MODEL_DOWNLOADS environment variable.
+        """
+
+    # Model Download & Management
+    def download_model(
+        self,
+        model_name: str,
+        *,
+        filename: Optional[str] = None,
+        revision: Optional[str] = "main",
+        max_retries: int = 3,
+    ) -> Dict[str, str]:
+        """Download model from Hugging Face or local storage.
+
+        Security: Requires explicit revision pinning (not 'main')
+        except for automated downloads (_automated_download flag).
+
+        Parameters:
+        - model_name: "org/repo" for HF, or local filepath
+        - revision: Git commit hash, tag, or branch (required for manual downloads)
+        - filename: Specific file in repo to download
+
+        Returns:
+        {"status": "downloaded", "path": "/path/to/model"}
+        or
+        {"status": "error", "error": "error message"}
+
+        Raises:
+        ValueError: If revision not pinned and not automated download
+        """
+
+    def list_available_models(self) -> Dict[str, str]:
+        """List all available models (loaded + discovered).
+
+        Returns: {model_key: model_id_or_path, ...}
+        """
+
+    # Model Routing & Generation
+    def get_model(self, model_name: Optional[str] = None) -> Any:
+        """Get or load specified model (or default if None).
+
+        Uses HybridLLMRouter for intelligent routing.
+        Falls back to default_model if specified model unavailable.
+        Returns None if no models available.
+        """
+
+    def generate(self, prompt: str, model_name: Optional[str] = None, **kwargs) -> str:
+        """Generate text using specified model or routing logic.
+
+        Integrates with HybridLLMRouter for:
+        - Model capability matching
+        - Request complexity assessment
+        - Cost optimization
+        - Fallback selection
+
+        Parameters:
+        - prompt: Input text to generate from
+        - model_name: Optional explicit model selection
+        - **kwargs: Model-specific parameters (temperature, max_tokens, etc.)
+
+        Returns: Generated text
+        """
+
+    # Monitoring & Health
+    def get_model_health(self) -> Dict[str, Dict]:
+        """Get health status of all loaded models.
+
+        Returns: {
+            "model_name": {
+                "status": "healthy" | "degraded" | "unavailable",
+                "loaded": true/false,
+                "last_used": timestamp,
+                "error": null or error message
+            }
+        }
+        """
+
+    # Error Handling & Fallback
+    def _handle_load_failure(self, model_name: str, error: Exception):
+        """Handle graceful fallback when model fails to load.
+
+        Strategy:
+        1. Log error with context (which model, what operation)
+        2. Try fallback to default_model
+        3. If all models fail, continue without model (degraded mode)
+        4. Report via /api/health endpoint
+        """
+```
+
+**Key Concepts**:
+
+**Model Discovery Process**:
+1. Reads `models.txt` for configured models
+2. Auto-discovers local `.gguf` and `.bin` files
+3. Downloads minimal models on first run
+4. Periodically checks for updates (daily by default)
+
+**Model Routing Strategy** (via HybridLLMRouter):
+- Route requests based on model capabilities
+- Match request complexity to model size
+- Optimize cost vs quality tradeoff
+- Fallback to next available model if primary fails
+
+**Resource Management**:
+- Connection pooling: 1-3 model instances per pool
+- Memory optimization: Load models only when needed
+- GPU/CPU affinity: Smart device selection
+- Graceful degradation: Continue without model in failure case
+
+**Security Best Practices**:
+- Revision pinning required for manual downloads (prevent injection attacks)
+- HF_TOKEN from environment or secure settings
+- Model integrity verification
+- Timeout protection for long operations
+
+**Error Handling Patterns**:
+```python
+# Graceful fallback on initialization failure
+try:
+    self.llm_router = HybridLLMRouter()
+except Exception as e:
+    logger.error(f"HybridLLMRouter init failed: {e}")
+    self.llm_router = None  # Continue without router
+
+# Safe model loading with fallback
+model = self.get_model(requested_model) or self.get_model(self.default_model)
+
+# Health monitoring for degraded operation
+if not any(self.loaded_models.values()):
+    logger.warning("No models available - degraded mode")
+```
+
+**Configuration Example**:
+```yaml
+# agent/config.yaml
+model_management:
+  models_dir: "./models"
+  models_file: "models.txt"
+  default_model: "gpt4all-lora"
+  hf_token: "${HF_TOKEN}"  # From environment
+  minimal_models:
+    - "deepseek-ai/Janus-Pro-1B"
+    - "unsloth/Qwen2.5-Omni-3B-GGUF"
+  check_interval_hours: 24
+    skip_downloads: false
+```
+
+#### **`llm_router.py` - Intelligent Model Routing**
+
+```python
+
+# Architecture: Hybrid LLM routing with model capability matching
+
+# Responsibility: Route requests to appropriate models, handle fallbacks
+
+# Dependencies: Model registry, request analyzer, performance monitoring
+
+class HybridLLMRouter:
+    """
+    Intelligent Model Routing Service:
+
+- Request complexity analysis
+- Model capability matching
+- Cost-quality optimization
+- Automatic fallback selection
+- Performance monitoring per model
+- Load balancing across instances
+    """
+
+    model_registry: Dict[str, ModelInfo]       # Available models + capabilities
+    model_performance: Dict[str, PerformanceMetrics]  # Latency, accuracy
+    fallback_chain: List[str]                  # Ordered fallback models
+
+    def select_model(
+        self,
+        request: Request,
+        preferred_model: Optional[str] = None,
+    ) -> str:
+        """Select best model for request.
+
+        Selection Criteria:
+        1. Explicit model requested? → Use if available, fallback if not
+        2. Model not available? → Try next in fallback chain
+        3. All models failed? → Return best available or raise error
+
+        Request Analysis:
+        - Prompt complexity (token count, topic, domain)
+        - Required capabilities (code generation, translation, etc.)
+        - Performance constraints (latency targets, cost limits)
+
+        Returns: Selected model name
+        """
+
+    def rank_models(self, request: Request) -> List[Tuple[str, float]]:
+        """Rank models by suitability for request.
+
+        Score Components:
+        - Capability match (0.0-1.0): Does model support needed features?
+        - Performance fit (0.0-1.0): Does model meet latency/cost targets?
+        - Confidence (0.0-1.0): Recent success rate for similar requests
+
+        Returns: [(model_name, score), ...] sorted by score descending
+        """
+
+    def handle_failure(self, model: str, request: Request) -> Optional[str]:
+        """Fallback logic when model fails.
+
+        Strategy:
+        1. Remove failed model from active set temporarily (1 minute)
+        2. Select next best model from rank_models()
+        3. Log failure for post-analysis
+        4. Increment failure counter for health monitoring
+
+        Returns: Next model to try, or None if all failed
+        """
+
+    def get_routing_stats(self) -> Dict:
+        """Routing statistics for monitoring.
+
+        Returns: {
+            "total_requests": 1250,
+            "models": {
+                "deepseek": {
+                    "selected": 800,
+                    "success_rate": 0.98,
+                    "avg_latency_ms": 245
+                },
+                "gpt4all": {
+                    "selected": 450,
+                    "success_rate": 0.95,
+                    "avg_latency_ms": 180
+                }
+            }
+        }
+        """
+```
+
+**Routing Examples**:
+
+```python
+# 1. Simple request → Use fastest model
+request = Request(prompt="What is 2+2?")
+model = router.select_model(request)  # → "gpt4all" (1.5s latency)
+
+# 2. Complex code generation → Use capable model
+request = Request(
+    prompt="Generate Python async code for...",
+    required_capabilities=["code_generation", "async"]
+)
+model = router.select_model(request)  # → "deepseek" (5s latency, better code)
+
+# 3. Model failure fallback
+request = Request(prompt="...")
+model = router.select_model(request)  # → "deepseek"
+try:
+    response = model.generate(request)
+except Exception:
+    model = router.handle_failure(model, request)  # → "gpt4all" fallback
+    response = model.generate(request)
+```
+
+**Model Pool Integration** (via `performance.py`):
+
+```python
+# Connection pooling: 1-3 model instances per pool
+model_pools = {
+    "deepseek": ModelPool(min_size=1, max_size=3),
+    "gpt4all": ModelPool(min_size=1, max_size=2),
+}
+
+# When request comes in:
+# 1. HybridLLMRouter selects "deepseek"
+# 2. Get available instance from pool (create if needed, max 3)
+# 3. Execute request
+# 4. Return instance to pool
+# 5. Monitor latency and update router stats
+```
+
+#### **`embeddings.py` - Vector Operations**
+
+```python
+
+# Architecture: ChromaDB integration with caching layer
+
+# Responsibility: Document embedding, vector search, similarity computation
+
+# Dependencies: ChromaDB, sentence-transformers, caching system
+
+class EmbeddingsManager:
+    """
+    Vector Database Management:
+
+- Document embedding generation and storage
+
+- Semantic search with relevance scoring
+
+- Vector database optimization and maintenance
+
+- Batch processing for large document sets
+    """
+
+    chroma_client: chromadb.Client
+    embedding_model: SentenceTransformer
+    vector_cache: VectorCache
+
+    async def embed_documents(docs: List[str]) -> List[List[float]]:
+        """Generate embeddings for document chunks."""
+
+    async def search(query: str, top_k: int) -> List[SearchResult]:
+        """Semantic search with relevance ranking."""
+
+    async def add_documents(docs: List[Document]) -> None:
+```
 ```
 
 #### **`embeddings.py` - Vector Operations**

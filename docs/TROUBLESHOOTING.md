@@ -383,30 +383,82 @@ curl -X POST http://localhost:8000/api/search \
 
 ### Error 15: Voice Transcription Fails
 
-**Cause**: Vosk model missing or audio format wrong
+**Cause**: Vosk model missing or audio format/sample rate wrong
 
-**Error Message**:
-```
-RuntimeError: Vosk model not initialized
-ValueError: Unsupported audio format
-```
+**Error Messages**:
+- `RuntimeError: Vosk model not found at ./models/vosk/vosk-model-small-en-us-0.15`
+- `Error: Audio must be mono PCM WAV with 16kHz or 8kHz sample rate`
+- `JSONDecodeError: Cannot parse Vosk response`
 
 **Solution**:
+
+1. **Verify Vosk Model Installed**:
 ```bash
-# Verify Vosk model exists
-ls ./models/vosk/
+# Check if model exists
+ls -la ./models/vosk/vosk-model-small-en-us-0.15/
 
-# If missing, download
-python -c "from agent.voice import VoiceTranscriber; v = VoiceTranscriber()"
+# If missing, download from: https://alphacephei.com/vosk/models
+# Example: vosk-model-small-en-us-0.15.zip
 
-# Use supported format (WebM or WAV)
-curl -X POST http://localhost:8000/api/voice_transcribe \
-  -d '{
-    "audio_data": "base64_encoded_data",
-    "format": "webm",
-    "language": "en"
-  }'
+# Extract to models/vosk/ directory
+unzip vosk-model-small-en-us-0.15.zip -d ./models/vosk/
 ```
+
+2. **Prepare Audio File (Correct Format)**:
+```bash
+# Audio must be:
+# - Mono (single channel)
+# - PCM WAV format
+# - 16kHz or 8kHz sample rate
+
+# Convert audio to required format:
+ffmpeg -i input.mp3 -acodec pcm_s16le -ar 16000 -ac 1 output.wav
+
+# OR for 8kHz:
+ffmpeg -i input.mp3 -acodec pcm_s16le -ar 8000 -ac 1 output.wav
+```
+
+3. **Test Voice Transcription**:
+```bash
+# Upload WAV file for transcription (correct method)
+curl -X POST http://localhost:8000/api/voice_transcribe \
+  -F "file=@/path/to/audio.wav"
+
+# Response:
+# {"transcription": "the transcribed text here"}
+```
+
+4. **Verify Vosk Integration**:
+```bash
+# Check Vosk model loading (Python)
+python << 'EOF'
+from agent.voice import get_vosk_model
+try:
+    model = get_vosk_model()
+    if model:
+        print("✓ Vosk model loaded successfully")
+    else:
+        print("✗ Vosk model is None - check VOSK_MODEL_PATH")
+except RuntimeError as e:
+    print(f"✗ Vosk model error: {e}")
+EOF
+```
+
+5. **Debug Voice Endpoint**:
+```bash
+# Check voice router is registered
+curl http://localhost:8000/docs | grep -i voice
+
+# View endpoint details in OpenAPI spec
+curl http://localhost:8000/openapi.json | jq '.paths | keys | .[] | select(contains("voice"))'
+```
+
+**Common Issues**:
+- ❌ `"Audio must be mono PCM WAV"` → Use `ffmpeg` to convert to mono
+- ❌ `"16kHz or 8kHz sample rate"` → Resample audio: `-ar 16000` or `-ar 8000`
+- ❌ Vosk model not found → Download from Alphacephei or set `VOSK_MODEL_PATH` env var
+- ❌ Large file upload → Audio files should be < 50MB
+- ❌ JSON format not working → Use file upload (`-F "file=@..."`) not JSON body
 
 ---
 
