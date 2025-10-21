@@ -1,9 +1,10 @@
 # 🏗️ **SYSTEM ARCHITECTURE SPECIFICATION**
 
 _Obsidian AI Agent - Technical Architecture Design_
-_Version: 1.0_
-_Date: October 6, 2025_
+_Version: 0.1.35_
+_Date: October 21, 2025_
 _Scope: Complete System Design & Data Flow_
+_Last Updated: v0.1.35 migration (backend/ → agent/, models/ centralized)_
 
 ---
 
@@ -11,8 +12,21 @@ _Scope: Complete System Design & Data Flow_
 
 The Obsidian AI Agent employs a **modular, service-oriented architecture**
 designed for scalability, maintainability, and high performance. The system
-consists of three primary layers: **Frontend Plugin**, **Backend API Services**,
+consists of three primary layers: **Frontend Plugin**, **Backend API Services** (now `agent/` module),
 and **Data Storage Layer**.
+
+### **🔄 v0.1.35 Architecture Changes**
+
+| Component | v0.1.34 | v0.1.35 | Reason |
+|-----------|---------|---------|--------|
+| **Backend Module** | `backend/` | `agent/` | Clearer naming for AI service context |
+| **Models Directory** | `agent/models/` | `./models/` (root) | Centralized, easier management |
+| **Test Count** | ~785 tests | 1,042+ tests | Improved coverage (33% increase) |
+| **Module Structure** | Mixed concerns | Clear separation | Maintainability & testability |
+| **Health Monitoring** | Basic checks | Enhanced + alerts | Proactive issue detection |
+| **Performance SLA** | Guidelines only | Implemented | Production-ready monitoring |
+
+See [.github/copilot-instructions.md](./../.github/copilot-instructions.md) for detailed migration guide.
 
 ### **🏛️ High-Level Architecture**
 
@@ -24,31 +38,32 @@ graph TB
         C[Task Queue Manager]
     end
 
-    subgraph "API Layer"
-        D[FastAPI Application]
+    subgraph "API Layer (agent/)"
+        D["FastAPI<br/>(backend.py)"]
         E[Request Validation]
         F[Response Formatting]
     end
 
-    subgraph "Service Layer"
+    subgraph "Service Layer (agent/)"
         G[ModelManager]
         H[EmbeddingsManager]
         I[VaultIndexer]
         J[CacheManager]
         K[SecurityManager]
+        L[HealthMonitor]
     end
 
     subgraph "Integration Layer"
-        L[HybridLLMRouter]
-        M[Voice Processing]
-        N[Document Processor]
+        M[HybridLLMRouter]
+        N[Voice Processing]
+        O[Document Processor]
     end
 
     subgraph "Data Layer"
-        O[ChromaDB Vector Store]
-        P[File System Cache]
-        Q[Configuration Store]
-        R[Model Storage]
+        P[ChromaDB Vector Store]
+        Q[File System Cache]
+        R[Configuration Store]
+        S["Model Storage<br/>(./models/)"]
     end
 
     A --> D
@@ -57,47 +72,63 @@ graph TB
 
     D --> E
     E --> F
+    F --> L
 
     F --> G
     F --> H
     F --> I
     F --> J
     F --> K
+    L -.Monitoring.-> G
+    L -.Monitoring.-> H
+    L -.Monitoring.-> P
 
-    G --> L
-    H --> O
-    I --> N
-    J --> P
-    K --> Q
+    G --> M
+    H --> P
+    I --> O
+    J --> Q
+    K --> R
 
-    L --> R
-    M --> R
-    N --> O
+    M --> S
+    N --> S
+    O --> P
+    
+    style D fill:#4a90e2
+    style G fill:#4a90e2
+    style H fill:#4a90e2
+    style I fill:#4a90e2
+    style J fill:#4a90e2
+    style K fill:#4a90e2
+    style L fill:#f5a623
 ```
+
+**Key Components**:
+- **Client Layer**: Obsidian plugin, voice input, queue management
+- **API Layer**: FastAPI (agent/backend.py) - HTTP request handling
+- **Service Layer**: Modular services in `agent/` directory with clear separation
+- **Health Monitoring**: Enhanced system health checks with alerts
+- **Data Layer**: Vector DB, caching, config, models (now centralized at `./models/`)
 
 ---
 
 ## 📦 **MODULE SPECIFICATIONS**
 
-### **🚀 Backend Core (`agent/`)**
+### **🚀 Backend Core (`agent/` - formerly `backend/`)**
 
-#### **`backend.py` - FastAPI Application**
+#### **`agent/backend.py` - FastAPI Application**
 
 ```python
-
 # Architecture: Single FastAPI instance with modular endpoints
-
+# Location: agent/backend.py (updated from backend/backend.py in v0.1.35)
 # Responsibility: HTTP request handling, service coordination, error management
-
 # Dependencies: All service modules, Pydantic models, FastAPI framework
 
 class FastAPIApplication:
     """
     Central application controller managing:
-
-- 16 REST API endpoints
-
-- Service lifecycle management
+    - 16 REST API endpoints
+    - Service lifecycle management
+```
 
 - Request/response transformation
 
@@ -1194,6 +1225,184 @@ ArchitectureMetrics = {
         "evidence": "Circuit breakers, retry logic, graceful degradation"
     }
 }
+```
+
+---
+
+## 🔄 **v0.1.35 SERVICE INTERACTIONS & DATA FLOWS**
+
+### **Module Structure (Updated for v0.1.35)**
+
+**Directory Layout**:
+```
+agent/                           # Main service module (formerly backend/)
+├── backend.py                   # FastAPI application entry point
+├── settings.py                  # Pydantic configuration management
+├── modelmanager.py              # AI model lifecycle management
+├── embeddings.py                # Vector search and embeddings
+├── indexing.py                  # Document processing and chunking
+├── voice.py                     # Speech-to-text transcription
+├── performance.py               # Caching, pooling, optimization
+├── security.py                  # Authentication and authorization
+├── health_monitoring.py         # System health checks and alerts
+├── llm_router.py                # Intelligent model selection
+├── enterprise_*.py              # Optional enterprise features
+└── cache/, logs/, vector_db/    # Runtime data directories
+
+./models/                        # Centralized models (NEW in v0.1.35)
+├── gpt4all/                     # LLM models
+├── embeddings/                  # Embedding models
+└── vosk/                        # Voice recognition models
+
+plugin/                          # Obsidian plugin
+├── main.js                      # Plugin entry point
+├── backendClient.js             # API communication layer
+├── manifest.json                # Plugin metadata
+└── styles.css                   # UI styling
+```
+
+### **Request Flow Example: Semantic Search**
+
+```
+User Query (Plugin) 
+    ↓
+plugin/main.js sends POST /api/search
+    ↓
+agent/backend.py routes to search_endpoint()
+    ↓
+agent/embeddings.py:
+  1. Embed query text → vector (using EmbeddingsManager)
+  2. Search ChromaDB with similarity threshold
+  3. Return top-k results with scores
+    ↓
+agent/performance.py:
+  1. Cache results for quick lookup
+  2. Update metrics (response time, cache hit)
+  3. Log search operation
+    ↓
+Backend returns JSON response
+    ↓
+plugin/backendClient.js displays results in Obsidian
+```
+
+### **Critical Data Paths (v0.1.35)**
+
+**Path 1: Document Indexing**
+```
+Vault Files → indexing.py (chunking) → embeddings.py (vectors) 
+  → ChromaDB (./agent/vector_db/) → search cache (./agent/cache/)
+```
+
+**Path 2: Model Loading**
+```
+./models/gpt4all/*.gguf → modelmanager.py → connection pool 
+  → inference → response cache → client
+```
+
+**Path 3: Configuration**
+```
+Environment Variables → agent/settings.py (Pydantic) 
+  → agent/config.yaml (YAML file) → Runtime config
+```
+
+**Path 4: Health Monitoring**
+```
+Service status checks (async) → health_monitoring.py 
+  → metrics aggregation → alert generation → logging
+```
+
+### **Service Dependencies**
+
+**Direct Dependencies**:
+```
+backend.py 
+  ├── settings.py (configuration)
+  ├── modelmanager.py (AI models)
+  ├── embeddings.py (vector search)
+  ├── indexing.py (document processing)
+  ├── voice.py (speech-to-text)
+  ├── performance.py (caching/pooling)
+  ├── security.py (auth)
+  └── health_monitoring.py (monitoring)
+
+embeddings.py 
+  ├── performance.py (caching)
+  └── ChromaDB (vector store)
+
+performance.py
+  ├── settings.py (configuration)
+  └── Cache backends (memory/disk/Redis)
+```
+
+**No Circular Dependencies**: Services follow hierarchical pattern
+- Backend coordinates all services
+- Services are independent and testable
+- Dependencies flow downward only
+
+### **Performance Architecture (v0.1.35)**
+
+**Multi-Level Caching**:
+```
+L1 Cache (Memory)        - <1ms response
+  ↓ (miss)
+L2 Cache (Disk)          - <10ms response
+  ↓ (miss)
+L3 Cache (Persistent)    - <50ms response
+  ↓ (miss)
+L4 Cache (Vector DB)     - <200ms response
+  ↓ (miss)
+Fresh Computation        - <2s response
+```
+
+**Connection Pooling**:
+```
+Model Pool:          1-3 instances (configurable)
+Vector DB Pool:      Up to 5 connections
+Cache Pool:          Automatic (memory permitting)
+```
+
+**Async Task Queue**:
+```
+High Priority:  Cache warm-up, user requests
+Medium Priority: Background indexing
+Low Priority:   Optimization, cleanup
+```
+
+### **Monitoring & Observability (v0.1.35)**
+
+**Health Checks**:
+```
+GET /health          - <100ms (lightweight)
+GET /api/health      - <200ms (detailed services)
+GET /api/health/detailed - <500ms (full metrics)
+```
+
+**Metrics Tracked**:
+```
+Performance Metrics:
+  - Cache hit/miss rates (L1-L4)
+  - Response times (p50, p95, p99)
+  - Throughput (requests/minute)
+  - Queue depth and latency
+
+System Metrics:
+  - CPU usage (%)
+  - Memory usage (%)
+  - Disk usage (%)
+  - Connection counts
+
+Service Metrics:
+  - Model availability
+  - Embeddings latency
+  - Vector DB health
+  - Index size
+```
+
+**Alerts & Thresholds**:
+```
+CPU:     70% (warning) → 85% (error) → 95% (critical)
+Memory:  75% (warning) → 90% (error) → 95% (critical)
+Disk:    80% (warning) → 90% (error) → 95% (critical)
 ```
 
 ---
