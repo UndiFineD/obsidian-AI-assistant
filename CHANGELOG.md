@@ -1,3 +1,9 @@
+## v0.1.32 (2025-10-21)
+
+- **OpenSpec Change**: reorganize-models-directory
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
 # 📝 CHANGELOG
 ## v0.1.32 (2025-10-21)
 
