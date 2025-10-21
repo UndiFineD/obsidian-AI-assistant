@@ -1,3 +1,9 @@
+## v0.1.34 (2025-10-21)
+
+- **OpenSpec Change**: modularize-agent
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.33 (2025-10-21)
 
 - **OpenSpec Change**: modular-api-structure
