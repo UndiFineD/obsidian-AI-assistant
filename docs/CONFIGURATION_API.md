@@ -604,26 +604,238 @@ URLs or '*'"
 ```json
 {
   "status": "error",
-  "message": "Validation failed for ssl_certfile: Invalid SSL certificate file: /nonexistent/cert.pem. Must exist and
-have .pem, .crt, or .cert extension"
+  "message": "Validation failed for ssl_certfile: Invalid SSL certificate file: /nonexistent/cert.pem. Must exist and have .pem, .crt, or .cert extension"
+}
+```
+
+## Complete Configuration Examples
+
+### Development Environment (Localhost)
+
+```yaml
+# Development: Fast iteration, verbose logging, relaxed security
+api_port: 8000
+allow_network: false
+continuous_mode: false
+cors_allowed_origins:
+  - "https://localhost:3000"
+  - "https://localhost:8080"
+csrf_enabled: true
+
+# Logging (verbose)
+log_level: DEBUG
+log_format: text
+log_include_pii: false
+log_console_enabled: true
+log_file_enabled: true
+log_audit_enabled: true
+log_security_enabled: true
+log_performance_enabled: true
+
+# Security (relaxed for development)
+security_level: "minimal"
+session_timeout_hours: 720  # 30 days
+session_idle_timeout_hours: 24
+require_mfa: false
+jwt_expiry_hours: 168  # 1 week
+
+# Model (lightweight, CPU OK)
+model_backend: "llama_cpp"
+gpu: false  # CPU OK for development
+top_k: 5
+chunk_size: 400
+chunk_overlap: 100
+similarity_threshold: 0.8
+
+# File validation (permissive)
+file_validation_enabled: true
+pdf_max_size_mb: 500
+audio_max_size_mb: 200
+text_max_size_mb: 100
+```
+
+### Production Environment (HTTPS, Hardened)
+
+```yaml
+# Production: HTTPS, strict security, balanced logging
+api_port: 8000
+allow_network: true
+continuous_mode: true
+cors_allowed_origins:
+  - "https://app.example.com"
+  - "https://api.example.com"
+csrf_enabled: true
+
+# Logging (balanced)
+log_level: INFO  # Not DEBUG (less overhead)
+log_format: structured  # JSON for log aggregation
+log_console_enabled: false  # Not to stdout
+log_file_enabled: true  # Persistent storage
+log_audit_enabled: true  # Required for compliance
+log_security_enabled: true
+log_performance_enabled: false  # Reduce overhead
+log_max_file_size: 104857600  # 100MB
+log_backup_count: 10
+log_cleanup_days: 90  # Keep 3 months
+
+# Security (strict)
+security_level: "enhanced"  # High security
+session_timeout_hours: 24  # Daily re-auth
+session_idle_timeout_hours: 2
+max_sessions_per_user: 3
+api_key_rate_limit: 100
+threat_detection_enabled: true
+behavioral_analysis_enabled: true
+request_signing_enabled: true
+security_headers_enabled: true
+
+# Authentication (strong)
+jwt_expiry_hours: 24  # Daily refresh
+password_min_length: 12  # Strong passwords
+require_mfa: true  # All users
+
+# Model (quality over speed)
+model_backend: "llama_cpp"
+gpu: true  # Use GPU for performance
+top_k: 10
+chunk_size: 1000
+chunk_overlap: 200
+similarity_threshold: 0.75
+
+# File validation (restrictive)
+file_validation_enabled: true
+pdf_max_size_mb: 50
+audio_max_size_mb: 25
+text_max_size_mb: 10
+archive_max_size_mb: 100
+
+# SSL/TLS (required)
+ssl_certfile: "/etc/ssl/certs/app.crt"
+ssl_keyfile: "/etc/ssl/private/app.key"
+```
+
+### Minimal Setup (Low-Resource Environments)
+
+```yaml
+# Minimal: 2GB VRAM, CPU, low bandwidth
+api_port: 8000
+allow_network: false
+cors_allowed_origins:
+  - "https://localhost:3000"
+
+# Logging (minimal)
+log_level: WARNING  # Only warnings and errors
+log_format: text
+log_console_enabled: true
+log_file_enabled: false  # No disk I/O
+log_audit_enabled: false  # Skip audit
+log_performance_enabled: false  # No overhead
+
+# Security (balanced)
+security_level: "minimal"
+threat_detection_enabled: false  # Too much overhead
+behavioral_analysis_enabled: false
+request_signing_enabled: false
+
+# Model (lightweight)
+model_backend: "llama_cpp"
+gpu: false  # CPU only
+top_k: 3  # Minimal search
+chunk_size: 300  # Small chunks
+chunk_overlap: 50
+similarity_threshold: 0.85  # Strict
+
+# File validation (permissive)
+file_validation_enabled: true
+pdf_max_size_mb: 20
+audio_max_size_mb: 10
+text_max_size_mb: 5
+```
+
+## Configuration Precedence
+
+Settings are loaded in this order (later overrides earlier):
+
+1. **Code Defaults** - Built-in defaults in `agent/settings.py`
+2. **Configuration File** - `agent/config.yaml` (if present)
+3. **Environment Variables** - Prefixed with `AGENT_` (e.g., `AGENT_GPU=false`)
+4. **API Updates** - Runtime updates via `/api/config` endpoint (in-memory only)
+
+## Security Configuration Presets
+
+| Aspect | minimal | standard | enhanced | maximum |
+|--------|---------|----------|----------|---------|
+| Session Timeout | 1 month | 1 day | 1 day | 8 hours |
+| Idle Timeout | 24 hours | 2 hours | 1 hour | 30 min |
+| Password Min Length | 6 | 8 | 12 | 16 |
+| Require MFA | No | No | Yes | Yes |
+| Threat Detection | No | No | Yes | Yes |
+| Request Signing | No | No | No | Yes |
+
+## Model Selection by Hardware
+
+| VRAM | CPU | Recommended | Backend |
+|------|-----|-------------|---------|
+| 2GB | 2+ | Janus-Pro-1B | llama_cpp |
+| 4GB | 4+ | Qwen-3B | llama_cpp |
+| 8GB | 8+ | Mistral-7B | llama_cpp |
+| 16GB | 16+ | Qwen-32B | llama_cpp |
+| 24GB+ | 32+ | LLaMA-2-70B | llama_cpp |
+
+## Troubleshooting
+
+### Settings Not Persisting After Restart
+
+**Problem**: Changes via `/api/config` don't survive restart
+
+**Solution**: Use `agent/config.yaml` for persistent config, then restart:
+```bash
+# Edit agent/config.yaml with desired settings
+# Restart the backend
+python -m uvicorn agent.backend:app
+```
+
+### High Memory Usage
+
+**Solutions**:
+1. Reduce `chunk_size` (smaller chunks)
+2. Set `gpu: false` if GPU not needed
+3. Disable `log_performance_enabled` to reduce logging overhead
+
+### Slow Search/Generation
+
+**Solutions**:
+1. Enable `gpu: true` (if available)
+2. Reduce `chunk_size`
+3. Switch to faster model
+4. Reduce `similarity_threshold`
+
+### CORS Errors in Browser
+
+**Problem**: "CORS error" in browser console
+
+**Solution**: Add your frontend URL:
+```json
+{
+  "cors_allowed_origins": ["https://yourapp.example.com"]
 }
 ```
 
 ## Best Practices
 
-1. **Environment Variables**: Use environment variables for sensitive settings (JWT_SECRET_KEY, CSRF_SECRET)
-2. **Configuration Files**: Use `agent/config.yaml` for persistent configuration
-3. **API Updates**: Use `/api/config` for runtime updates during development/testing
-4. **Security**: Never disable security features in production
-5. **Validation**: Always validate SSL file paths before deployment
-6. **CORS**: Use specific origins instead of wildcard in production
-7. **Logging**: Enable audit and security logging for compliance
-8. **Backups**: Keep backups of config.yaml before making changes
+1. **Environment Variables**: Use for sensitive settings (JWT_SECRET_KEY, CSRF_SECRET)
+2. **Persistent Config**: Use `agent/config.yaml` for production settings
+3. **API Updates**: Use `/api/config` for development/testing only
+4. **Never Disable**: Don't disable security features in production
+5. **Validate SSL**: Always verify SSL certificate paths before deployment
+6. **Specific CORS**: Use specific domains instead of wildcard
+7. **Enable Auditing**: Enable audit/security logging for compliance
+8. **Document Changes**: Keep backup of config.yaml and document changes
 
 ## See Also
 
-- [Backend API Documentation](./spec.md)
-- [Security Specification](./SECURITY_SPECIFICATION.md)
+- [Backend API Documentation](./API_REFERENCE.md)
+- [System Architecture](./SYSTEM_ARCHITECTURE_SPECIFICATION.md)
 - [Deployment Guide](./DEPLOYMENT_SPECIFICATION.md)
-- [Performance Configuration](./PERFORMANCE_REQUIREMENTS_SPECIFICATION.md)
+- [Security Specification](./SECURITY_SPECIFICATION.md)
 
