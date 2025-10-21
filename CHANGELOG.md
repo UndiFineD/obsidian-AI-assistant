@@ -1,3 +1,9 @@
+## v0.1.33 (2025-10-21)
+
+- **OpenSpec Change**: modular-api-structure
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.32 (2025-10-21)
 
 - **OpenSpec Change**: reorganize-models-directory
@@ -5,6 +11,14 @@
 - _Released as part of OpenSpec workflow automation._
 
 # 📝 CHANGELOG
+## v0.1.33 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.33 (2025-10-21)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.32 (2025-10-21)
 
 - _Released as part of OpenSpec workflow automation._
