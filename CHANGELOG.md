@@ -1,3 +1,9 @@
+## v0.1.36 (2025-10-22)
+
+- **OpenSpec Change**: cleanup-organize-docs
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.35 (2025-10-21)
 
 - **OpenSpec Change**: cleanup-organize-docs
