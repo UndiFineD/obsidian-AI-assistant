@@ -86,6 +86,14 @@
 
 - _Released as part of OpenSpec workflow automation._
 
+## v0.1.38 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.37 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.37 (2025-10-22)
 
 - _Released as part of OpenSpec workflow automation._

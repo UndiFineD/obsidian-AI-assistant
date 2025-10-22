@@ -1,9 +1,9 @@
-# TODO: Documentation Cleanup & Organization
+# TODO: Phase 2 Option 2: Improve Testing & Quality
 
 ## Change Information
-- **Change ID**: `cleanup-organize-docs`
+- **Change ID**: `phase2-option2-improve-testing`
 - **Created**: 2025-10-22
-- **Owner**: Documentation & Project Management
+- **Owner**: QA & Engineering Team
 - **Status**: In Progress
 
 ---
@@ -35,14 +35,14 @@
     - [ ] Security/privacy review
     - [ ] Performance requirements defined
 
-- [x] **4. Task Breakdown**
+- [ ] **4. Task Breakdown**
     - [ ] Create `tasks.md`
     - [ ] Break down into actionable tasks
     - [ ] Define task dependencies
     - [ ] Estimate effort for each task
     - [ ] Assign tasks (if team project)
 
-- [x] **5. Test Definition**
+- [ ] **5. Test Definition**
     - [ ] Create `test_plan.md`
     - [ ] Define unit tests
     - [ ] Define integration tests
@@ -56,14 +56,14 @@
     - [ ] Update CI/CD configuration
     - [ ] Document new tooling
 
-- [x] **7. Implementation**
+- [ ] **7. Implementation**
     - [ ] Implement backend changes
     - [ ] Implement plugin changes
     - [ ] Implement test changes
     - [ ] Code review completed
     - [ ] All tasks from tasks.md completed
 
-- [x] **8. Test Run & Validation**
+- [ ] **8. Test Run & Validation**
     - [ ] Run unit tests (`python -m pytest tests/ -v`)
     - [ ] Run integration tests
     - [ ] Run security scans (`bandit`)
@@ -104,12 +104,12 @@
 
 ## Artifacts Created
 
-- [ ] `openspec/changes/cleanup-organize-docs/todo.md` (this file)
-- [ ] `openspec/changes/cleanup-organize-docs/proposal.md`
-- [ ] `openspec/changes/cleanup-organize-docs/spec.md`
-- [ ] `openspec/changes/cleanup-organize-docs/tasks.md`
-- [ ] `openspec/changes/cleanup-organize-docs/test_plan.md`
-- [ ] `openspec/changes/cleanup-organize-docs/retrospective.md`
+- [ ] `openspec/changes/phase2-option2-improve-testing/todo.md` (this file)
+- [ ] `openspec/changes/phase2-option2-improve-testing/proposal.md`
+- [ ] `openspec/changes/phase2-option2-improve-testing/spec.md`
+- [ ] `openspec/changes/phase2-option2-improve-testing/tasks.md`
+- [ ] `openspec/changes/phase2-option2-improve-testing/test_plan.md`
+- [ ] `openspec/changes/phase2-option2-improve-testing/retrospective.md`
 - [ ] Test files in `tests/`
 - [ ] Documentation updates in `docs/`
 - [ ] Code changes in `agent/` and/or `plugin/`
