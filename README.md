@@ -1,6 +1,6 @@
 # Obsidian AI Agent
 
-> **Version:** 0.1.36 (Unreleased)
+> **Version:** 0.1.37 (Unreleased)
 
 [![CI](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml)
@@ -17,25 +17,28 @@
 ## 📚 Documentation Structure
 
 **Key Documentation:**
-- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - Start here! Quick overview
-- **[PROJECT_COMPLETION_INDEX.md](PROJECT_COMPLETION_INDEX.md)** - Master documentation index
-- **[docs/README.md](docs/README.md)** - Comprehensive topic navigation
-- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Full documentation master index
-- **[openspec/archive/README.md](openspec/archive/README.md)** - Historical archive guide
+- **[docs/README.md](docs/README.md)** - Comprehensive topic navigation - START HERE!
 - **[.github/copilot-instructions.md](.github/copilot-instructions.md)** - Architecture & v0.1.35 migration guide
+- **[docs/guides/](docs/guides/)** - Comprehensive guides and tutorials
+- **[docs/reference/](docs/reference/)** - Reference materials and analysis
+- **[docs/architecture/](docs/architecture/)** - Technical architecture documentation
+- **[docs/production/](docs/production/)** - Production deployment guides
 
-**Architecture Updates (v0.1.35):**
-- ✅ Module structure: `backend/` → `agent/` (see [Architecture Migration Notes](.github/copilot-instructions.md#architecture-migration-notes-v0134--v0135))
+**Architecture Updates (v0.1.35+):**
+- ✅ Module structure: `backend/` → `agent/` (see [.github/copilot-instructions.md](.github/copilot-instructions.md))
 - ✅ Models directory: Centralized to `./models/` at root level
 - ✅ All service patterns updated for improved modularity
 - ✅ 100% backward compatible with existing configurations
 
-**Recent Consolidation (Oct 20, 2025):**
-- ✅ Consolidated 10 meta-documents into core essential docs
-- ✅ Archived 45 historical documents to `openspec/archive/`
-- ✅ Reduced active docs/ folder by 59.8% (55 files)
-- ✅ 100% content preservation, 0 errors
-- See [PROJECT_COMPLETION_INDEX.md](PROJECT_COMPLETION_INDEX.md) for details
+**Recent Consolidation (Oct 20-22, 2025):**
+- ✅ Reorganized documentation into structured docs/ directory (Oct 22)
+- ✅ Created docs/ with 6 subdirectories for better organization
+- ✅ Moved 50+ reference files to appropriate docs/ subdirectories
+- ✅ Moved 40+ status and completion documentation to docs/historical/
+- ✅ Cleaned root directory: 100+ files → ~15 essential files
+- ✅ Updated README.md with documentation navigation
+- ✅ Created docs/README.md with comprehensive navigation guide
+- See [docs/README.md](docs/README.md) for details
 
 ---
 
@@ -678,46 +681,35 @@ similarity_threshold: 0.8    # Higher threshold = fewer results
 
 ### Finding What You Need
 
-**For a quick overview:**
-- **[QUICK_START_GUIDE.md](QUICK_START_GUIDE.md)** - 5-minute overview
+**Quick Start:**
+- **[docs/getting-started/](docs/getting-started/)** - Get started in 5 minutes
 
 **For complete documentation:**
-- **[docs/README.md](docs/README.md)** - Topic-based navigation
-- **[DOCUMENTATION.md](DOCUMENTATION.md)** - Full index with links
+- **[docs/README.md](docs/README.md)** - Topic-based navigation (START HERE)
+- **[docs/guides/](docs/guides/)** - Guides and tutorials
 
 **For API details:**
 - **[docs/API_REFERENCE.md](docs/API_REFERENCE.md)** - Complete API documentation
-- **[docs/CONFIGURATION_API.md](docs/CONFIGURATION_API.md)** - Runtime configuration
+- **[docs/reference/](docs/reference/)** - Reference materials
+
+**For technical info:**
+- **[docs/architecture/](docs/architecture/)** - Architecture documentation
+- **[docs/production/](docs/production/)** - Production guides
 
 **For reference materials:**
-- **[docs/SYSTEM_ARCHITECTURE_SPECIFICATION.md](docs/SYSTEM_ARCHITECTURE_SPECIFICATION.md)** - Architecture deep dive
-- **[docs/PROJECT_SPECIFICATION.md](docs/PROJECT_SPECIFICATION.md)** - Project overview
-- **[docs/ENTERPRISE_FEATURES_SPECIFICATION.md](docs/ENTERPRISE_FEATURES_SPECIFICATION.md)** - Enterprise options
-
-**For history:**
-- **[openspec/archive/README.md](openspec/archive/README.md)** - Historical archive guide
-- See `openspec/archive/` for 45 archived historical documents
-
-### Documentation Archive
-
-On October 20, 2025, the documentation was reorganized:
-
-- **55 files removed** from active docs/ (-59.8%)
-- **45 files archived** to `openspec/archive/` (organized by category)
-- **10 consolidations** merged into core documents
-- **100% content preserved** with zero errors
-
-The archive maintains complete project history while keeping active documentation clean and focused.
+- **[docs/reference/](docs/reference/)** - Task analysis and technical references
+- **[docs/historical/](docs/historical/)** - Historical documents and archives
 
 ---
 
 ## Troubleshooting
 
 ### Quick Links
-- **[Complete Troubleshooting Guide](TROUBLESHOOTING.md)** - 20+ error solutions with debug tips
+- **[docs/production/](docs/production/)** - Troubleshooting and production guides
+- **[docs/guides/](docs/guides/)** - Comprehensive solution guides
 - **[Health Check Guide](#health-checks)** - Verify your installation
 - **[Performance Troubleshooting](#performance-optimization)** - Optimize response times
-- **[Architecture Migration Guide](.github/copilot-instructions.md#architecture-migration-notes-v0134--v0135)** - v0.1.34 → v0.1.35 changes
+- **[Architecture Guide](.github/copilot-instructions.md)** - Architecture, migration guide, and development patterns
 
 ### Common Issues
 
@@ -838,33 +830,31 @@ gpu_layers: 20  # Load fewer layers to GPU
 ### Quick Navigation by Role
 
 **For Users & Developers (5 min start)**
-- [SETUP_README.md](docs/SETUP_README.md) - Installation and first run
-- [CONTRIBUTING.md](docs/CONTRIBUTING.md) - How to contribute
-- [API_REFERENCE.md](docs/API_REFERENCE.md) - API endpoints and usage
+- [docs/getting-started/](docs/getting-started/) - Installation and first run
+- [docs/guides/](docs/guides/) - How to use and contribute
+- [docs/API_REFERENCE.md](docs/API_REFERENCE.md) - API endpoints and usage
 
 **For Architects & Planners**
-- [PROJECT_CONSTITUTION.md](docs/PROJECT_CONSTITUTION.md) - Governance and principles
-- [SYSTEM_ARCHITECTURE_SPECIFICATION.md](docs/SYSTEM_ARCHITECTURE_SPECIFICATION.md) - System design
-- [DEPLOYMENT_SPECIFICATION.md](docs/DEPLOYMENT_SPECIFICATION.md) - Deployment guide
+- [docs/architecture/](docs/architecture/) - System architecture documentation
+- [docs/reference/](docs/reference/) - System design and specifications
 
 **For Security & Operations**
-- [SECURITY_SPECIFICATION.md](docs/SECURITY_SPECIFICATION.md) - Security framework
-- [HEALTH_MONITORING.md](docs/HEALTH_MONITORING.md) - Monitoring and alerts
-- [PERFORMANCE_REQUIREMENTS_SPECIFICATION.md](docs/PERFORMANCE_REQUIREMENTS_SPECIFICATION.md) - SLAs and targets
+- [docs/production/](docs/production/) - Production deployment and operations
+- [docs/reference/](docs/reference/) - Security and performance guides
 
 **For Testing & Quality**
-- [TESTING_GUIDE.md](docs/TESTING_GUIDE.md) - Testing procedures
-- [TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md](docs/TEST_COVERAGE_IMPROVEMENTS_OCTOBER_2025.md) - Latest coverage report
+- [docs/reference/](docs/reference/) - Test coverage and quality reports
+- [docs/guides/](docs/guides/) - Testing and validation procedures
 
 ### Documentation Categories
 
-**Core Foundation** (6 docs):
-- PROJECT_CONSTITUTION.md - Governance, roles, and decision-making
-- SYSTEM_ARCHITECTURE_SPECIFICATION.md - Technical architecture overview
-- SETUP_README.md - Installation and setup instructions
-- CONTRIBUTING.md - Contribution guidelines
-- API_REFERENCE.md - Complete API endpoint reference
-- SECURITY_SPECIFICATION.md - Security framework and practices
+**Available Sections:**
+- **getting-started/** - Quick start guides
+- **guides/** - Tutorials and how-to guides
+- **architecture/** - Technical architecture and design
+- **reference/** - API reference, specifications, and analysis
+- **production/** - Deployment, operations, and troubleshooting
+- **historical/** - Historical documents and archives
 
 **Operational** (5 docs):
 - DEPLOYMENT_SPECIFICATION.md - Secure deployment procedures
