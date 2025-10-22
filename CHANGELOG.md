@@ -1,3 +1,15 @@
+### Documentation Cleanup
+- [DONE] Reorganized documentation into structured docs/ directory
+- [DONE] Created docs/ with 6 subdirectories for better organization
+- [DONE] Moved 15+ reference files to appropriate docs/ subdirectories
+- [DONE] Removed 20+ celebration, status, and redundant files from root
+- [DONE] Cleaned root directory (30+ files > ~10 essential files)
+- [DONE] Updated README.md with documentation navigation
+- [DONE] Created docs/README.md with comprehensive navigation guide
+- [DONE] Preserved all deleted content in git history
+
+**Impact**: 67% reduction in root clutter, improved documentation findability
+
 ## v0.1.36 (2025-10-22)
 
 - **OpenSpec Change**: cleanup-organize-docs
@@ -64,6 +76,30 @@
 - _Released as part of OpenSpec workflow automation._
 
 # 📝 CHANGELOG
+## v0.1.37 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.37 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.36 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.37 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.36 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
+## v0.1.37 (2025-10-22)
+
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.36 (2025-10-22)
 
 - _Released as part of OpenSpec workflow automation._

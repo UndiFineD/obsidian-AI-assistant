@@ -131,6 +131,43 @@ def derive_title_from_change_id(change_id: str) -> str:
     return " ".join(word.capitalize() for word in change_id.split("-"))
 
 
+def extract_metadata_from_proposal(proposal_path: Path) -> tuple[Optional[str], Optional[str]]:
+    """
+    Extract title and owner from existing proposal.md file.
+    
+    Args:
+        proposal_path: Path to proposal.md file
+        
+    Returns:
+        Tuple of (title, owner) or (None, None) if not found
+    """
+    if not proposal_path.exists():
+        return None, None
+    
+    try:
+        content = proposal_path.read_text(encoding='utf-8')
+        
+        # Extract title from first heading or Change ID context
+        title = None
+        owner = None
+        
+        for line in content.split('\n'):
+            if line.startswith('# '):
+                title = line.replace('# ', '').strip()
+                break
+        
+        # Extract owner from metadata section
+        for line in content.split('\n'):
+            if line.startswith('**Owner**:'):
+                owner = line.replace('**Owner**:', '').strip()
+                break
+        
+        return title, owner
+    except Exception as e:
+        helpers.write_warning(f"Could not extract metadata from proposal: {e}")
+        return None, None
+
+
 def prompt_for_missing_info(
     change_id: str,
     title: Optional[str],
@@ -139,8 +176,14 @@ def prompt_for_missing_info(
 ) -> tuple[str, str, str]:
     """Interactively prompt for title/owner/template if missing, with sensible defaults."""
     # Note: Keep prompts minimal and safe for non-interactive environments
-    derived_title = title or derive_title_from_change_id(change_id)
-    detected_owner = owner or get_git_user()
+    
+    # Try to extract from existing proposal first
+    change_path = CHANGES_DIR / change_id
+    proposal_path = change_path / "proposal.md"
+    proposal_title, proposal_owner = extract_metadata_from_proposal(proposal_path)
+    
+    derived_title = title or proposal_title or derive_title_from_change_id(change_id)
+    detected_owner = owner or proposal_owner or get_git_user()
 
     # Suggest template based on change_id keywords
     suggested_template = "default"
@@ -164,6 +207,11 @@ def prompt_for_missing_info(
         for keyword in ["feature", "add", "new", "implement"]
     ):
         suggested_template = "feature"
+
+    # Skip prompts if we have valid title and owner (e.g., from existing proposal)
+    if proposal_title and proposal_owner:
+        # Already have metadata from proposal, no need to prompt
+        return derived_title, detected_owner, suggested_template
 
     try:
         print()
