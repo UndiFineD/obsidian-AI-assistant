@@ -1,6 +1,6 @@
 # Obsidian AI Agent
 
-> **Version:** 0.1.35 (Unreleased)
+> **Version:** 0.1.36 (Unreleased)
 
 [![CI](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/ci.yml)
 [![Backend Tests](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml/badge.svg)](https://github.com/UndiFineD/obsidian-ai-agent/actions/workflows/test-backend.yml)
