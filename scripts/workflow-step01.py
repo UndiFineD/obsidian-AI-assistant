@@ -2,8 +2,10 @@
 """Step 1: Version
 
 HARD REQUIREMENT: Always increments patch version (like PowerShell workflow).
-Updates package.json, pyproject.toml, CHANGELOG.md, README.md, creates/checks
-out versioned branch, and persists new_version to .workflow_state.json.
+Updates agent/__init__.py, creates/checks out versioned branch, and persists 
+new_version to .workflow_state.json.
+
+Does NOT update CHANGELOG.md or README.md - those are not part of version detection.
 """
 
 import importlib.util
@@ -71,62 +73,6 @@ def _mark_complete(change_path: Path) -> None:
     updated = content.replace("[ ] **1.", "[x] **1.")
     if updated != content:
         helpers.set_content_atomic(todo, updated)
-
-
-def _update_changelog(changelog: Path, new_version: str, dry_run: bool = False) -> bool:
-    """Update CHANGELOG.md with new version entry."""
-    try:
-        if not changelog.exists():
-            return False
-
-        content = changelog.read_text(encoding="utf-8")
-        today = datetime.utcnow().strftime("%Y-%m-%d")
-
-        # Insert new version section after the header
-        header_match = re.search(r"(# 📝 CHANGELOG\n)", content)
-        if not header_match:
-            helpers.write_warning("Could not find CHANGELOG header")
-            return False
-
-        new_entry = f"## v{new_version} ({today})\n\n- _Released as part of OpenSpec workflow automation._\n\n"
-        updated = (
-            content[: header_match.end()] + new_entry + content[header_match.end() :]
-        )
-
-        if not dry_run:
-            changelog.write_text(updated, encoding="utf-8")
-        return True
-    except Exception as e:
-        helpers.write_warning(f"Failed to update CHANGELOG.md: {e}")
-        return False
-
-
-def _update_readme_version(
-    readme: Path, new_version: str, dry_run: bool = False
-) -> bool:
-    """Update README.md version line."""
-    try:
-        if not readme.exists():
-            return False
-
-        content = readme.read_text(encoding="utf-8")
-        # Update version line: > **Version:** X.Y.Z (status)
-        updated = re.sub(
-            r"> \*\*Version:\*\* [\d.]+[^\n]*",
-            f"> **Version:** {new_version} (Unreleased)",
-            content,
-        )
-
-        if updated == content:
-            helpers.write_warning("README.md version line not found or unchanged")
-            return False
-
-        if not dry_run:
-            readme.write_text(updated, encoding="utf-8")
-        return True
-    except Exception as e:
-        helpers.write_warning(f"Failed to update README.md: {e}")
-        return False
 
 
 def _get_current_branch() -> str:
@@ -216,9 +162,6 @@ def invoke_step1(
 
     pyproject = PROJECT_ROOT / "pyproject.toml"
     package_json = PROJECT_ROOT / "package.json"
-    changelog = PROJECT_ROOT / "CHANGELOG.md"
-    readme = PROJECT_ROOT / "README.md"
-
     py_ver = _read_pyproject_version(pyproject) if pyproject.exists() else None
     js_ver = _read_package_json_version(package_json) if package_json.exists() else None
 
@@ -257,22 +200,6 @@ def invoke_step1(
     except Exception as e:
         helpers.write_error(f"Version bump failed: {e}")
         return False
-
-    # Update CHANGELOG.md
-    if new_version:
-        helpers.write_info("Updating CHANGELOG.md...")
-        if _update_changelog(changelog, new_version, dry_run):
-            helpers.write_info("  ✅ CHANGELOG.md updated")
-        else:
-            helpers.write_warning("  ❌ Failed to update CHANGELOG.md")
-
-    # Update README.md version line
-    if new_version:
-        helpers.write_info("Updating README.md...")
-        if _update_readme_version(readme, new_version, dry_run):
-            helpers.write_info("  ✅ README.md updated")
-        else:
-            helpers.write_warning("  ❌ Failed to update README.md")
 
     # Create/checkout versioned branch (e.g., release-0.1.27)
     if new_version:
