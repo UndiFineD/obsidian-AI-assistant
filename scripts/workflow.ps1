@@ -82,6 +82,12 @@ param(
     [Parameter(ParameterSetName='Archive', Mandatory=$true)]
     [string]$ChangeId,
 
+    [Parameter(ParameterSetName='Interactive', Position=0)]
+    [Parameter(ParameterSetName='Step', Mandatory=$true)]
+    [Parameter(ParameterSetName='Validate', Mandatory=$true)]
+    [Parameter(ParameterSetName='Archive', Mandatory=$true)]
+    [string]$Path,
+
     [Parameter(ParameterSetName='Interactive')]
     [string]$Title,
 
@@ -131,11 +137,13 @@ if ($MyInvocation.InvocationName -ne '.') {
         }
 
         # Map PowerShell parameters to Python CLI arguments
+        # Map PowerShell parameters to Python CLI arguments
         $argsList = @()
         if ($List) { $argsList += '--list' }
         if ($Validate) { $argsList += '--validate' }
         if ($Archive) { $argsList += '--archive' }
-        if ($ChangeId) { $argsList += @('--change-id', $ChangeId) }
+        if ($Path) { $argsList += @('--path', $Path) }
+        elseif ($ChangeId) { $argsList += @('--change-id', $ChangeId) }
         if ($Title) { $argsList += @('--title', $Title) }
         if ($Owner) { $argsList += @('--owner', $Owner) }
         if ($PSBoundParameters.ContainsKey('Step')) { $argsList += @('--step', $Step) }

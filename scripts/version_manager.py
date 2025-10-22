@@ -18,26 +18,35 @@ class VersionManager:
 
     def __init__(self, project_root: str = "."):
         self.project_root = Path(project_root).resolve()
+        # Only Python files maintained by this workflow (not Node.js or Obsidian plugin)
         self.version_files = [
-            "package.json",
-            ".obsidian/plugins/obsidian-ai-agent/manifest.json",
             "agent/__init__.py",
-            "setup.py",
         ]
 
     def get_current_version(self) -> str:
-        """Get current version from package.json (primary source)."""
-        package_path = self.project_root / "package.json"
-        if not package_path.exists():
-            raise FileNotFoundError("package.json not found")
+        """Get current version from agent/__init__.py (primary Python source).
+        
+        Note: This method reads the Python package version only.
+        Node.js (package.json) and Obsidian plugin (manifest.json) versions 
+        are no longer maintained by this workflow.
+        """
+        init_path = self.project_root / "agent/__init__.py"
+        if not init_path.exists():
+            raise FileNotFoundError("agent/__init__.py not found")
 
-        with open(package_path, "r") as f:
-            package_data = json.load(f)
-
-        return package_data.get("version", "0.1.0")
+        try:
+            with open(init_path, "r") as f:
+                content = f.read()
+            match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+            if match:
+                return match.group(1)
+            raise ValueError("__version__ not found in agent/__init__.py")
+        except Exception as e:
+            print(f"Error reading version from agent/__init__.py: {e}")
+            raise
 
     def get_github_version(self, branch: Optional[str] = None) -> Optional[str]:
-        """Fetch current version from GitHub branch package.json.
+        """Fetch current version from GitHub branch agent/__init__.py.
 
         Args:
             branch: Git branch to fetch from. If None, uses current branch.
@@ -68,7 +77,7 @@ class VersionManager:
                 branch = f"origin/{branch}"
 
             result = subprocess.run(
-                ["git", "show", f"{branch}:package.json"],
+                ["git", "show", f"{branch}:agent/__init__.py"],
                 cwd=self.project_root,
                 capture_output=True,
                 text=True,
@@ -76,23 +85,25 @@ class VersionManager:
             )
 
             if result.returncode == 0:
-                data = json.loads(result.stdout)
-                return data.get("version")
+                match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout)
+                if match:
+                    return match.group(1)
             else:
                 # Try main as fallback
                 if branch != "origin/main":
                     result = subprocess.run(
-                        ["git", "show", "origin/main:package.json"],
+                        ["git", "show", "origin/main:agent/__init__.py"],
                         cwd=self.project_root,
                         capture_output=True,
                         text=True,
                         timeout=10,
                     )
                     if result.returncode == 0:
-                        data = json.loads(result.stdout)
-                        return data.get("version")
+                        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout)
+                        if match:
+                            return match.group(1)
 
-                return None
+            return None
         except Exception as e:
             print(f"Warning: Could not fetch GitHub version: {e}", file=sys.stderr)
             return None
@@ -254,40 +265,26 @@ class VersionManager:
             return False
 
     def update_all_versions(self, version: str) -> Dict[str, bool]:
-        """Update version in all project files."""
+        """Update version in all Python project files.
+        
+        Only updates agent/__init__.py as other files (package.json, manifest.json, setup.py)
+        are not maintained by this workflow.
+        """
         results = {}
 
-        results["package.json"] = self.update_package_json(version)
-        results["manifest.json"] = self.update_manifest_json(version)
         results["agent/__init__.py"] = self.update_python_init(version)
-        results["setup.py"] = self.update_setup_py(version)
 
         return results
 
     def check_version_consistency(self) -> Dict[str, str]:
-        """Check version consistency across all files."""
+        """Check version consistency for Python project files.
+        
+        Only checks agent/__init__.py as package.json, manifest.json, and setup.py
+        are not maintained by this workflow.
+        """
         versions = {}
 
-        # Check package.json
-        try:
-            with open(self.project_root / "package.json", "r") as f:
-                data = json.load(f)
-                versions["package.json"] = data.get("version", "NOT_FOUND")
-        except:
-            versions["package.json"] = "ERROR"
-
-        # Check manifest.json
-        try:
-            manifest_path = (
-                self.project_root / ".obsidian/plugins/obsidian-ai-agent/manifest.json"
-            )
-            with open(manifest_path, "r") as f:
-                data = json.load(f)
-                versions["manifest.json"] = data.get("version", "NOT_FOUND")
-        except:
-            versions["manifest.json"] = "ERROR"
-
-        # Check __init__.py
+        # Check __init__.py (only file maintained by this workflow)
         try:
             with open(self.project_root / "agent/__init__.py", "r") as f:
                 content = f.read()
@@ -297,15 +294,6 @@ class VersionManager:
                 )
         except:
             versions["agent/__init__.py"] = "ERROR"
-
-        # Check setup.py
-        try:
-            with open(self.project_root / "setup.py", "r") as f:
-                content = f.read()
-                match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
-                versions["setup.py"] = match.group(1) if match else "NOT_FOUND"
-        except:
-            versions["setup.py"] = "ERROR"
 
         return versions
 

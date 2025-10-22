@@ -761,6 +761,12 @@ Examples:
         help='Change identifier (kebab-case, e.g., "update-readme")',
     )
 
+    parser.add_argument(
+        "--path",
+        type=str,
+        help='Path to change directory (e.g., "openspec/changes/my-change")',
+    )
+
     # Change metadata
     parser.add_argument(
         "--title",
@@ -815,44 +821,53 @@ Examples:
     # Ensure changes directory exists
     CHANGES_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Normalize --path to change_id if provided
+    if args.path:
+        change_id = Path(args.path).name
+        args.change_id = change_id
+    elif args.change_id:
+        pass  # Already set
+    else:
+        change_id = None
+
     # Route to appropriate handler
     if args.list:
         return list_changes()
 
     if args.validate:
         if not args.change_id:
-            parser.error("--validate requires --change-id")
+            parser.error("--validate requires either --change-id or --path")
         return validate_change(args.change_id)
 
     if args.archive:
         if not args.change_id:
-            parser.error("--archive requires --change-id")
+            parser.error("--archive requires either --change-id or --path")
         return archive_change(args.change_id)
 
     if args.status:
         if not args.change_id:
-            parser.error("--status requires --change-id")
+            parser.error("--status requires either --change-id or --path")
         return show_status(args.change_id, args.format)
 
     # Checkpoint operations
     if args.list_checkpoints:
         if not args.change_id:
-            parser.error("--list-checkpoints requires --change-id")
+            parser.error("--list-checkpoints requires either --change-id or --path")
         return list_checkpoints_cmd(args.change_id)
 
     if args.rollback:
         if not args.change_id:
-            parser.error("--rollback requires --change-id")
+            parser.error("--rollback requires either --change-id or --path")
         return rollback_cmd(args.change_id, args.rollback)
 
     if args.cleanup_checkpoints is not None:
         if not args.change_id:
-            parser.error("--cleanup-checkpoints requires --change-id")
+            parser.error("--cleanup-checkpoints requires either --change-id or --path")
         return cleanup_checkpoints_cmd(args.change_id, args.cleanup_checkpoints)
 
     # Regular workflow execution
     if not args.change_id:
-        parser.error("--change-id is required (or use --list)")
+        parser.error("--change-id or --path is required (or use --list)")
 
     # Determine if checkpoints should be enabled
     enable_checkpoints = not args.no_checkpoints
