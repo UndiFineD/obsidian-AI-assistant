@@ -145,8 +145,24 @@ def _get_current_branch() -> str:
 
 
 def _create_or_checkout_branch(branch_name: str, dry_run: bool = False) -> bool:
-    """Create or checkout versioned branch."""
+    """Create or checkout versioned branch.
+    
+    Stashes any uncommitted changes before switching branches to avoid conflicts
+    with workflow state files (checkpoints, todos) that may be tracked by git.
+    """
     try:
+        # Stash any uncommitted changes to avoid checkout conflicts
+        if not dry_run:
+            stash_result = subprocess.run(
+                ["git", "stash"],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+                text=True,
+            )
+            stash_output = stash_result.stdout.strip()
+            if "Saved working directory" in stash_output:
+                helpers.write_info("Stashed uncommitted changes for branch switch")
+
         # Check if branch exists
         result = subprocess.run(
             ["git", "branch", "--list", branch_name],
@@ -172,6 +188,17 @@ def _create_or_checkout_branch(branch_name: str, dry_run: bool = False) -> bool:
                 subprocess.run(
                     ["git", "checkout", "-b", branch_name], cwd=PROJECT_ROOT, check=True
                 )
+
+        # Restore stashed changes after successful branch switch
+        if not dry_run:
+            pop_result = subprocess.run(
+                ["git", "stash", "pop"],
+                cwd=PROJECT_ROOT,
+                capture_output=True,
+                text=True,
+            )
+            if pop_result.returncode == 0 and "Dropped" in pop_result.stdout:
+                helpers.write_info("Restored stashed changes after branch switch")
 
         return True
     except Exception as e:
