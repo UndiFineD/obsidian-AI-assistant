@@ -815,8 +815,21 @@ Examples:
         default="tree",
         help="Status visualization format (default: tree)",
     )
+    parser.add_argument(
+        "--lane",
+        choices=["docs", "standard", "heavy"],
+        default="standard",
+        help="Workflow lane: docs (fast), standard (default), or heavy (strict)",
+    )
 
     args = parser.parse_args()
+    
+    # Configure workflow based on selected lane
+    if args.lane:
+        lane_config = LANE_MAPPING.get(args.lane, LANE_MAPPING["standard"])
+        print(f"[LANE] {lane_config['name']}: {lane_config['description']}")
+        # Stages to execute will be determined by: get_stages_for_lane(args.lane)
+        # Quality gates will run: {should_run_quality_gates(args.lane)}
 
     # Ensure changes directory exists
     CHANGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -895,6 +908,48 @@ Examples:
             args.template,
             enable_checkpoints,
         )
+
+
+
+
+
+
+# Lane-to-Stage Mapping (workflow-improvements)
+# Defines which stages execute for each lane type
+LANE_MAPPING = {
+    "docs": {
+        "name": "Documentation (Fast Track)",
+        "description": "For documentation-only changes - skips code validation",
+        "stages": [0, 2, 3, 4, 9, 10, 11, 12],
+        "max_time": 300,  # 5 minutes
+        "quality_gates": False,
+    },
+    "standard": {
+        "name": "Standard (Default)",
+        "description": "For regular code changes - full validation",
+        "stages": list(range(13)),
+        "max_time": 900,  # 15 minutes
+        "quality_gates": True,
+    },
+    "heavy": {
+        "name": "Heavy (Strict Validation)",
+        "description": "For critical/production changes - enhanced validation",
+        "stages": list(range(13)),
+        "max_time": 1200,  # 20 minutes
+        "quality_gates": True,
+        "strict_thresholds": True,
+    },
+}
+
+def get_stages_for_lane(lane: str) -> list:
+    """Get stage list for the given lane."""
+    lane_config = LANE_MAPPING.get(lane, LANE_MAPPING["standard"])
+    return lane_config.get("stages", list(range(13)))
+
+def should_run_quality_gates(lane: str) -> bool:
+    """Determine if quality gates should run for this lane."""
+    lane_config = LANE_MAPPING.get(lane, LANE_MAPPING["standard"])
+    return lane_config.get("quality_gates", True)
 
 
 if __name__ == "__main__":

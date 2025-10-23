@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Step 5: Test Definition
+"""Step 5: Specification Definition
 
-Generates comprehensive test_plan.md and spec.md with requirements extracted
-from proposal.md, tasks.md, and existing documentation.
+Generates comprehensive spec.md from template or by analyzing
+proposal.md and tasks.md. Requests Copilot assistance to improve
+specifications based on supporting documents.
 """
 
 import importlib.util
@@ -201,118 +202,6 @@ def _generate_spec_md(proposal_path: Path, tasks_path: Path) -> str:
     return spec_content
 
 
-def _generate_test_plan_md(proposal_path: Path, tasks_path: Path, spec_path: Path) -> str:
-    """Generate comprehensive test_plan.md with full test mapping.
-    
-    Returns:
-        Complete test_plan.md content
-    """
-    criteria = _extract_success_criteria(proposal_path)
-    file_lists = _extract_file_lists(proposal_path)
-    
-    test_plan = "# Test Plan\n\n"
-    test_plan += "## Overview\n\n"
-    test_plan += "This test plan validates that the implementation successfully meets all acceptance criteria.\n\n"
-    
-    # Strategy
-    test_plan += "## Testing Strategy\n\n"
-    test_plan += "The testing approach validates:\n\n"
-    test_plan += "1. **Structure Validation**: Verify docs/ directory structure is created correctly\n"
-    test_plan += "2. **File Operations**: Verify files are moved and deleted as specified\n"
-    test_plan += "3. **Root Cleanup**: Verify root directory is cleaned (≤10 files)\n"
-    test_plan += "4. **Documentation Updates**: Verify README and links are updated\n"
-    test_plan += "5. **Link Validation**: Verify no broken internal links\n"
-    test_plan += "6. **OpenSpec Separation**: Verify governance files are isolated\n"
-    test_plan += "7. **CHANGELOG Updates**: Verify cleanup is documented\n\n"
-    
-    # Mapping to Acceptance Criteria
-    test_plan += "## Mapping to Acceptance Criteria\n\n"
-    
-    # Map success criteria to test suites
-    test_mapping = {
-        "AC-1": ["Structure validation", "Directory creation tests"],
-        "AC-2": ["File inventory", "Categorization tests"],
-        "AC-3": ["File move operations", "Reference file tests"],
-        "AC-4": ["File deletion", "Celebration file removal tests"],
-        "AC-5": ["Root directory check", "File count validation"],
-        "AC-6": ["README updates", "Documentation structure tests"],
-        "AC-7": ["Link validation", "Reference integrity tests"],
-        "AC-8": ["docs/README.md creation", "Navigation guide tests"],
-    }
-    
-    for i, criterion in enumerate(criteria[:8], 1):
-        ac_num = f"AC-{i}"
-        tests = test_mapping.get(ac_num, ["General validation"])
-        test_plan += f"- **{ac_num}**: {criterion}\n"
-        for test in tests:
-            test_plan += f"  - Covered by: {test}\n"
-    
-    test_plan += "\n"
-    
-    # Test Suites
-    test_plan += "## Test Suites\n\n"
-    
-    test_plan += "### 1. Directory Structure Validation\n"
-    test_plan += "- [ ] docs/ directory exists\n"
-    test_plan += "- [ ] docs/getting-started/ subdirectory exists\n"
-    test_plan += "- [ ] docs/guides/ subdirectory exists\n"
-    test_plan += "- [ ] docs/architecture/ subdirectory exists\n"
-    test_plan += "- [ ] docs/reference/ subdirectory exists\n"
-    test_plan += "- [ ] docs/production/ subdirectory exists\n"
-    test_plan += "- [ ] docs/historical/ subdirectory exists\n"
-    test_plan += "- [ ] docs/README.md exists and is readable\n\n"
-    
-    test_plan += "### 2. File Deletion Validation\n"
-    if file_lists["delete"]:
-        test_plan += f"- [ ] All {len(file_lists['delete'])} celebration/status files deleted\n"
-        for f in file_lists["delete"][:5]:
-            test_plan += f"- [ ] {f} deleted\n"
-        if len(file_lists["delete"]) > 5:
-            test_plan += f"- [ ] ... and {len(file_lists['delete']) - 5} more files deleted\n"
-    test_plan += "\n"
-    
-    test_plan += "### 3. File Move Validation\n"
-    if file_lists["move"]:
-        test_plan += f"- [ ] All {len(file_lists['move'])} reference files moved to docs/\n"
-        for f in file_lists["move"][:5]:
-            test_plan += f"- [ ] {f} moved to correct docs/ subdirectory\n"
-        if len(file_lists["move"]) > 5:
-            test_plan += f"- [ ] ... and {len(file_lists['move']) - 5} more files moved\n"
-    test_plan += "\n"
-    
-    test_plan += "### 4. Root Directory Cleanup\n"
-    test_plan += "- [ ] Root directory contains ≤10 essential files\n"
-    if file_lists["keep"]:
-        test_plan += f"- [ ] All {len(file_lists['keep'])} kept files present in root\n"
-    test_plan += "- [ ] No extraneous markdown files in root\n\n"
-    
-    test_plan += "### 5. Documentation Updates\n"
-    test_plan += "- [ ] README.md updated with docs/ navigation\n"
-    test_plan += "- [ ] README.md has getting-started link\n"
-    test_plan += "- [ ] README.md has guides link\n"
-    test_plan += "- [ ] README.md has architecture link\n"
-    test_plan += "- [ ] docs/README.md created with full navigation\n"
-    test_plan += "- [ ] Contributing.md updated with new structure\n\n"
-    
-    test_plan += "### 6. Link Validation\n"
-    test_plan += "- [ ] No broken relative links in README.md\n"
-    test_plan += "- [ ] No broken relative links in docs/README.md\n"
-    test_plan += "- [ ] No broken relative links in docs/ subdirectories\n"
-    test_plan += "- [ ] All cross-document links valid\n\n"
-    
-    test_plan += "### 7. OpenSpec Separation\n"
-    test_plan += "- [ ] openspec/ files remain unchanged\n"
-    test_plan += "- [ ] openspec/ files not in root directory\n"
-    test_plan += "- [ ] openspec/ path references correct in documentation\n\n"
-    
-    test_plan += "### 8. CHANGELOG Updates\n"
-    test_plan += "- [ ] CHANGELOG.md documents cleanup change\n"
-    test_plan += "- [ ] CHANGELOG.md lists deleted file categories\n"
-    test_plan += "- [ ] CHANGELOG.md documents new docs/ structure\n\n"
-    
-    return test_plan
-
-
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
     if not todo.exists():
@@ -328,45 +217,55 @@ def invoke_step5(
 ) -> bool:
     helpers.write_step(5, "Test Definition")
     
-    test_plan_path = change_path / "test_plan.md"
     spec_path = change_path / "spec.md"
     proposal_path = change_path / "proposal.md"
     tasks_path = change_path / "tasks.md"
+    todo_path = change_path / "todo.md"
+    templates_dir = change_path.parent.parent / "templates"
 
-    # Generate spec.md if it doesn't exist or is empty
+    # Check if spec.md exists, if not copy from templates or generate
     if not spec_path.exists() or spec_path.stat().st_size < 100:
-        if progress:
-            with progress.spinner("Generating spec.md from proposal", "Spec generated"):
+        template_spec_path = templates_dir / "spec.md"
+        
+        if template_spec_path.exists():
+            # Copy template to spec.md
+            if not dry_run:
+                spec_content = template_spec_path.read_text(encoding="utf-8")
+                helpers.set_content_atomic(spec_path, spec_content)
+                helpers.write_success(f"Copied spec.md template: {spec_path}")
+                
+                # Ask Copilot to improve spec.md based on supporting documents
+                helpers.write_info("---")
+                helpers.write_info("📝 Requesting Copilot assistance to improve spec.md...")
+                helpers.write_info("Copilot will enhance spec.md based on:")
+                helpers.write_info(f"  • proposal.md: {proposal_path}")
+                helpers.write_info(f"  • tasks.md: {tasks_path}")
+                helpers.write_info(f"  • todo.md: {todo_path}")
+                helpers.write_info("")
+                helpers.write_info("Use @copilot in your editor to:")
+                helpers.write_info("  1. Review the spec.md template structure")
+                helpers.write_info("  2. Extract key information from proposal.md, tasks.md, and todo.md")
+                helpers.write_info("  3. Fill in the relevant sections with accurate project details")
+                helpers.write_info("  4. Ensure specifications are clear, complete, and testable")
+                helpers.write_info("  5. Add any missing non-functional requirements")
+                helpers.write_info("---")
+            else:
+                helpers.write_info(f"[DRY RUN] Would copy template: {template_spec_path} → {spec_path}")
+        else:
+            # No template found, generate from proposal
+            if progress:
+                with progress.spinner("Generating spec.md from proposal", "Spec generated"):
+                    content = _generate_spec_md(proposal_path, tasks_path)
+                    if not dry_run:
+                        helpers.set_content_atomic(spec_path, content)
+            else:
                 content = _generate_spec_md(proposal_path, tasks_path)
                 if not dry_run:
                     helpers.set_content_atomic(spec_path, content)
-        else:
-            content = _generate_spec_md(proposal_path, tasks_path)
-            if not dry_run:
-                helpers.set_content_atomic(spec_path, content)
-                helpers.write_success(f"Generated comprehensive spec.md: {spec_path}")
-        
-        if dry_run:
-            helpers.write_info(f"[DRY RUN] Would create/update: {spec_path}")
-
-    # Generate test_plan.md if it doesn't exist or is empty
-    if not test_plan_path.exists() or test_plan_path.stat().st_size < 100:
-        if progress:
-            with progress.spinner("Generating test_plan.md from proposal", "Test plan generated"):
-                content = _generate_test_plan_md(proposal_path, tasks_path, spec_path)
-                if not dry_run:
-                    helpers.set_content_atomic(test_plan_path, content)
-        else:
-            content = _generate_test_plan_md(proposal_path, tasks_path, spec_path)
-            if not dry_run:
-                helpers.set_content_atomic(test_plan_path, content)
-                helpers.write_success(f"Generated comprehensive test_plan.md: {test_plan_path}")
-        
-        if dry_run:
-            helpers.write_info(f"[DRY RUN] Would create/update: {test_plan_path}")
-    else:
-        helpers.write_info("test_plan.md already exists; leaving as-is")
-        helpers.write_info("spec.md already exists; leaving as-is")
+                    helpers.write_success(f"Generated comprehensive spec.md: {spec_path}")
+            
+            if dry_run:
+                helpers.write_info(f"[DRY RUN] Would create/update: {spec_path}")
 
     _mark_complete(change_path)
     helpers.write_success("Step 5 completed")
