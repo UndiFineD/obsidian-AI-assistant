@@ -10,13 +10,12 @@ This script focuses specifically on security aspects of dependency management:
 - Integration with GitHub security advisories
 """
 
-import hashlib
 import json
 import os
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 

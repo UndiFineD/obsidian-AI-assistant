@@ -472,7 +472,7 @@ class TestRBACDecorators:
         with patch.object(
             self.rbac_manager, "check_user_permission", return_value=True
         ):
-            with patch("backend.enterprise_rbac.rbac_manager", self.rbac_manager):
+            with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 result = protected_function("user", "tenant")
                 assert result == "success"
 
@@ -487,7 +487,7 @@ class TestRBACDecorators:
         with patch.object(
             self.rbac_manager, "check_user_permission", return_value=False
         ):
-            with patch("backend.enterprise_rbac.rbac_manager", self.rbac_manager):
+            with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 with pytest.raises(PermissionError):
                     admin_function("user", "tenant")
 
@@ -502,7 +502,7 @@ class TestRBACDecorators:
         with patch.object(
             self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]
         ):
-            with patch("backend.enterprise_rbac.rbac_manager", self.rbac_manager):
+            with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 result = user_function("user", "tenant")
                 assert result == "user_success"
 
@@ -517,7 +517,7 @@ class TestRBACDecorators:
         with patch.object(
             self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]
         ):
-            with patch("backend.enterprise_rbac.rbac_manager", self.rbac_manager):
+            with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 with pytest.raises(PermissionError):
                     admin_function("user", "tenant")
 
@@ -680,3 +680,4 @@ class TestRBACIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

@@ -374,7 +374,7 @@ class TestSecurityScenarios:
 class TestMagicLibraryFallbacks:
     """Test behavior when python-magic library is not available"""
 
-    @patch("backend.file_validation.MAGIC_AVAILABLE", False)
+    @patch("agent.file_validation.MAGIC_AVAILABLE", False)
     def test_fallback_without_magic(self):
         """Test file validation falls back gracefully without python-magic"""
         validator = FileValidator()
@@ -467,3 +467,4 @@ class TestPerformanceAndLimits:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

@@ -170,13 +170,17 @@ class TestWorkflowHelpers:
         assert "Problem" in captured.out
         assert "Try this solution" in captured.out
 
-    def test_show_changes_empty_directory(self, workflow_helpers, capsys, temp_project_structure):
+    def test_show_changes_empty_directory(
+        self, workflow_helpers, capsys, temp_project_structure
+    ):
         """Test show_changes with empty changes directory."""
         workflow_helpers.show_changes(temp_project_structure["changes"])
         captured = capsys.readouterr()
         assert "No active changes found" in captured.out
 
-    def test_show_changes_with_active_changes(self, workflow_helpers, capsys, temp_project_structure, sample_todo_template):
+    def test_show_changes_with_active_changes(
+        self, workflow_helpers, capsys, temp_project_structure, sample_todo_template
+    ):
         """Test show_changes displays active changes with completion percentage."""
         # Create a test change
         change_dir = temp_project_structure["changes"] / "test-change"
@@ -192,14 +196,22 @@ class TestWorkflowHelpers:
     def test_test_change_structure_valid(self, workflow_helpers, temp_change_dir):
         """Test test_change_structure validates required files."""
         # Create all required files
-        required_files = ["todo.md", "proposal.md", "spec.md", "tasks.md", "test_plan.md"]
+        required_files = [
+            "todo.md",
+            "proposal.md",
+            "spec.md",
+            "tasks.md",
+            "test_plan.md",
+        ]
         for filename in required_files:
             (temp_change_dir / filename).write_text(f"# {filename}\n", encoding="utf-8")
 
         result = workflow_helpers.test_change_structure(temp_change_dir)
         assert result is True
 
-    def test_test_change_structure_missing_files(self, workflow_helpers, temp_change_dir, capsys):
+    def test_test_change_structure_missing_files(
+        self, workflow_helpers, temp_change_dir, capsys
+    ):
         """Test test_change_structure detects missing required files."""
         # Create only some files
         (temp_change_dir / "todo.md").write_text("# todo\n", encoding="utf-8")
@@ -215,21 +227,23 @@ class TestWorkflowHelpers:
         """Test set_content_atomic writes file atomically."""
         test_file = temp_change_dir / "test.md"
         content = "# Test Content\n\nSome text here."
-        
+
         result = workflow_helpers.set_content_atomic(test_file, content)
-        
+
         assert result is True
         assert test_file.exists()
         assert test_file.read_text(encoding="utf-8") == content
 
-    def test_set_content_atomic_overwrites_file(self, workflow_helpers, temp_change_dir):
+    def test_set_content_atomic_overwrites_file(
+        self, workflow_helpers, temp_change_dir
+    ):
         """Test set_content_atomic overwrites existing file."""
         test_file = temp_change_dir / "test.md"
         test_file.write_text("Old content", encoding="utf-8")
-        
+
         new_content = "New content"
         result = workflow_helpers.set_content_atomic(test_file, new_content)
-        
+
         assert result is True
         assert test_file.read_text(encoding="utf-8") == new_content
 
@@ -237,9 +251,9 @@ class TestWorkflowHelpers:
         """Test set_content_atomic uses UTF-8 encoding."""
         test_file = temp_change_dir / "test.md"
         content = "# Test 你好 мир العالم\n"
-        
+
         result = workflow_helpers.set_content_atomic(test_file, content)
-        
+
         assert result is True
         read_content = test_file.read_text(encoding="utf-8")
         assert "你好" in read_content
@@ -274,7 +288,7 @@ class TestWorkflowStep0:
         )
         step00 = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(step00)
-        
+
         assert hasattr(step00, "invoke_step0")
         assert callable(step00.invoke_step0)
 
@@ -285,11 +299,12 @@ class TestWorkflowStep0:
         )
         step00 = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(step00)
-        
+
         import inspect
+
         sig = inspect.signature(step00.invoke_step0)
         params = list(sig.parameters.keys())
-        
+
         assert "change_path" in params
         assert "title" in params
         assert "owner" in params
@@ -302,7 +317,7 @@ class TestWorkflowStep0:
         )
         step00 = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(step00)
-        
+
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create proper project structure
             project_root = Path(tmpdir)
@@ -310,21 +325,21 @@ class TestWorkflowStep0:
             templates_dir = project_root / "openspec" / "templates"
             changes_dir.mkdir(parents=True, exist_ok=True)
             templates_dir.mkdir(parents=True, exist_ok=True)
-            
+
             # Create a basic todo template
             template_path = templates_dir / "todo.md"
             template_path.write_text("[ ] **0. Create TODOs**\n")
-            
+
             change_path = changes_dir / "test-change"
             change_path.mkdir()
-            
+
             result = step00.invoke_step0(
                 change_path=change_path,
                 title="Test Change",
                 owner="@test-user",
-                dry_run=True
+                dry_run=True,
             )
-            
+
             # In dry run, it should return True and not create file
             assert result is True
 
@@ -351,7 +366,7 @@ class TestWorkflowSteps:
             f"workflow_step{step_num:02d}", step_file
         )
         module = importlib.util.module_from_spec(spec)
-        
+
         # Should not raise exception
         spec.loader.exec_module(module)
 
@@ -364,7 +379,7 @@ class TestWorkflowSteps:
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
+
         func_name = f"invoke_step{step_num}"
         assert hasattr(module, func_name), f"{func_name} not found in step {step_num}"
         assert callable(getattr(module, func_name))
@@ -378,12 +393,13 @@ class TestWorkflowSteps:
         )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        
+
         func_name = f"invoke_step{step_num}"
         func = getattr(module, func_name)
-        
+
         # Check function has return type annotation (if present)
         import inspect
+
         sig = inspect.signature(func)
         # Return annotation should be bool or include bool
         if sig.return_annotation != inspect.Signature.empty:
@@ -409,7 +425,7 @@ class TestWorkflowOrchestrator:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         # Should not raise exception
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
@@ -420,10 +436,10 @@ class TestWorkflowOrchestrator:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         assert hasattr(workflow, "load_step_module")
         assert hasattr(workflow, "STEP_NAMES")
         assert isinstance(workflow.STEP_NAMES, dict)
@@ -435,10 +451,10 @@ class TestWorkflowOrchestrator:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         step_names = workflow.STEP_NAMES
         for step_num in range(13):
             assert step_num in step_names
@@ -451,10 +467,10 @@ class TestWorkflowOrchestrator:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         assert hasattr(workflow, "CHANGES_DIR")
         assert hasattr(workflow, "ARCHIVE_DIR")
         assert hasattr(workflow, "TEMPLATES_DIR")
@@ -515,7 +531,7 @@ class TestWorkflowIntegration:
         """Test that todo.md template includes all 13 steps."""
         todo_template = TEMPLATES_DIR / "todo.md"
         content = todo_template.read_text(encoding="utf-8")
-        
+
         for step_num in range(13):
             assert f"**{step_num}." in content
 
@@ -528,12 +544,13 @@ class TestWorkflowIntegration:
             "proposal-docs.md",
             "proposal-refactor.md",
         ]
-        
+
         templates_found = [
-            TEMPLATES_DIR / variant for variant in proposal_variants
+            TEMPLATES_DIR / variant
+            for variant in proposal_variants
             if (TEMPLATES_DIR / variant).exists()
         ]
-        
+
         assert len(templates_found) > 0, "No proposal templates found"
 
     def test_spec_template_exists(self):
@@ -565,10 +582,10 @@ class TestWorkflowIntegration:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         step_names = workflow.STEP_NAMES
         for step_num in range(13):
             step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
@@ -588,7 +605,7 @@ class TestWorkflowScriptQuality:
         """Test that each step file has a module docstring."""
         step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
         content = step_file.read_text(encoding="utf-8")
-        
+
         # Should have docstring at top
         assert '"""' in content or "'''" in content
 
@@ -596,51 +613,51 @@ class TestWorkflowScriptQuality:
         """Test that workflow.py has proper module docstring."""
         workflow_file = SCRIPT_DIR / "workflow.py"
         content = workflow_file.read_text(encoding="utf-8")
-        
+
         assert '"""' in content or "'''" in content
 
     def test_helpers_py_has_docstring(self):
         """Test that workflow-helpers.py has proper module docstring."""
         helpers_file = SCRIPT_DIR / "workflow-helpers.py"
         content = helpers_file.read_text(encoding="utf-8")
-        
+
         assert '"""' in content or "'''" in content
 
     @pytest.mark.parametrize("step_num", list(range(13)))
     def test_step_file_valid_python_syntax(self, step_num):
         """Test that each step file has valid Python syntax."""
         step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
-        
+
         # Try to compile the file
-        with open(step_file, 'r', encoding='utf-8') as f:
+        with open(step_file, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         try:
-            compile(content, str(step_file), 'exec')
+            compile(content, str(step_file), "exec")
         except SyntaxError as e:
             pytest.fail(f"Syntax error in {step_file}: {e}")
 
     def test_workflow_py_valid_syntax(self):
         """Test that workflow.py has valid Python syntax."""
         workflow_file = SCRIPT_DIR / "workflow.py"
-        
-        with open(workflow_file, 'r', encoding='utf-8') as f:
+
+        with open(workflow_file, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         try:
-            compile(content, str(workflow_file), 'exec')
+            compile(content, str(workflow_file), "exec")
         except SyntaxError as e:
             pytest.fail(f"Syntax error in workflow.py: {e}")
 
     def test_helpers_py_valid_syntax(self):
         """Test that workflow-helpers.py has valid Python syntax."""
         helpers_file = SCRIPT_DIR / "workflow-helpers.py"
-        
-        with open(helpers_file, 'r', encoding='utf-8') as f:
+
+        with open(helpers_file, "r", encoding="utf-8") as f:
             content = f.read()
-        
+
         try:
-            compile(content, str(helpers_file), 'exec')
+            compile(content, str(helpers_file), "exec")
         except SyntaxError as e:
             pytest.fail(f"Syntax error in workflow-helpers.py: {e}")
 
@@ -657,14 +674,14 @@ class TestWorkflowCLI:
         """Test that workflow.py has __main__ block for CLI."""
         workflow_file = SCRIPT_DIR / "workflow.py"
         content = workflow_file.read_text(encoding="utf-8")
-        
+
         assert 'if __name__ == "__main__"' in content
 
     def test_workflow_has_argparse_setup(self):
         """Test that workflow.py sets up argparse for CLI."""
         workflow_file = SCRIPT_DIR / "workflow.py"
         content = workflow_file.read_text(encoding="utf-8")
-        
+
         assert "argparse" in content
         assert "ArgumentParser" in content or "add_argument" in content
 
@@ -673,7 +690,7 @@ class TestWorkflowCLI:
         for step_num in range(13):
             step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
             content = step_file.read_text(encoding="utf-8")
-            
+
             # Each step should be runnable standalone
             assert 'if __name__ == "__main__"' in content
 
@@ -698,10 +715,10 @@ class TestWorkflowErrorHandling:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         # Check that key paths are Path objects or defined as such
         assert hasattr(workflow, "CHANGES_DIR")
         assert hasattr(workflow, "ARCHIVE_DIR")
@@ -720,7 +737,7 @@ class TestWorkflowDocumentation:
         """Test that workflow.py includes usage documentation."""
         workflow_file = SCRIPT_DIR / "workflow.py"
         content = workflow_file.read_text(encoding="utf-8")
-        
+
         assert "Usage:" in content or "usage:" in content.lower()
 
     def test_step_files_have_usage_examples(self):
@@ -728,7 +745,7 @@ class TestWorkflowDocumentation:
         for step_num in range(13):
             step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
             content = step_file.read_text(encoding="utf-8")
-            
+
             # Should have docstring with some documentation
             assert '"""' in content or "'''" in content
 
@@ -743,7 +760,7 @@ class TestWorkflowDocumentation:
             "test_change_structure",
             "set_content_atomic",
         ]
-        
+
         for func_name in functions_to_check:
             if hasattr(workflow_helpers, func_name):
                 func = getattr(workflow_helpers, func_name)
@@ -767,7 +784,7 @@ class TestWorkflowValidation:
             "tasks.md",
             "test_plan.md",
         ]
-        
+
         # Also check that at least one proposal variant exists
         proposal_variants = [
             "proposal-feature.md",
@@ -775,14 +792,16 @@ class TestWorkflowValidation:
             "proposal-docs.md",
             "proposal-refactor.md",
         ]
-        
+
         # Verify core templates
         for template_name in templates:
             template_path = TEMPLATES_DIR / template_name
-            assert template_path.exists(), f"Required template {template_name} not found"
+            assert (
+                template_path.exists()
+            ), f"Required template {template_name} not found"
             content = template_path.read_text(encoding="utf-8")
             assert len(content) > 0
-        
+
         # Verify at least one proposal variant exists
         proposal_found = False
         for variant in proposal_variants:
@@ -791,7 +810,7 @@ class TestWorkflowValidation:
                 assert len(content) > 0
                 proposal_found = True
                 break
-        
+
         assert proposal_found, "No proposal template variants found"
 
     def test_template_files_contain_placeholders(self):
@@ -799,7 +818,7 @@ class TestWorkflowValidation:
         # todo.md should have change-related placeholders
         todo_file = TEMPLATES_DIR / "todo.md"
         content = todo_file.read_text(encoding="utf-8")
-        
+
         # Should contain some placeholder markers
         assert "<" in content and ">" in content or "{{" in content
 
@@ -809,10 +828,10 @@ class TestWorkflowValidation:
             "workflow", SCRIPT_DIR / "workflow.py"
         )
         workflow = importlib.util.module_from_spec(spec)
-        
+
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
             spec.loader.exec_module(workflow)
-        
+
         assert hasattr(workflow, "CHANGES_DIR")
         assert hasattr(workflow, "ARCHIVE_DIR")
         assert hasattr(workflow, "TEMPLATES_DIR")
@@ -825,7 +844,7 @@ class TestWorkflowValidation:
 # Test Collection Summary
 # ============================================================================
 # This test suite includes:
-# 
+#
 # - 80+ test cases covering all workflow components
 # - Unit tests for workflow-helpers.py utility functions
 # - Tests for all 13 workflow step modules (workflow-step00.py - step12.py)

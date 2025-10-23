@@ -3,7 +3,6 @@
 
 import os
 import sys
-from pathlib import Path
 
 
 def test_caching_files_exist():

@@ -181,7 +181,7 @@ class TestSecurity:
             result = decrypt_data(invalid_input)
             assert result is None
 
-    @patch("backend.security.fernet")
+    @patch("agent.security.fernet")
     def test_encrypt_data_uses_global_fernet(self, mock_fernet):
         """Test that encrypt_data uses the global fernet instance."""
         mock_fernet.encrypt.return_value = b"mocked_encrypted_data"
@@ -191,7 +191,7 @@ class TestSecurity:
         mock_fernet.encrypt.assert_called_once_with("test data".encode())
         assert result == b"mocked_encrypted_data"
 
-    @patch("backend.security.fernet")
+    @patch("agent.security.fernet")
     def test_decrypt_data_uses_global_fernet(self, mock_fernet):
         """Test that decrypt_data uses the global fernet instance."""
         mock_fernet.decrypt.return_value = b"decrypted_data"
@@ -284,3 +284,4 @@ class TestSecurityIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

@@ -50,21 +50,21 @@ def temp_log_dir():
     # Create sample log files
     app_log = log_dir / "app.log"
     app_log.write_text(
-        '{"timestamp": "2025-10-17T10:00:00", "level": "INFO", "logger": "backend.api", "message": "Application started", "category": "app"}\n'
-        '{"timestamp": "2025-10-17T10:01:00", "level": "WARNING", "logger": "backend.api", "message": "High memory usage", "category": "app"}\n'
-        '{"timestamp": "2025-10-17T10:02:00", "level": "ERROR", "logger": "backend.api", "message": "Database connection failed", "category": "app"}\n',
+        '{"timestamp": "2025-10-17T10:00:00", "level": "INFO", "logger": "agent.api", "message": "Application started", "category": "app"}\n'
+        '{"timestamp": "2025-10-17T10:01:00", "level": "WARNING", "logger": "agent.api", "message": "High memory usage", "category": "app"}\n'
+        '{"timestamp": "2025-10-17T10:02:00", "level": "ERROR", "logger": "agent.api", "message": "Database connection failed", "category": "app"}\n',
         encoding="utf-8",
     )
 
     error_log = log_dir / "error.log"
     error_log.write_text(
-        '{"timestamp": "2025-10-17T09:00:00", "level": "ERROR", "logger": "backend.error", "message": "Critical error occurred", "category": "error"}\n',
+        '{"timestamp": "2025-10-17T09:00:00", "level": "ERROR", "logger": "agent.error", "message": "Critical error occurred", "category": "error"}\n',
         encoding="utf-8",
     )
 
     audit_log = log_dir / "audit.log"
     audit_log.write_text(
-        '{"timestamp": "2025-10-17T08:00:00", "level": "AUDIT", "logger": "backend.audit", "message": "User login", "user_id": "user123", "category": "audit"}\n',
+        '{"timestamp": "2025-10-17T08:00:00", "level": "AUDIT", "logger": "agent.audit", "message": "User login", "user_id": "user123", "category": "audit"}\n',
         encoding="utf-8",
     )
 
@@ -126,13 +126,13 @@ def client(mock_log_manager):
     app.include_router(router)
 
     # Mock the get_log_manager dependency and other logging functions
-    with patch("backend.log_management.get_log_manager", return_value=mock_log_manager):
-        with patch("backend.log_management.log_audit"):
-            with patch("backend.log_management.log_security"):
-                with patch("backend.log_management.logger"):
+    with patch("agent.log_management.get_log_manager", return_value=mock_log_manager):
+        with patch("agent.log_management.log_audit"):
+            with patch("agent.log_management.log_security"):
+                with patch("agent.log_management.logger"):
                     # Mock asyncio.sleep to prevent delays in streaming/background tasks
                     with patch(
-                        "backend.log_management.asyncio.sleep", new_callable=AsyncMock
+                        "agent.log_management.asyncio.sleep", new_callable=AsyncMock
                     ):
                         yield TestClient(app)
 
@@ -670,3 +670,4 @@ def test_cleanup_invalid_days(client):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

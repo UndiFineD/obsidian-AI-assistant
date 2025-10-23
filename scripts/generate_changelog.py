@@ -14,7 +14,6 @@ import argparse
 import glob
 import os
 import re
-from datetime import datetime
 
 CHANGE_PROPOSALS_DIR = os.path.join(
     os.path.dirname(__file__), "..", "openspec", "changes"

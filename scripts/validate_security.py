@@ -7,11 +7,10 @@ Run this script to ensure security measures are properly configured.
 """
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import yaml
 

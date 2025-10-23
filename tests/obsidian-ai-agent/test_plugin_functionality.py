@@ -35,7 +35,7 @@ class TestPluginFunctionality:
         content = self.main_js_content
 
         # Look for status/health check endpoint usage
-        health_patterns = [r"/status", r"/health", r"status.*check", r"backend.*status"]
+        health_patterns = [r"/status", r"/health", r"status.*check", r"agent.*status"]
 
         found_health = sum(
             1
@@ -369,3 +369,4 @@ if __name__ == "__main__":
 
     # Run with pytest
     pytest.main([__file__, "-v"])
+

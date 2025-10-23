@@ -139,7 +139,7 @@ async def test_middleware_adds_security_headers(mock_request, mock_call_next):
     )
 
     # Patch SecurityContext at module level to avoid complex setup
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         response = await middleware.dispatch(mock_request, mock_call_next)
@@ -155,7 +155,7 @@ async def test_middleware_minimal_security_level(mock_request, mock_call_next):
         Mock(), security_level=SecurityLevel.MINIMAL
     )
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         response = await middleware.dispatch(mock_request, mock_call_next)
@@ -169,7 +169,7 @@ async def test_middleware_maximum_security_level(mock_request, mock_call_next):
         Mock(), security_level=SecurityLevel.MAXIMUM
     )
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         response = await middleware.dispatch(mock_request, mock_call_next)
@@ -264,7 +264,7 @@ async def test_middleware_handles_exceptions(mock_request):
         Mock(), security_level=SecurityLevel.STANDARD
     )
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         # Should not raise exception
@@ -333,7 +333,7 @@ async def test_middleware_preserves_response_content(mock_request, mock_call_nex
         Mock(), security_level=SecurityLevel.STANDARD
     )
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         response = await middleware.dispatch(mock_request, mock_call_next)
@@ -347,7 +347,7 @@ async def test_create_security_hardening_middleware_default_level():
     """Test factory with default security level"""
     # Factory should work but middleware initialization requires event loop
     with patch(
-        "backend.security_hardening.SecurityHardeningMiddleware.__init__"
+        "agent.security_hardening.SecurityHardeningMiddleware.__init__"
     ) as mock_init:
         mock_init.return_value = None
         middleware_func = create_security_hardening_middleware()
@@ -408,7 +408,7 @@ async def test_middleware_chain_compatibility(mock_request, mock_call_next):
         Mock(), security_level=SecurityLevel.STANDARD
     )
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
 
         # First middleware
@@ -418,3 +418,4 @@ async def test_middleware_chain_compatibility(mock_request, mock_call_next):
         # Second middleware
         response2 = await middleware2.dispatch(mock_request, mock_call_next)
         assert response2.status_code == 200
+

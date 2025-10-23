@@ -2,7 +2,6 @@
 """Test enhanced caching system integration."""
 
 import sys
-import time
 from pathlib import Path
 
 # Add backend to path
@@ -45,7 +44,7 @@ def test_unified_cache_manager():
         sys.modules["transformers"] = MagicMock()
 
         # Import and test cache manager
-        from agent.enhanced_caching import CacheType, UnifiedCacheManager
+        from agent.enhanced_caching import UnifiedCacheManager
 
         # Create cache manager
         cache_manager = UnifiedCacheManager(cache_dir="./test_cache")
@@ -159,9 +158,7 @@ def test_agent_integration():
         assert hasattr(
             agent.agent, "get_unified_cache_manager"
         ), "Backend should have unified cache manager"
-        assert hasattr(
-            agent.agent, "cache_router"
-        ), "Backend should have cache router"
+        assert hasattr(agent.agent, "cache_router"), "Backend should have cache router"
 
         print("✓ Backend integration successful")
         return True

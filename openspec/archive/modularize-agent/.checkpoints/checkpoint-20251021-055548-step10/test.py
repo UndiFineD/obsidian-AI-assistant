@@ -126,7 +126,7 @@ def main() -> int:
         r"## Acceptance Criteria|## Requirements|## Implementation",
         "Specification has required sections"
     )
-    
+
     # Test: Validate todo.md completion status
     test_file_exists(change_root / "todo.md", "Todo checklist exists")
 

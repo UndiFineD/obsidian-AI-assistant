@@ -6,13 +6,11 @@ This script analyzes test coverage and provides actionable recommendations
 for improving coverage to meet the 85% threshold.
 """
 
-import json
 import os
 import subprocess
 import sys
 import xml.etree.ElementTree as ET
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 
 def run_coverage_analysis() -> Tuple[float, Dict[str, Dict[str, any]]]:

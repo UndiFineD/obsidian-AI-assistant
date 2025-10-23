@@ -1,4 +1,4 @@
-# tests/agent/test_backend.py
+# tests/agent/test_agent.py
 from unittest.mock import patch
 
 import pytest
@@ -541,9 +541,7 @@ class TestOpenSpecAndSecurityEndpoints:
                 return [{"event": "login", "severity": "low"}]
 
         dummy_sec = type("Sec", (), {"audit_logger": DummyAuditLogger()})()
-        with patch(
-            "agent.agent.get_advanced_security_config", return_value=dummy_sec
-        ):
+        with patch("agent.agent.get_advanced_security_config", return_value=dummy_sec):
             r = client.get("/api/security/events?limit=1")
             assert r.status_code == 200
             data = r.json()
@@ -554,9 +552,9 @@ class TestOpenSpecAndSecurityEndpoints:
             async def clear(self):
                 return None
 
-        with patch(
-            "agent.agent.get_cache_manager", return_value=DummyCache()
-        ), patch("agent.agent.log_security_event"):
+        with patch("agent.agent.get_cache_manager", return_value=DummyCache()), patch(
+            "agent.agent.log_security_event"
+        ):
             r = client.post("/api/security/clear-cache", json={})
             assert r.status_code == 200
             data = r.json()
@@ -568,9 +566,7 @@ class TestOpenSpecAndSecurityEndpoints:
                 return {"gdpr": True, "soc2": True}
 
         dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
-        with patch(
-            "agent.agent.get_advanced_security_config", return_value=dummy_sec
-        ):
+        with patch("agent.agent.get_advanced_security_config", return_value=dummy_sec):
             r = client.get("/api/security/compliance")
             assert r.status_code == 200
             data = r.json()
@@ -582,9 +578,7 @@ class TestOpenSpecAndSecurityEndpoints:
                 return {"deleted": True}
 
         dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
-        with patch(
-            "agent.agent.get_advanced_security_config", return_value=dummy_sec
-        ):
+        with patch("agent.agent.get_advanced_security_config", return_value=dummy_sec):
             r = client.post(
                 "/api/security/gdpr/deletion-request", params={"user_id": "u1"}
             )
@@ -605,10 +599,9 @@ class TestOpenSpecAndSecurityEndpoints:
                 "get_security_status": lambda self=None: {"secure": True},
             },
         )()
-        with patch(
-            "agent.agent.get_advanced_security_config", return_value=dummy_sec
-        ):
+        with patch("agent.agent.get_advanced_security_config", return_value=dummy_sec):
             r = client.get("/api/security/dashboard")
             assert r.status_code == 200
             data = r.json()
             assert data["success"] is True
+

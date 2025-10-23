@@ -23,11 +23,11 @@ class TestBackendHealthAndBasics:
 
         modules = [
             "agent.agent",
-            "backend.modelmanager",
-            "backend.embeddings",
-            "backend.indexing",
-            "backend.caching",
-            "backend.settings",
+            "agent.modelmanager",
+            "agent.embeddings",
+            "agent.indexing",
+            "agent.caching",
+            "agent.settings",
         ]
 
         for module_name in modules:
@@ -85,10 +85,10 @@ class TestBackendServiceAccess:
         from agent import backend
 
         # Services might be None if initialization failed in test env, that's OK
-        print(f"✓ model_manager: {type(backend.model_manager)}")
-        print(f"✓ emb_manager: {type(backend.emb_manager)}")
-        print(f"✓ vault_indexer: {type(backend.vault_indexer)}")
-        print(f"✓ cache_manager: {type(backend.cache_manager)}")
+        print(f"✓ model_manager: {type(agent.model_manager)}")
+        print(f"✓ emb_manager: {type(agent.emb_manager)}")
+        print(f"✓ vault_indexer: {type(agent.vault_indexer)}")
+        print(f"✓ cache_manager: {type(agent.cache_manager)}")
 
         # At least the globals should exist (even if None)
         assert hasattr(backend, "model_manager")
@@ -236,7 +236,7 @@ class TestConfigurationIntegration:
         except Exception as e:
             print(f"Settings loading handled gracefully: {e}")
 
-    @patch("backend.settings.reload_settings")
+    @patch("agent.settings.reload_settings")
     def test_config_reload_endpoint(self, mock_reload):
         """Test configuration reload endpoint."""
         # Mock settings response
@@ -259,7 +259,7 @@ class TestConfigurationIntegration:
         except Exception as e:
             print(f"Config reload test: {e}")
 
-    @patch("backend.settings.update_settings")
+    @patch("agent.settings.update_settings")
     def test_config_update_endpoint(self, mock_update):
         """Test configuration update endpoint."""
         # Mock update response
@@ -340,3 +340,4 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([__file__, "-v", "--tb=short"])
+

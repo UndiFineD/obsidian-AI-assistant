@@ -5,12 +5,11 @@ Handles version bumping, validation, and synchronization across all project file
 """
 
 import json
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 
 class VersionManager:
@@ -25,9 +24,9 @@ class VersionManager:
 
     def get_current_version(self) -> str:
         """Get current version from agent/__init__.py (primary Python source).
-        
+
         Note: This method reads the Python package version only.
-        Node.js (package.json) and Obsidian plugin (manifest.json) versions 
+        Node.js (package.json) and Obsidian plugin (manifest.json) versions
         are no longer maintained by this workflow.
         """
         init_path = self.project_root / "agent/__init__.py"
@@ -85,7 +84,9 @@ class VersionManager:
             )
 
             if result.returncode == 0:
-                match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout)
+                match = re.search(
+                    r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout
+                )
                 if match:
                     return match.group(1)
             else:
@@ -99,7 +100,9 @@ class VersionManager:
                         timeout=10,
                     )
                     if result.returncode == 0:
-                        match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout)
+                        match = re.search(
+                            r'__version__\s*=\s*["\']([^"\']+)["\']', result.stdout
+                        )
                         if match:
                             return match.group(1)
 
@@ -266,7 +269,7 @@ class VersionManager:
 
     def update_all_versions(self, version: str) -> Dict[str, bool]:
         """Update version in all Python project files.
-        
+
         Only updates agent/__init__.py as other files (package.json, manifest.json, setup.py)
         are not maintained by this workflow.
         """
@@ -278,7 +281,7 @@ class VersionManager:
 
     def check_version_consistency(self) -> Dict[str, str]:
         """Check version consistency for Python project files.
-        
+
         Only checks agent/__init__.py as package.json, manifest.json, and setup.py
         are not maintained by this workflow.
         """
@@ -289,9 +292,7 @@ class VersionManager:
             with open(self.project_root / "agent/__init__.py", "r") as f:
                 content = f.read()
                 match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
-                versions["agent/__init__.py"] = (
-                    match.group(1) if match else "NOT_FOUND"
-                )
+                versions["agent/__init__.py"] = match.group(1) if match else "NOT_FOUND"
         except:
             versions["agent/__init__.py"] = "ERROR"
 

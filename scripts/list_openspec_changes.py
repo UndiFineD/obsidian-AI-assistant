@@ -6,7 +6,6 @@ List, analyze, and visualize OpenSpec changes with ASCII burndown charts.
 """
 
 import argparse
-import os
 import re
 import sys
 from datetime import datetime, timedelta

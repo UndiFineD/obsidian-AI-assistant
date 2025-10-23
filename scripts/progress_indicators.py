@@ -9,7 +9,7 @@ import sys
 import threading
 import time
 from contextlib import contextmanager
-from typing import Callable, Optional
+from typing import Optional
 
 # Force UTF-8 encoding on Windows
 if sys.platform == "win32":

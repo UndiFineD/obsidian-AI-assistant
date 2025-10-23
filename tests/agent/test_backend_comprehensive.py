@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 # tests/agent/test_agent_comprehensive.py
 """
-Fixed comprehensive test suite for backend.py FastAPI application.
+Fixed comprehensive test suite for agent.py FastAPI application.
 This version has proper imports, mocking, and alignment with actual API endpoints.
 Target: Achieve 80%+ coverage by testing all endpoints, service integration, and error handling.
 """
@@ -27,7 +27,7 @@ def agent_app():
     """Get the FastAPI app."""
     import agent.backend as backend
 
-    return backend.app
+    return agent.app
 
 
 @pytest.fixture
@@ -317,3 +317,4 @@ class TestServiceIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

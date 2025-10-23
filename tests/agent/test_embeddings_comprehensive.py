@@ -87,10 +87,10 @@ def mock_settings():
 class TestEmbeddingsManagerInit:
     """Test initialization scenarios."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_successful_initialization(
         self,
@@ -126,8 +126,8 @@ class TestEmbeddingsManagerInit:
         assert emb_mgr.chroma_client is not None
         assert emb_mgr.collection is not None
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_model_loading_failure(self, mock_st, mock_pc, temp_db_path):
         """Test initialization when SentenceTransformer fails to load."""
         mock_st.side_effect = Exception("Model loading failed")
@@ -141,8 +141,8 @@ class TestEmbeddingsManagerInit:
         assert emb_mgr.chroma_client is None  # Should skip DB init if model fails
         assert emb_mgr.collection is None
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_chroma_client_failure(
         self, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
     ):
@@ -158,10 +158,10 @@ class TestEmbeddingsManagerInit:
         assert emb_mgr.chroma_client is None
         assert emb_mgr.collection is None
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_collection_creation_failure(
         self,
@@ -191,11 +191,11 @@ class TestEmbeddingsManagerInit:
 class TestEmbeddingsFromSettings:
     """Test from_settings() class method."""
 
-    @patch("backend.embeddings.get_settings")
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.get_settings")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_from_settings_success(
         self,
@@ -225,7 +225,7 @@ class TestEmbeddingsFromSettings:
         assert "agent/vector_db" in db_path_str
         assert emb_mgr.collection_name == "obsidian_notes"
 
-    @patch("backend.embeddings.get_settings")
+    @patch("agent.embeddings.get_settings")
     def test_from_settings_with_failure(self, mock_get_settings):
         """Test from_settings() when settings access fails."""
         mock_get_settings.side_effect = Exception("Settings not available")
@@ -240,10 +240,10 @@ class TestEmbeddingsFromSettings:
 class TestEmbeddingOperations:
     """Test core embedding operations."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_compute_embedding_success(
         self,
@@ -266,8 +266,8 @@ class TestEmbeddingOperations:
         assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
         mock_sentence_transformer.encode.assert_called_once_with("test text")
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_compute_embedding_no_model(self, mock_st, mock_pc, temp_db_path):
         """Test compute_embedding when no model is loaded."""
         mock_st.side_effect = Exception("No model")
@@ -279,10 +279,10 @@ class TestEmbeddingOperations:
 
         assert result == []
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_compute_embedding_model_error(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_chroma_client
@@ -300,10 +300,10 @@ class TestEmbeddingOperations:
 
         assert result == []
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_add_embedding_success(
         self,
@@ -343,8 +343,8 @@ class TestEmbeddingOperations:
             # The actual implementation may vary, so just verify the call was made
             assert mock_chroma_collection.upsert.called
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_add_embedding_no_collection(self, mock_st, mock_pc, temp_db_path):
         """Test add_embedding when no collection is available."""
         mock_st.side_effect = Exception("No model")
@@ -360,10 +360,10 @@ class TestEmbeddingOperations:
 class TestSearchOperations:
     """Test search and query operations."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_search_success(
         self,
@@ -398,10 +398,10 @@ class TestSearchOperations:
         assert call_args[1]["query_embeddings"] == [[0.1, 0.2, 0.3, 0.4, 0.5]]
         assert call_args[1]["n_results"] == 5
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_search_custom_top_k(
         self,
@@ -430,8 +430,8 @@ class TestSearchOperations:
         call_args = mock_chroma_collection.query.call_args
         assert call_args[1]["n_results"] == 10
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_search_no_collection(self, mock_st, mock_pc, temp_db_path):
         """Test search when no collection is available."""
         mock_st.side_effect = Exception("No model")
@@ -443,10 +443,10 @@ class TestSearchOperations:
 
         assert results == []
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_search_query_error(
         self,
@@ -477,10 +477,10 @@ class TestSearchOperations:
 class TestDatabaseOperations:
     """Test database management operations."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_reset_db_success(
         self,
@@ -512,8 +512,8 @@ class TestDatabaseOperations:
         assert mock_chroma_client.get_or_create_collection.call_count == 2
         assert emb_mgr.collection == new_collection
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_reset_db_no_client(self, mock_st, mock_pc, temp_db_path):
         """Test reset_db when no client is available."""
         mock_st.side_effect = Exception("No model")
@@ -525,10 +525,10 @@ class TestDatabaseOperations:
         # Should not raise exception
         emb_mgr.reset_db()
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_reset_db_error(
         self,
@@ -551,10 +551,10 @@ class TestDatabaseOperations:
         # Should handle error gracefully
         emb_mgr.reset_db()
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_clear_collection_alias(
         self,
@@ -583,10 +583,10 @@ class TestDatabaseOperations:
 class TestBatchOperations:
     """Test batch document operations."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_add_documents_success(
         self,
@@ -626,10 +626,10 @@ class TestBatchOperations:
         ).hexdigest()
         assert call_args["ids"][0] == expected_id
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_add_documents_default_metadata(
         self,
@@ -661,8 +661,8 @@ class TestBatchOperations:
         assert call_args["documents"] == chunks
         assert call_args["metadatas"] == [{"chunk_index": 0}, {"chunk_index": 1}]
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_add_documents_empty_chunks(self, mock_st, mock_pc, temp_db_path):
         """Test add_documents with empty chunks list."""
         mock_st.side_effect = Exception("No model")
@@ -674,8 +674,8 @@ class TestBatchOperations:
         # Should not raise exception
         emb_mgr.add_documents([])
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_add_documents_no_collection(self, mock_st, mock_pc, temp_db_path):
         """Test add_documents when no collection is available."""
         mock_st.side_effect = Exception("No model")
@@ -691,10 +691,10 @@ class TestBatchOperations:
 class TestUtilityMethods:
     """Test utility and helper methods."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_get_collection_info_success(
         self,
@@ -725,8 +725,8 @@ class TestUtilityMethods:
         assert info["count"] == 42
         assert info["model"] == "test_model"
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_get_collection_info_no_collection(self, mock_st, mock_pc, temp_db_path):
         """Test get_collection_info when no collection is available."""
         mock_st.side_effect = Exception("No model")
@@ -742,10 +742,10 @@ class TestUtilityMethods:
         assert info["count"] == 0
         assert info["model"] == "test_model"
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_get_collection_info_count_error(
         self,
@@ -778,7 +778,7 @@ class TestUtilityMethods:
 
         # Create manager without mocking to test hash function
         with patch(
-            "backend.embeddings.SentenceTransformer",
+            "agent.embeddings.SentenceTransformer",
             side_effect=Exception("Skip model"),
         ):
             emb_mgr = EmbeddingsManager()
@@ -797,7 +797,7 @@ class TestUtilityMethods:
 
         # Create manager without mocking to test chunking
         with patch(
-            "backend.embeddings.SentenceTransformer",
+            "agent.embeddings.SentenceTransformer",
             side_effect=Exception("Skip model"),
         ):
             emb_mgr = EmbeddingsManager(chunk_size=5, overlap=2)
@@ -824,7 +824,7 @@ class TestUtilityMethods:
         from agent.embeddings import EmbeddingsManager
 
         with patch(
-            "backend.embeddings.SentenceTransformer",
+            "agent.embeddings.SentenceTransformer",
             side_effect=Exception("Skip model"),
         ):
             emb_mgr = EmbeddingsManager()
@@ -844,10 +844,10 @@ class TestUtilityMethods:
 class TestIndexingMethods:
     """Test file indexing functionality."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_index_file_success(
         self,
@@ -878,8 +878,8 @@ class TestIndexingMethods:
         mock_chroma_collection.add.assert_called_once()
         mock_chroma_client.persist.assert_called_once()
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     def test_index_file_not_found(self, mock_st, mock_pc, temp_db_path):
         """Test indexing a file that doesn't exist."""
         mock_st.side_effect = Exception("Skip model")
@@ -891,10 +891,10 @@ class TestIndexingMethods:
 
         assert result == 0
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_index_vault_success(
         self,
@@ -924,10 +924,10 @@ class TestIndexingMethods:
         assert all(str(Path(k).endswith(".md") for k in results.keys()))
         assert all(v > 0 for v in results.values())
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_reindex_success(
         self,
@@ -963,7 +963,7 @@ class TestImportFailures:
 
     def test_sentence_transformer_none_handling(self, temp_db_path):
         """Test initialization when SentenceTransformer is None."""
-        with patch("backend.embeddings.SentenceTransformer", None):
+        with patch("agent.embeddings.SentenceTransformer", None):
             from agent.embeddings import EmbeddingsManager
 
             manager = EmbeddingsManager(db_path=temp_db_path)
@@ -975,8 +975,8 @@ class TestImportFailures:
 
     def test_persistent_client_none_handling(self, temp_db_path):
         """Test initialization when PersistentClient is None."""
-        with patch("backend.embeddings.PersistentClient", None):
-            with patch("backend.embeddings.SentenceTransformer") as mock_st:
+        with patch("agent.embeddings.PersistentClient", None):
+            with patch("agent.embeddings.SentenceTransformer") as mock_st:
                 mock_st.return_value = Mock()
 
                 from agent.embeddings import EmbeddingsManager
@@ -989,9 +989,9 @@ class TestImportFailures:
 
     def test_embedding_functions_import_failure(self):
         """Test when embedding_functions is not available."""
-        with patch("backend.embeddings.embedding_functions", None):
-            with patch("backend.embeddings.SentenceTransformer") as mock_st:
-                with patch("backend.embeddings.PersistentClient") as mock_pc:
+        with patch("agent.embeddings.embedding_functions", None):
+            with patch("agent.embeddings.SentenceTransformer") as mock_st:
+                with patch("agent.embeddings.PersistentClient") as mock_pc:
                     mock_st.return_value = Mock()
                     mock_pc.return_value = Mock()
 
@@ -1006,10 +1006,10 @@ class TestImportFailures:
 class TestGetEmbeddingById:
     """Test the get_embedding_by_id method."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_get_embedding_by_id_success(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
@@ -1037,10 +1037,10 @@ class TestGetEmbeddingById:
             ids=["test_note.md"], include=["embeddings"]
         )
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_get_embedding_by_id_not_found(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
@@ -1064,7 +1064,7 @@ class TestGetEmbeddingById:
 
     def test_get_embedding_by_id_no_collection(self, temp_db_path):
         """Test get_embedding_by_id when collection is None."""
-        with patch("backend.embeddings.SentenceTransformer", None):
+        with patch("agent.embeddings.SentenceTransformer", None):
             from agent.embeddings import EmbeddingsManager
 
             manager = EmbeddingsManager(db_path=temp_db_path)
@@ -1074,10 +1074,10 @@ class TestGetEmbeddingById:
 
             assert result == []
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_get_embedding_by_id_exception_handling(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
@@ -1103,10 +1103,10 @@ class TestGetEmbeddingById:
 class TestIndexFilePersist:
     """Test the index_file method with persist calls."""
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_index_file_with_persist(
         self,
@@ -1140,10 +1140,10 @@ class TestIndexFilePersist:
         mock_client.persist.assert_called_once()
         assert chunks_indexed > 0
 
-    @patch("backend.embeddings.PersistentClient")
-    @patch("backend.embeddings.SentenceTransformer")
+    @patch("agent.embeddings.PersistentClient")
+    @patch("agent.embeddings.SentenceTransformer")
     @patch(
-        "backend.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
+        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
     )
     def test_index_file_nonexistent(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
@@ -1169,8 +1169,8 @@ class TestPersistentClientNone:
 
     def test_initialization_with_persistent_client_none(self, temp_db_path):
         """Test that chroma_client is set to None when PersistentClient unavailable."""
-        with patch("backend.embeddings.PersistentClient", None):
-            with patch("backend.embeddings.SentenceTransformer") as mock_st:
+        with patch("agent.embeddings.PersistentClient", None):
+            with patch("agent.embeddings.SentenceTransformer") as mock_st:
                 mock_st.return_value = Mock()
 
                 from agent.embeddings import EmbeddingsManager
@@ -1187,8 +1187,8 @@ class TestSentenceTransformerNoneWarning:
 
     def test_sentence_transformer_none_logs_warning(self, temp_db_path):
         """Test that warning is logged when SentenceTransformer is None."""
-        with patch("backend.embeddings.SentenceTransformer", None):
-            with patch("backend.embeddings.logging") as mock_logging:
+        with patch("agent.embeddings.SentenceTransformer", None):
+            with patch("agent.embeddings.logging") as mock_logging:
                 from agent.embeddings import EmbeddingsManager
 
                 manager = EmbeddingsManager(db_path=temp_db_path)
@@ -1202,3 +1202,4 @@ class TestSentenceTransformerNoneWarning:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

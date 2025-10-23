@@ -22,7 +22,7 @@ import importlib.util
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional
+from typing import Optional
 
 # Add scripts directory to path
 SCRIPT_DIR = Path(__file__).parent
@@ -131,37 +131,39 @@ def derive_title_from_change_id(change_id: str) -> str:
     return " ".join(word.capitalize() for word in change_id.split("-"))
 
 
-def extract_metadata_from_proposal(proposal_path: Path) -> tuple[Optional[str], Optional[str]]:
+def extract_metadata_from_proposal(
+    proposal_path: Path,
+) -> tuple[Optional[str], Optional[str]]:
     """
     Extract title and owner from existing proposal.md file.
-    
+
     Args:
         proposal_path: Path to proposal.md file
-        
+
     Returns:
         Tuple of (title, owner) or (None, None) if not found
     """
     if not proposal_path.exists():
         return None, None
-    
+
     try:
-        content = proposal_path.read_text(encoding='utf-8')
-        
+        content = proposal_path.read_text(encoding="utf-8")
+
         # Extract title from first heading or Change ID context
         title = None
         owner = None
-        
-        for line in content.split('\n'):
-            if line.startswith('# '):
-                title = line.replace('# ', '').strip()
+
+        for line in content.split("\n"):
+            if line.startswith("# "):
+                title = line.replace("# ", "").strip()
                 break
-        
+
         # Extract owner from metadata section
-        for line in content.split('\n'):
-            if line.startswith('**Owner**:'):
-                owner = line.replace('**Owner**:', '').strip()
+        for line in content.split("\n"):
+            if line.startswith("**Owner**:"):
+                owner = line.replace("**Owner**:", "").strip()
                 break
-        
+
         return title, owner
     except Exception as e:
         helpers.write_warning(f"Could not extract metadata from proposal: {e}")
@@ -176,12 +178,12 @@ def prompt_for_missing_info(
 ) -> tuple[str, str, str]:
     """Interactively prompt for title/owner/template if missing, with sensible defaults."""
     # Note: Keep prompts minimal and safe for non-interactive environments
-    
+
     # Try to extract from existing proposal first
     change_path = CHANGES_DIR / change_id
     proposal_path = change_path / "proposal.md"
     proposal_title, proposal_owner = extract_metadata_from_proposal(proposal_path)
-    
+
     derived_title = title or proposal_title or derive_title_from_change_id(change_id)
     detected_owner = owner or proposal_owner or get_git_user()
 

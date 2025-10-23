@@ -13,7 +13,7 @@ from pathlib import Path
 # Add scripts directory to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from progress_indicators import StatusTracker, progress_bar, spinner, workflow_progress
+from progress_indicators import workflow_progress
 
 
 def demo_workflow_execution():

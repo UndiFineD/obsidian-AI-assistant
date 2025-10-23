@@ -139,7 +139,7 @@ async def test_system_metrics_collection(health_monitor):
 
     time.sleep(0.01)
 
-    with patch("backend.health_monitoring.psutil") as mock_psutil:
+    with patch("agent.health_monitoring.psutil") as mock_psutil:
         # Mock system metrics
         mock_psutil.cpu_percent.return_value = 45.5
 
@@ -169,7 +169,7 @@ async def test_system_metrics_collection(health_monitor):
 @pytest.mark.asyncio
 async def test_metrics_history_management(health_monitor):
     """Test metrics history size limiting"""
-    with patch("backend.health_monitoring.psutil") as mock_psutil:
+    with patch("agent.health_monitoring.psutil") as mock_psutil:
         # Setup mocks
         mock_psutil.cpu_percent.return_value = 50.0
         mock_memory = Mock(percent=50.0, available=1024 * 1024 * 1024)
@@ -253,7 +253,7 @@ async def test_alert_resolution_on_recovery(health_monitor):
 @pytest.mark.asyncio
 async def test_cpu_threshold_alerts(health_monitor):
     """Test CPU usage threshold alerts"""
-    with patch("backend.health_monitoring.psutil") as mock_psutil:
+    with patch("agent.health_monitoring.psutil") as mock_psutil:
         mock_psutil.cpu_percent.return_value = 96.0  # Critical level
         mock_memory = Mock(percent=50.0, available=1024 * 1024 * 1024)
         mock_psutil.virtual_memory.return_value = mock_memory
@@ -275,7 +275,7 @@ async def test_cpu_threshold_alerts(health_monitor):
 @pytest.mark.asyncio
 async def test_memory_threshold_alerts(health_monitor):
     """Test memory usage threshold alerts"""
-    with patch("backend.health_monitoring.psutil") as mock_psutil:
+    with patch("agent.health_monitoring.psutil") as mock_psutil:
         mock_psutil.cpu_percent.return_value = 50.0
         mock_memory = Mock(percent=92.0, available=1024 * 1024 * 1024)  # Error level
         mock_psutil.virtual_memory.return_value = mock_memory
@@ -463,7 +463,7 @@ async def test_slow_response_time_degraded_status(health_monitor):
 @pytest.mark.asyncio
 async def test_metrics_aggregation_window(health_monitor):
     """Test metrics aggregation over time window"""
-    with patch("backend.health_monitoring.psutil") as mock_psutil:
+    with patch("agent.health_monitoring.psutil") as mock_psutil:
         mock_psutil.cpu_percent.return_value = 50.0
         mock_memory = Mock(percent=60.0, available=1024 * 1024 * 1024)
         mock_psutil.virtual_memory.return_value = mock_memory
@@ -481,3 +481,4 @@ async def test_metrics_aggregation_window(health_monitor):
         assert summary["data_points"] >= 5
         assert 40 <= summary["cpu_avg"] <= 60
         assert 50 <= summary["memory_avg"] <= 70
+

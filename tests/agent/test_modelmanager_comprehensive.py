@@ -17,13 +17,13 @@ class TestModelManagerIntegration:
     def test_from_settings_success(self, mock_settings):
         """Test ModelManager.from_settings with valid settings."""
         with patch(
-            "backend.modelmanager.get_settings", return_value=mock_settings
+            "agent.modelmanager.get_settings", return_value=mock_settings
         ), patch("os.getenv", return_value="env_token"), patch(
-            "backend.modelmanager.load_dotenv"
+            "agent.modelmanager.load_dotenv"
         ), patch(
-            "backend.modelmanager.huggingface_hub.login"
+            "agent.modelmanager.huggingface_hub.login"
         ), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.mkdir"
         ), patch(
@@ -37,7 +37,7 @@ class TestModelManagerIntegration:
         ), patch(
             "builtins.open", mock_open(read_data="test-model")
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download"
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
         ), patch.object(
             ModelManager, "_download_minimal_models"
         ), patch.object(
@@ -51,20 +51,20 @@ class TestModelManagerIntegration:
     def test_from_settings_fallback(self):
         """Test ModelManager.from_settings fallback when settings fail."""
         with patch(
-            "backend.modelmanager.get_settings",
+            "agent.modelmanager.get_settings",
             side_effect=Exception("Settings unavailable"),
-        ), patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        ), patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch(
             "os.getenv", return_value=None
         ), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.mkdir"
         ), patch(
             "pathlib.Path.exists", return_value=False
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download"
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
         ):
             manager = ModelManager.from_settings()
             # Should use default values
@@ -103,7 +103,7 @@ class TestRevisionPinningEnforcement:
         # Simulate automated download context
         manager._automated_download = True
         with patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download",
+            "agent.modelmanager.huggingface_hub.hf_hub_download",
             return_value="/fake/path/model.bin",
         ):
             result = manager.download_model("org/model", revision="main")
@@ -141,7 +141,7 @@ class TestModelManagerUpdateLogic:
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("org/model1\norg/model2\n")
         with patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download",
+            "agent.modelmanager.huggingface_hub.hf_hub_download",
             return_value="/fake/path/model.bin",
         ) as mock_download, patch.object(
             ModelManager, "_check_and_update_models", lambda self: None
@@ -161,7 +161,7 @@ class TestModelManagerUpdateLogic:
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("org/model1\norg/model2\n")
         with patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download",
+            "agent.modelmanager.huggingface_hub.hf_hub_download",
             side_effect=Exception("Network error"),
         ) as mock_download, patch.object(
             ModelManager, "_check_and_update_models", lambda self: None
@@ -245,10 +245,10 @@ class TestModelManagerInit:
         env_file = Path(temp_cache_dir) / ".env"
         env_file.write_text("HF_TOKEN=test_token\n")
 
-        with patch("backend.modelmanager.load_dotenv") as mock_load_dotenv, patch.dict(
+        with patch("agent.modelmanager.load_dotenv") as mock_load_dotenv, patch.dict(
             "sys.modules", {"huggingface_hub": sys.modules["huggingface_hub"]}
         ), patch("os.getenv", return_value="test_token"), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(models_dir=temp_cache_dir, env_file=str(env_file))
@@ -259,10 +259,10 @@ class TestModelManagerInit:
         """Test initialization when .env file doesn't exist."""
         non_existent = str(Path(temp_cache_dir) / "missing.env")
 
-        with patch("backend.modelmanager.load_dotenv") as mock_load_dotenv, patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv") as mock_load_dotenv, patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -279,10 +279,10 @@ class TestModelManagerInit:
 
     def test_hf_login_success(self, temp_cache_dir):
         """Test successful HuggingFace login."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ) as mock_login, patch("os.getenv", return_value="valid_token"), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -298,11 +298,11 @@ class TestModelManagerInit:
 
     def test_hf_login_failure(self, temp_cache_dir):
         """Test HuggingFace login failure handling."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login",
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login",
             side_effect=Exception("Login failed"),
         ), patch("os.getenv", return_value="invalid_token"), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -319,10 +319,10 @@ class TestModelManagerInit:
 
     def test_llm_router_init_failure(self, temp_cache_dir):
         """Test handling of LLM router initialization failure."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter",
+            "agent.modelmanager.HybridLLMRouter",
             side_effect=Exception("Router init failed"),
         ):
             manager = ModelManager(models_dir=temp_cache_dir)
@@ -334,10 +334,10 @@ class TestModelManagerInit:
         """Test that models directory is created."""
         models_dir = Path(temp_cache_dir) / "new_models"
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
             _ = ModelManager(
                 models_dir=str(models_dir)
@@ -354,10 +354,10 @@ class TestModelManagerInit:
         claude_file.write_text("dummy model content")
         gpt4all_file.write_text("dummy model content")
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
             manager = ModelManager(models_dir=temp_cache_dir)
 
@@ -372,10 +372,10 @@ class TestModelManagerInit:
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("model-a\nmodel-b\nmodel-c\n")
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -405,10 +405,10 @@ class TestModelsFileLoading:
         models_file.parent.mkdir(parents=True, exist_ok=True)
         models_file.write_text("# Comment line\n\nmodel-1/submodel\nmodel-2\n")
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -429,10 +429,10 @@ class TestModelsFileLoading:
 
     def test_load_models_file_not_exists(self, temp_cache_dir):
         """Test loading when models file doesn't exist."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -458,10 +458,10 @@ class TestModelsFileLoading:
         models_file.write_text("model-1\nmodel-2\n")
 
         # Mock open to raise an exception
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.open", side_effect=PermissionError("Access denied")
         ):
@@ -479,12 +479,12 @@ class TestModelDownloading:
 
     def test_download_huggingface_model_success(self, temp_cache_dir):
         """Test successful HuggingFace model download."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value="test_token"), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download"
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
         ) as mock_download:
 
             mock_download.return_value = f"{temp_cache_dir}/model.bin"
@@ -506,12 +506,12 @@ class TestModelDownloading:
 
     def test_download_huggingface_model_error(self, temp_cache_dir):
         """Test HuggingFace model download error."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value="test_token"), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download",
+            "agent.modelmanager.huggingface_hub.hf_hub_download",
             side_effect=Exception("Network error"),
         ):
 
@@ -525,10 +525,10 @@ class TestModelDownloading:
         model_file = Path(temp_cache_dir) / "local-model"
         model_file.write_text("fake model")
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
             manager = ModelManager(models_dir=temp_cache_dir)
             result = manager.download_model("local-model")
@@ -538,10 +538,10 @@ class TestModelDownloading:
 
     def test_download_local_model_create(self, temp_cache_dir):
         """Test creating a new local model file."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(models_dir=temp_cache_dir)
@@ -552,10 +552,10 @@ class TestModelDownloading:
 
     def test_download_local_model_error(self, temp_cache_dir):
         """Test local model download error."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.touch", side_effect=PermissionError("Access denied")
         ):
@@ -572,10 +572,10 @@ class TestModelLoading:
 
     def test_load_model_default(self, temp_cache_dir):
         """Test loading default model."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
             mock_router = Mock()
             mock_router_class.return_value = mock_router
@@ -597,10 +597,10 @@ class TestModelLoading:
 
     def test_load_model_specific(self, temp_cache_dir):
         """Test loading specific model by name."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             mock_router = Mock()
@@ -621,10 +621,10 @@ class TestModelLoading:
 
     def test_load_model_no_default(self, temp_cache_dir):
         """Test loading model when no default is available."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(models_dir=temp_cache_dir, default_model=None)
@@ -634,10 +634,10 @@ class TestModelLoading:
 
     def test_load_model_already_loaded(self, temp_cache_dir):
         """Test loading model that's already in cache."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(models_dir=temp_cache_dir)
@@ -652,10 +652,10 @@ class TestModelLoading:
 
     def test_load_model_download_failure(self, temp_cache_dir):
         """Test loading model when download fails."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(models_dir=temp_cache_dir)
@@ -669,10 +669,10 @@ class TestModelLoading:
 
     def test_load_model_instantiation_failure(self, temp_cache_dir):
         """Test loading model when router instantiation fails."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter",
+            "agent.modelmanager.HybridLLMRouter",
             side_effect=Exception("Router creation failed"),
         ):
 
@@ -699,13 +699,13 @@ class TestFromSettings:
         mock_settings.abs_models_dir = Path("./models")
         mock_settings.model_backend = "test-model"
         with patch(
-            "backend.modelmanager.get_settings", return_value=mock_settings
+            "agent.modelmanager.get_settings", return_value=mock_settings
         ), patch("os.getenv", return_value="env_token"), patch(
-            "backend.modelmanager.load_dotenv"
+            "agent.modelmanager.load_dotenv"
         ), patch(
-            "backend.modelmanager.huggingface_hub.login"
+            "agent.modelmanager.huggingface_hub.login"
         ), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.mkdir"
         ), patch(
@@ -719,7 +719,7 @@ class TestFromSettings:
         ), patch(
             "builtins.open", mock_open(read_data="test-model")
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download"
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
         ), patch.object(
             ModelManager, "_download_minimal_models"
         ), patch.object(
@@ -735,20 +735,20 @@ class TestFromSettings:
     def test_from_settings_fallback(self):
         """Test from_settings fallback when settings fail."""
         with patch(
-            "backend.modelmanager.get_settings",
+            "agent.modelmanager.get_settings",
             side_effect=Exception("Settings unavailable"),
-        ), patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        ), patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch(
             "os.getenv", return_value=None
         ), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.mkdir"
         ), patch(
             "pathlib.Path.exists", return_value=False
         ), patch(
-            "backend.modelmanager.huggingface_hub.hf_hub_download"
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
         ):
             manager = ModelManager.from_settings()
 
@@ -763,10 +763,10 @@ class TestGenerateText:
 
     def test_generate_lazy_router_initialization(self, temp_cache_dir):
         """Test lazy initialization of LLM router in generate."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             # Initialize with router creation failure
@@ -791,10 +791,10 @@ class TestGenerateText:
 
     def test_generate_with_context(self, temp_cache_dir):
         """Test generate with context parameter."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             mock_router = Mock()
@@ -812,10 +812,10 @@ class TestGenerateText:
 
     def test_generate_without_context(self, temp_cache_dir):
         """Test generate without context parameter."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             mock_router = Mock()
@@ -837,10 +837,10 @@ class TestGetModelInfo:
 
     def test_get_model_info_lazy_router_initialization(self, temp_cache_dir):
         """Test lazy initialization of LLM router in get_model_info."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             # Initialize with router creation failure
@@ -865,10 +865,10 @@ class TestGetModelInfo:
 
     def test_get_model_info_with_existing_router(self, temp_cache_dir):
         """Test get_model_info with already initialized router."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ) as mock_router_class:
 
             mock_router = Mock()
@@ -897,10 +897,10 @@ class TestModelManagerEdgeCases:
         models_file = Path(temp_cache_dir) / "empty_models.txt"
         models_file.write_text("# This is a comment\n\n# Another comment\n\n")
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -930,10 +930,10 @@ class TestModelManagerEdgeCases:
             "organization/model-name-v1.0\nuser/very-long-model-name-with-dashes\n"
         )
 
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ):
 
             manager = ModelManager(
@@ -950,10 +950,10 @@ class TestModelManagerEdgeCases:
 
     def test_no_models_available_scenario(self, temp_cache_dir):
         """Test scenario with no models available at all."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "builtins.print"
         ) as mock_print:
@@ -975,10 +975,10 @@ class TestModelManagerEdgeCases:
 
     def test_model_directory_permissions_error(self, temp_cache_dir):
         """Test handling of model directory creation failure."""
-        with patch("backend.modelmanager.load_dotenv"), patch(
-            "backend.modelmanager.huggingface_hub.login"
+        with patch("agent.modelmanager.load_dotenv"), patch(
+            "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value=None), patch(
-            "backend.modelmanager.HybridLLMRouter"
+            "agent.modelmanager.HybridLLMRouter"
         ), patch(
             "pathlib.Path.mkdir", side_effect=PermissionError("Access denied")
         ):
@@ -1041,3 +1041,4 @@ class TestModelRemoval:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

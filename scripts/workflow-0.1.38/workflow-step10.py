@@ -79,13 +79,15 @@ def _get_git_status_details() -> str:
         )
         if not result.stdout.strip():
             return "No changes"
-        
+
         lines = result.stdout.strip().split("\n")
         modified = [l for l in lines if l.startswith(" M")]
         added = [l for l in lines if l.startswith("??")]
         deleted = [l for l in lines if l.startswith(" D")]
-        
-        summary = f"Changed: {len(modified)}, Added: {len(added)}, Deleted: {len(deleted)}"
+
+        summary = (
+            f"Changed: {len(modified)}, Added: {len(added)}, Deleted: {len(deleted)}"
+        )
         return summary
     except subprocess.CalledProcessError:
         return "Unable to get status details"
@@ -223,7 +225,7 @@ def _git(args: List[str]) -> str:
             check=True,
         )
         return result.stdout.strip()
-    except subprocess.CalledProcessError as error:
+    except subprocess.CalledProcessError:
         return ""
 
 

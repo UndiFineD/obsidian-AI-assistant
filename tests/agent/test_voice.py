@@ -25,8 +25,8 @@ class TestVoiceModule:
         # Should be either from environment or default
         assert "vosk-model" in MODEL_PATH
 
-    @patch("backend.voice.os.path.exists")
-    @patch("backend.voice.vosk.Model")
+    @patch("agent.voice.os.path.exists")
+    @patch("agent.voice.vosk.Model")
     def test_model_initialization_success(self, mock_vosk_model, mock_exists):
         """Test successful model initialization."""
         mock_exists.return_value = True
@@ -43,7 +43,7 @@ class TestVoiceModule:
         mock_exists.assert_called_with(MODEL_PATH)
         mock_vosk_model.assert_called_with(MODEL_PATH)
 
-    @patch("backend.voice.os.path.exists", return_value=False)
+    @patch("agent.voice.os.path.exists", return_value=False)
     def test_model_initialization_failure(self, mock_exists):
         """Test model initialization failure when model path doesn't exist."""
         # Reimport to test initialization without raising at import
@@ -109,8 +109,8 @@ class TestVoiceTranscription:
         mock_file.read = AsyncMock()
         return mock_file
 
-    @patch("backend.voice.wave.open")
-    @patch("backend.voice.vosk.KaldiRecognizer")
+    @patch("agent.voice.wave.open")
+    @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
     async def test_voice_transcribe_success(self, mock_kaldi, mock_wave_open):
         """Test successful voice transcription."""
@@ -139,7 +139,7 @@ class TestVoiceTranscription:
         assert isinstance(result["transcription"], str)
         mock_file.read.assert_called_once()
 
-    @patch("backend.voice.wave.open")
+    @patch("agent.voice.wave.open")
     async def test_voice_transcribe_invalid_audio_format(self, mock_wave_open):
         """Test transcription with invalid audio format."""
         mock_audio_data = b"fake_audio_data"
@@ -157,7 +157,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
 
-    @patch("backend.voice.wave.open")
+    @patch("agent.voice.wave.open")
     async def test_voice_transcribe_invalid_sample_width(self, mock_wave_open):
         """Test transcription with invalid sample width."""
         mock_audio_data = b"fake_audio_data"
@@ -175,7 +175,7 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "mono PCM WAV" in result["error"]
 
-    @patch("backend.voice.wave.open")
+    @patch("agent.voice.wave.open")
     async def test_voice_transcribe_invalid_sample_rate(self, mock_wave_open):
         """Test transcription with invalid sample rate."""
         mock_audio_data = b"fake_audio_data"
@@ -194,8 +194,8 @@ class TestVoiceTranscription:
         assert "error" in result
         assert "16kHz or 8kHz" in result["error"]
 
-    @patch("backend.voice.wave.open")
-    @patch("backend.voice.vosk.KaldiRecognizer")
+    @patch("agent.voice.wave.open")
+    @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
     async def test_voice_transcribe_empty_transcription(
         self, mock_kaldi, mock_wave_open
@@ -223,8 +223,8 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == ""
 
-    @patch("backend.voice.wave.open")
-    @patch("backend.voice.vosk.KaldiRecognizer")
+    @patch("agent.voice.wave.open")
+    @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
     async def test_voice_transcribe_multiple_segments(self, mock_kaldi, mock_wave_open):
         """Test transcription with multiple text segments."""
@@ -251,7 +251,7 @@ class TestVoiceTranscription:
         assert "transcription" in result
         assert result["transcription"] == "hello world goodbye"
 
-    @patch("backend.voice.wave.open")
+    @patch("agent.voice.wave.open")
     @patch("builtins.open", mock_open())
     async def test_voice_transcribe_wave_error(self, mock_wave_open):
         """Test transcription with wave file error."""
@@ -265,8 +265,8 @@ class TestVoiceTranscription:
         with pytest.raises(wave.Error):
             await voice_transcribe(mock_file)
 
-    @patch("backend.voice.wave.open")
-    @patch("backend.voice.vosk.KaldiRecognizer")
+    @patch("agent.voice.wave.open")
+    @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
     async def test_voice_transcribe_json_parsing_error(
         self, mock_kaldi, mock_wave_open
@@ -321,7 +321,7 @@ class TestVoiceEndpointIntegration:
         # Create a simple test audio file
         test_wav = self.create_test_wav_file()
         try:
-            with patch("backend.voice.vosk.KaldiRecognizer") as mock_kaldi:
+            with patch("agent.voice.vosk.KaldiRecognizer") as mock_kaldi:
                 # Mock the recognizer
                 mock_recognizer = Mock()
                 mock_recognizer.AcceptWaveform.return_value = False
@@ -346,7 +346,7 @@ class TestVoiceEndpointIntegration:
 class TestVoiceUtilities:
     """Test utility functions and edge cases for voice module."""
 
-    @patch("backend.voice.os.getenv")
+    @patch("agent.voice.os.getenv")
     def test_model_path_from_environment(self, mock_getenv):
         """Test MODEL_PATH loading from environment variable."""
         test_path = "/custom/vosk/model/path"
@@ -361,7 +361,7 @@ class TestVoiceUtilities:
             "VOSK_MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
         )
 
-    @patch("backend.voice.os.getenv")
+    @patch("agent.voice.os.getenv")
     def test_model_path_default_value(self, mock_getenv):
         """Test MODEL_PATH default value when not in environment."""
         mock_getenv.return_value = None
@@ -385,7 +385,7 @@ class TestVoiceUtilities:
         assert isinstance(temp_file, str)
         assert temp_file.endswith(".wav")
 
-    @patch("backend.voice.vosk.KaldiRecognizer")
+    @patch("agent.voice.vosk.KaldiRecognizer")
     def test_recognizer_initialization_with_different_sample_rates(self, mock_kaldi):
         """Test that recognizer is initialized with correct sample rate."""
         mock_recognizer = Mock()
@@ -447,8 +447,8 @@ class TestVoskImportFallback:
             # Patch the import to fail
             with patch.dict("sys.modules", {"vosk": None}):
                 # Force re-import of voice module to trigger fallback
-                if "backend.voice" in sys.modules:
-                    del sys.modules["backend.voice"]
+                if "agent.voice" in sys.modules:
+                    del sys.modules["agent.voice"]
 
                 # This should trigger the VoskStub fallback
                 import importlib
@@ -483,8 +483,8 @@ class TestVoskImportFallback:
         from unittest.mock import patch
 
         # Test with vosk module completely missing
-        with patch("backend.voice.vosk.Model", side_effect=AttributeError("No Model")):
-            with patch("backend.voice.os.path.exists", return_value=True):
+        with patch("agent.voice.vosk.Model", side_effect=AttributeError("No Model")):
+            with patch("agent.voice.os.path.exists", return_value=True):
                 from agent.voice import get_vosk_model
 
                 # Should return None due to safe_call error handling
@@ -513,15 +513,15 @@ class TestBuiltinsModelSetup:
                 side_effect=Exception("Cannot set attribute"),
             ):
                 # Re-import voice module to trigger builtins assignment
-                if "backend.voice" in sys.modules:
-                    del sys.modules["backend.voice"]
+                if "agent.voice" in sys.modules:
+                    del sys.modules["agent.voice"]
 
                 import importlib
 
                 import agent.voice
 
                 # Should complete without crashing despite exception
-                voice_reloaded = importlib.reload(backend.voice)
+                voice_reloaded = importlib.reload(agent.voice)
                 assert voice_reloaded is not None
 
         finally:
@@ -541,14 +541,14 @@ class TestBuiltinsModelSetup:
 
         try:
             # Re-import to test model assignment
-            if "backend.voice" in sys.modules:
-                del sys.modules["backend.voice"]
+            if "agent.voice" in sys.modules:
+                del sys.modules["agent.voice"]
 
             import importlib
 
             import agent.voice
 
-            importlib.reload(backend.voice)
+            importlib.reload(agent.voice)
 
             # Check if builtins.model was set (it may be None if no model loaded)
             assert hasattr(builtins, "model")
@@ -568,8 +568,8 @@ class TestVoiceModuleEdgeCases:
         """Test get_vosk_model when environment path doesn't exist."""
         from unittest.mock import patch
 
-        with patch("backend.voice.MODEL_PATH", "custom/path/to/model"):
-            with patch("backend.voice.os.path.exists", return_value=False):
+        with patch("agent.voice.MODEL_PATH", "custom/path/to/model"):
+            with patch("agent.voice.os.path.exists", return_value=False):
                 from agent.voice import get_vosk_model
 
                 # Should return None and log warning (not raise exception)
@@ -581,13 +581,13 @@ class TestVoiceModuleEdgeCases:
         from unittest.mock import patch
 
         with patch(
-            "backend.voice.MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
+            "agent.voice.MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
         ):
             with patch(
-                "backend.voice._DEFAULT_MODEL_PATH",
+                "agent.voice._DEFAULT_MODEL_PATH",
                 "./models/vosk/vosk-model-small-en-us-0.15",
             ):
-                with patch("backend.voice.os.path.exists", return_value=False):
+                with patch("agent.voice.os.path.exists", return_value=False):
                     from agent.voice import get_vosk_model
 
                     # Should raise RuntimeError for missing default path
@@ -600,3 +600,4 @@ class TestVoiceModuleEdgeCases:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

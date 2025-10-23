@@ -12,12 +12,7 @@ This test validates:
 - Configuration management and validation
 """
 
-import json
-import os
-import time
-from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import AsyncMock, Mock, patch
 
 
 def test_security_hardening_structure():

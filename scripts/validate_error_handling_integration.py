@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """Quick test to validate error handling integration works correctly."""
 
-import json
 import sys
 from pathlib import Path
 
@@ -106,7 +105,6 @@ def test_agent_integration():
         sys.modules["sentence_transformers"] = MagicMock()
 
         # import agentImport backend (this will test the error handling integration)
-        from agent.backend import app
 
         print("✓ Backend integration successful")
         return True

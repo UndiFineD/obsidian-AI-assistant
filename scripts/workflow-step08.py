@@ -6,7 +6,6 @@ Verifies that the implementation actually changed the project.
 """
 
 import importlib.util
-import json
 import subprocess
 import sys
 from pathlib import Path

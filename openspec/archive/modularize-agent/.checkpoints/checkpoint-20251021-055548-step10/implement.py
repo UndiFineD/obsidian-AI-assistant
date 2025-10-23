@@ -132,7 +132,7 @@ def main() -> int:
     print("IMPLEMENTATION TASKS")
     print("=" * 50)
     print()
-    
+
     # Parse specific implementation tasks from tasks.md
     # Extract tasks from Implementation section
     import re

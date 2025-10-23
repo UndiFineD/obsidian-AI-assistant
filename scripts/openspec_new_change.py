@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
-import os
 import re
 from dataclasses import dataclass
 from pathlib import Path

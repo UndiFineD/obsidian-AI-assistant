@@ -48,10 +48,10 @@ class TestServiceInitialization:
     #     for dir_path in temp_dirs.values():
     #         dir_path.mkdir(parents=True, exist_ok=True)
     #
-    #     with patch('backend.modelmanager.ModelManager') as MockMM, \
-    #          patch('backend.embeddings.EmbeddingsManager') as MockEM, \
-    #          patch('backend.indexing.VaultIndexer') as MockVI, \
-    #          patch('backend.caching.CacheManager') as MockCM, \
+    #     with patch('agent.modelmanager.ModelManager') as MockMM, \
+    #          patch('agent.embeddings.EmbeddingsManager') as MockEM, \
+    #          patch('agent.indexing.VaultIndexer') as MockVI, \
+    #          patch('agent.caching.CacheManager') as MockCM, \
     #          patch('agent.agent.get_settings') as mock_settings:
     #
     #         # Configure settings mock
@@ -84,10 +84,10 @@ class TestServiceInitialization:
         for dir_path in temp_dirs.values():
             dir_path.mkdir(parents=True, exist_ok=True)
 
-        with patch("backend.modelmanager.ModelManager") as MockMM, patch(
-            "backend.embeddings.EmbeddingsManager"
-        ) as MockEM, patch("backend.indexing.VaultIndexer") as MockVI, patch(
-            "backend.caching.CacheManager"
+        with patch("agent.modelmanager.ModelManager") as MockMM, patch(
+            "agent.embeddings.EmbeddingsManager"
+        ) as MockEM, patch("agent.indexing.VaultIndexer") as MockVI, patch(
+            "agent.caching.CacheManager"
         ) as MockCM:
 
             # Create mock instances
@@ -114,10 +114,10 @@ class TestServiceInitialization:
 
     # def test_service_initialization_with_failures(self):
     #     """Test service initialization handles partial failures."""
-    #     with patch('backend.modelmanager.ModelManager') as MockMM, \
-    #          patch('backend.embeddings.EmbeddingsManager') as MockEM, \
-    #          patch('backend.indexing.VaultIndexer') as MockVI, \
-    #          patch('backend.caching.CacheManager') as MockCM:
+    #     with patch('agent.modelmanager.ModelManager') as MockMM, \
+    #          patch('agent.embeddings.EmbeddingsManager') as MockEM, \
+    #          patch('agent.indexing.VaultIndexer') as MockVI, \
+    #          patch('agent.caching.CacheManager') as MockCM:
     #
     #         # Make ModelManager fail
     #         MockMM.from_settings.side_effect = Exception("Model init failed")
@@ -152,9 +152,9 @@ class TestConfigurationIntegration:
 
     # def test_settings_propagation_to_services(self):
     #     """Test that settings are properly propagated to all services."""
-    #     with patch('backend.settings.get_settings') as mock_get_settings, \
-    #          patch('backend.modelmanager.ModelManager') as MockMM, \
-    #          patch('backend.embeddings.EmbeddingsManager') as MockEM:
+    #     with patch('agent.settings.get_settings') as mock_get_settings, \
+    #          patch('agent.modelmanager.ModelManager') as MockMM, \
+    #          patch('agent.embeddings.EmbeddingsManager') as MockEM:
     #
     #         # Configure settings
     #         settings_mock = Mock()
@@ -176,7 +176,7 @@ class TestConfigurationIntegration:
     # @pytest.mark.asyncio
     # async def test_configuration_reload_integration(self, client):
     #     """Test configuration reload affects all services."""
-    #     with patch('backend.settings.reload_settings') as mock_reload, \
+    #     with patch('agent.settings.reload_settings') as mock_reload, \
     #          patch('agent.agent.model_manager'), \
     #          patch('agent.agent.emb_manager'):
     #
@@ -201,7 +201,7 @@ class TestConfigurationIntegration:
     # @pytest.mark.asyncio
     # async def test_configuration_update_integration(self, client):
     #     """Test configuration updates are applied correctly."""
-    #     with patch('backend.settings.update_settings') as mock_update:
+    #     with patch('agent.settings.update_settings') as mock_update:
     #
     #         # Configure update mock
     #         updated_settings = Mock()
@@ -237,7 +237,7 @@ class TestCrossServiceCommunication:
     # @pytest.mark.asyncio
     # async def test_cache_workflow_integration(self, client):
     #     """Test cache integration across services."""
-    #     with patch('backend.performance.get_cache_manager') as mock_get_cache, patch('agent.agent.model_manager') as mock_mm:
+    #     with patch('agent.performance.get_cache_manager') as mock_get_cache, patch('agent.agent.model_manager') as mock_mm:
     #         # First call: cache miss
     #         mock_cache = Mock()
     #         mock_cache.get.return_value = None
@@ -288,8 +288,8 @@ class TestCrossServiceCommunication:
 
     def test_embeddings_and_indexing_integration(self):
         """Test integration between embeddings and vault indexing."""
-        with patch("backend.embeddings.EmbeddingsManager") as MockEM, patch(
-            "backend.indexing.VaultIndexer"
+        with patch("agent.embeddings.EmbeddingsManager") as MockEM, patch(
+            "agent.indexing.VaultIndexer"
         ) as MockVI:
             # Create mock instances
             mock_em = Mock()
@@ -351,3 +351,4 @@ if __name__ == "__main__":
     print("====================================")
     # Run with pytest
     pytest.main([__file__, "-v", "--tb=short"])
+

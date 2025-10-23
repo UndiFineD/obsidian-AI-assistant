@@ -7,7 +7,6 @@ sections. Does not overwrite existing content.
 
 import importlib.util
 import sys
-from datetime import datetime
 from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent

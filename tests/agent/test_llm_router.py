@@ -12,7 +12,7 @@ from agent.llm_router import HybridLLMRouter
 @pytest.fixture
 def mock_llama():
     """Mock LLaMA model."""
-    with patch("backend.llm_router.Llama") as mock_llama_class:
+    with patch("agent.llm_router.Llama") as mock_llama_class:
         # Create a proper mock that returns the expected structure
         mock_llama_instance = MagicMock()
         # Mock the call to return the proper structure with strip() method
@@ -29,7 +29,7 @@ def mock_llama():
 @pytest.fixture
 def mock_gpt4all():
     """Mock GPT4All model."""
-    with patch("backend.llm_router.GPT4All") as mock_gpt4all_class:
+    with patch("agent.llm_router.GPT4All") as mock_gpt4all_class:
         mock_gpt4all_instance = Mock()
         mock_gpt4all_instance.generate.return_value = "GPT4All response"
         mock_gpt4all_class.return_value = mock_gpt4all_instance
@@ -52,8 +52,8 @@ def router_with_mocks(mock_llama, mock_gpt4all):
 def test_router_initialization_defaults():
     """Test router initialization with default values."""
     with patch("os.path.exists", return_value=False), patch(
-        "backend.llm_router.Llama", None
-    ), patch("backend.llm_router.GPT4All", None):
+        "agent.llm_router.Llama", None
+    ), patch("agent.llm_router.GPT4All", None):
         router = HybridLLMRouter()
         assert router.prefer_fast is True
         assert router.session_memory is True
@@ -65,8 +65,8 @@ def test_router_initialization_defaults():
 def test_router_initialization_custom():
     """Test router initialization with custom values."""
     with patch("os.path.exists", return_value=False), patch(
-        "backend.llm_router.Llama", None
-    ), patch("backend.llm_router.GPT4All", None):
+        "agent.llm_router.Llama", None
+    ), patch("agent.llm_router.GPT4All", None):
         router = HybridLLMRouter(
             llama_model_path="custom/llama.bin",
             gpt4all_model_path="custom/gpt4all.bin",
@@ -114,7 +114,7 @@ def test_generate_with_gpt4all_not_preferred_fast(router_with_mocks, mock_gpt4al
 def test_generate_fallback_to_available_model(mock_gpt4all):
     """Test generation fallback when preferred model is not available."""
     with patch("os.path.exists", return_value=True), patch(
-        "backend.llm_router.Llama", None
+        "agent.llm_router.Llama", None
     ):  # LLaMA not available
 
         router = HybridLLMRouter(prefer_fast=True)
@@ -128,8 +128,8 @@ def test_generate_fallback_to_available_model(mock_gpt4all):
 def test_generate_no_models_available():
     """Test generation when no models are available."""
     with patch("os.path.exists", return_value=False), patch(
-        "backend.llm_router.Llama", None
-    ), patch("backend.llm_router.GPT4All", None):
+        "agent.llm_router.Llama", None
+    ), patch("agent.llm_router.GPT4All", None):
 
         router = HybridLLMRouter()
         response = router.generate("Test prompt")
@@ -227,7 +227,7 @@ def test_error_handling_gpt4all_exception(router_with_mocks, mock_gpt4all):
     """Test error handling when GPT4All raises exception."""
     mock_gpt4all.generate.side_effect = Exception("GPT4All error")
 
-    with patch("backend.llm_router.Llama", None):  # Make LLaMA unavailable
+    with patch("agent.llm_router.Llama", None):  # Make LLaMA unavailable
         response = router_with_mocks.generate("Test prompt", prefer_fast=False)
 
     # Should handle exception gracefully
@@ -260,8 +260,8 @@ def test_check_model_availability(router_with_mocks):
 def test_model_import_errors():
     """Test handling of import errors for model libraries."""
     # Test when Llama is None (import failed)
-    with patch("backend.llm_router.Llama", None), patch(
-        "backend.llm_router.GPT4All", None
+    with patch("agent.llm_router.Llama", None), patch(
+        "agent.llm_router.GPT4All", None
     ):
 
         router = HybridLLMRouter()
@@ -302,3 +302,4 @@ class TestLLMRouterIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

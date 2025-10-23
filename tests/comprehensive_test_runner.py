@@ -100,7 +100,7 @@ class ComprehensiveTestRunner:
             "*_extended*",
             "*test_plugin.py",  # Keep only the newer plugin tests
             "test_server.py",
-            "simple_backend.py",
+            "simple_agent.py",
         ]
 
         filtered_files = []
@@ -573,3 +573,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -22,7 +22,7 @@ def temp_db_path():
 @pytest.fixture
 def mock_sentence_transformer():
     """Mock SentenceTransformer to avoid downloading models."""
-    with patch("backend.embeddings.SentenceTransformer") as mock_st:
+    with patch("agent.embeddings.SentenceTransformer") as mock_st:
         mock_model = Mock()
         mock_model.encode.return_value = [[0.1, 0.2, 0.3] for _ in range(5)]
         mock_st.return_value = mock_model
@@ -32,7 +32,7 @@ def mock_sentence_transformer():
 @pytest.fixture
 def mock_chroma_client():
     """Mock ChromaDB client."""
-    with patch("backend.embeddings.PersistentClient") as mock_client:
+    with patch("agent.embeddings.PersistentClient") as mock_client:
         mock_collection = Mock()
         mock_client_instance = Mock()
         mock_client_instance.get_or_create_collection.return_value = mock_collection
@@ -68,7 +68,7 @@ def test_embeddings_manager_initialization(
 
 def test_default_initialization(mock_sentence_transformer, mock_chroma_client):
     """Test EmbeddingsManager with default parameters."""
-    with patch("backend.embeddings.PersistentClient"):
+    with patch("agent.embeddings.PersistentClient"):
         emb_mgr = EmbeddingsManager()
         assert emb_mgr.chunk_size == 500
         assert emb_mgr.overlap == 50
@@ -115,7 +115,7 @@ def test_get_collection_info(embeddings_manager, mock_chroma_client):
 def test_model_loading_error_handling(temp_db_path):
     """Test handling of model loading errors without raising exceptions."""
     with patch(
-        "backend.embeddings.SentenceTransformer",
+        "agent.embeddings.SentenceTransformer",
         side_effect=Exception("Model load error"),
     ):
         mgr = EmbeddingsManager(db_path=temp_db_path)
@@ -126,7 +126,7 @@ def test_model_loading_error_handling(temp_db_path):
 def test_database_connection_error(temp_db_path, mock_sentence_transformer):
     """Test handling of database connection errors without raising exceptions."""
     with patch(
-        "backend.embeddings.PersistentClient",
+        "agent.embeddings.PersistentClient",
         side_effect=Exception("DB connection error"),
     ):
         mgr = EmbeddingsManager(db_path=temp_db_path)
@@ -140,3 +140,4 @@ class TestEmbeddingsIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

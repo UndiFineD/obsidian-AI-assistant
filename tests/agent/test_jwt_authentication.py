@@ -44,9 +44,9 @@ def jwt_config():
     from agent import backend
 
     return {
-        "secret_key": backend.JWT_SECRET_KEY,
-        "algorithm": backend.JWT_ALGORITHM,
-        "expiration_minutes": backend.JWT_EXPIRATION_MINUTES,
+        "secret_key": agent.JWT_SECRET_KEY,
+        "algorithm": agent.JWT_ALGORITHM,
+        "expiration_minutes": agent.JWT_EXPIRATION_MINUTES,
     }
 
 
@@ -475,3 +475,4 @@ class TestRoleBasedAccess:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

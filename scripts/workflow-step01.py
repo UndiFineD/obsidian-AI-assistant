@@ -2,7 +2,7 @@
 """Step 1: Version
 
 HARD REQUIREMENT: Always increments patch version (like PowerShell workflow).
-Updates agent/__init__.py, creates/checks out versioned branch, and persists 
+Updates agent/__init__.py, creates/checks out versioned branch, and persists
 new_version to .workflow_state.json.
 
 Does NOT update CHANGELOG.md or README.md - those are not part of version detection.
@@ -92,7 +92,7 @@ def _get_current_branch() -> str:
 
 def _create_or_checkout_branch(branch_name: str, dry_run: bool = False) -> bool:
     """Create or checkout versioned branch.
-    
+
     Stashes any uncommitted changes before switching branches to avoid conflicts
     with workflow state files (checkpoints, todos) that may be tracked by git.
     """

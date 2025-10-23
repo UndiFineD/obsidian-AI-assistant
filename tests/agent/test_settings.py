@@ -94,7 +94,7 @@ class TestSettingsPrecedence:
             "chunk_size": 1000,
         }
 
-        with patch("backend.settings._load_yaml_config", return_value=mock_yaml_data):
+        with patch("agent.settings._load_yaml_config", return_value=mock_yaml_data):
             with patch.dict(os.environ, {}, clear=True):  # Clear env vars
                 s = get_settings()
                 assert s.api_port == 9000
@@ -102,9 +102,7 @@ class TestSettingsPrecedence:
                 assert s.gpu is False
                 assert s.chunk_size == 1000
                 # Non-overridden values should remain defaults
-                assert (
-                    s.agent_url == "http://127.0.0.1:9000"
-                )  # Computed from api_port
+                assert s.agent_url == "http://127.0.0.1:9000"  # Computed from api_port
                 assert s.allow_network is False
 
     def test_env_override_yaml_and_defaults(self):
@@ -126,7 +124,7 @@ class TestSettingsPrecedence:
             "SIMILARITY_THRESHOLD": "0.8",
         }
 
-        with patch("backend.settings._load_yaml_config", return_value=mock_yaml_data):
+        with patch("agent.settings._load_yaml_config", return_value=mock_yaml_data):
             with patch.dict(os.environ, env_vars, clear=True):
                 s = get_settings()
                 # Environment should win over YAML
@@ -141,7 +139,7 @@ class TestSettingsPrecedence:
     def test_invalid_env_values_ignored(self):
         """Test that invalid environment values are ignored gracefully."""
         # Use empty YAML and test invalid env vars
-        with patch("backend.settings._load_yaml_config", return_value={}):
+        with patch("agent.settings._load_yaml_config", return_value={}):
             with patch.dict(
                 os.environ, {"CHUNK_SIZE": "not_a_number", "GPU": "maybe"}, clear=True
             ):
@@ -153,7 +151,7 @@ class TestSettingsPrecedence:
     def test_env_empty_string_and_missing(self):
         """Test that empty string and missing env vars are ignored."""
         env_vars = {"API_PORT": "", "VAULT_PATH": ""}
-        with patch("backend.settings._load_yaml_config", return_value={}):
+        with patch("agent.settings._load_yaml_config", return_value={}):
             with patch.dict(os.environ, env_vars, clear=True):
                 s = get_settings()
                 # Should fall back to defaults
@@ -169,7 +167,7 @@ class TestSettingsHelpers:
 
     def test_load_yaml_config_missing_file(self):
         """Test loading YAML when file doesn't exist."""
-        with patch("backend.settings.Path") as mock_path_cls:
+        with patch("agent.settings.Path") as mock_path_cls:
             mock_path = Mock()
             mock_path.exists.return_value = False
             mock_path_cls.return_value = mock_path
@@ -189,13 +187,13 @@ class TestSettingsHelpers:
         """Test loading YAML with invalid content."""
         config_path = tmp_path / "config.yaml"
         config_path.write_text("invalid: yaml: content: :[")
-        with patch("backend.settings.Path") as mock_path_cls:
+        with patch("agent.settings.Path") as mock_path_cls:
             mock_path = Mock()
             mock_path.exists.return_value = True
             mock_path.parent = tmp_path
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            with patch("backend.settings.open", create=True) as mock_open:
+            with patch("agent.settings.open", create=True) as mock_open:
                 mock_open.return_value.__enter__.return_value = config_path.open()
                 result = _load_yaml_config()
                 assert result == {}
@@ -204,13 +202,13 @@ class TestSettingsHelpers:
         """Test loading YAML with unknown keys."""
         config_path = tmp_path / "config.yaml"
         config_path.write_text("known: 1\nunknown: 2")
-        with patch("backend.settings.Path") as mock_path_cls:
+        with patch("agent.settings.Path") as mock_path_cls:
             mock_path = Mock()
             mock_path.exists.return_value = True
             mock_path.parent = tmp_path
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            with patch("backend.settings.open", create=True) as mock_open:
+            with patch("agent.settings.open", create=True) as mock_open:
                 mock_open.return_value.__enter__.return_value = config_path.open()
                 result = _load_yaml_config()
                 # Only known keys (Settings fields) should remain
@@ -298,8 +296,8 @@ class TestUpdateSettings:
                 mock_file = StringIO(content)
                 return mock_file
 
-        with patch("backend.settings.open", mock_open_func), patch(
-            "backend.settings.reload_settings", return_value=Settings()
+        with patch("agent.settings.open", mock_open_func), patch(
+            "agent.settings.reload_settings", return_value=Settings()
         ):
             updates = {
                 "vault_path": "new_vault",
@@ -361,8 +359,8 @@ class TestUpdateSettings:
                 mock_file = StringIO(content)
                 return mock_file
 
-        with patch("backend.settings.open", mock_open_func), patch(
-            "backend.settings.reload_settings", return_value=Settings()
+        with patch("agent.settings.open", mock_open_func), patch(
+            "agent.settings.reload_settings", return_value=Settings()
         ):
             updates = {
                 "chunk_size": "2000",  # String -> int
@@ -419,8 +417,8 @@ class TestUpdateSettings:
                 mock_file = StringIO(content)
                 return mock_file
 
-        with patch("backend.settings.open", mock_open_func), patch(
-            "backend.settings.reload_settings", return_value=Settings()
+        with patch("agent.settings.open", mock_open_func), patch(
+            "agent.settings.reload_settings", return_value=Settings()
         ):
             updates = {
                 "chunk_size": "not_a_number",
@@ -474,8 +472,8 @@ class TestUpdateSettings:
                 mock_file = StringIO(content)
                 return mock_file
 
-        with patch("backend.settings.open", mock_open_func), patch(
-            "backend.settings.reload_settings", return_value=Settings()
+        with patch("agent.settings.open", mock_open_func), patch(
+            "agent.settings.reload_settings", return_value=Settings()
         ):
             updates = {
                 "chunk_size": "not_a_number",
@@ -506,13 +504,13 @@ class TestUpdateSettings:
         """Test _load_yaml_config handles file read errors gracefully."""
         config_path = tmp_path / "config.yaml"
         config_path.write_text("api_port: 8000")
-        with patch("backend.settings.Path") as mock_path_cls:
+        with patch("agent.settings.Path") as mock_path_cls:
             mock_path = Mock()
             mock_path.exists.return_value = True
             mock_path.parent = tmp_path
             mock_path_cls.return_value = mock_path
             mock_path_cls.__file__ = str(tmp_path / "settings.py")
-            with patch("backend.settings.open", create=True) as mock_open:
+            with patch("agent.settings.open", create=True) as mock_open:
                 mock_open.side_effect = IOError("Read error")
                 result = _load_yaml_config()
                 assert result == {}
@@ -533,8 +531,8 @@ class TestUpdateSettings:
                 mock_file = StringIO(content)
                 return mock_file
 
-        with patch("backend.settings.open", mock_open_func), patch(
-            "backend.settings.reload_settings", return_value=Settings()
+        with patch("agent.settings.open", mock_open_func), patch(
+            "agent.settings.reload_settings", return_value=Settings()
         ):
             updates = {"vault_path": "new_vault"}
             try:
@@ -545,3 +543,4 @@ class TestUpdateSettings:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+

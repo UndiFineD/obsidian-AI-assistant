@@ -272,10 +272,10 @@ def mock_model_files():
 @pytest.fixture
 def mock_model_operations():
     """Comprehensive mocking for model operations including loading and initialization."""
-    with patch("backend.modelmanager.load_dotenv") as mock_load_dotenv, patch(
-        "backend.modelmanager.HybridLLMRouter"
+    with patch("agent.modelmanager.load_dotenv") as mock_load_dotenv, patch(
+        "agent.modelmanager.HybridLLMRouter"
     ) as mock_router, patch(
-        "backend.modelmanager.huggingface_hub.login"
+        "agent.modelmanager.huggingface_hub.login"
     ) as mock_hf_login, patch(
         "os.getenv"
     ) as mock_getenv, patch(
@@ -688,7 +688,7 @@ def test_isolation():
     import sys
 
     # Clear any backend modules from cache to prevent state leakage
-    modules_to_clear = [k for k in sys.modules.keys() if k.startswith("backend.")]
+    modules_to_clear = [k for k in sys.modules.keys() if k.startswith("agent.")]
     for module_name in modules_to_clear:
         if hasattr(sys.modules[module_name], "__dict__"):
             # Reset global variables in backend modules
@@ -742,3 +742,4 @@ def cleanup_temp_files():
                     shutil.rmtree(file_path, ignore_errors=True)
             except (OSError, PermissionError):
                 pass  # Ignore cleanup errors
+

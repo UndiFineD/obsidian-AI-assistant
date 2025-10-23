@@ -837,7 +837,7 @@ async def test_middleware_adds_security_headers_to_response():
     async def call_next(req):
         return Response(content="Test", status_code=200)
 
-    with patch("backend.security_hardening.SecurityContext") as MockSecurityContext:
+    with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         mock_context = SecurityContext(request)
         MockSecurityContext.return_value = mock_context
 
@@ -850,3 +850,4 @@ async def test_middleware_adds_security_headers_to_response():
             # Check response has security headers
             # Actual headers depend on _add_security_headers implementation
             assert response is not None
+

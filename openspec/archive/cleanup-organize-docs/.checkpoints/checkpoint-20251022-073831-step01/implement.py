@@ -34,7 +34,7 @@ def log_task(name: str, result: str, message: str = "") -> None:
     print(f"  {status} {name}")
     if message:
         print(f"      {message}")
-    
+
     implement_results["tasks"].append({
         "name": name,
         "result": result,
@@ -46,7 +46,7 @@ def create_directory_structure() -> bool:
     """Create docs/ directory structure."""
     print("\n[1/6] Creating Directory Structure")
     print("-" * 40)
-    
+
     try:
         docs_dir = project_root / "docs"
         subdirs = [
@@ -57,17 +57,17 @@ def create_directory_structure() -> bool:
             "production",
             "historical"
         ]
-        
+
         # Create docs directory
         docs_dir.mkdir(exist_ok=True)
         log_task("Create docs/ directory", "COMPLETED")
-        
+
         # Create subdirectories
         for subdir in subdirs:
             subdir_path = docs_dir / subdir
             subdir_path.mkdir(exist_ok=True)
             log_task(f"Create docs/{subdir}/", "COMPLETED")
-        
+
         # Create docs/README.md
         docs_readme_content = """# Documentation
 
@@ -110,10 +110,10 @@ For more information, see the main [README.md](../README.md).
         docs_readme = docs_dir / "README.md"
         docs_readme.write_text(docs_readme_content, encoding="utf-8")
         log_task("Create docs/README.md", "COMPLETED")
-        
+
         implement_results["completed"] += 7
         return True
-    
+
     except Exception as e:
         log_task("Create directory structure", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -124,7 +124,7 @@ def move_reference_docs() -> bool:
     """Move reference documentation to docs/."""
     print("\n[2/6] Moving Reference Documentation")
     print("-" * 40)
-    
+
     try:
         # Define file moves: (source_pattern, destination_subdir)
         move_operations = [
@@ -134,18 +134,18 @@ def move_reference_docs() -> bool:
             ("GIT_PULL_REQUEST.md", "guides"),
             ("GIT_COMMIT_PREPARATION.md", "guides"),
             ("GIT_PR_AND_MERGE_COMPLETE.md", "guides"),
-            
+
             # Production & deployment
             ("PRODUCTION_READINESS_V0.1.35.md", "production"),
             ("STATUS_COMPLETE_DEPLOYED.md", "production"),
             ("TEAM_BRIEFING_V0.1.35.md", "production"),
-            
+
             # Architecture & models
             ("MODELS_MIGRATION_COMPLETE.md", "architecture"),
             ("MODELS_MIGRATION_PHASE2_SUMMARY.md", "architecture"),
             ("MIGRATION_EXECUTION_SUMMARY.md", "architecture"),
             ("BEFORE_AFTER_COMPARISON.md", "architecture"),
-            
+
             # Reference docs & indexes
             ("MASTER_DOCUMENTATION_INDEX.md", "reference"),
             ("MASTER_INDEX_OCT21_2025.md", "reference"),
@@ -159,7 +159,7 @@ def move_reference_docs() -> bool:
             ("WORKFLOW_IMPROVEMENTS_SUMMARY_OCT22.md", "reference"),
             ("WORKFLOW_COMPLETION_REPORT.md", "reference"),
             ("WORKFLOW_EXECUTION_2_REPORT.md", "reference"),
-            
+
             # Documentation analysis & status
             ("DOCUMENTATION_COMPLETION_SUMMARY.md", "reference"),
             ("DOCUMENTATION_IMPROVEMENT_AUDIT.md", "reference"),
@@ -169,7 +169,7 @@ def move_reference_docs() -> bool:
             ("DOCUMENTATION_STATUS_REPORT.md", "reference"),
             ("DOCUMENTATION_TODO_CHECKLIST.md", "reference"),
             ("DOCUMENTATION_TODO_SUMMARY.md", "reference"),
-            
+
             # Task & project completion docs
             ("TASK_1_API_VALIDATION_REPORT.md", "reference"),
             ("TASK_2_VOICE_DOCUMENTATION_ANALYSIS.md", "reference"),
@@ -185,22 +185,22 @@ def move_reference_docs() -> bool:
             ("TASK_9_MIGRATION_ANALYSIS.md", "reference"),
             ("TASK_10_ADVANCED_ANALYSIS.md", "reference"),
             ("TASK_COMPLETION_SUMMARY_CRITICAL_PHASE.md", "reference"),
-            
+
             # Execution & progress reports
             ("EXECUTION_SUCCESS_SUMMARY.md", "reference"),
             ("PROGRESS_UPDATE_PHASE_2.md", "reference"),
             ("PROJECT_STATUS_60_PERCENT.md", "reference"),
             ("PHASE_1_ANALYSIS_COMPLETE.md", "reference"),
             ("PHASE_3_COMPLETION_SUMMARY.md", "reference"),
-            
+
             # OpenSpec cleanup docs (move to historical)
             ("OPENSPEC_CLEANUP_COMPLETE.md", "historical"),
             ("OPENSPEC_CLEANUP_IMPROVED.md", "historical"),
-            
+
             # Setup & config reference
             ("WSL_QUICK_REFERENCE.md", "guides"),
             ("README_PHASE_1_SUMMARY.md", "historical"),
-            
+
             # Cleanup & summary docs
             ("CLEANUP_DOCS_CHANGE_SUMMARY.md", "reference"),
             ("CLEANUP_PROPOSAL_ANALYSIS.md", "reference"),
@@ -213,7 +213,7 @@ def move_reference_docs() -> bool:
             ("STEP_10_EXECUTIVE_SUMMARY.md", "reference"),
             ("STEP_10_QUICK_REFERENCE.md", "reference"),
         ]
-        
+
         moved = 0
         for filename, destination in move_operations:
             src = project_root / filename
@@ -221,18 +221,18 @@ def move_reference_docs() -> bool:
                 dest_dir = project_root / "docs" / destination
                 dest_dir.mkdir(exist_ok=True, parents=True)
                 dest_file = dest_dir / filename
-                
+
                 try:
                     shutil.move(str(src), str(dest_file))
                     log_task(f"Move {filename} > docs/{destination}/", "COMPLETED")
                     moved += 1
                 except Exception as e:
                     log_task(f"Move {filename}", "FAILED", str(e))
-        
+
         implement_results["completed"] += moved
         log_task(f"Total files moved: {moved}", "COMPLETED")
         return True
-    
+
     except Exception as e:
         log_task("Move reference documentation", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -243,7 +243,7 @@ def delete_celebration_files() -> bool:
     """Delete celebration and status files."""
     print("\n[3/6] Deleting Celebration Files")
     print("-" * 40)
-    
+
     try:
         # Celebration file patterns to delete
         delete_patterns = [
@@ -266,7 +266,7 @@ def delete_celebration_files() -> bool:
             "PHASE_2_*.md",
             "PHASE2_*.md",
         ]
-        
+
         deleted = 0
         for pattern in delete_patterns:
             matching_files = list(project_root.glob(pattern))
@@ -277,11 +277,11 @@ def delete_celebration_files() -> bool:
                     deleted += 1
                 except Exception as e:
                     log_task(f"Delete {file_path.name}", "FAILED", str(e))
-        
+
         implement_results["completed"] += deleted
         log_task(f"Total files deleted: {deleted}", "COMPLETED")
         return True
-    
+
     except Exception as e:
         log_task("Delete celebration files", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -292,17 +292,17 @@ def update_readme() -> bool:
     """Update README.md with docs/ navigation."""
     print("\n[4/6] Updating README.md")
     print("-" * 40)
-    
+
     try:
         readme_path = project_root / "README.md"
-        
+
         if not readme_path.exists():
             log_task("Update README.md", "FAILED", "README.md not found")
             implement_results["failed"] += 1
             return False
-        
+
         content = readme_path.read_text(encoding="utf-8")
-        
+
         # Add documentation section if it doesn't exist
         if "## Documentation" not in content:
             docs_section = """
@@ -323,15 +323,15 @@ For comprehensive documentation, guides, and references, see the [docs/](./docs/
                 content = content.replace("## License", docs_section + "## License")
             else:
                 content = content.rstrip() + "\n\n" + docs_section
-            
+
             readme_path.write_text(content, encoding="utf-8")
             log_task("Add documentation section to README.md", "COMPLETED")
         else:
             log_task("Documentation section already exists in README.md", "SKIPPED")
-        
+
         implement_results["completed"] += 1
         return True
-    
+
     except Exception as e:
         log_task("Update README.md", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -342,17 +342,17 @@ def update_changelog() -> bool:
     """Update CHANGELOG.md to document cleanup."""
     print("\n[5/6] Updating CHANGELOG.md")
     print("-" * 40)
-    
+
     try:
         changelog_path = project_root / "CHANGELOG.md"
-        
+
         if not changelog_path.exists():
             log_task("Update CHANGELOG.md", "FAILED", "CHANGELOG.md not found")
             implement_results["failed"] += 1
             return False
-        
+
         content = changelog_path.read_text(encoding="utf-8")
-        
+
         # Add entry if not already there
         if "Documentation cleanup" not in content and "documentation cleanup" not in content:
             changelog_entry = """### Documentation Cleanup
@@ -376,15 +376,15 @@ def update_changelog() -> bool:
                     content += parts[1]
             else:
                 content = changelog_entry + content
-            
+
             changelog_path.write_text(content, encoding="utf-8")
             log_task("Add cleanup entry to CHANGELOG.md", "COMPLETED")
         else:
             log_task("Cleanup already documented in CHANGELOG.md", "SKIPPED")
-        
+
         implement_results["completed"] += 1
         return True
-    
+
     except Exception as e:
         log_task("Update CHANGELOG.md", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -395,17 +395,17 @@ def validate_implementation() -> bool:
     """Validate that implementation was successful."""
     print("\n[6/6] Validating Implementation")
     print("-" * 40)
-    
+
     try:
         validation_passed = True
-        
+
         # Check docs/ structure
         docs_dir = project_root / "docs"
         if docs_dir.exists():
             log_task("docs/ directory exists", "COMPLETED")
-            
+
             required_subdirs = [
-                "getting-started", "guides", "architecture", 
+                "getting-started", "guides", "architecture",
                 "reference", "production", "historical"
             ]
             for subdir in required_subdirs:
@@ -417,7 +417,7 @@ def validate_implementation() -> bool:
         else:
             log_task("docs/ directory exists", "FAILED")
             validation_passed = False
-        
+
         # Check README.md updated
         readme_path = project_root / "README.md"
         if readme_path.exists():
@@ -427,10 +427,10 @@ def validate_implementation() -> bool:
             else:
                 log_task("README.md has documentation section", "FAILED")
                 validation_passed = False
-        
+
         implement_results["completed"] += 1
         return validation_passed
-    
+
     except Exception as e:
         log_task("Validate implementation", "FAILED", str(e))
         implement_results["failed"] += 1
@@ -453,17 +453,17 @@ def main() -> int:
         help="Force execution without prompts"
     )
     args = parser.parse_args()
-    
+
     print("=" * 60)
     print("Implementation: cleanup-organize-docs")
     print("Documentation Cleanup & Organization")
     print("=" * 60)
     print()
-    
+
     if args.what_if:
         print("[WHAT-IF MODE] No changes will be made")
         print()
-    
+
     if not args.force and not args.what_if:
         try:
             response = input("Proceed with documentation cleanup? (yes/no): ").strip().lower()
@@ -474,7 +474,7 @@ def main() -> int:
             # No stdin available (running from subprocess), auto-proceed
             print("Auto-proceeding (no stdin available)")
         print()
-    
+
     # Execute implementation tasks
     tasks = [
         ("Directory Structure", create_directory_structure, "Create docs/ with subdirectories"),
@@ -484,7 +484,7 @@ def main() -> int:
         ("CHANGELOG Updates", update_changelog, "Document cleanup in CHANGELOG.md"),
         ("Validation", validate_implementation, "Validate implementation success"),
     ]
-    
+
     if args.what_if:
         print("What would be done:")
         print()
@@ -492,7 +492,7 @@ def main() -> int:
             print(f"  > {task_name}: {description}")
         print()
         return 0
-    
+
     for task_name, task_func, description in tasks:
         print(f"\n{description}...")
         try:
@@ -502,7 +502,7 @@ def main() -> int:
         except Exception as e:
             print(f"[ERROR] {task_name} failed: {e}")
             implement_results["failed"] += 1
-    
+
     # Summary
     print("\n" + "=" * 60)
     print("Implementation Summary")
@@ -513,7 +513,7 @@ def main() -> int:
     total = implement_results['completed'] + implement_results['failed'] + implement_results['skipped']
     print(f"Total:     {total}")
     print()
-    
+
     if implement_results["failed"] > 0:
         print("[FAILED] RESULT: IMPLEMENTATION HAD FAILURES")
         print(f"   {implement_results['failed']} task(s) failed")

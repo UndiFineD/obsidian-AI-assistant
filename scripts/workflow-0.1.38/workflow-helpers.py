@@ -9,11 +9,10 @@ Author: Obsidian AI Agent Team
 License: MIT
 """
 
-import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 
 # ANSI color codes for terminal output
