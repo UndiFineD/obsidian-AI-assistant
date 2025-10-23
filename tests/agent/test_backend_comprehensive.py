@@ -27,7 +27,7 @@ def agent_app():
     """Get the FastAPI app."""
     import agent.backend as backend
 
-    return agent.app
+    return backend.app
 
 
 @pytest.fixture
