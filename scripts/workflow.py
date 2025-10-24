@@ -682,6 +682,9 @@ def run_interactive_workflow(
         )
     print()
 
+    # Log lane configuration
+    log_lane_configuration(lane)
+
     # Determine which step to start from using helpers.detect_next_step
     start_step = helpers.detect_next_step(change_path)
     if start_step > 0 and start_step < 13:
@@ -787,6 +790,106 @@ def run_interactive_workflow(
     return 0
 
 
+# Lane-to-stage mapping for different workflow intensities
+LANE_MAPPING = {
+    "docs": {
+        "name": "Documentation-Only Lane",
+        "description": "Fast docs-only workflow (<5 min)",
+        "stages": [0, 1, 2, 3, 4, 5, 7, 9, 10, 12],  # Skip scripts, testing, git ops
+        "quality_gates_enabled": False,
+        "parallelization_enabled": False,
+        "code_change_check": True,  # Warn if code changes detected
+        "max_duration_seconds": 300,
+    },
+    "standard": {
+        "name": "Standard Lane",
+        "description": "Standard workflow with basic validation (~15 min)",
+        "stages": list(range(0, 13)),  # All stages
+        "quality_gates_enabled": True,
+        "parallelization_enabled": True,
+        "code_change_check": False,
+        "max_duration_seconds": 900,
+    },
+    "heavy": {
+        "name": "Heavy Lane",
+        "description": "Strict validation workflow (~20 min)",
+        "stages": list(range(0, 13)),  # All stages
+        "quality_gates_enabled": True,
+        "parallelization_enabled": True,
+        "code_change_check": False,
+        "max_duration_seconds": 1200,
+    },
+}
+
+
+def get_lane_config(lane: str) -> dict:
+    """
+    Get configuration for a workflow lane.
+    
+    Args:
+        lane: Lane identifier ('docs', 'standard', or 'heavy')
+        
+    Returns:
+        Dictionary with lane configuration
+        
+    Raises:
+        ValueError if lane is invalid
+    """
+    if lane not in LANE_MAPPING:
+        raise ValueError(f"Invalid lane: {lane}. Valid options: {', '.join(LANE_MAPPING.keys())}")
+    
+    return LANE_MAPPING[lane].copy()
+
+
+def get_stages_for_lane(lane: str) -> List[int]:
+    """
+    Get list of stages to execute for a specific lane.
+    
+    Args:
+        lane: Lane identifier
+        
+    Returns:
+        List of stage numbers to execute
+    """
+    config = get_lane_config(lane)
+    return config.get("stages", list(range(0, 13)))
+
+
+def should_execute_stage(stage_num: int, lane: str) -> bool:
+    """
+    Check if a stage should be executed in the given lane.
+    
+    Args:
+        stage_num: Stage number (0-12)
+        lane: Lane identifier
+        
+    Returns:
+        True if stage should be executed, False otherwise
+    """
+    stages = get_stages_for_lane(lane)
+    return stage_num in stages
+
+
+def log_lane_configuration(lane: str):
+    """
+    Log the selected lane configuration to console.
+    
+    Args:
+        lane: Lane identifier
+    """
+    config = get_lane_config(lane)
+    print()
+    print(f"{helpers.Colors.CYAN}╔══════════════════════════════════════════╗{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}║  Workflow Lane: {config['name']:<20}{helpers.Colors.CYAN}║{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}╠══════════════════════════════════════════╣{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} {config['description']:<39} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Stages: {len(config['stages'])}/13                      {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Quality Gates: {'Enabled' if config['quality_gates_enabled'] else 'Disabled':<27} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Parallelization: {'Enabled' if config['parallelization_enabled'] else 'Disabled':<23} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.CYAN}╚══════════════════════════════════════════╝{helpers.Colors.RESET}")
+    print()
+
+
 def main():
     """Main entry point."""
     parser = argparse.ArgumentParser(
@@ -870,6 +973,13 @@ Examples:
     )
 
     # Execution control
+    parser.add_argument(
+        "--lane",
+        type=str,
+        choices=["docs", "standard", "heavy"],
+        default="standard",
+        help="Workflow lane selection: docs (fast docs-only, <5min), standard (default, ~15min), or heavy (strict, ~20min)",
+    )
     parser.add_argument(
         "--step",
         type=int,
@@ -1003,45 +1113,6 @@ Examples:
 
 
 
-
-
-
-# Lane-to-Stage Mapping (workflow-improvements)
-# Defines which stages execute for each lane type
-LANE_MAPPING = {
-    "docs": {
-        "name": "Documentation (Fast Track)",
-        "description": "For documentation-only changes - skips code validation",
-        "stages": [0, 2, 3, 4, 9, 10, 11, 12],
-        "max_time": 300,  # 5 minutes
-        "quality_gates": False,
-    },
-    "standard": {
-        "name": "Standard (Default)",
-        "description": "For regular code changes - full validation",
-        "stages": list(range(13)),
-        "max_time": 900,  # 15 minutes
-        "quality_gates": True,
-    },
-    "heavy": {
-        "name": "Heavy (Strict Validation)",
-        "description": "For critical/production changes - enhanced validation",
-        "stages": list(range(13)),
-        "max_time": 1200,  # 20 minutes
-        "quality_gates": True,
-        "strict_thresholds": True,
-    },
-}
-
-def get_stages_for_lane(lane: str) -> list:
-    """Get stage list for the given lane."""
-    lane_config = LANE_MAPPING.get(lane, LANE_MAPPING["standard"])
-    return lane_config.get("stages", list(range(13)))
-
-def should_run_quality_gates(lane: str) -> bool:
-    """Determine if quality gates should run for this lane."""
-    lane_config = LANE_MAPPING.get(lane, LANE_MAPPING["standard"])
-    return lane_config.get("quality_gates", True)
 
 
 if __name__ == "__main__":

@@ -26,6 +26,10 @@
     Steps: 0=Create TODOs, 1=Version, 2=Proposal, 3=Spec, 4=Tasks, 5=Tests,
            6=Scripts, 7=Implementation, 8=Testing, 9=Docs, 10=Git, 11=Archive, 12=PR
 
+.PARAMETER Lane
+    Workflow lane selection: 'docs' (fast docs-only, <5min), 'standard' (default, ~15min), 
+    or 'heavy' (strict validation, ~20min). Controls validation scope and execution time.
+
 .PARAMETER DryRun
     Preview actions without making changes. Shows what would be done without modifying files.
 
@@ -100,6 +104,11 @@ param(
 
     [Parameter(ParameterSetName='Interactive')]
     [Parameter(ParameterSetName='Step')]
+    [ValidateSet('docs', 'standard', 'heavy')]
+    [string]$Lane = 'standard',
+
+    [Parameter(ParameterSetName='Interactive')]
+    [Parameter(ParameterSetName='Step')]
     [switch]$DryRun,
 
     [Parameter(ParameterSetName='Validate', Mandatory=$true)]
@@ -137,7 +146,6 @@ if ($MyInvocation.InvocationName -ne '.') {
         }
 
         # Map PowerShell parameters to Python CLI arguments
-        # Map PowerShell parameters to Python CLI arguments
         $argsList = @()
         if ($List) { $argsList += '--list' }
         if ($Validate) { $argsList += '--validate' }
@@ -146,6 +154,7 @@ if ($MyInvocation.InvocationName -ne '.') {
         elseif ($ChangeId) { $argsList += @('--change-id', $ChangeId) }
         if ($Title) { $argsList += @('--title', $Title) }
         if ($Owner) { $argsList += @('--owner', $Owner) }
+        if ($PSBoundParameters.ContainsKey('Lane')) { $argsList += @('--lane', $Lane) }
         if ($PSBoundParameters.ContainsKey('Step')) { $argsList += @('--step', $Step) }
         if ($DryRun) { $argsList += '--dry-run' }
 
