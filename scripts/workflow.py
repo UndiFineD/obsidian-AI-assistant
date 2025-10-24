@@ -64,11 +64,11 @@ except ImportError:
 
 # Import parallel executor if available
 try:
-    from parallel_executor import ParallelExecutor, print_execution_summary
-
+    from parallel_executor import ParallelExecutor
     PARALLEL_EXECUTOR_AVAILABLE = True
 except ImportError:
     PARALLEL_EXECUTOR_AVAILABLE = False
+    ParallelExecutor = None  # Provide fallback for type checking
 
 # Directory paths
 CHANGES_DIR = PROJECT_ROOT / "openspec" / "changes"
@@ -128,7 +128,7 @@ def get_git_user() -> str:
         )
         if result.returncode == 0 and result.stdout.strip():
             return f"@{result.stdout.strip()}"
-    except:
+    except subprocess.SubprocessError:
         pass
     return "@unknown"
 
@@ -331,7 +331,6 @@ def show_status(change_id: str, format_type: str = "tree"):
     except Exception as e:
         helpers.write_error(f"Failed to show status: {e}")
         return 1
-    return 0 if success else 1
 
 
 def list_checkpoints_cmd(change_id: str):
@@ -761,8 +760,8 @@ def run_interactive_workflow(
                 else:
                     helpers.write_warning("Continuing with docs lane (code validation will be skipped)")
                     print()
-            except:
-                helpers.write_info("Continuing with docs lane...")
+            except Exception as e:
+                helpers.write_info(f"Continuing with docs lane... ({e})")
                 print()
 
     # Display workflow header
@@ -798,7 +797,6 @@ def run_interactive_workflow(
 
     # Get stages for this lane
     stages_to_execute = get_stages_for_lane(lane)
-    lane_config = LANE_MAPPING[lane]
     
     # Calculate which steps will actually execute
     steps_to_run = [s for s in range(start_step, 13) if s in stages_to_execute]

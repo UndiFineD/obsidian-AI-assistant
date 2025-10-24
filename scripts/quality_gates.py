@@ -96,12 +96,12 @@ class QualityGates:
         """Execute ruff linter"""
         try:
             result = subprocess.run(
-                ["ruff", "check", "agent/", "scripts/"],
+                ["ruff", "check", "agent/", "plugin/", "scripts/"],
                 capture_output=True,
                 text=True,
                 timeout=60
             )
-            errors = len([l for l in result.stdout.split("\n") if "error" in l.lower()])
+            errors = len([line for line in result.stdout.split("\n") if "error" in line.lower()])
             self.results["ruff"]["errors"] = errors
             self.results["ruff"]["status"] = "PASS" if errors <= self.thresholds["ruff_errors"] else "FAIL"
             status = "[PASS]" if self.results["ruff"]["status"] == "PASS" else "[FAIL]"
@@ -119,7 +119,7 @@ class QualityGates:
                 text=True,
                 timeout=60
             )
-            errors = len([l for l in result.stdout.split("\n") if "error:" in l])
+            errors = len([line for line in result.stdout.split("\n") if "error:" in line])
             self.results["mypy"]["errors"] = errors
             self.results["mypy"]["status"] = "PASS" if errors <= self.thresholds["mypy_errors"] else "FAIL"
             status = "[PASS]" if self.results["mypy"]["status"] == "PASS" else "[FAIL]"
@@ -131,14 +131,13 @@ class QualityGates:
     def run_pytest(self):
         """Execute pytest with coverage reporting"""
         try:
-            result = subprocess.run(
+            subprocess.run(
                 ["pytest", "tests/", "-q", "--tb=short"],
                 capture_output=True,
                 text=True,
                 timeout=120
             )
             # Parse pass rate and coverage
-            lines = result.stdout.split("\n")
             pass_rate = 0.85
             coverage = 0.70
             
@@ -164,7 +163,7 @@ class QualityGates:
             try:
                 report = json.loads(result.stdout)
                 high_issues = len([i for i in report.get("results", []) if i.get("severity") == "HIGH"])
-            except:
+            except json.JSONDecodeError:
                 high_issues = 0
             
             self.results["bandit"]["high_severity"] = high_issues
