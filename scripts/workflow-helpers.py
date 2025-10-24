@@ -733,3 +733,423 @@ class DocumentGenerator:
             out.append(f"- [ ] {item}\n")
         out.append("\n")
         return "".join(out)
+
+
+# ============================================================================
+# Status Tracking System
+# ============================================================================
+
+
+import json
+from datetime import datetime
+
+
+@dataclass
+class StepStatus:
+    """Represents the status of a single workflow step."""
+
+    step_id: int
+    step_name: str
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    result: str = "pending"  # pending, in_progress, success, failure, skipped
+    duration_seconds: Optional[float] = None
+    metrics: Dict = field(default_factory=dict)
+    errors: List[str] = field(default_factory=list)
+    files_created: List[str] = field(default_factory=list)
+    files_modified: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict:
+        """Convert to dictionary for JSON serialization."""
+        return {
+            "step_id": self.step_id,
+            "step_name": self.step_name,
+            "start_time": self.start_time,
+            "end_time": self.end_time,
+            "result": self.result,
+            "duration_seconds": self.duration_seconds,
+            "metrics": self.metrics,
+            "errors": self.errors,
+            "files_created": self.files_created,
+            "files_modified": self.files_modified,
+        }
+
+
+class WorkflowStatusTracker:
+    """Tracks workflow status across steps with JSON persistence."""
+
+    def __init__(self, change_path: Path):
+        """
+        Initialize the status tracker.
+
+        Args:
+            change_path: Path to the change directory
+        """
+        self.change_path = Path(change_path)
+        self.status_file = self.change_path / "status.json"
+        self.steps: Dict[int, StepStatus] = {}
+        self._load_existing_status()
+
+    def _load_existing_status(self) -> None:
+        """Load existing status from status.json if it exists."""
+        if self.status_file.exists():
+            try:
+                data = json.loads(self.status_file.read_text(encoding="utf-8"))
+                for step_data in data.get("steps", []):
+                    step_id = step_data["step_id"]
+                    self.steps[step_id] = StepStatus(
+                        step_id=step_id,
+                        step_name=step_data.get("step_name", f"Step {step_id}"),
+                        start_time=step_data.get("start_time"),
+                        end_time=step_data.get("end_time"),
+                        result=step_data.get("result", "pending"),
+                        duration_seconds=step_data.get("duration_seconds"),
+                        metrics=step_data.get("metrics", {}),
+                        errors=step_data.get("errors", []),
+                        files_created=step_data.get("files_created", []),
+                        files_modified=step_data.get("files_modified", []),
+                    )
+            except (json.JSONDecodeError, KeyError) as e:
+                write_warning(f"Could not load existing status: {e}")
+
+    def start_step(self, step_id: int, step_name: str) -> StepStatus:
+        """
+        Mark the start of a step.
+
+        Args:
+            step_id: Numeric step ID (0-12)
+            step_name: Human-readable step name
+
+        Returns:
+            StepStatus object for this step
+        """
+        status = StepStatus(
+            step_id=step_id,
+            step_name=step_name,
+            start_time=datetime.now().isoformat(),
+            result="in_progress",
+        )
+        self.steps[step_id] = status
+        self._save_status()
+        return status
+
+    def end_step(
+        self,
+        step_id: int,
+        result: str = "success",
+        metrics: Optional[Dict] = None,
+        errors: Optional[List[str]] = None,
+        files_created: Optional[List[str]] = None,
+        files_modified: Optional[List[str]] = None,
+    ) -> None:
+        """
+        Mark the end of a step.
+
+        Args:
+            step_id: Numeric step ID
+            result: Result status (success, failure, skipped)
+            metrics: Optional metrics dictionary
+            errors: Optional list of error messages
+            files_created: Optional list of created files
+            files_modified: Optional list of modified files
+        """
+        if step_id not in self.steps:
+            write_warning(f"Step {step_id} not found in status tracker")
+            return
+
+        status = self.steps[step_id]
+        status.end_time = datetime.now().isoformat()
+        status.result = result
+
+        if status.start_time and status.end_time:
+            start = datetime.fromisoformat(status.start_time)
+            end = datetime.fromisoformat(status.end_time)
+            status.duration_seconds = (end - start).total_seconds()
+
+        if metrics:
+            status.metrics = metrics
+        if errors:
+            status.errors = errors
+        if files_created:
+            status.files_created = files_created
+        if files_modified:
+            status.files_modified = files_modified
+
+        self._save_status()
+
+    def get_completed_steps(self) -> List[int]:
+        """
+        Get list of successfully completed step IDs.
+
+        Returns:
+            List of step IDs that completed successfully
+        """
+        return [
+            step_id
+            for step_id, status in self.steps.items()
+            if status.result == "success"
+        ]
+
+    def get_last_completed_step(self) -> Optional[int]:
+        """
+        Get the ID of the last successfully completed step.
+
+        Returns:
+            Last step ID or None if no steps completed
+        """
+        completed = self.get_completed_steps()
+        return max(completed) if completed else None
+
+    def _save_status(self) -> None:
+        """Save current status to status.json."""
+        try:
+            status_data = {
+                "workflow_version": "0.1.41",
+                "last_updated": datetime.now().isoformat(),
+                "total_steps": len(self.steps),
+                "completed_steps": len(self.get_completed_steps()),
+                "steps": [status.to_dict() for status in self.steps.values()],
+            }
+
+            # Atomic write
+            set_content_atomic(self.status_file, json.dumps(status_data, indent=2))
+        except Exception as e:
+            write_error(f"Failed to save status.json: {e}")
+
+    def get_summary(self) -> str:
+        """
+        Get a human-readable summary of workflow status.
+
+        Returns:
+            Summary string
+        """
+        completed = len(self.get_completed_steps())
+        total = len(self.steps)
+        percent = round((completed / total) * 100) if total > 0 else 0
+
+        lines = [
+            f"Workflow Status: {completed}/{total} steps completed ({percent}%)",
+            "",
+        ]
+
+        for step_id in sorted(self.steps.keys()):
+            status = self.steps[step_id]
+            symbol = "✓" if status.result == "success" else "✗" if status.result == "failure" else "⊘"
+            duration = (
+                f" ({status.duration_seconds:.1f}s)"
+                if status.duration_seconds
+                else ""
+            )
+            lines.append(
+                f"  {symbol} Step {step_id}: {status.step_name}{duration} [{status.result}]"
+            )
+
+        return "\n".join(lines)
+
+
+# ============================================================================
+# Environment Validation Hooks
+# ============================================================================
+
+
+import subprocess
+import sys
+
+
+def check_python_version(required_version: str = "3.11") -> bool:
+    """
+    Check if Python version meets minimum requirement.
+
+    Args:
+        required_version: Minimum Python version (e.g., "3.11")
+
+    Returns:
+        True if version meets requirement, False otherwise
+    """
+    major, minor = map(int, required_version.split(".")[:2])
+    current_major = sys.version_info.major
+    current_minor = sys.version_info.minor
+
+    if current_major < major or (current_major == major and current_minor < minor):
+        return False
+    return True
+
+
+def check_tool_available(tool_name: str) -> bool:
+    """
+    Check if a command-line tool is available.
+
+    Args:
+        tool_name: Name of the tool (e.g., "pytest", "ruff", "mypy")
+
+    Returns:
+        True if tool is available, False otherwise
+    """
+    try:
+        subprocess.run(
+            [tool_name, "--version"],
+            capture_output=True,
+            check=True,
+            timeout=5,
+        )
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+        return False
+
+
+def validate_environment(
+    required_tools: Optional[List[str]] = None,
+    required_python_version: str = "3.11",
+) -> tuple[bool, List[str]]:
+    """
+    Validate that the environment has all required tools and Python version.
+
+    Args:
+        required_tools: List of tools to check (pytest, ruff, mypy, bandit, gh)
+        required_python_version: Minimum Python version
+
+    Returns:
+        Tuple of (success: bool, errors: List[str])
+    """
+    if required_tools is None:
+        required_tools = ["pytest", "ruff", "mypy", "bandit"]
+
+    errors = []
+
+    # Check Python version
+    if not check_python_version(required_python_version):
+        errors.append(
+            f"Python {required_python_version}+ is required (current: {sys.version_info.major}.{sys.version_info.minor})"
+        )
+
+    # Check required tools
+    for tool in required_tools:
+        if not check_tool_available(tool):
+            errors.append(f"Tool '{tool}' is not available (install with: pip install {tool})")
+
+    return (len(errors) == 0, errors)
+
+
+def print_environment_validation_report(
+    required_tools: Optional[List[str]] = None,
+    required_python_version: str = "3.11",
+) -> bool:
+    """
+    Print environment validation report and return success status.
+
+    Args:
+        required_tools: List of tools to check
+        required_python_version: Minimum Python version
+
+    Returns:
+        True if all checks pass, False otherwise
+    """
+    write_step(0, "Environment Validation")
+
+    success, errors = validate_environment(required_tools, required_python_version)
+
+    if success:
+        write_success(f"✓ Python {sys.version_info.major}.{sys.version_info.minor} detected")
+        write_success(f"✓ All required tools available: {', '.join(required_tools or [])}")
+        return True
+    else:
+        write_error("✗ Environment validation failed:")
+        for error in errors:
+            write_error_hint("", error)
+        write_info("\nTo fix, try:")
+        write_info("  pip install --upgrade pytest ruff mypy bandit")
+        return False
+
+
+# ============================================================================
+# Workflow Resumption System
+# ============================================================================
+
+
+def check_incomplete_workflow(change_path: Path) -> Optional[int]:
+    """
+    Check if a workflow is incomplete and return the last completed step.
+
+    Args:
+        change_path: Path to the change directory
+
+    Returns:
+        Last completed step ID, or None if no incomplete workflow found
+    """
+    status_file = change_path / "status.json"
+
+    if not status_file.exists():
+        return None
+
+    try:
+        data = json.loads(status_file.read_text(encoding="utf-8"))
+        steps = data.get("steps", [])
+
+        # Find last successfully completed step
+        completed_steps = [
+            s["step_id"]
+            for s in steps
+            if s.get("result") == "success"
+        ]
+
+        if completed_steps:
+            return max(completed_steps)
+
+    except (json.JSONDecodeError, KeyError) as e:
+        write_warning(f"Could not parse status.json: {e}")
+
+    return None
+
+
+def prompt_workflow_resumption(change_path: Path, last_completed_step: int) -> bool:
+    """
+    Prompt user to resume workflow or start fresh.
+
+    Args:
+        change_path: Path to the change directory
+        last_completed_step: Last step that was completed
+
+    Returns:
+        True to resume, False to start fresh
+    """
+    write_warning(f"\n⚠️  Incomplete workflow detected!")
+    write_info(f"Last completed step: {last_completed_step}\n")
+
+    write_info("Options:")
+    write_info("  [1] Resume from step " + str(last_completed_step + 1))
+    write_info("  [2] Start fresh (clear all progress)")
+    write_info("  [0] Cancel")
+
+    choice = input("\nEnter your choice (0-2): ").strip()
+
+    if choice == "1":
+        write_success(f"Resuming from step {last_completed_step + 1}...")
+        return True
+    elif choice == "2":
+        write_warning("Starting fresh...")
+        # Clear status.json
+        status_file = change_path / "status.json"
+        if status_file.exists():
+            status_file.unlink()
+        return False
+    else:
+        write_info("Cancelled")
+        sys.exit(0)
+
+
+def handle_workflow_resumption(change_path: Path) -> Optional[int]:
+    """
+    Check for incomplete workflow and handle resumption.
+
+    Returns:
+        Step to resume from, or None if starting fresh
+    """
+    last_completed = check_incomplete_workflow(change_path)
+
+    if last_completed is not None:
+        if prompt_workflow_resumption(change_path, last_completed):
+            return last_completed + 1
+        else:
+            return None
+    
+    return None
