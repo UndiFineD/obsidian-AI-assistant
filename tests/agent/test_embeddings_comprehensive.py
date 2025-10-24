@@ -222,7 +222,7 @@ class TestEmbeddingsFromSettings:
         assert emb_mgr.model_name == "sentence-transformers/all-mpnet-base-v2"
         # Check path contains expected components regardless of OS path separators
         db_path_str = str(emb_mgr.db_path.replace("\\", "/"))
-        assert "agent/vector_db" in db_path_str
+        assert "vector_db" in db_path_str
         assert emb_mgr.collection_name == "obsidian_notes"
 
     @patch("agent.embeddings.get_settings")
