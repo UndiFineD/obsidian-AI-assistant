@@ -1,0 +1,15 @@
+{
+  "change_id": "e2e-with-flags",
+  "checkpoints": [
+    {
+      "checkpoint_id": "checkpoint-20251024-062002-step00",
+      "step_num": 0,
+      "step_name": "Create TODOs",
+      "timestamp": "2025-10-24T06:20:02.169553",
+      "files_snapshot": [],
+      "git_commit": "60240b3d17458af0e5abe57e3bcb3d4154d3d719",
+      "notes": "Before executing step 0"
+    }
+  ],
+  "last_successful_step": 0
+}

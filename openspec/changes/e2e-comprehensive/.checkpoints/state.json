@@ -1,0 +1,15 @@
+{
+  "change_id": "e2e-comprehensive",
+  "checkpoints": [
+    {
+      "checkpoint_id": "checkpoint-20251024-061950-step00",
+      "step_num": 0,
+      "step_name": "Create TODOs",
+      "timestamp": "2025-10-24T06:19:50.997204",
+      "files_snapshot": [],
+      "git_commit": "60240b3d17458af0e5abe57e3bcb3d4154d3d719",
+      "notes": "Before executing step 0"
+    }
+  ],
+  "last_successful_step": 0
+}

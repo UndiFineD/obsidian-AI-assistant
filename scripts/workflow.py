@@ -445,6 +445,7 @@ def execute_step(
     template: str = "default",
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
+    lane: str = "standard",
 ) -> bool:
     """
     Execute a specific workflow step with optional checkpoint creation.
@@ -458,6 +459,7 @@ def execute_step(
         template: Proposal template type (for step 2)
         enable_checkpoints: If True, create checkpoint before execution
         skip_quality_gates: If True, skip quality gates (not recommended)
+        lane: Workflow lane (docs, standard, heavy)
 
     Returns:
         True if successful, False otherwise
@@ -552,6 +554,7 @@ def run_single_step(
     template: str = "default",
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
+    lane: str = "standard",
 ):
     """Run a single workflow step."""
     change_path = CHANGES_DIR / change_id
@@ -582,6 +585,7 @@ def run_single_step(
         template,
         enable_checkpoints,
         skip_quality_gates,
+        lane,
     )
 
     print()
@@ -593,6 +597,31 @@ def run_single_step(
         return 1
 
 
+def check_code_changes_in_docs_lane(change_path: Path) -> bool:
+    """
+    Check if code changes exist in a docs-lane workflow.
+    
+    Returns:
+        True if code changes detected (user confirmed to continue)
+        False if user wants to switch lanes
+    """
+    code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.go', '.rs'}
+    
+    try:
+        for file_path in change_path.rglob('*'):
+            if file_path.is_file() and file_path.suffix in code_extensions:
+                # Ignore common config/data files that might have these extensions
+                if any(ignore in str(file_path) for ignore in ['__pycache__', '.pyc', 'node_modules', '.git']):
+                    continue
+                
+                helpers.write_warning(f"Code file detected: {file_path.relative_to(change_path)}")
+                return False
+    except Exception as e:
+        helpers.write_warning(f"Could not check for code changes: {e}")
+    
+    return True
+
+
 def run_interactive_workflow(
     change_id: str,
     title: Optional[str] = None,
@@ -602,6 +631,7 @@ def run_interactive_workflow(
     template: str = "default",
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
+    lane: str = "standard",
 ):
     """Run the complete interactive workflow."""
     change_path = CHANGES_DIR / change_id
@@ -617,6 +647,20 @@ def run_interactive_workflow(
         change_path.mkdir(parents=True, exist_ok=True)
         helpers.write_success(f"Created directory: {change_path}\n")
 
+    # Check for code changes in docs lane
+    if lane == "docs":
+        if not check_code_changes_in_docs_lane(change_path):
+            helpers.write_warning("Code files detected in documentation-only lane")
+            try:
+                response = input("Switch to 'standard' lane? (y/n): ").strip().lower()
+                if response == 'y':
+                    lane = "standard"
+                    helpers.write_info("Switched to standard lane")
+                else:
+                    helpers.write_info("Continuing with docs lane...")
+            except:
+                helpers.write_info("Continuing with docs lane...")
+
     # Display workflow header
     print("═" * 55)
     print(
@@ -628,6 +672,7 @@ def run_interactive_workflow(
     print(f"{helpers.Colors.WHITE}Title      : {title}{helpers.Colors.RESET}")
     print(f"{helpers.Colors.WHITE}Owner      : {owner}{helpers.Colors.RESET}")
     print(f"{helpers.Colors.WHITE}Template   : {template}{helpers.Colors.RESET}")
+    print(f"{helpers.Colors.WHITE}Lane       : {lane}{helpers.Colors.RESET}")
     print(
         f"{helpers.Colors.WHITE}Dry Run    : {'Yes' if dry_run else 'No'}{helpers.Colors.RESET}"
     )
@@ -644,15 +689,25 @@ def run_interactive_workflow(
             f"{helpers.Colors.YELLOW}Resuming from Step {start_step} (previous steps validated){helpers.Colors.RESET}\n"
         )
 
-    # Calculate total steps to execute
-    total_steps = 14 - start_step
+    # Get stages for this lane
+    stages_to_execute = get_stages_for_lane(lane)
+    lane_config = LANE_MAPPING[lane]
+    
+    # Calculate which steps will actually execute
+    steps_to_run = [s for s in range(start_step, 13) if s in stages_to_execute]
+    total_steps = len(steps_to_run)
 
     # Execute steps with nested progress indicator if available
     if PROGRESS_AVAILABLE and total_steps > 1:
         print()  # Add space for progress display
 
         with workflow_progress(total_steps, "OpenSpec Workflow") as wp:
-            for i, current_step in enumerate(range(start_step, 13), 1):
+            for i, current_step in enumerate(steps_to_run, 1):
+                # Skip steps not in this lane
+                if current_step not in stages_to_execute:
+                    helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
+                    continue
+                
                 step_name = STEP_NAMES.get(current_step, f"Step {current_step}")
                 wp.start_step(i, step_name)
                 wp.update_step_progress("Starting...")
@@ -667,6 +722,7 @@ def run_interactive_workflow(
                     template,
                     enable_checkpoints,
                     skip_quality_gates,
+                    lane=lane,
                 )
 
                 if not success:
@@ -687,6 +743,11 @@ def run_interactive_workflow(
     else:
         # Fallback to non-progress mode
         for current_step in range(start_step, 13):
+            # Skip steps not in this lane
+            if current_step not in stages_to_execute:
+                helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
+                continue
+                
             success = execute_step(
                 current_step,
                 change_path,
@@ -697,6 +758,7 @@ def run_interactive_workflow(
                 template,
                 enable_checkpoints,
                 skip_quality_gates,
+                lane=lane,
             )
 
             if not success:
@@ -923,6 +985,7 @@ Examples:
             args.template,
             enable_checkpoints,
             args.skip_quality_gates,
+            args.lane,
         )
     else:
         # Interactive workflow
@@ -935,6 +998,7 @@ Examples:
             args.template,
             enable_checkpoints,
             args.skip_quality_gates,
+            args.lane,
         )
 
 

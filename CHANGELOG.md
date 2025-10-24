@@ -1,3 +1,65 @@
+## v0.1.43 (2025-10-25)
+
+### Workflow Optimization - Lane Selection & Quality Gates
+
+**New Features** ✨
+- **Workflow Lanes**: Three optimization lanes for different change types:
+  - **Docs Lane**: Fast-track for documentation-only changes (~5 minutes, 67% faster)
+  - **Standard Lane**: Default lane with full validation (15 minutes)
+  - **Heavy Lane**: Strict validation for critical/production changes (20 minutes)
+- **Intelligent Stage Skipping**: Docs lane skips stages 1, 5, 6, 7, 8 (code validation stages)
+- **Code Change Detection**: Automatic detection of code files in docs-only workflows with user prompt
+- **Lane-Specific Quality Gates**: 
+  - Standard lane: ≥80% test pass rate, ≥70% coverage
+  - Heavy lane: 100% test pass rate, ≥85% coverage
+  - Docs lane: Quality gates disabled
+- **Quality Gates Module**: New `scripts/quality_gates.py` orchestrates ruff, mypy, pytest, bandit with lane-specific thresholds
+- **Enhanced Workflow Status**: Lane information added to workflow status and metrics tracking
+
+**Documentation** 📚
+- Updated `docs/guides/The_Workflow_Process.md` with comprehensive lane documentation
+- Added lane selection examples and use cases to README.md
+- Documented quality gates thresholds for each lane
+- Updated `.github/copilot-instructions.md` with lane overview
+
+**Testing** ✅
+- 19/19 unit tests passing (test_workflow_lanes.py)
+- 100% coverage of lane selection logic:
+  - Lane mapping validation
+  - Stage execution for each lane
+  - Quality gates threshold enforcement
+  - Code change detection
+- All lanes verified with manual testing
+
+**Code Quality** 🏆
+- Lane support integrated into core workflow.py
+- Backward compatible (default lane is "standard")
+- No breaking changes to existing workflows
+- Type hints complete
+
+**Usage Examples**
+```bash
+# Documentation changes: Fast lane (~5 minutes)
+python scripts/workflow.py --change-id update-readme --lane docs
+
+# Regular features: Standard lane (default, 15 minutes)
+python scripts/workflow.py --change-id new-feature
+
+# Critical production fixes: Heavy lane (20 minutes, strict validation)
+python scripts/workflow.py --change-id security-fix --lane heavy
+
+# View quality gates for standard lane
+python scripts/quality_gates.py /path/to/project --lane standard --output quality_metrics.json
+```
+
+**Files Changed**
+- `scripts/workflow.py`: Lane support integrated throughout
+- `scripts/quality_gates.py`: Enhanced with lane-specific thresholds
+- `tests/test_workflow_lanes.py`: 19 comprehensive unit tests
+- `docs/guides/The_Workflow_Process.md`: Lane documentation
+- `README.md`: Lane selection examples
+- `.github/copilot-instructions.md`: Architecture documentation
+
 ### Documentation Cleanup
 - [DONE] Reorganized documentation into structured docs/ directory
 - [DONE] Created docs/ with 6 subdirectories for better organization

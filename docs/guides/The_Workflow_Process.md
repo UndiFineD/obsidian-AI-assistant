@@ -30,6 +30,34 @@ through implementation, testing, documentation, and pull request creation.
 - **Integration**: GitHub, Git, pytest, and CI/CD tools are deeply integrated
 - **Validation**: Multi-stage validation ensures quality and compliance
 
+### Workflow Lanes (Fast-Track Options)
+
+**NEW**: The workflow supports three lanes for different change types:
+
+#### **Documentation Lane (Docs)**
+- **Target**: Documentation-only changes (README, guides, etc.)
+- **Execution Time**: <5 minutes (67% faster than standard)
+- **Stages Executed**: 0, 2, 3, 4, 9, 10, 11, 12 (skips code validation stages)
+- **Quality Gates**: Disabled (documentation doesn't require code validation)
+- **Usage**: `python workflow.py --change-id my-change --lane docs`
+- **Example**: Update CHANGELOG.md, README.md, documentation files
+
+#### **Standard Lane (Default)**
+- **Target**: Regular code and feature changes
+- **Execution Time**: ~15 minutes
+- **Stages Executed**: All 13 stages
+- **Quality Gates**: Enabled with standard thresholds (80% test pass, 70% coverage)
+- **Usage**: `python workflow.py --change-id my-change` (no lane specified defaults to standard)
+- **Example**: Add new feature, fix bug, refactor code
+
+#### **Heavy Lane (Strict Validation)**
+- **Target**: Critical, production, or security-related changes
+- **Execution Time**: ~20 minutes (more thorough validation)
+- **Stages Executed**: All 13 stages
+- **Quality Gates**: Enabled with strict thresholds (100% test pass, 85% coverage)
+- **Usage**: `python workflow.py --change-id my-change --lane heavy`
+- **Example**: Security fix, critical production change, major refactoring
+
 ### Project Structure
 
 ```
@@ -40,6 +68,7 @@ scripts/
 ├── workflow-step00.py through       # Individual step implementations
 ├── workflow-step12.py               #   (13 steps total: 0-12)
 ├── workflow-helpers.py              # Shared utilities
+├── quality_gates.py                 # Quality validation (ruff, mypy, pytest, bandit)
 ├── progress_indicators.py           # Progress tracking
 ├── checkpoint_manager.py            # State management
 ├── workflow_visualizer.py           # Progress visualization
@@ -1407,18 +1436,63 @@ def validate_after_step(
     return True, "Step validation complete"
 ```
 
-#### 3. Quality Gates
+#### 3. Quality Gates (Lane-Specific)
+
+The workflow enforces lane-specific quality thresholds through `scripts/quality_gates.py`:
+
+**Standard Lane Thresholds** (Regular Changes)
 ```python
-QUALITY_GATES = {
-    'step_0': [],  # No gates
-    'step_1': ['git_configured'],
-    'step_2': ['proposal_complete', 'valid_markdown'],
-    'step_5': ['tests_defined'],
-    'step_8': ['tests_pass', 'coverage_70'],
-    'step_10': ['git_clean', 'branch_created'],
-    'step_12': ['pr_created', 'ci_passing']
+QUALITY_GATES_STANDARD = {
+    'ruff': {'max_errors': 0, 'description': '0 linting errors'},
+    'mypy': {'max_errors': 0, 'description': '0 type errors'},
+    'pytest': {
+        'min_pass_rate': 0.80,     # 80% of tests must pass
+        'min_coverage': 0.70,      # 70% coverage minimum
+        'description': '≥80% pass rate, ≥70% coverage'
+    },
+    'bandit': {
+        'max_high_severity': 0,
+        'description': '0 high-severity security issues'
+    },
 }
 ```
+
+**Heavy Lane Thresholds** (Critical/Production Changes)
+```python
+QUALITY_GATES_HEAVY = {
+    'ruff': {'max_errors': 0, 'description': '0 linting errors'},
+    'mypy': {'max_errors': 0, 'description': '0 type errors'},
+    'pytest': {
+        'min_pass_rate': 1.0,      # 100% of tests must pass
+        'min_coverage': 0.85,      # 85% coverage minimum
+        'description': '100% pass rate, ≥85% coverage'
+    },
+    'bandit': {
+        'max_high_severity': 0,
+        'description': '0 high-severity security issues'
+    },
+}
+```
+
+**Docs Lane** (Documentation-Only Changes)
+```python
+# Docs lane: Quality gates are DISABLED
+# No code validation required for documentation-only changes
+QUALITY_GATES_DOCS = {}
+```
+
+**Execution**:
+```bash
+# Run quality gates for standard lane
+python scripts/quality_gates.py /path/to/project --lane standard
+
+# Run quality gates for heavy lane (stricter)
+python scripts/quality_gates.py /path/to/project --lane heavy --output quality_metrics.json
+
+# Output includes: quality_metrics.json, htmlcov/index.html, bandit_report.json
+```
+
+**Stage 8 Integration**: When Step 8 executes, quality gates are automatically run with the lane-specific thresholds. Workflow stops if thresholds aren't met (unless `--skip-quality-gates` flag is used for local testing).
 
 ### Error Recovery
 
