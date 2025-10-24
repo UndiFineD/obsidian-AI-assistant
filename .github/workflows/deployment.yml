@@ -1,0 +1,364 @@
+name: Deployment Workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      lane:
+        description: 'Deployment lane (docs/standard/heavy)'
+        required: true
+        default: 'standard'
+        type: choice
+        options:
+          - docs
+          - standard
+          - heavy
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to deploy (e.g., v0.1.44)'
+        required: true
+      skip_tests:
+        description: 'Skip pre-deployment tests (not recommended)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # ============================================================================
+  # Pre-Deployment Validation
+  # ============================================================================
+  validate-deployment:
+    name: Validate Deployment Parameters
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.validate.outputs.proceed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Validate inputs
+        id: validate
+        run: |
+          LANE="${{ github.event.inputs.lane }}"
+          ENV="${{ github.event.inputs.environment }}"
+          VERSION="${{ github.event.inputs.version }}"
+          
+          echo "Validating deployment parameters..."
+          echo "  Lane: $LANE"
+          echo "  Environment: $ENV"
+          echo "  Version: $VERSION"
+          
+          # Check if version tag exists
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "✓ Version tag found"
+            echo "proceed=true" >> $GITHUB_OUTPUT
+          else
+            echo "✗ Version tag not found"
+            echo "proceed=false" >> $GITHUB_OUTPUT
+          fi
+
+  # ============================================================================
+  # Lane-Specific Pre-Deployment Tests
+  # ============================================================================
+  test-docs:
+    name: Test Docs Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: |
+      needs.validate-deployment.outputs.proceed == 'true' &&
+      github.event.inputs.lane == 'docs'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Test documentation build
+        run: |
+          python -m pip install -r requirements.txt --quiet
+          python scripts/validate_documentation.py
+
+      - name: Generate documentation artifacts
+        run: |
+          python scripts/build_docs.py
+          tar -czf docs-${{ github.event.inputs.version }}.tar.gz docs/
+
+      - name: Upload documentation artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: docs-${{ github.event.inputs.version }}
+          path: docs-${{ github.event.inputs.version }}.tar.gz
+
+  test-standard:
+    name: Test Standard Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: |
+      needs.validate-deployment.outputs.proceed == 'true' &&
+      github.event.inputs.lane == 'standard' &&
+      github.event.inputs.skip_tests == 'false'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt --quiet
+
+      - name: Run standard test suite
+        run: |
+          python -m pytest tests/backend/ tests/plugin/ -v --tb=short
+
+      - name: Validate API health
+        run: |
+          python scripts/validate_api_health.py
+
+      - name: Package artifacts
+        run: |
+          tar -czf deployment-${{ github.event.inputs.version }}.tar.gz agent/ plugin/
+
+      - name: Upload deployment artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-${{ github.event.inputs.version }}
+          path: deployment-${{ github.event.inputs.version }}.tar.gz
+
+  test-heavy:
+    name: Test Heavy Deployment
+    runs-on: ubuntu-latest
+    needs: validate-deployment
+    if: |
+      needs.validate-deployment.outputs.proceed == 'true' &&
+      github.event.inputs.lane == 'heavy' &&
+      github.event.inputs.skip_tests == 'false'
+    timeout-minutes: 90
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt --quiet
+
+      - name: Run comprehensive test suite
+        run: |
+          python -m pytest tests/ -v --tb=short --cov=agent --cov-report=xml
+
+      - name: Performance validation
+        run: |
+          python -m pytest tests/test_performance.py -v
+
+      - name: Integration tests
+        run: |
+          python -m pytest tests/integration/ -v
+
+      - name: Generate test report
+        run: |
+          python scripts/generate_deployment_report.py --version ${{ github.event.inputs.version }}
+
+      - name: Upload test report and artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: heavy-test-results-${{ github.event.inputs.version }}
+          path: |
+            /tmp/test_results/
+            deployment_report.html
+
+  # ============================================================================
+  # Deployment Execution by Environment
+  # ============================================================================
+  deploy-to-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, test-docs, test-standard, test-heavy]
+    if: |
+      needs.validate-deployment.outputs.proceed == 'true' &&
+      github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.obsidian-ai.local
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-${{ github.event.inputs.version }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xzf deployment-${{ github.event.inputs.version }}.tar.gz
+
+      - name: Deploy to staging
+        run: |
+          echo "Deploying ${{ github.event.inputs.version }} to staging..."
+          # Add deployment commands
+          ./scripts/deploy.sh --environment staging --version ${{ github.event.inputs.version }} --lane ${{ github.event.inputs.lane }}
+
+      - name: Run smoke tests
+        run: |
+          sleep 30  # Wait for deployment
+          python scripts/smoke_tests.py --environment staging
+
+      - name: Create deployment issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Deployment to Staging: ${{ github.event.inputs.version }}`,
+              body: `Lane: \`${{ github.event.inputs.lane }}\`\nEnvironment: staging\nVersion: ${{ github.event.inputs.version }}\n\n✅ Deployment successful\n\nStaging URL: https://staging.obsidian-ai.local`,
+              labels: ['deployment', 'staging', '${{ github.event.inputs.lane }}']
+            })
+
+  deploy-to-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate-deployment, test-docs, test-standard, test-heavy]
+    if: |
+      needs.validate-deployment.outputs.proceed == 'true' &&
+      github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://obsidian-ai.local
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.version }}
+
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-${{ github.event.inputs.version }}
+
+      - name: Extract artifacts
+        run: |
+          tar -xzf deployment-${{ github.event.inputs.version }}.tar.gz
+
+      - name: Create pre-deployment backup
+        run: |
+          echo "Creating backup before deployment..."
+          ./scripts/backup.sh --environment production
+
+      - name: Deploy to production
+        run: |
+          echo "Deploying ${{ github.event.inputs.version }} to production..."
+          ./scripts/deploy.sh --environment production --version ${{ github.event.inputs.version }} --lane ${{ github.event.inputs.lane }}
+
+      - name: Run production health checks
+        run: |
+          sleep 30
+          python scripts/health_checks.py --environment production
+
+      - name: Run smoke tests
+        run: |
+          python scripts/smoke_tests.py --environment production
+
+      - name: Create release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: '${{ github.event.inputs.version }}',
+              name: `Release ${{ github.event.inputs.version }}`,
+              body: `Lane: \`${{ github.event.inputs.lane }}\`\n\n✅ Production deployment successful`,
+              draft: false,
+              prerelease: false
+            })
+
+      - name: Create deployment issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Deployment to Production: ${{ github.event.inputs.version }}`,
+              body: `Lane: \`${{ github.event.inputs.lane }}\`\nEnvironment: production\nVersion: ${{ github.event.inputs.version }}\n\n✅ Deployment successful\n\nProduction URL: https://obsidian-ai.local`,
+              labels: ['deployment', 'production', '${{ github.event.inputs.lane }}']
+            })
+
+  # ============================================================================
+  # Post-Deployment Monitoring
+  # ============================================================================
+  post-deployment-validation:
+    name: Post-Deployment Validation
+    runs-on: ubuntu-latest
+    needs: [deploy-to-staging, deploy-to-production]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run post-deployment validation
+        run: |
+          echo "Running post-deployment validation..."
+          
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            python scripts/post_deployment_validation.py --environment staging --version ${{ github.event.inputs.version }}
+          else
+            python scripts/post_deployment_validation.py --environment production --version ${{ github.event.inputs.version }}
+          fi
+
+      - name: Collect metrics
+        run: |
+          python scripts/collect_deployment_metrics.py --environment ${{ github.event.inputs.environment }} --version ${{ github.event.inputs.version }} --lane ${{ github.event.inputs.lane }}
+
+      - name: Generate deployment report
+        run: |
+          python scripts/generate_deployment_report.py --environment ${{ github.event.inputs.environment }} --version ${{ github.event.inputs.version }} --lane ${{ github.event.inputs.lane }}
+
+      - name: Upload deployment report
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-report-${{ github.event.inputs.version }}
+          path: deployment_report.html
+
+      - name: Post deployment summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `📊 **Post-Deployment Summary**\n\nVersion: ${{ github.event.inputs.version }}\nEnvironment: ${{ github.event.inputs.environment }}\nLane: ${{ github.event.inputs.lane }}\n\n✅ Deployment validation complete. See artifacts for detailed report.`
+            })
