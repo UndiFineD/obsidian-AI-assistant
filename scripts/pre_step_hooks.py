@@ -118,7 +118,6 @@ class PreStepHooks:
     @staticmethod
     def _hook_stage1_version() -> HookResult:
         """Hook: Version compatibility check"""
-        import sys
 
         major, minor = sys.version_info[:2]
         if major < 3 or (major == 3 and minor < 11):

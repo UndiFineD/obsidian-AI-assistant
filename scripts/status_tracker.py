@@ -42,11 +42,10 @@ Status JSON Structure:
 """
 
 import json
-import sys
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass, asdict
+from typing import Dict, Any, Optional
+from dataclasses import dataclass
 from enum import Enum
 
 

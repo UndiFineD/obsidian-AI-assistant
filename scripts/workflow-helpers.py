@@ -1112,7 +1112,7 @@ def prompt_workflow_resumption(change_path: Path, last_completed_step: int) -> b
     Returns:
         True to resume, False to start fresh
     """
-    write_warning(f"\n⚠️  Incomplete workflow detected!")
+    write_warning("\n⚠️  Incomplete workflow detected!")
     write_info(f"Last completed step: {last_completed_step}\n")
 
     write_info("Options:")

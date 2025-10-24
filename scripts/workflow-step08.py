@@ -10,7 +10,7 @@ import importlib.util
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 SCRIPT_DIR = Path(__file__).parent
 
