@@ -1,8 +1,8 @@
 # Documentation Review Summary
 
-- proposal: 390 lines, title: Documentation Cleanup & Organization
-- spec: 57 lines, title: Specification
-- tasks: 197 lines, title: Cleanup & Organize Docs - Tasks
-- test_plan: 22 lines, title: Test Plan: Cleanup Organize Docs
+- proposal: 23 lines, title: Proposal
+- spec: 1991 lines, title: Specification: $Title
+- tasks: 8 lines, title: Task Breakdown: Cleanup Organize Docs
+- test_plan: 649 lines, title: Test Plan: cleanup-organize-docs
 
 Navigate: [proposal.md](./proposal.md) | [spec.md](./spec.md) | [tasks.md](./tasks.md) | [test_plan.md](./test_plan.md)
