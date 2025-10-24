@@ -971,6 +971,27 @@ We welcome contributions! Please follow these guidelines:
 - Update documentation as needed
 - Check OpenSpec compliance for doc changes
 
+### OpenSpec Workflow Lanes
+
+The project uses a 13-stage OpenSpec workflow with three optimization lanes:
+
+#### Documentation Lane (Docs)
+- **Use for**: README updates, documentation changes, guides
+- **Speed**: < 5 minutes (67% faster than standard)
+- **Command**: `python scripts/workflow.py --change-id my-change --lane docs`
+
+#### Standard Lane (Default)
+- **Use for**: New features, bug fixes, general changes
+- **Speed**: ~15 minutes
+- **Command**: `python scripts/workflow.py --change-id my-change`
+
+#### Heavy Lane (Strict)
+- **Use for**: Critical/security changes, production fixes
+- **Speed**: ~20 minutes (more thorough validation)
+- **Command**: `python scripts/workflow.py --change-id my-change --lane heavy`
+
+**Learn more**: See [docs/guides/The_Workflow_Process.md](docs/guides/The_Workflow_Process.md#workflow-lanes-fast-track-options)
+
 ### Code Review Process
 
 1. All Pull Requests (PRs) require at least one review
