@@ -1,0 +1,13 @@
+{
+  "workflows": {
+    "test-change": {
+      "change_id": "test-change",
+      "status": "INCOMPLETE",
+      "last_completed_stage": 3,
+      "last_stage_name": "Task Breakdown",
+      "next_stage_num": 4,
+      "next_stage_name": "Implementation Checklist",
+      "last_updated": "2025-10-24T09:10:29.320222"
+    }
+  }
+}
