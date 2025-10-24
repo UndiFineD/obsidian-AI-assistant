@@ -601,25 +601,101 @@ def check_code_changes_in_docs_lane(change_path: Path) -> bool:
     """
     Check if code changes exist in a docs-lane workflow.
     
+    Scans for Python, JavaScript, and TypeScript files that indicate
+    code changes requiring standard or heavy lane validation.
+    
+    Args:
+        change_path: Path to the change directory
+        
     Returns:
-        True if code changes detected (user confirmed to continue)
-        False if user wants to switch lanes
+        True if NO code changes detected (safe for docs lane)
+        False if code changes detected (should switch lanes)
     """
-    code_extensions = {'.py', '.js', '.ts', '.java', '.cpp', '.go', '.rs'}
+    code_extensions = {'.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.cpp', '.go', '.rs', '.c', '.h', '.hpp'}
+    ignore_patterns = {'__pycache__', '.pyc', 'node_modules', '.git', '.venv', 'venv', '.next', 'dist', 'build'}
+    
+    code_files_found = []
     
     try:
         for file_path in change_path.rglob('*'):
-            if file_path.is_file() and file_path.suffix in code_extensions:
-                # Ignore common config/data files that might have these extensions
-                if any(ignore in str(file_path) for ignore in ['__pycache__', '.pyc', 'node_modules', '.git']):
-                    continue
+            if not file_path.is_file():
+                continue
                 
-                helpers.write_warning(f"Code file detected: {file_path.relative_to(change_path)}")
-                return False
+            # Check if file should be ignored
+            if any(ignore in str(file_path) for ignore in ignore_patterns):
+                continue
+            
+            # Check if file is a code file
+            if file_path.suffix in code_extensions:
+                code_files_found.append(file_path.relative_to(change_path))
     except Exception as e:
         helpers.write_warning(f"Could not check for code changes: {e}")
+        return True  # Assume no code changes on error, let user decide
+    
+    if code_files_found:
+        helpers.write_warning(f"Detected {len(code_files_found)} code file(s) in docs lane:")
+        for code_file in code_files_found[:5]:  # Show first 5
+            helpers.write_info(f"  - {code_file}")
+        if len(code_files_found) > 5:
+            helpers.write_info(f"  ... and {len(code_files_found) - 5} more")
+        return False
     
     return True
+
+
+def detect_code_changes(change_path: Path) -> dict:
+    """
+    Analyze a change directory for code changes.
+    
+    Provides detailed information about code changes detected.
+    
+    Args:
+        change_path: Path to the change directory
+        
+    Returns:
+        Dictionary with code analysis results
+    """
+    code_extensions = {
+        'python': {'.py', '.pyi'},
+        'javascript': {'.js', '.jsx', '.mjs'},
+        'typescript': {'.ts', '.tsx'},
+        'other': {'.java', '.cpp', '.c', '.h', '.hpp', '.go', '.rs'},
+    }
+    
+    ignore_patterns = {'__pycache__', '.pyc', 'node_modules', '.git', '.venv', 'venv', '.next', 'dist', 'build', '.egg-info'}
+    
+    results = {
+        'has_code_changes': False,
+        'by_language': {lang: [] for lang in code_extensions},
+        'total_count': 0,
+        'affected_directories': set(),
+    }
+    
+    try:
+        for file_path in change_path.rglob('*'):
+            if not file_path.is_file():
+                continue
+            
+            # Skip ignored patterns
+            if any(ignore in str(file_path) for ignore in ignore_patterns):
+                continue
+            
+            # Check against all code extensions
+            for language, extensions in code_extensions.items():
+                if file_path.suffix in extensions:
+                    rel_path = file_path.relative_to(change_path)
+                    results['by_language'][language].append(str(rel_path))
+                    results['affected_directories'].add(str(rel_path.parent))
+                    results['total_count'] += 1
+                    results['has_code_changes'] = True
+                    break
+    except Exception as e:
+        helpers.write_warning(f"Error analyzing code changes: {e}")
+    
+    # Convert set to sorted list for consistent output
+    results['affected_directories'] = sorted(list(results['affected_directories']))
+    
+    return results
 
 
 def run_interactive_workflow(
@@ -651,15 +727,36 @@ def run_interactive_workflow(
     if lane == "docs":
         if not check_code_changes_in_docs_lane(change_path):
             helpers.write_warning("Code files detected in documentation-only lane")
+            
+            # Get detailed analysis
+            code_analysis = detect_code_changes(change_path)
+            
+            print()
+            helpers.write_info("Code Change Analysis:")
+            for language, files in code_analysis['by_language'].items():
+                if files:
+                    helpers.write_info(f"  {language.capitalize()}: {len(files)} file(s)")
+            
+            if code_analysis['affected_directories']:
+                helpers.write_info(f"  Affected dirs: {', '.join(code_analysis['affected_directories'][:3])}")
+            
+            print()
+            helpers.write_warning("The docs lane is optimized for documentation changes only.")
+            helpers.write_warning("Code changes require the 'standard' or 'heavy' lane for proper validation.")
+            print()
+            
             try:
                 response = input("Switch to 'standard' lane? (y/n): ").strip().lower()
                 if response == 'y':
                     lane = "standard"
-                    helpers.write_info("Switched to standard lane")
+                    helpers.write_success("Switched to standard lane")
+                    print()
                 else:
-                    helpers.write_info("Continuing with docs lane...")
+                    helpers.write_warning("Continuing with docs lane (code validation will be skipped)")
+                    print()
             except:
                 helpers.write_info("Continuing with docs lane...")
+                print()
 
     # Display workflow header
     print("═" * 55)
