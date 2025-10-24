@@ -10,7 +10,7 @@ import re
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, List, Tuple
 
 SCRIPT_DIR = Path(__file__).parent
 PROJECT_ROOT = SCRIPT_DIR.parent
@@ -104,7 +104,7 @@ def _generate_python_test_script(
     change_path: Path, change_id: str, requirements: Dict[str, any]
 ) -> str:
     """Generate Python test script content using template.
-
+    
     This version uses comprehensive test templates that validate actual
     implementation requirements, not just file existence.
 
@@ -114,7 +114,7 @@ def _generate_python_test_script(
     # For cleanup-organize-docs, use comprehensive test template
     if change_id == "cleanup-organize-docs":
         return _generate_cleanup_test_template(change_id)
-
+    
     # For other changes, provide extensible template
     return _generate_generic_test_template(change_id, requirements)
 
@@ -148,12 +148,12 @@ def _test(description: str, condition: bool, details: str = "") -> bool:
     print(f"  * {{description}}: [{{status}}]", flush=True)
     if not condition and details:
         print(f"    {{details}}")
-
+    
     if condition:
         test_results["passed"] += 1
     else:
         test_results["failed"] += 1
-
+    
     test_results["tests"].append({{"name": description, "result": status, "message": details}})
     return condition
 
@@ -163,20 +163,20 @@ def test_directory_structure() -> bool:
     print("\\n[1/8] Directory Structure Validation")
     print("-" * 40)
     all_passed = True
-
+    
     docs_dir = project_root / "docs"
     all_passed &= _test("docs/ directory exists", docs_dir.exists() and docs_dir.is_dir())
-
+    
     for subdir in ["getting-started", "guides", "architecture", "reference", "production", "historical"]:
         all_passed &= _test(f"docs/{{subdir}}/ exists", (docs_dir / subdir).exists() and (docs_dir / subdir).is_dir())
-
+    
     docs_readme = docs_dir / "README.md"
     all_passed &= _test("docs/README.md exists", docs_readme.exists() and docs_readme.stat().st_size > 100)
-
+    
     if docs_readme.exists():
         content = docs_readme.read_text(encoding="utf-8")
         all_passed &= _test("docs/README.md has navigation", "getting-started" in content and "guides" in content)
-
+    
     return all_passed
 
 
@@ -184,14 +184,14 @@ def test_celebration_files_deleted() -> bool:
     """Validate celebration/status files are deleted."""
     print("\\n[2/8] Celebration Files Deletion Validation")
     print("-" * 40)
-
-    patterns = ["*CELEBRATION*.md", "COMPLETION_CERTIFICATE_*.md", "PROJECT_COMPLETE_*.md", "FINAL_*.md",
+    
+    patterns = ["*CELEBRATION*.md", "COMPLETION_CERTIFICATE_*.md", "PROJECT_COMPLETE_*.md", "FINAL_*.md", 
                 "SESSION_*.md", "DELIVERABLES_*.md", "EXECUTIVE_SUMMARY_*.md", "00_START_HERE.md", "READY_*.md"]
-
+    
     found = []
     for pattern in patterns:
         found.extend([f.name for f in project_root.glob(pattern)])
-
+    
     return _test("No celebration files in root", len(found) == 0, f"Found: {{', '.join(found[:5])}}" if found else "")
 
 
@@ -199,10 +199,10 @@ def test_reference_docs_moved() -> bool:
     """Validate reference documentation moved to docs/."""
     print("\\n[3/8] Reference Docs Move Validation")
     print("-" * 40)
-
+    
     root_docs = [f for f in project_root.glob("*.md") if f.name not in ["README.md", "CHANGELOG.md", "Makefile"]]
     excessive = [f.name for f in root_docs if not f.name.startswith(("setup", "requirements"))]
-
+    
     return _test("Root directory not cluttered with reference docs", len(excessive) <= 15, f"Root docs: {{len(excessive)}} files")
 
 
@@ -210,7 +210,7 @@ def test_root_directory_clean() -> bool:
     """Validate root directory is cleaned up."""
     print("\\n[4/8] Root Directory Cleanup Validation")
     print("-" * 40)
-
+    
     root_files = len(list(project_root.glob("*.md"))) + len(list(project_root.glob("*.txt")))
     return _test("Root directory has <=20 files", root_files <= 20, f"Root files: {{root_files}}")
 
@@ -219,15 +219,15 @@ def test_readme_updated() -> bool:
     """Validate README.md is updated with docs/ navigation."""
     print("\\n[5/8] README.md Updates Validation")
     print("-" * 40)
-
+    
     readme_path = project_root / "README.md"
     all_passed = _test("README.md exists", readme_path.exists())
-
+    
     if readme_path.exists():
         content = readme_path.read_text(encoding="utf-8")
         all_passed &= _test("README.md references docs/", any(k in content for k in ["docs/", "getting-started", "guides"]))
         all_passed &= _test("README.md has project overview", len(content) > 200)
-
+    
     return all_passed
 
 
@@ -235,23 +235,23 @@ def test_no_broken_links() -> bool:
     """Validate no broken internal links."""
     print("\\n[6/8] Link Validation")
     print("-" * 40)
-
+    
     link_pattern = r'\\[([^\\]]+)\\]\\(([^\\)]+)\\)'
     all_passed = True
-
+    
     readme_path = project_root / "README.md"
     if readme_path.exists():
         content = readme_path.read_text(encoding="utf-8")
         links = re.findall(link_pattern, content)
-
+        
         broken = []
         for _, path in links:
             if not path.startswith(("http://", "https://", "#")):
                 if not (project_root / path).exists():
                     broken.append(path)
-
+        
         all_passed &= _test("README.md has no broken internal links", len(broken) == 0)
-
+    
     return all_passed
 
 
@@ -259,11 +259,11 @@ def test_openspec_separation() -> bool:
     """Validate OpenSpec files are separated and isolated."""
     print("\\n[7/8] OpenSpec Separation Validation")
     print("-" * 40)
-
+    
     all_passed = _test("openspec/ directory exists", (project_root / "openspec").exists())
     root_openspec = list(project_root.glob("openspec*"))
     all_passed &= _test("No OpenSpec files in root", len(root_openspec) == 0)
-
+    
     return all_passed
 
 
@@ -271,14 +271,14 @@ def test_changelog_updated() -> bool:
     """Validate CHANGELOG.md documents the cleanup."""
     print("\\n[8/8] CHANGELOG Updates Validation")
     print("-" * 40)
-
+    
     changelog_path = project_root / "CHANGELOG.md"
     all_passed = _test("CHANGELOG.md exists", changelog_path.exists())
-
+    
     if changelog_path.exists():
         content = changelog_path.read_text(encoding="utf-8")
         all_passed &= _test("CHANGELOG documents cleanup", any(k in content.lower() for k in ["cleanup", "organization"]))
-
+    
     return all_passed
 
 
@@ -287,20 +287,20 @@ def main() -> int:
     print("=" * 60)
     print("Test Suite: {change_id}")
     print("=" * 60)
-
+    
     for test_func in [test_directory_structure, test_celebration_files_deleted,
-            test_reference_docs_moved, test_root_directory_clean, test_readme_updated,
+            test_reference_docs_moved, test_root_directory_clean, test_readme_updated, 
             test_no_broken_links, test_openspec_separation, test_changelog_updated]:
         try:
             test_func()
         except Exception as e:
             print(f"\\n  [WARN] Error: {{e}}")
             test_results["failed"] += 1
-
+    
     print("\\n" + "=" * 60)
     print(f"Passed: {{test_results['passed']}}, Failed: {{test_results['failed']}}, Skipped: {{test_results['skipped']}}")
     print("=" * 60)
-
+    
     if test_results["failed"] > 0:
         print("[FAILED] RESULT: Tests did not pass")
         return 1
@@ -314,9 +314,7 @@ if __name__ == "__main__":
 '''
 
 
-def _generate_generic_test_template(
-    change_id: str, requirements: Dict[str, any]
-) -> str:
+def _generate_generic_test_template(change_id: str, requirements: Dict[str, any]) -> str:
     """Generate generic test template for other changes."""
     affected_files_section = ""
     if requirements.get("affected_files"):
@@ -330,7 +328,7 @@ def _generate_generic_test_template(
 {files_list}
 """
 
-    return rf'''#!/usr/bin/env python3
+    return f'''#!/usr/bin/env python3
 """
 Test script for change: {change_id}
 
@@ -571,9 +569,7 @@ if __name__ == "__main__":
 '''
 
 
-def _generate_generic_implement_template(
-    change_id: str, requirements: Dict[str, any]
-) -> str:
+def _generate_generic_implement_template(change_id: str, requirements: Dict[str, any]) -> str:
     """Generate generic implementation template for other changes."""
     affected_files_section = ""
     if requirements.get("affected_files"):
@@ -684,7 +680,7 @@ def _generate_python_implement_script(
     change_path: Path, change_id: str, requirements: Dict[str, any]
 ) -> str:
     """Generate Python implementation script using appropriate template.
-
+    
     For cleanup-organize-docs, generates fully functional implementation.
     For other changes, generates extensible template.
 
@@ -694,7 +690,7 @@ def _generate_python_implement_script(
     # For cleanup-organize-docs, use comprehensive implementation template
     if change_id == "cleanup-organize-docs":
         return _generate_cleanup_implement_template(change_id)
-
+    
     # For other changes, provide template
     return _generate_generic_implement_template(change_id, requirements)
 
@@ -1086,18 +1082,18 @@ if __name__ == "__main__":
 
 def _generate_test_plan_md(change_path: Path, change_id: str) -> str:
     """Generate comprehensive test_plan.md based on proposal and spec.
-
+    
     Creates a detailed test plan with:
     - Test strategy aligned with proposal objectives
     - Test scope extracted from spec acceptance criteria
     - Test cases for each feature
     - Integration and E2E scenarios
     - Performance and security considerations
-
+    
     Args:
         change_path: Path to the change folder
         change_id: The change identifier
-
+        
     Returns:
         Complete test_plan.md content
     """
@@ -1105,73 +1101,53 @@ def _generate_test_plan_md(change_path: Path, change_id: str) -> str:
     proposal_path = change_path / "proposal.md"
     spec_path = change_path / "spec.md"
     tasks_path = change_path / "tasks.md"
-
+    
     proposal_content = ""
     spec_content = ""
     tasks_content = ""
-
+    
     if proposal_path.exists():
         proposal_content = proposal_path.read_text(encoding="utf-8")
     if spec_path.exists():
         spec_content = spec_path.read_text(encoding="utf-8")
     if tasks_path.exists():
         tasks_content = tasks_path.read_text(encoding="utf-8")
-
+    
     # Extract key information from proposal
     why_section = re.search(r"## Why\n\n(.+?)(?=\n##|\Z)", proposal_content, re.DOTALL)
-    why_text = (
-        why_section.group(1).strip()
-        if why_section
-        else "Implement and validate changes"
-    )
-
-    what_section = re.search(
-        r"## What Changes\n\n(.+?)(?=\n##|\Z)", proposal_content, re.DOTALL
-    )
-    what_text = (
-        what_section.group(1).strip() if what_section else "Core functionality changes"
-    )
-
+    why_text = why_section.group(1).strip() if why_section else "Implement and validate changes"
+    
+    what_section = re.search(r"## What Changes\n\n(.+?)(?=\n##|\Z)", proposal_content, re.DOTALL)
+    what_text = what_section.group(1).strip() if what_section else "Core functionality changes"
+    
     # Extract acceptance criteria from spec
     acceptance_criteria = []
-    ac_sections = re.findall(
-        r"(?m)^###+ .*?Acceptance Criteria.*?\n(.+?)(?=\n##|\Z)",
-        spec_content,
-        re.DOTALL,
-    )
+    ac_sections = re.findall(r"(?m)^###+ .*?Acceptance Criteria.*?\n(.+?)(?=\n##|\Z)", spec_content, re.DOTALL)
     for section in ac_sections:
         criteria = re.findall(r"(?m)^[-*]\s+(.+?)(?=\n[-*]|\Z)", section)
         acceptance_criteria.extend(criteria[:10])  # Limit to first 10 per section
-
+    
     # Extract task count
     task_count = len(re.findall(r"(?m)^- \[[\sx]\]", tasks_content))
-
+    
     # Generate test cases from acceptance criteria
     unit_test_cases = []
     integration_scenarios = []
-
+    
     for i, ac in enumerate(acceptance_criteria[:15], 1):
         test_id = f"UT-{i:03d}"
         test_case = ac.replace("**", "").replace("`", "").strip()[:80]
         priority = "P0" if i <= 3 else "P1" if i <= 8 else "P2"
-        unit_test_cases.append(
-            f"| {test_id} | {test_case} | {priority} | not-started | @dev |"
-        )
-
-    unit_test_table = (
-        "\n".join(unit_test_cases)
-        if unit_test_cases
-        else "| UT-001 | Verify core functionality works | P0 | not-started | @dev |"
-    )
-
+        unit_test_cases.append(f"| {test_id} | {test_case} | {priority} | not-started | @dev |")
+    
+    unit_test_table = "\n".join(unit_test_cases) if unit_test_cases else "| UT-001 | Verify core functionality works | P0 | not-started | @dev |"
+    
     # Generate integration scenarios
     for i in range(1, 6):
-        integration_scenarios.append(
-            f"| IT-{i:03d} | Integration test scenario {i} | P{(i-1)//2} | not-started | @dev |"
-        )
-
+        integration_scenarios.append(f"| IT-{i:03d} | Integration test scenario {i} | P{(i-1)//2} | not-started | @dev |")
+    
     integration_table = "\n".join(integration_scenarios)
-
+    
     return f'''# Test Plan: {change_id}
 
 ---
@@ -1749,11 +1725,11 @@ def cleanup():
 ```python
 class TestModuleFunctionality:
     """Group related tests in classes"""
-
+    
     @pytest.mark.unit
     def test_happy_path(self):
         pass
-
+    
     @pytest.mark.unit
     @pytest.mark.parametrize("input,expected", [
         ("valid", True),

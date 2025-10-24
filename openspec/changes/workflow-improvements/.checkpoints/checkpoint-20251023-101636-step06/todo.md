@@ -49,8 +49,8 @@
 | ID | Task | Owner | Status | Priority | Due Date |
 
 |----|------|-------|--------|----------|----------|
-| 1  | [Short task description] | @[username] | [not-started/in-progress/completed] | [High/Medium/Low] | [YYYY-MM-DD] |
-| 2  | [Short task description] | @[username] | [not-started/in-progress/completed] | [High/Medium/Low] | [YYYY-MM-DD] |
+| 1  | [Short task description] | @[username] | [not-started/in-progress/completed] | [High/Medium/Low] | [2025-10-23] |
+| 2  | [Short task description] | @[username] | [not-started/in-progress/completed] | [High/Medium/Low] | [2025-10-23] |
 | ...| ...  | ...   | ...    | ...      | ...      |
 
 ---
@@ -64,7 +64,7 @@
 - **Risks**: [Potential issues and mitigation strategies]
 - **Status**: [not-started/in-progress/completed]
 - **Owner**: @[username]
-- **Due Date**: [YYYY-MM-DD]
+- **Due Date**: [2025-10-23]
 
 ### Task 2: [Short task description]
 - ...
@@ -96,7 +96,7 @@
 | Milestone | Description | Due Date | Status |
 
 |-----------|-------------|----------|--------|
-| [Milestone 1] | [Description] | [YYYY-MM-DD] | [not-started/in-progress/completed] |
+| [Milestone 1] | [Description] | [2025-10-23] | [not-started/in-progress/completed] |
 | ...       | ...         | ...      | ...    |
 
 ---
@@ -140,7 +140,7 @@
 ---
 
 ## Document Metadata
-- **Created**: [YYYY-MM-DD]
-- **Last Updated**: [YYYY-MM-DD]
+- **Created**: [2025-10-23]
+- **Last Updated**: [2025-10-23]
 - **Version**: [v1.0]
 - **Authors**: @[username]
