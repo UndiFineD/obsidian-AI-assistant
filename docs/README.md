@@ -1,37 +1,17 @@
-# Documentation
+# Obsidian AI Assistant - Documentation
 
-Welcome to the project documentation!
+Welcome to the Obsidian AI Assistant documentation!
 
-## Getting Started
+## 📚 Structure
 
-New to the project? Start here:
-- [Getting Started Guide](./getting-started/)
+- **[Getting Started](./getting-started/)** - Introductions and guides
+- **[Guides](./guides/)** - How-to documentation
+- **[Architecture](./architecture/)** - System design
+- **[Reference](./reference/)** - Technical reference
+- **[Production](./production/)** - Deployment and operations
+- **[Historical](./historical/)** - Archive
 
-## Project Guides
+## Quick Links
 
-Comprehensive guides and tutorials:
-- [Guides & Tutorials](./guides/)
-
-## Architecture
-
-Technical architecture and design:
-- [Architecture Documentation](./architecture/)
-
-## Reference
-
-API reference and technical specifications:
-- [Reference Materials](./reference/)
-
-## Production
-
-Production deployment and maintenance:
-- [Production Guides](./production/)
-
-## Historical
-
-Historical documentation and archives:
-- [Historical Records](./historical/)
-
----
-
-For more information, see the main [README.md](../README.md).
+- **[Main README](../README.md)** - Project overview
+- **[CHANGELOG](../CHANGELOG.md)** - Release notes
