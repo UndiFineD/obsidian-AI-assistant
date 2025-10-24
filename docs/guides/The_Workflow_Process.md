@@ -11,7 +11,8 @@
 7. [Integration Points](#integration-points)
 8. [Error Handling & Validation](#error-handling--validation)
 9. [Checkpoints & Resumption](#checkpoints--resumption)
-10. [Advanced Features](#advanced-features)
+10. [Enhancement Modules (v0.1.45)](#enhancement-modules-v0145)
+11. [Advanced Features](#advanced-features)
 
 ---
 
