@@ -35,28 +35,141 @@ through implementation, testing, documentation, and pull request creation.
 **NEW**: The workflow supports three lanes for different change types:
 
 #### **Documentation Lane (Docs)**
-- **Target**: Documentation-only changes (README, guides, etc.)
+- **Target**: Documentation-only changes (README, guides, API docs, etc.)
 - **Execution Time**: <5 minutes (67% faster than standard)
-- **Stages Executed**: 0, 2, 3, 4, 9, 10, 11, 12 (skips code validation stages)
+- **Stages Executed**: 0, 2, 3, 4, 9, 10, 12 (skips code validation stages)
 - **Quality Gates**: Disabled (documentation doesn't require code validation)
-- **Usage**: `python workflow.py --change-id my-change --lane docs`
-- **Example**: Update CHANGELOG.md, README.md, documentation files
+- **Auto-Detection**: Warns if code files (.py, .js, .ts) detected; offers switch to standard lane
+- **Usage Examples**:
+  ```powershell
+  # Python version
+  python scripts/workflow.py --change-id my-change --lane docs
+  
+  # PowerShell version
+  .\scripts\workflow.ps1 -ChangeId my-change -Lane docs
+  ```
+- **Suitable For**:
+  - Update CHANGELOG.md, README.md, documentation files
+  - Fix typos in docstrings
+  - Add user guides, tutorials
+  - API documentation updates
+  - No code changes involved
+
+**Key Feature**: Automatic code change detection prevents accidental doc-lane execution for code changes.
 
 #### **Standard Lane (Default)**
-- **Target**: Regular code and feature changes
+- **Target**: Regular code and feature changes (default selection)
 - **Execution Time**: ~15 minutes
 - **Stages Executed**: All 13 stages
-- **Quality Gates**: Enabled with standard thresholds (80% test pass, 70% coverage)
-- **Usage**: `python workflow.py --change-id my-change` (no lane specified defaults to standard)
-- **Example**: Add new feature, fix bug, refactor code
+- **Quality Gates**: Enabled with standard thresholds:
+  - ruff: 0 errors allowed
+  - mypy: 0 type errors allowed
+  - pytest: 80% test pass rate, 70% minimum coverage
+  - bandit: 0 high-severity security issues
+- **Parallelization**: Stages 2-6 can execute in parallel (max 3 workers)
+- **Usage Examples**:
+  ```powershell
+  # Python version (default lane)
+  python scripts/workflow.py --change-id my-feature
+  
+  # PowerShell version (default lane)
+  .\scripts\workflow.ps1 -ChangeId my-feature
+  
+  # Explicit standard lane
+  python scripts/workflow.py --change-id my-feature --lane standard
+  ```
+- **Suitable For**:
+  - Add new features or functionality
+  - Bug fixes
+  - Code refactoring
+  - Regular maintenance
+  - Most day-to-day development work
+
+**Quality Thresholds** (Standard Lane):
+```yaml
+ruff:
+  max_errors: 0
+  max_warnings: 10
+mypy:
+  max_errors: 0
+pytest:
+  min_pass_rate: 80%
+  min_coverage: 70%
+bandit:
+  max_high_severity: 0
+  max_medium_severity: 5
+```
 
 #### **Heavy Lane (Strict Validation)**
 - **Target**: Critical, production, or security-related changes
 - **Execution Time**: ~20 minutes (more thorough validation)
 - **Stages Executed**: All 13 stages
-- **Quality Gates**: Enabled with strict thresholds (100% test pass, 85% coverage)
-- **Usage**: `python workflow.py --change-id my-change --lane heavy`
-- **Example**: Security fix, critical production change, major refactoring
+- **Quality Gates**: Enabled with strict thresholds:
+  - ruff: 0 errors, 5 warnings maximum
+  - mypy: 0 type errors
+  - pytest: 100% test pass rate, 85% minimum coverage
+  - bandit: 0 high-severity and 0 medium-severity security issues
+- **Enhanced Checks**: All validation gates strictly enforced
+- **Usage Examples**:
+  ```powershell
+  # Python version
+  python scripts/workflow.py --change-id security-fix --lane heavy
+  
+  # PowerShell version
+  .\scripts\workflow.ps1 -ChangeId security-fix -Lane heavy
+  ```
+- **Suitable For**:
+  - Security patches and vulnerability fixes
+  - Critical production changes
+  - Major version releases
+  - Public API changes
+  - System-critical functionality
+
+**Quality Thresholds** (Heavy Lane):
+```yaml
+ruff:
+  max_errors: 0
+  max_warnings: 5
+mypy:
+  max_errors: 0
+pytest:
+  min_pass_rate: 100%    # All tests must pass!
+  min_coverage: 85%      # Higher coverage required
+bandit:
+  max_high_severity: 0   # Zero tolerance for high-severity issues
+  max_medium_severity: 0 # Zero tolerance for medium-severity issues
+```
+
+#### **Lane Selection Guide**
+
+| Criteria | Recommended Lane |
+|----------|------------------|
+| Only documentation changes | **Docs** |
+| Regular feature/bugfix | **Standard** |
+| Security fix or production critical | **Heavy** |
+| Major version release | **Heavy** |
+| Code quality is uncertain | **Heavy** |
+| Multiple developers involved | **Heavy** |
+| Affects public APIs | **Heavy** |
+
+#### **Automatic Lane Switching**
+
+When using the **docs** lane, the workflow automatically detects code files:
+1. Scans for .py, .js, .ts, .jsx, .tsx and other code extensions
+2. If code files detected, displays warning with file list
+3. Prompts user: "Switch to 'standard' lane? (y/n)"
+4. User can proceed with docs lane or switch to standard/heavy
+
+```
+⚠ Code files detected in documentation-only lane:
+  - agent/backend.py
+  - plugin/main.js
+
+The docs lane is optimized for documentation changes only.
+Code changes require the 'standard' or 'heavy' lane for proper validation.
+
+Switch to 'standard' lane? (y/n):
+```
 
 ### Project Structure
 
