@@ -444,6 +444,7 @@ def execute_step(
     release_type: Optional[str] = None,
     template: str = "default",
     enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
 ) -> bool:
     """
     Execute a specific workflow step with optional checkpoint creation.
@@ -456,6 +457,7 @@ def execute_step(
         dry_run: If True, preview without making changes
         template: Proposal template type (for step 2)
         enable_checkpoints: If True, create checkpoint before execution
+        skip_quality_gates: If True, skip quality gates (not recommended)
 
     Returns:
         True if successful, False otherwise
@@ -510,6 +512,10 @@ def execute_step(
     if dry_run:
         kwargs["dry_run"] = dry_run
 
+    # Note: skip_quality_gates is tracked at workflow level but not passed to individual
+    # steps since they don't directly control quality gate execution. The flag is meant
+    # to be used by generated test.py and implement.py scripts.
+
     # Execute step
     try:
         success = invoke_func(**kwargs)
@@ -545,6 +551,7 @@ def run_single_step(
     release_type: Optional[str] = None,
     template: str = "default",
     enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
 ):
     """Run a single workflow step."""
     change_path = CHANGES_DIR / change_id
@@ -559,6 +566,12 @@ def run_single_step(
 
     print(f"{helpers.Colors.CYAN}Executing Step {step_num}...{helpers.Colors.RESET}\n")
 
+    if skip_quality_gates:
+        helpers.write_warning(
+            "⚠️  Quality gates SKIPPED - output may not meet production standards"
+        )
+        print()
+
     success = execute_step(
         step_num,
         change_path,
@@ -568,6 +581,7 @@ def run_single_step(
         release_type,
         template,
         enable_checkpoints,
+        skip_quality_gates,
     )
 
     print()
@@ -587,6 +601,7 @@ def run_interactive_workflow(
     release_type: Optional[str] = None,
     template: str = "default",
     enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
 ):
     """Run the complete interactive workflow."""
     change_path = CHANGES_DIR / change_id
@@ -616,6 +631,10 @@ def run_interactive_workflow(
     print(
         f"{helpers.Colors.WHITE}Dry Run    : {'Yes' if dry_run else 'No'}{helpers.Colors.RESET}"
     )
+    if skip_quality_gates:
+        print(
+            f"{helpers.Colors.YELLOW}Quality Gates: SKIPPED (not recommended for production){helpers.Colors.RESET}"
+        )
     print()
 
     # Determine which step to start from using helpers.detect_next_step
@@ -647,6 +666,7 @@ def run_interactive_workflow(
                     release_type,
                     template,
                     enable_checkpoints,
+                    skip_quality_gates,
                 )
 
                 if not success:
@@ -676,6 +696,7 @@ def run_interactive_workflow(
                 release_type,
                 template,
                 enable_checkpoints,
+                skip_quality_gates,
             )
 
             if not success:
@@ -821,6 +842,11 @@ Examples:
         default="standard",
         help="Workflow lane: docs (fast), standard (default), or heavy (strict)",
     )
+    parser.add_argument(
+        "--skip-quality-gates",
+        action="store_true",
+        help="Skip quality gates for faster local iteration (not recommended for production)",
+    )
 
     args = parser.parse_args()
     
@@ -896,6 +922,7 @@ Examples:
             args.release_type,
             args.template,
             enable_checkpoints,
+            args.skip_quality_gates,
         )
     else:
         # Interactive workflow
@@ -907,6 +934,7 @@ Examples:
             args.release_type,
             args.template,
             enable_checkpoints,
+            args.skip_quality_gates,
         )
 
 

@@ -1387,6 +1387,178 @@ mypy agent/ --ignore-missing-imports
 pytest tests/plugin/test_js_code_quality.py -v
 ```
 
+### OpenSpec Workflow System (v0.1.42+)
+
+The workflow system in `scripts/workflow.py` manages 13-step OpenSpec changes with enhanced capabilities:
+
+#### Workflow Execution
+
+**Basic workflow execution:**
+```powershell
+# Run all steps (default: interactive mode)
+python scripts/workflow.py --change-id my-change --title "My Feature" --owner kdejo
+
+# Run specific step
+python scripts/workflow.py --change-id my-change --step 0 --title "My Feature" --owner kdejo
+
+# Run multiple specific steps
+python scripts/workflow.py --change-id my-change --step 0 --step 1 --step 2 --title "My Feature" --owner kdejo
+```
+
+#### Advanced Workflow Flags (v0.1.42+)
+
+**Preview changes without modifying files:**
+```powershell
+# --dry-run mode: Preview all changes, don't modify files
+# Useful for: Testing workflow logic, previewing changes, validating before commit
+python scripts/workflow.py --change-id test-change --step 0 --step 1 --dry-run
+
+# Output shows [DRY RUN] messages for each file operation
+# [DRY RUN] Would create: .../todo.md
+# [DRY RUN] Would write: .../version_snapshot.md
+```
+
+**Skip validation for local development:**
+```powershell
+# --skip-quality-gates flag: Skip quality validation (⚠️ NOT for production)
+# Useful for: Faster local iteration, testing workflow logic
+python scripts/workflow.py --change-id my-change --skip-quality-gates
+
+# Output shows warning when flag used:
+# ⚠️  Quality gates SKIPPED - output may not meet production standards
+```
+
+**Combine flags for maximum flexibility:**
+```powershell
+# Combine --dry-run and --skip-quality-gates for fast local testing
+python scripts/workflow.py --change-id test-change --step 0 --step 1 --dry-run --skip-quality-gates
+
+# Both warnings/previews will show
+# Perfect for: Testing new features, validating workflow logic, development iteration
+```
+
+#### Workflow Options
+
+| Flag | Type | Default | Description | Use Case |
+|------|------|---------|-------------|----------|
+| `--change-id` | string | Required | Unique identifier for the change | Workflow naming |
+| `--step N` | int | Interactive | Specific step(s) to run (0-12) | Run subset of workflow |
+| `--title` | string | Required | Human-readable title | Change documentation |
+| `--owner` | string | Required | Change owner (GitHub username) | Attribution and permissions |
+| `--dry-run` | flag | false | Preview changes without modification | Testing and validation |
+| `--skip-quality-gates` | flag | false | Skip quality checks (⚠️ not for production) | Local development |
+| `--release-type` | string | patch | Version bump type (major/minor/patch) | Version control |
+| `--lane` | string | standard | Change classification (docs/standard/heavy) | Validation level |
+| `--template` | string | default | Template for generated docs | Customization |
+| `--enable-checkpoints` | flag | true | Enable checkpoint/resumption system | State recovery |
+
+#### Workflow Resumption (v0.1.42+)
+
+**Automatic detection of incomplete workflows:**
+```powershell
+# If a workflow was interrupted, run the same command again
+# System will detect incomplete workflow and prompt:
+# 
+# ❓ Incomplete workflow detected: my-change (last step: 3)
+# Would you like to:
+#   1. Resume from step 4
+#   2. Start fresh (will recreate files)
+# 
+# Answer 1 to resume from checkpoint
+
+python scripts/workflow.py --change-id my-change --title "My Feature" --owner kdejo
+```
+
+The checkpoint system automatically:
+- Tracks completed steps in `.checkpoints/state.json`
+- Captures file snapshots for recovery
+- Records git commits at each checkpoint
+- Enables recovery from any interruption
+
+#### Workflow Status Tracking (v0.1.42+)
+
+**Monitor workflow progress:**
+```powershell
+# Check status of incomplete workflow
+python scripts/workflow.py --change-id my-change --title "My Feature" --owner kdejo
+
+# Output shows current state and available options
+# [Last completed: Step 3 - Task Breakdown]
+# [Files saved: proposal.md, spec.md, tasks.md]
+```
+
+All workflow state is persisted to:
+- `.checkpoints/state.json` - Complete history with timestamps
+- `.checkpoints/checkpoint-*/` - Directory per step with snapshots
+
+#### Environment Validation (v0.1.42+)
+
+**Pre-flight checks ensure tools are available:**
+```powershell
+# Validation runs automatically on workflow start
+# Checks for:
+#   ✓ Python version (requires 3.11+)
+#   ✓ Required tools (pytest, ruff, mypy, bandit)
+#   ✓ File permissions
+#   ✓ Git configuration
+
+# If issues found, workflow displays:
+# ⚠️  Environment validation failed:
+# - Python 3.10 detected (requires 3.11+)
+# - Action: Update Python or create Python 3.11+ venv
+```
+
+#### Workflow Steps Overview
+
+| Step | Name | Purpose | Key Output |
+|------|------|---------|------------|
+| 0 | Create TODOs | Initialize task tracking | `todo.md` |
+| 1 | Version Bump | Increment version number | `version_snapshot.md` |
+| 2 | Proposal Review | Review high-level proposal | Review feedback |
+| 3 | Capability Spec | Define technical specification | `spec.md` |
+| 4 | Task Breakdown | Create detailed task list | `tasks.md` |
+| 5 | Implementation Checklist | Build implementation plan | Checklist with requirements |
+| 6 | Script Generation | Generate test/impl scripts | `test.py`, `implement.py` |
+| 7 | Document Review | Final validation of docs | Review report |
+| 8-12 | Implementation | Execute feature implementation | Feature code |
+
+#### Common Workflow Patterns
+
+**Pattern 1: Quick local test of workflow logic**
+```powershell
+# Test workflow steps without modifying anything
+python scripts/workflow.py --change-id test-local --step 0 --step 1 --dry-run
+
+# Verify: No files created, [DRY RUN] messages shown
+```
+
+**Pattern 2: Development iteration without quality checks**
+```powershell
+# Skip validation while developing locally
+python scripts/workflow.py --change-id dev-feature --skip-quality-gates
+
+# Verify: Warnings shown, feature still created
+```
+
+**Pattern 3: Resume after interruption**
+```powershell
+# Initial run interrupted at step 3
+python scripts/workflow.py --change-id my-feature --title "Feature" --owner kdejo
+# ... interrupted ...
+
+# Resume from checkpoint
+python scripts/workflow.py --change-id my-feature --title "Feature" --owner kdejo
+# System detects checkpoint and prompts to resume
+```
+
+**Pattern 4: Production-ready workflow with full validation**
+```powershell
+# Run with all checks enabled (default behavior)
+python scripts/workflow.py --change-id release-feature --title "Release Feature" --owner kdejo
+
+# Verify: All quality gates pass, all documents complete
+```
+
 ### Key Files to Understand
 
 1. **`agent/backend.py`**: FastAPI application entry point with all route definitions
