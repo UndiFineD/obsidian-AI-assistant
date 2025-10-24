@@ -10,6 +10,12 @@
 
 **Impact**: 67% reduction in root clutter, improved documentation findability
 
+## v0.1.40 (2025-10-24)
+
+- **OpenSpec Change**: cleanup-organize-docs
+- **Git Status**: Changes staged, committed, and pushed
+- _Released as part of OpenSpec workflow automation._
+
 ## v0.1.38 (2025-10-22)
 
 - **OpenSpec Change**: cleanup-organize-docs
