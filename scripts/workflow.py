@@ -61,7 +61,14 @@ try:
     PROGRESS_AVAILABLE = True
 except ImportError:
     PROGRESS_AVAILABLE = False
-    helpers.write_warning("Progress indicators not available")
+
+# Import parallel executor if available
+try:
+    from parallel_executor import ParallelExecutor, print_execution_summary
+
+    PARALLEL_EXECUTOR_AVAILABLE = True
+except ImportError:
+    PARALLEL_EXECUTOR_AVAILABLE = False
 
 # Directory paths
 CHANGES_DIR = PROJECT_ROOT / "openspec" / "changes"
