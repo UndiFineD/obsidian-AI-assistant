@@ -897,20 +897,20 @@ graph TD
 | RISK-6  | Timeline slips due to scope creep | Medium | Medium | P2 | @kdejo | Strict scope control, defer nice-to-haves | Open |
 
 **Risk Mitigation Tasks**:
-- [ ] **RISK-T1**: Test quality gates with diverse codebases (mitigates RISK-1)
+- [x] **RISK-T1**: Test quality gates with diverse codebases (mitigates RISK-1)
     - **Owner**: @kdejo
     - **Due Date**: 2025-10-26
-    - **Status**: not-started
+    - **Status**: completed
 
-- [ ] **RISK-T2**: Test parallelization with intentional race conditions (mitigates RISK-2)
+- [x] **RISK-T2**: Test parallelization with intentional race conditions (mitigates RISK-2)
     - **Owner**: @kdejo
     - **Due Date**: 2025-10-25
-    - **Status**: not-started
+    - **Status**: completed
 
-- [ ] **RISK-T3**: User test documentation with new contributor (mitigates RISK-3)
+- [x] **RISK-T3**: User test documentation with new contributor (mitigates RISK-3)
     - **Owner**: @kdejo
     - **Due Date**: 2025-10-29
-    - **Status**: not-started
+    - **Status**: completed
 
 **Closed/Resolved Risks**:
 - **RISK-5**: Resolved - Default lane is "standard", no behavior change for existing users
