@@ -63,7 +63,7 @@ class FileChange:
         preview = []
         for i, (o, u) in enumerate(zip(o_lines, u_lines)):
             if o != u:
-                preview.append(f"@@ line {i+1} @@")
+                preview.append(f"@@ line {i + 1} @@")
                 preview.append(f"- {o}")
                 preview.append(f"+ {u}")
                 if len(preview) > lines:
@@ -272,7 +272,7 @@ def main(argv: List[str]) -> int:
     else:
         # Dry-run mode: show diffs
         for idx, ch in enumerate(changes[:5], 1):
-            print(f"\n{'='*70}")
+            print(f"\n{'=' * 70}")
             print(f"[{idx}] {ch.path}")
             print("=" * 70)
             print(ch.diff_preview(lines=10))

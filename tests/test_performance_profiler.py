@@ -288,7 +288,11 @@ class TestRecommendationEngine:
         ]
 
         trends = {"variable_stage": {"trend": "stable", "change_percent": 0}}
-        opportunities = {"high_variance_stages": ["variable_stage"], "slow_stages": [], "candidate_for_parallelization": []}
+        opportunities = {
+            "high_variance_stages": ["variable_stage"],
+            "slow_stages": [],
+            "candidate_for_parallelization": [],
+        }
 
         recommendations = engine.generate_recommendations(bottlenecks, trends, opportunities)
         assert any(r.stage_name == "variable_stage" for r in recommendations)

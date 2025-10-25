@@ -170,9 +170,7 @@ class TestWorkflowHelpers:
         assert "Problem" in captured.out
         assert "Try this solution" in captured.out
 
-    def test_show_changes_empty_directory(
-        self, workflow_helpers, capsys, temp_project_structure
-    ):
+    def test_show_changes_empty_directory(self, workflow_helpers, capsys, temp_project_structure):
         """Test show_changes with empty changes directory."""
         workflow_helpers.show_changes(temp_project_structure["changes"])
         captured = capsys.readouterr()
@@ -209,9 +207,7 @@ class TestWorkflowHelpers:
         result = workflow_helpers.test_change_structure(temp_change_dir)
         assert result is True
 
-    def test_test_change_structure_missing_files(
-        self, workflow_helpers, temp_change_dir, capsys
-    ):
+    def test_test_change_structure_missing_files(self, workflow_helpers, temp_change_dir, capsys):
         """Test test_change_structure detects missing required files."""
         # Create only some files
         (temp_change_dir / "todo.md").write_text("# todo\n", encoding="utf-8")
@@ -234,9 +230,7 @@ class TestWorkflowHelpers:
         assert test_file.exists()
         assert test_file.read_text(encoding="utf-8") == content
 
-    def test_set_content_atomic_overwrites_file(
-        self, workflow_helpers, temp_change_dir
-    ):
+    def test_set_content_atomic_overwrites_file(self, workflow_helpers, temp_change_dir):
         """Test set_content_atomic overwrites existing file."""
         test_file = temp_change_dir / "test.md"
         test_file.write_text("Old content", encoding="utf-8")
@@ -362,9 +356,7 @@ class TestWorkflowSteps:
     def test_step_module_can_be_imported(self, step_num):
         """Test that each workflow step module can be imported."""
         step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
-        spec = importlib.util.spec_from_file_location(
-            f"workflow_step{step_num:02d}", step_file
-        )
+        spec = importlib.util.spec_from_file_location(f"workflow_step{step_num:02d}", step_file)
         module = importlib.util.module_from_spec(spec)
 
         # Should not raise exception
@@ -374,9 +366,7 @@ class TestWorkflowSteps:
     def test_step_has_invoke_function(self, step_num):
         """Test that each step has invoke_stepN function."""
         step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
-        spec = importlib.util.spec_from_file_location(
-            f"workflow_step{step_num:02d}", step_file
-        )
+        spec = importlib.util.spec_from_file_location(f"workflow_step{step_num:02d}", step_file)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -388,9 +378,7 @@ class TestWorkflowSteps:
     def test_step_function_returns_bool(self, step_num):
         """Test that invoke_stepN functions return boolean values."""
         step_file = SCRIPT_DIR / f"workflow-step{step_num:02d}.py"
-        spec = importlib.util.spec_from_file_location(
-            f"workflow_step{step_num:02d}", step_file
-        )
+        spec = importlib.util.spec_from_file_location(f"workflow_step{step_num:02d}", step_file)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -421,9 +409,7 @@ class TestWorkflowOrchestrator:
 
     def test_workflow_py_can_be_imported(self):
         """Test that workflow.py can be imported."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         # Should not raise exception
@@ -432,9 +418,7 @@ class TestWorkflowOrchestrator:
 
     def test_workflow_has_required_functions(self):
         """Test that workflow.py has key functions."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
@@ -447,9 +431,7 @@ class TestWorkflowOrchestrator:
 
     def test_workflow_step_names_complete(self):
         """Test that STEP_NAMES covers all 13 steps."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
@@ -463,9 +445,7 @@ class TestWorkflowOrchestrator:
 
     def test_workflow_directories_defined(self):
         """Test that workflow.py defines required directory constants."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
@@ -578,9 +558,7 @@ class TestWorkflowIntegration:
 
     def test_workflow_step_names_match_files(self):
         """Test that STEP_NAMES matches actual step files."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
@@ -711,9 +689,7 @@ class TestWorkflowErrorHandling:
 
     def test_workflow_paths_are_pathlib_objects(self):
         """Test that workflow uses pathlib.Path for filesystem operations."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):
@@ -796,9 +772,7 @@ class TestWorkflowValidation:
         # Verify core templates
         for template_name in templates:
             template_path = TEMPLATES_DIR / template_name
-            assert (
-                template_path.exists()
-            ), f"Required template {template_name} not found"
+            assert template_path.exists(), f"Required template {template_name} not found"
             content = template_path.read_text(encoding="utf-8")
             assert len(content) > 0
 
@@ -824,9 +798,7 @@ class TestWorkflowValidation:
 
     def test_workflow_constants_are_defined(self):
         """Test that workflow defines required constants."""
-        spec = importlib.util.spec_from_file_location(
-            "workflow", SCRIPT_DIR / "workflow.py"
-        )
+        spec = importlib.util.spec_from_file_location("workflow", SCRIPT_DIR / "workflow.py")
         workflow = importlib.util.module_from_spec(spec)
 
         with mock.patch.dict(sys.modules, {"checkpoint_manager": mock.MagicMock()}):

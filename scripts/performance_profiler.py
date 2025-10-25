@@ -23,6 +23,7 @@ import statistics
 @dataclass
 class ProfilePoint:
     """Single profiling measurement point."""
+
     stage_name: str
     execution_time: float
     memory_used: Optional[float] = None
@@ -37,6 +38,7 @@ class ProfilePoint:
 @dataclass
 class BottleneckInfo:
     """Information about a detected bottleneck."""
+
     stage_name: str
     avg_time: float
     max_time: float
@@ -54,6 +56,7 @@ class BottleneckInfo:
 @dataclass
 class Recommendation:
     """Optimization recommendation for a stage."""
+
     stage_name: str
     issue: str
     suggested_action: str
@@ -69,7 +72,7 @@ class Recommendation:
 class StageProfiler:
     """
     Low-overhead profiling with decorators.
-    
+
     Tracks execution time for workflow stages with minimal performance impact.
     Uses context managers or decorators for ease of use.
     """
@@ -77,7 +80,7 @@ class StageProfiler:
     def __init__(self, threshold_ms: float = 0.1):
         """
         Initialize profiler.
-        
+
         Args:
             threshold_ms: Minimum execution time to track (milliseconds)
         """
@@ -88,13 +91,14 @@ class StageProfiler:
     def profile_stage(self, stage_name: str) -> Callable:
         """
         Decorator for profiling stage functions.
-        
+
         Args:
             stage_name: Name of the stage being profiled
-            
+
         Returns:
             Decorator function
         """
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -106,21 +110,25 @@ class StageProfiler:
                     elapsed_time = (time.perf_counter() - start_time) * 1000
                     if elapsed_time >= self.threshold_ms:
                         self._record_profile(stage_name, elapsed_time, {})
+
             return wrapper
+
         return decorator
 
     def start_stage(self, stage_name: str) -> None:
         """Start timing a stage."""
         self.active_timers[stage_name] = time.perf_counter()
 
-    def end_stage(self, stage_name: str, metadata: Optional[Dict[str, Any]] = None) -> float:
+    def end_stage(
+        self, stage_name: str, metadata: Optional[Dict[str, Any]] = None
+    ) -> float:
         """
         End timing a stage and record profile.
-        
+
         Args:
             stage_name: Name of the stage
             metadata: Optional metadata to record
-            
+
         Returns:
             Elapsed time in milliseconds
         """
@@ -135,25 +143,25 @@ class StageProfiler:
 
         return elapsed_time
 
-    def _record_profile(self, stage_name: str, execution_time: float, metadata: Dict[str, Any]) -> None:
+    def _record_profile(
+        self, stage_name: str, execution_time: float, metadata: Dict[str, Any]
+    ) -> None:
         """Record a profile point."""
         if stage_name not in self.profiles:
             self.profiles[stage_name] = []
 
         profile_point = ProfilePoint(
-            stage_name=stage_name,
-            execution_time=execution_time,
-            metadata=metadata
+            stage_name=stage_name, execution_time=execution_time, metadata=metadata
         )
         self.profiles[stage_name].append(profile_point)
 
     def get_stage_stats(self, stage_name: str) -> Dict[str, float]:
         """
         Get statistics for a stage.
-        
+
         Args:
             stage_name: Name of the stage
-            
+
         Returns:
             Dictionary with stats (avg, min, max, count, etc.)
         """
@@ -180,15 +188,17 @@ class StageProfiler:
 class BottleneckDetector:
     """
     Identifies bottlenecks in workflow stages.
-    
+
     Uses statistical analysis to detect stages that are significantly
     slower than baseline or show high variance in execution time.
     """
 
-    def __init__(self, threshold_percentile: float = 95.0, variance_threshold: float = 0.5):
+    def __init__(
+        self, threshold_percentile: float = 95.0, variance_threshold: float = 0.5
+    ):
         """
         Initialize detector.
-        
+
         Args:
             threshold_percentile: Percentile to use for bottleneck detection (0-100)
             variance_threshold: Coefficient of variation threshold for high variance (0-1)
@@ -196,13 +206,15 @@ class BottleneckDetector:
         self.threshold_percentile = threshold_percentile
         self.variance_threshold = variance_threshold
 
-    def detect_bottlenecks(self, profiles: Dict[str, List[ProfilePoint]]) -> List[BottleneckInfo]:
+    def detect_bottlenecks(
+        self, profiles: Dict[str, List[ProfilePoint]]
+    ) -> List[BottleneckInfo]:
         """
         Detect bottlenecks from profile data.
-        
+
         Args:
             profiles: Dictionary of stage profiles
-            
+
         Returns:
             List of detected bottlenecks
         """
@@ -283,7 +295,7 @@ class BottleneckDetector:
 class ProfileAnalyzer:
     """
     Analyzes patterns in profiling data.
-    
+
     Identifies trends, performance degradation, and optimization opportunities.
     """
 
@@ -291,13 +303,15 @@ class ProfileAnalyzer:
         """Initialize analyzer."""
         self.analysis_cache: Dict[str, Any] = {}
 
-    def analyze_performance_trends(self, profiles: Dict[str, List[ProfilePoint]]) -> Dict[str, Any]:
+    def analyze_performance_trends(
+        self, profiles: Dict[str, List[ProfilePoint]]
+    ) -> Dict[str, Any]:
         """
         Analyze performance trends.
-        
+
         Args:
             profiles: Dictionary of stage profiles
-            
+
         Returns:
             Dictionary with trend analysis
         """
@@ -324,8 +338,11 @@ class ProfileAnalyzer:
                 "trend": trend,
                 "first_half_avg": first_half_avg,
                 "second_half_avg": second_half_avg,
-                "change_percent": ((second_half_avg - first_half_avg) / first_half_avg * 100)
-                    if first_half_avg > 0 else 0,
+                "change_percent": (
+                    (second_half_avg - first_half_avg) / first_half_avg * 100
+                )
+                if first_half_avg > 0
+                else 0,
             }
 
         return trends
@@ -333,10 +350,10 @@ class ProfileAnalyzer:
     def calculate_overhead(self, profiles: Dict[str, List[ProfilePoint]]) -> float:
         """
         Calculate profiling overhead percentage.
-        
+
         Args:
             profiles: Dictionary of stage profiles
-            
+
         Returns:
             Overhead as percentage (0-100)
         """
@@ -354,11 +371,11 @@ class ProfileAnalyzer:
     ) -> Dict[str, Any]:
         """
         Identify optimization opportunities.
-        
+
         Args:
             profiles: Dictionary of stage profiles
             bottlenecks: List of detected bottlenecks
-            
+
         Returns:
             Dictionary with opportunities
         """
@@ -378,7 +395,9 @@ class ProfileAnalyzer:
                     if len(times) > 1:
                         cv = statistics.stdev(times) / statistics.mean(times)
                         if cv > 0.3:
-                            opportunities["high_variance_stages"].append(bottleneck.stage_name)
+                            opportunities["high_variance_stages"].append(
+                                bottleneck.stage_name
+                            )
 
         return opportunities
 
@@ -386,14 +405,14 @@ class ProfileAnalyzer:
 class RecommendationEngine:
     """
     Generates optimization recommendations based on profiling data.
-    
+
     Provides actionable suggestions for improving workflow performance.
     """
 
     def __init__(self, confidence_threshold: float = 0.6):
         """
         Initialize engine.
-        
+
         Args:
             confidence_threshold: Minimum confidence for recommendations (0-1)
         """
@@ -407,12 +426,12 @@ class RecommendationEngine:
     ) -> List[Recommendation]:
         """
         Generate recommendations.
-        
+
         Args:
             bottlenecks: List of detected bottlenecks
             trends: Trend analysis data
             opportunities: Identified opportunities
-            
+
         Returns:
             List of recommendations
         """
@@ -460,10 +479,12 @@ class RecommendationEngine:
         return [r for r in recommendations if r.confidence >= self.confidence_threshold]
 
 
-def create_profiler_pipeline() -> Tuple[StageProfiler, BottleneckDetector, ProfileAnalyzer, RecommendationEngine]:
+def create_profiler_pipeline() -> Tuple[
+    StageProfiler, BottleneckDetector, ProfileAnalyzer, RecommendationEngine
+]:
     """
     Factory function to create complete profiler pipeline.
-    
+
     Returns:
         Tuple of (profiler, detector, analyzer, engine)
     """

@@ -51,9 +51,9 @@ def router_with_mocks(mock_llama, mock_gpt4all):
 
 def test_router_initialization_defaults():
     """Test router initialization with default values."""
-    with patch("os.path.exists", return_value=False), patch(
-        "agent.llm_router.Llama", None
-    ), patch("agent.llm_router.GPT4All", None):
+    with patch("os.path.exists", return_value=False), patch("agent.llm_router.Llama", None), patch(
+        "agent.llm_router.GPT4All", None
+    ):
         router = HybridLLMRouter()
         assert router.prefer_fast is True
         assert router.session_memory is True
@@ -64,9 +64,9 @@ def test_router_initialization_defaults():
 
 def test_router_initialization_custom():
     """Test router initialization with custom values."""
-    with patch("os.path.exists", return_value=False), patch(
-        "agent.llm_router.Llama", None
-    ), patch("agent.llm_router.GPT4All", None):
+    with patch("os.path.exists", return_value=False), patch("agent.llm_router.Llama", None), patch(
+        "agent.llm_router.GPT4All", None
+    ):
         router = HybridLLMRouter(
             llama_model_path="custom/llama.bin",
             gpt4all_model_path="custom/gpt4all.bin",
@@ -116,7 +116,6 @@ def test_generate_fallback_to_available_model(mock_gpt4all):
     with patch("os.path.exists", return_value=True), patch(
         "agent.llm_router.Llama", None
     ):  # LLaMA not available
-
         router = HybridLLMRouter(prefer_fast=True)
         response = router.generate("Test prompt", prefer_fast=True)
 
@@ -127,10 +126,9 @@ def test_generate_fallback_to_available_model(mock_gpt4all):
 
 def test_generate_no_models_available():
     """Test generation when no models are available."""
-    with patch("os.path.exists", return_value=False), patch(
-        "agent.llm_router.Llama", None
-    ), patch("agent.llm_router.GPT4All", None):
-
+    with patch("os.path.exists", return_value=False), patch("agent.llm_router.Llama", None), patch(
+        "agent.llm_router.GPT4All", None
+    ):
         router = HybridLLMRouter()
         response = router.generate("Test prompt")
 
@@ -162,9 +160,7 @@ def test_generate_memory_limit(router_with_mocks, mock_llama):
     for i in range(5):
         router_with_mocks.generate(f"Question {i}")
     # Memory should only contain last 2 interactions
-    assert (
-        len(router_with_mocks.memory) <= 2 * 2
-    )  # 2 interactions * 2 entries each (Q&A)
+    assert len(router_with_mocks.memory) <= 2 * 2  # 2 interactions * 2 entries each (Q&A)
 
 
 def test_generate_without_memory(router_with_mocks, mock_llama):
@@ -195,9 +191,7 @@ def test_generate_with_max_tokens(router_with_mocks, mock_llama):
     assert response == "LLaMA response"  # Ensure this is the expected response
 
 
-def test_model_selection_based_on_prompt_length(
-    router_with_mocks, mock_llama, mock_gpt4all
-):
+def test_model_selection_based_on_prompt_length(router_with_mocks, mock_llama, mock_gpt4all):
     long_prompt = (
         "This is a very long prompt that contains many words and should trigger the use of a more capable model for better results. "
         * 10
@@ -260,10 +254,7 @@ def test_check_model_availability(router_with_mocks):
 def test_model_import_errors():
     """Test handling of import errors for model libraries."""
     # Test when Llama is None (import failed)
-    with patch("agent.llm_router.Llama", None), patch(
-        "agent.llm_router.GPT4All", None
-    ):
-
+    with patch("agent.llm_router.Llama", None), patch("agent.llm_router.GPT4All", None):
         router = HybridLLMRouter()
 
         # Should handle missing imports gracefully
@@ -302,4 +293,3 @@ class TestLLMRouterIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
-

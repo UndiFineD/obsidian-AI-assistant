@@ -33,9 +33,7 @@ def test_security_headers_present(endpoint):
     for header, expected_value in SECURITY_HEADERS:
         assert header in response.headers, f"Missing header: {header}"
         if expected_value:
-            assert (
-                response.headers[header] == expected_value
-            ), f"Header {header} value mismatch"
+            assert response.headers[header] == expected_value, f"Header {header} value mismatch"
 
 
 def test_security_headers_options():

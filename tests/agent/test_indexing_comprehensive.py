@@ -96,9 +96,7 @@ class TestVaultIndexerInit:
         """Test initialization with provided parameters."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         assert indexer.emb_mgr == mock_embeddings_manager
         assert indexer.cache_dir == Path(temp_cache_dir)
@@ -387,9 +385,7 @@ class TestWebContentFetching:
     @patch("agent.indexing.BeautifulSoup")
     @patch("agent.indexing.Document")
     @patch("agent.indexing.requests.get")
-    def test_fetch_web_content_success(
-        self, mock_requests, mock_document, mock_bs, temp_cache_dir
-    ):
+    def test_fetch_web_content_success(self, mock_requests, mock_document, mock_bs, temp_cache_dir):
         """Test successful web content fetching."""
         from agent.indexing import VaultIndexer
 
@@ -404,9 +400,7 @@ class TestWebContentFetching:
 
         # Mock readability Document
         mock_doc = Mock()
-        mock_doc.summary.return_value = (
-            "<h1>Article Title</h1><p>Article content goes here.</p>"
-        )
+        mock_doc.summary.return_value = "<h1>Article Title</h1><p>Article content goes here.</p>"
         mock_document.return_value = mock_doc
 
         # Mock BeautifulSoup
@@ -483,15 +477,11 @@ class TestWebContentFetching:
 class TestVaultIndexing:
     """Test vault indexing methods."""
 
-    def test_index_vault_mixed_files(
-        self, temp_vault_dir, mock_embeddings_manager, temp_cache_dir
-    ):
+    def test_index_vault_mixed_files(self, temp_vault_dir, mock_embeddings_manager, temp_cache_dir):
         """Test indexing vault with mixed file types."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         # Mock PDF processing - mock the _read_pdf method to return content for our fake PDFs
         with patch.object(indexer, "_read_pdf", return_value="Mocked PDF content"):
@@ -514,9 +504,7 @@ class TestVaultIndexing:
         """Test vault indexing with file processing errors."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         # Mock file operations to raise errors
         with patch("builtins.open", side_effect=PermissionError("Access denied")):
@@ -532,9 +520,7 @@ class TestVaultIndexing:
         """Test reindexing with clear_collection method available."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         # Ensure clear_collection is available
         mock_embeddings_manager.clear_collection = Mock()
@@ -557,9 +543,7 @@ class TestVaultIndexing:
         """Test reindexing with reset_db fallback when clear_collection unavailable."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         # Remove clear_collection, keep reset_db
         delattr(mock_embeddings_manager, "clear_collection")
@@ -572,15 +556,11 @@ class TestVaultIndexing:
 
         assert result["files"] > 0
 
-    def test_reindex_nonexistent_directory(
-        self, mock_embeddings_manager, temp_cache_dir
-    ):
+    def test_reindex_nonexistent_directory(self, mock_embeddings_manager, temp_cache_dir):
         """Test reindexing non-existent directory."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         result = indexer.reindex("nonexistent_directory")
 
@@ -598,9 +578,7 @@ class TestVaultIndexing:
         empty_dir = Path(temp_cache_dir) / "empty"
         empty_dir.mkdir()
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         result = indexer.reindex(str(empty_dir))
 
@@ -618,9 +596,7 @@ class TestVaultIndexing:
         (test_dir / "document.docx").write_bytes(b"fake word doc")
         (test_dir / "data.json").write_text('{"key": "value"}')
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         result = indexer.reindex(str(test_dir))
 
@@ -671,9 +647,7 @@ class TestPDFIndexing:
         """Test successful PDF indexing."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         pdf_path = str(Path(temp_cache_dir) / "document.pdf")
 
@@ -687,9 +661,7 @@ class TestPDFIndexing:
         """Test PDF indexing with empty extracted text."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         pdf_path = str(Path(temp_cache_dir) / "empty.pdf")
 
@@ -703,15 +675,11 @@ class TestPDFIndexing:
         """Test PDF indexing with extraction error."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         pdf_path = str(Path(temp_cache_dir) / "corrupt.pdf")
 
-        with patch.object(
-            indexer, "_read_pdf", side_effect=Exception("Extraction failed")
-        ):
+        with patch.object(indexer, "_read_pdf", side_effect=Exception("Extraction failed")):
             result = indexer.index_pdf(pdf_path)
 
         assert result == 0
@@ -734,12 +702,9 @@ class TestWebPageIndexing:
         mock_response = Mock()
         mock_response.text = "<html><body>Fetched web content</body></html>"
         mock_response.raise_for_status = Mock()
-        with patch(
-            "agent.indexing.requests.get", return_value=mock_response
-        ) as mock_get, patch("agent.indexing.Document") as mock_doc_class, patch(
-            "agent.indexing.BeautifulSoup"
-        ) as mock_soup_class:
-
+        with patch("agent.indexing.requests.get", return_value=mock_response) as mock_get, patch(
+            "agent.indexing.Document"
+        ) as mock_doc_class, patch("agent.indexing.BeautifulSoup") as mock_soup_class:
             # Setup Document mock
             mock_doc = Mock()
             mock_doc.summary.return_value = "<p>Fetched web content</p>"
@@ -802,12 +767,9 @@ class TestWebPageIndexing:
         mock_response.text = "<html><body>Fresh fetched content</body></html>"
         mock_response.raise_for_status = Mock()
 
-        with patch(
-            "agent.indexing.requests.get", return_value=mock_response
-        ) as mock_get, patch("agent.indexing.Document") as mock_doc_class, patch(
-            "agent.indexing.BeautifulSoup"
-        ) as mock_soup_class:
-
+        with patch("agent.indexing.requests.get", return_value=mock_response) as mock_get, patch(
+            "agent.indexing.Document"
+        ) as mock_doc_class, patch("agent.indexing.BeautifulSoup") as mock_soup_class:
             # Setup Document mock
             mock_doc = Mock()
             mock_doc.summary.return_value = "<p>Fresh fetched content</p>"
@@ -840,9 +802,7 @@ class TestWebPageIndexing:
         cache_path.write_text("content")
 
         # Mock cache read failure - should not fallback to web fetch when cache exists
-        with patch(
-            "pathlib.Path.read_text", side_effect=PermissionError("Cache read failed")
-        ):
+        with patch("pathlib.Path.read_text", side_effect=PermissionError("Cache read failed")):
             result = indexer.fetch_web_page(url, force=False)
 
         # Should return None when cache read fails (doesn't fallback to fetch when cache exists)
@@ -852,9 +812,7 @@ class TestWebPageIndexing:
         """Test successful web page indexing."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         url = "https://example.com/page"
 
@@ -864,15 +822,11 @@ class TestWebPageIndexing:
         assert result == 3  # Mock index_file returns 3
         mock_embeddings_manager.index_file.assert_called_once()
 
-    def test_index_web_page_fetch_failure(
-        self, temp_cache_dir, mock_embeddings_manager
-    ):
+    def test_index_web_page_fetch_failure(self, temp_cache_dir, mock_embeddings_manager):
         """Test web page indexing with fetch failure."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         url = "https://example.com/failed"
 
@@ -886,9 +840,7 @@ class TestWebPageIndexing:
         """Test successful web content indexing."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         url = "https://example.com/content"
 
@@ -904,9 +856,7 @@ class TestWebPageIndexing:
         """Test web content indexing using cached content."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         url = "https://example.com/cached-content"
         cached_content = "Cached web content"
@@ -922,15 +872,11 @@ class TestWebPageIndexing:
         mock_fetch.assert_not_called()  # Should use cached content
         mock_embeddings_manager.add_documents.assert_called_once()
 
-    def test_index_web_content_fetch_failure(
-        self, temp_cache_dir, mock_embeddings_manager
-    ):
+    def test_index_web_content_fetch_failure(self, temp_cache_dir, mock_embeddings_manager):
         """Test web content indexing with fetch failure."""
         from agent.indexing import VaultIndexer
 
-        indexer = VaultIndexer(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         url = "https://example.com/failed-content"
 
@@ -953,9 +899,7 @@ class TestIndexingService:
 
     @patch("agent.indexing.EmbeddingsManager")
     @patch("agent.indexing.get_settings")
-    def test_indexing_service_default_init(
-        self, mock_get_settings, mock_emb_class, mock_settings
-    ):
+    def test_indexing_service_default_init(self, mock_get_settings, mock_emb_class, mock_settings):
         """Test IndexingService default initialization."""
         mock_emb_instance = Mock()
         mock_emb_class.return_value = mock_emb_instance
@@ -969,24 +913,18 @@ class TestIndexingService:
         assert service.vault_indexer is not None
         mock_emb_class.assert_called_once()
 
-    def test_indexing_service_with_params(
-        self, mock_embeddings_manager, temp_cache_dir
-    ):
+    def test_indexing_service_with_params(self, mock_embeddings_manager, temp_cache_dir):
         """Test IndexingService with provided parameters."""
         from agent.indexing import IndexingService
 
-        service = IndexingService(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        service = IndexingService(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         assert service.emb_mgr == mock_embeddings_manager
         assert service.vault_indexer.emb_mgr == mock_embeddings_manager
 
     @patch("agent.embeddings.EmbeddingsManager")
     @patch("agent.indexing.get_settings")
-    def test_from_settings_success(
-        self, mock_get_settings, mock_emb_class, mock_settings
-    ):
+    def test_from_settings_success(self, mock_get_settings, mock_emb_class, mock_settings):
         """Test IndexingService.from_settings() success."""
         # Mock EmbeddingsManager with from_settings method
         mock_emb_instance = Mock()
@@ -1045,9 +983,7 @@ class TestIndexingService:
         """Test IndexingService method delegation to VaultIndexer."""
         from agent.indexing import IndexingService
 
-        service = IndexingService(
-            emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir
-        )
+        service = IndexingService(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
 
         # Mock VaultIndexer methods
         service.vault_indexer.index_file = Mock(return_value=1)
@@ -1075,4 +1011,3 @@ class TestIndexingService:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

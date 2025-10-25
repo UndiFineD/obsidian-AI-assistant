@@ -72,9 +72,7 @@ class TestVoiceTranscription:
     # Ensure async tests in this class run under pytest-asyncio
     pytestmark = pytest.mark.asyncio
 
-    def create_test_wav_file(
-        self, duration=1.0, sample_rate=16000, channels=1, sample_width=2
-    ):
+    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2):
         """Create a test WAV file with specified parameters."""
         import struct
 
@@ -197,9 +195,7 @@ class TestVoiceTranscription:
     @patch("agent.voice.wave.open")
     @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
-    async def test_voice_transcribe_empty_transcription(
-        self, mock_kaldi, mock_wave_open
-    ):
+    async def test_voice_transcribe_empty_transcription(self, mock_kaldi, mock_wave_open):
         """Test transcription that produces empty result."""
         mock_audio_data = b"fake_audio_data"
         mock_file = Mock(spec=UploadFile)
@@ -268,9 +264,7 @@ class TestVoiceTranscription:
     @patch("agent.voice.wave.open")
     @patch("agent.voice.vosk.KaldiRecognizer")
     @patch("builtins.open", mock_open())
-    async def test_voice_transcribe_json_parsing_error(
-        self, mock_kaldi, mock_wave_open
-    ):
+    async def test_voice_transcribe_json_parsing_error(self, mock_kaldi, mock_wave_open):
         """Test transcription with JSON parsing error in results."""
         mock_audio_data = b"fake_audio_data"
         mock_file = Mock(spec=UploadFile)
@@ -297,9 +291,7 @@ class TestVoiceTranscription:
 class TestVoiceEndpointIntegration:
     """Test voice endpoints without async markers."""
 
-    def create_test_wav_file(
-        self, duration=1.0, sample_rate=16000, channels=1, sample_width=2
-    ):
+    def create_test_wav_file(self, duration=1.0, sample_rate=16000, channels=1, sample_width=2):
         """Create a test WAV file with specified parameters."""
         import struct
 
@@ -325,9 +317,7 @@ class TestVoiceEndpointIntegration:
                 # Mock the recognizer
                 mock_recognizer = Mock()
                 mock_recognizer.AcceptWaveform.return_value = False
-                mock_recognizer.FinalResult.return_value = (
-                    '{"text": "test transcription"}'
-                )
+                mock_recognizer.FinalResult.return_value = '{"text": "test transcription"}'
                 mock_kaldi.return_value = mock_recognizer
                 # Upload the file
                 with open(test_wav, "rb") as f:
@@ -580,9 +570,7 @@ class TestVoiceModuleEdgeCases:
         """Test get_vosk_model raises RuntimeError for missing default path."""
         from unittest.mock import patch
 
-        with patch(
-            "agent.voice.MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"
-        ):
+        with patch("agent.voice.MODEL_PATH", "./models/vosk/vosk-model-small-en-us-0.15"):
             with patch(
                 "agent.voice._DEFAULT_MODEL_PATH",
                 "./models/vosk/vosk-model-small-en-us-0.15",
@@ -600,4 +588,3 @@ class TestVoiceModuleEdgeCases:
 
 if __name__ == "__main__":
     pytest.main([__file__])
-

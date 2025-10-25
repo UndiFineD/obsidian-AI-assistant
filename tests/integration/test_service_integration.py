@@ -3,6 +3,7 @@
 Integration tests for service initialization and configuration.
 Tests how different backend services work together.
 """
+
 import sys
 import tempfile
 from pathlib import Path
@@ -25,9 +26,7 @@ class TestServiceInitialization:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             yield c
 
     @pytest.fixture
@@ -89,7 +88,6 @@ class TestServiceInitialization:
         ) as MockEM, patch("agent.indexing.VaultIndexer") as MockVI, patch(
             "agent.caching.CacheManager"
         ) as MockCM:
-
             # Create mock instances
             mock_mm = Mock()
             mock_em = Mock()
@@ -145,9 +143,7 @@ class TestConfigurationIntegration:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             yield c
 
     # def test_settings_propagation_to_services(self):
@@ -229,9 +225,7 @@ class TestCrossServiceCommunication:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             yield c
 
     # @pytest.mark.asyncio
@@ -351,4 +345,3 @@ if __name__ == "__main__":
     print("====================================")
     # Run with pytest
     pytest.main([__file__, "-v", "--tb=short"])
-

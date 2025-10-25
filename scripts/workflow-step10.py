@@ -605,28 +605,40 @@ def invoke_step10(
 
                 # Validate commit message against Conventional Commits format
                 if CC_AVAILABLE:
-                    valid, error = cc_module.CommitValidator.validate_commit(commit_message)
+                    valid, error = cc_module.CommitValidator.validate_commit(
+                        commit_message
+                    )
                     if not valid:
-                        helpers.write_error(f"Commit message not in Conventional Commits format:")
+                        helpers.write_error(
+                            f"Commit message not in Conventional Commits format:"
+                        )
                         helpers.write_error(f"  {error}")
-                        
+
                         # Suggest fix
                         fixed = cc_module.CommitValidator.fix_commit(commit_message)
                         helpers.write_info(f"Suggested: {fixed}")
-                        
+
                         # Ask user
                         try:
-                            response = input("Use suggested fix? (y/n): ").strip().lower()
+                            response = (
+                                input("Use suggested fix? (y/n): ").strip().lower()
+                            )
                             if response == "y":
                                 commit_message = fixed
-                                helpers.write_success(f"Using fixed message: {commit_message}")
+                                helpers.write_success(
+                                    f"Using fixed message: {commit_message}"
+                                )
                             else:
-                                helpers.write_warning("Proceeding with original message (not recommended)")
+                                helpers.write_warning(
+                                    "Proceeding with original message (not recommended)"
+                                )
                         except KeyboardInterrupt:
                             helpers.write_error("Commit aborted by user")
                             return False
                     else:
-                        helpers.write_success(f"Commit message valid: {commit_message[:60]}...")
+                        helpers.write_success(
+                            f"Commit message valid: {commit_message[:60]}..."
+                        )
 
                 result = subprocess.run(
                     ["git", "commit", "-m", commit_message],

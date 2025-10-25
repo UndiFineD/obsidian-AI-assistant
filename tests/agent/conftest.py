@@ -3,6 +3,7 @@
 Global test configuration and fixtures for backend tests.
 This ensures proper mocking of ML libraries before any imports happen.
 """
+
 import sys
 from unittest.mock import MagicMock
 
@@ -38,9 +39,7 @@ sys.modules["sentence_transformers"].SentenceTransformer = MagicMock(
 )
 
 persistent_client_mock = MagicMock()
-sys.modules["chromadb"].PersistentClient = MagicMock(
-    return_value=persistent_client_mock
-)
+sys.modules["chromadb"].PersistentClient = MagicMock(return_value=persistent_client_mock)
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -77,7 +76,6 @@ def mock_all_services():
     ), patch("agent.agent.embeddings_manager", mock_embeddings_manager), patch(
         "agent.agent.vault_indexer", mock_vault_indexer
     ):
-
         yield {
             "model": mock_model_manager,
             "cache": mock_cache_manager,

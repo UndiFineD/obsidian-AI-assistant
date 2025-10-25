@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Remove malformed pass statements that break indentation."""
+
 import sys
 
 

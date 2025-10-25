@@ -1,0 +1,42 @@
+{
+  "workflow_id": "test-helpers-integration",
+  "lane": "standard",
+  "status": "FAILED",
+  "started_at": "2025-10-25T08:38:30.768019",
+  "updated_at": "2025-10-25T08:39:00.680888",
+  "stages": [
+    {
+      "stage_num": 0,
+      "name": "Create TODOs",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T08:38:30.768069",
+      "completed_at": "2025-10-25T08:38:35.864838",
+      "duration_seconds": 5.096769,
+      "metrics": {}
+    },
+    {
+      "stage_num": 1,
+      "name": "Version Bump",
+      "status": "FAILED",
+      "started_at": "2025-10-25T08:38:59.661926",
+      "completed_at": "2025-10-25T08:39:00.680888",
+      "duration_seconds": 1.018962,
+      "metrics": {
+        "reason": "Pre-step hooks failed"
+      }
+    }
+  ],
+  "timing": {
+    "total_elapsed_seconds": 29.912918,
+    "estimated_remaining_seconds": 164.521049,
+    "sla_target_seconds": 900,
+    "within_sla": true
+  },
+  "metrics": {
+    "files_modified": 0,
+    "files_created": 0,
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "coverage_percent": 0
+  }
+}

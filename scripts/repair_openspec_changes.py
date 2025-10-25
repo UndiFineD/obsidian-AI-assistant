@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Repair and validate OpenSpec change directories."""
+
 import re
 import shutil
 import sys

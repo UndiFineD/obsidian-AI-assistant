@@ -27,6 +27,7 @@ from dataclasses import dataclass, field, asdict
 @dataclass
 class StageTimingData:
     """Timing data for a single stage execution"""
+
     stage_id: int
     stage_name: str
     start_time: datetime
@@ -55,6 +56,7 @@ class StageTimingData:
 @dataclass
 class WorkflowTimingProfile:
     """Timing profile for a complete workflow execution"""
+
     workflow_id: str
     lane: str
     start_time: datetime = field(default_factory=datetime.now)
@@ -133,7 +135,10 @@ class PerformanceEstimator:
         for profile in self.history:
             if profile.get("lane") == lane:
                 for stage in profile.get("stages", []):
-                    if stage.get("stage_id") == stage_id and stage.get("status") == "completed":
+                    if (
+                        stage.get("stage_id") == stage_id
+                        and stage.get("status") == "completed"
+                    ):
                         times.append(stage.get("duration_seconds", 0))
 
         return sum(times) / len(times) if times else None
@@ -153,7 +158,9 @@ class PerformanceEstimator:
             Dict with estimate, confidence, and breakdown
         """
         remaining_stages = current_profile.get("stages", [])
-        remaining_stages = [s for s in remaining_stages if s.get("stage_id", -1) > completed_stage_id]
+        remaining_stages = [
+            s for s in remaining_stages if s.get("stage_id", -1) > completed_stage_id
+        ]
 
         estimated_seconds = 0
         stage_estimates = {}
@@ -171,7 +178,9 @@ class PerformanceEstimator:
 
         return {
             "estimated_seconds": estimated_seconds,
-            "confidence": len([s for s in stage_estimates if s]) / len(stage_estimates) if stage_estimates else 0,
+            "confidence": len([s for s in stage_estimates if s]) / len(stage_estimates)
+            if stage_estimates
+            else 0,
             "stage_estimates": stage_estimates,
         }
 
@@ -200,11 +209,13 @@ class PerformanceEstimator:
         bottlenecks = []
         for stage_id, times in stage_times.items():
             avg_time = sum(times) / len(times)
-            bottlenecks.append({
-                "stage_id": stage_id,
-                "average_duration": avg_time,
-                "executions": len(times),
-            })
+            bottlenecks.append(
+                {
+                    "stage_id": stage_id,
+                    "average_duration": avg_time,
+                    "executions": len(times),
+                }
+            )
 
         return sorted(bottlenecks, key=lambda x: x["average_duration"], reverse=True)
 
@@ -279,16 +290,18 @@ class TimingTracker:
             "workflow_id": self.profile.workflow_id,
             "lane": self.profile.lane,
             "total_duration": self.profile.total_duration_seconds,
-            "stages": []
+            "stages": [],
         }
 
         for stage in self.profile.stages:
-            summary["stages"].append({
-                "id": stage.stage_id,
-                "name": stage.stage_name,
-                "duration": stage.duration_seconds,
-                "status": stage.status,
-            })
+            summary["stages"].append(
+                {
+                    "id": stage.stage_id,
+                    "name": stage.stage_name,
+                    "duration": stage.duration_seconds,
+                    "status": stage.status,
+                }
+            )
 
         return summary
 

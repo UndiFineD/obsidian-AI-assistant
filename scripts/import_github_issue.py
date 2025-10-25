@@ -219,33 +219,32 @@ def create_change_directory(
 
     if change_dir.exists() and not force:
         raise ValueError(
-            f"Change directory already exists: {change_dir}\n"
-            f"Use --force to overwrite."
+            f"Change directory already exists: {change_dir}\nUse --force to overwrite."
         )
 
     change_dir.mkdir(parents=True, exist_ok=True)
 
     # Create proposal.md
-    proposal_content = f"""# Proposal: {issue_data['title']}
+    proposal_content = f"""# Proposal: {issue_data["title"]}
 
 ## Problem Statement
 
-{issue_data['body'] or 'No description provided.'}
+{issue_data["body"] or "No description provided."}
 
 ## Rationale
 
-This change addresses GitHub issue #{issue_data['number']} in {issue_data['html_url'].rsplit('/', 3)[0]}.
+This change addresses GitHub issue #{issue_data["number"]} in {issue_data["html_url"].rsplit("/", 3)[0]}.
 
 ## Labels
 
-{', '.join(label['name'] for label in issue_data.get('labels', [])) or 'None'}
+{", ".join(label["name"] for label in issue_data.get("labels", [])) or "None"}
 
 ## Links
 
-- **GitHub Issue**: {issue_data['html_url']}
-- **Author**: [{issue_data['user']['login']}]({issue_data['user']['html_url']})
-- **Created**: {issue_data['created_at'][:10]}
-- **State**: {issue_data['state']}
+- **GitHub Issue**: {issue_data["html_url"]}
+- **Author**: [{issue_data["user"]["login"]}]({issue_data["user"]["html_url"]})
+- **Created**: {issue_data["created_at"][:10]}
+- **State**: {issue_data["state"]}
 
 ## Impact Analysis
 
@@ -255,7 +254,7 @@ _To be completed during specification phase._
     (change_dir / "proposal.md").write_text(proposal_content, encoding="utf-8")
 
     # Create spec.md
-    spec_content = f"""# Specification: {issue_data['title']}
+    spec_content = f"""# Specification: {issue_data["title"]}
 
 ## Acceptance Criteria
 
@@ -279,13 +278,13 @@ _Define performance targets and optimization strategies._
 
 ## Related GitHub Issue
 
-**Issue**: {issue_data['html_url']}
+**Issue**: {issue_data["html_url"]}
 """
 
     (change_dir / "spec.md").write_text(spec_content, encoding="utf-8")
 
     # Create tasks.md
-    tasks_content = f"""# Tasks: {issue_data['title']}
+    tasks_content = f"""# Tasks: {issue_data["title"]}
 
 ## Implementation Tasks
 
@@ -307,13 +306,13 @@ _Define performance targets and optimization strategies._
 
 ## Related GitHub Issue
 
-**Issue**: {issue_data['html_url']}
+**Issue**: {issue_data["html_url"]}
 """
 
     (change_dir / "tasks.md").write_text(tasks_content, encoding="utf-8")
 
     # Create test_plan.md
-    test_plan_content = f"""# Test Plan: {issue_data['title']}
+    test_plan_content = f"""# Test Plan: {issue_data["title"]}
 
 ## Unit Tests
 
@@ -333,7 +332,7 @@ _Define performance targets and optimization strategies._
 
 ## Related GitHub Issue
 
-**Issue**: {issue_data['html_url']}
+**Issue**: {issue_data["html_url"]}
 """
 
     (change_dir / "test_plan.md").write_text(test_plan_content, encoding="utf-8")
@@ -366,13 +365,13 @@ _Define performance targets and optimization strategies._
     else:
         print(f"Warning: Template not found at {template_path}")
         # Create basic todo.md
-        basic_todo = f"""# TODO: {issue_data['title']}
+        basic_todo = f"""# TODO: {issue_data["title"]}
 
 ## Change Information
 - **Change ID**: `{change_id}`
-- **Created**: {datetime.now().strftime('%Y-%m-%d')}
+- **Created**: {datetime.now().strftime("%Y-%m-%d")}
 - **Owner**: {owner}
-- **GitHub Issue**: {issue_data['html_url']}
+- **GitHub Issue**: {issue_data["html_url"]}
 
 ## Workflow Progress
 

@@ -3,6 +3,7 @@
 Integration test runner for the Obsidian AI Agent.
 Runs all integration tests in proper order and provides comprehensive reporting.
 """
+
 import sys
 import time
 from pathlib import Path

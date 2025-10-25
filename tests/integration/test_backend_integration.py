@@ -3,6 +3,7 @@
 Simplified integration tests that validate backend functionality
 without complex mocking that conflicts with real service initialization.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -43,9 +44,7 @@ class TestBackendHealthAndBasics:
 
         assert app is not None
         # Accept both standard and enterprise edition titles
-        assert (
-            "Obsidian AI Agent" in app.title
-        )  # Accepts both standard and enterprise edition
+        assert "Obsidian AI Agent" in app.title  # Accepts both standard and enterprise edition
         print("✓ FastAPI app created successfully")
 
     @patch.dict(os.environ, {"HUGGINGFACE_TOKEN": "test_token"})
@@ -126,7 +125,6 @@ class TestMockedWorkflowIntegration:
         ) as mock_em, patch("agent.agent.vault_indexer") as mock_vi, patch(
             "agent.agent.cache_manager"
         ) as mock_cm:
-
             # Configure realistic mock responses using standardized patterns
             mock_mm.generate.return_value = "AI response from model"
             mock_mm.is_ready.return_value = True
@@ -191,9 +189,7 @@ class TestMockedWorkflowIntegration:
             print("✓ Search integration completed")
 
             # Verify embeddings manager was called
-            mock_services["emb_manager"].search.assert_called_once_with(
-                "test query", top_k=3
-            )
+            mock_services["emb_manager"].search.assert_called_once_with("test query", top_k=3)
 
         except Exception as e:
             print(f"Search integration test: {e}")
@@ -211,9 +207,7 @@ class TestMockedWorkflowIntegration:
             print("✓ Vault indexing integration completed")
 
             # Verify vault indexer was called
-            mock_services["vault_indexer"].index_vault.assert_called_once_with(
-                "./test_vault"
-            )
+            mock_services["vault_indexer"].index_vault.assert_called_once_with("./test_vault")
 
         except Exception as e:
             print(f"Vault indexing integration test: {e}")
@@ -340,4 +334,3 @@ if __name__ == "__main__":
     import pytest
 
     pytest.main([__file__, "-v", "--tb=short"])
-

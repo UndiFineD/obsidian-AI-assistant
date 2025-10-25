@@ -181,9 +181,7 @@ def test_api_voice_transcribe_vs_legacy_endpoint(client):
 def test_api_voice_transcribe_missing_fields(client):
     """Test voice transcription with missing required fields"""
     # Missing audio_data
-    response = client.post(
-        "/api/voice_transcribe", json={"format": "wav", "language": "en"}
-    )
+    response = client.post("/api/voice_transcribe", json={"format": "wav", "language": "en"})
     assert response.status_code == 422  # Validation error
 
     # Missing format

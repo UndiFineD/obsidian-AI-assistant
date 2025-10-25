@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generate OpenSpec change directories for documentation governance."""
+
 import sys
 from pathlib import Path
 

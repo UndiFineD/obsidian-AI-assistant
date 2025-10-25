@@ -244,9 +244,7 @@ class TestSecurityIntegration:
             decrypted = decrypt_data(encrypted)
 
             assert decrypted == pattern
-            assert pattern not in str(
-                encrypted
-            )  # Sensitive data not visible in encrypted form
+            assert pattern not in str(encrypted)  # Sensitive data not visible in encrypted form
 
     def test_security_performance_large_data(self):
         """Test encryption/decryption performance with larger datasets."""
@@ -284,4 +282,3 @@ class TestSecurityIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
-

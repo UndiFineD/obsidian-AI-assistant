@@ -91,7 +91,7 @@ def process_file(
         diff_count = 0
         for i, (orig, fixed_line) in enumerate(zip(lines, fixed)):
             if orig != fixed_line:
-                print(f"Line {i+1}:\n- {orig.rstrip()}\n+ {fixed_line.rstrip()}\n")
+                print(f"Line {i + 1}:\n- {orig.rstrip()}\n+ {fixed_line.rstrip()}\n")
                 diff_count += 1
         if diff_count == 0:
             print("No indentation changes needed.")

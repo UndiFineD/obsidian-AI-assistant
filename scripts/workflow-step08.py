@@ -172,18 +172,20 @@ def _run_test_script(script_path: Path, dry_run: bool = False) -> tuple[bool, st
         return False, f"Error running tests: {e}"
 
 
-def _run_quality_gates(lane: str = "standard", dry_run: bool = False) -> tuple[bool, Dict]:
+def _run_quality_gates(
+    lane: str = "standard", dry_run: bool = False
+) -> tuple[bool, Dict]:
     """Run quality gates for the specified lane and return (success, results)."""
     if dry_run:
         return True, {"overall": "PASS", "lane": lane, "dry_run": True}
-    
+
     try:
         gates = quality_gates_module.QualityGates(lane=lane)
         success = gates.run_all()
-        
+
         # Save metrics
         gates.save_metrics(Path.cwd() / f"quality_metrics_{lane}.json")
-        
+
         return success, gates.results
     except Exception as e:
         helpers.write_error(f"Error running quality gates: {e}")
@@ -193,33 +195,47 @@ def _run_quality_gates(lane: str = "standard", dry_run: bool = False) -> tuple[b
 def _show_remediation_steps(gates_results: Dict) -> None:
     """Display remediation steps for failed quality gates."""
     helpers.write_info("\n📋 Remediation Steps for Quality Gates Failures:\n")
-    
+
     # Check each tool
     for tool, result in gates_results.items():
         if isinstance(result, dict) and result.get("status") == "FAIL":
             if tool == "ruff":
-                helpers.write_info(f"🔧 Ruff Linting Issues ({result.get('errors', 0)} errors):")
+                helpers.write_info(
+                    f"🔧 Ruff Linting Issues ({result.get('errors', 0)} errors):"
+                )
                 helpers.write_info("  Run: ruff check agent/ scripts/ --fix")
                 helpers.write_info("  Review: https://docs.astral.sh/ruff/rules/\n")
             elif tool == "mypy":
-                helpers.write_info(f"🔧 Type Checking Issues ({result.get('errors', 0)} errors):")
+                helpers.write_info(
+                    f"🔧 Type Checking Issues ({result.get('errors', 0)} errors):"
+                )
                 helpers.write_info("  Run: mypy agent/ --ignore-missing-imports")
                 helpers.write_info("  Add type hints to files with errors\n")
             elif tool == "pytest":
                 coverage = result.get("coverage", 0)
                 threshold = result.get("coverage_threshold", 0.70)
-                helpers.write_info(f"🔧 Test Coverage Issues ({coverage*100:.0f}% vs {threshold*100:.0f}% required):")
-                helpers.write_info("  Run: pytest tests/ -v --cov=agent --cov-report=html")
+                helpers.write_info(
+                    f"🔧 Test Coverage Issues ({coverage * 100:.0f}% vs {threshold * 100:.0f}% required):"
+                )
+                helpers.write_info(
+                    "  Run: pytest tests/ -v --cov=agent --cov-report=html"
+                )
                 helpers.write_info("  Add tests to improve coverage\n")
             elif tool == "bandit":
-                helpers.write_info(f"🔧 Security Issues ({result.get('high_severity', 0)} high-severity):")
+                helpers.write_info(
+                    f"🔧 Security Issues ({result.get('high_severity', 0)} high-severity):"
+                )
                 helpers.write_info("  Run: bandit -r agent/ -f txt")
                 helpers.write_info("  Review security best practices\n")
-    
-    helpers.write_info("💡 Tip: Run 'ruff check --fix' first to auto-fix linting issues")
+
+    helpers.write_info(
+        "💡 Tip: Run 'ruff check --fix' first to auto-fix linting issues"
+    )
 
 
-def invoke_step8(change_path: Path, lane: str = "standard", dry_run: bool = False, **_: dict) -> bool:
+def invoke_step8(
+    change_path: Path, lane: str = "standard", dry_run: bool = False, **_: dict
+) -> bool:
     helpers.write_step(8, "Testing & Quality Gates - Verify Implementation")
     results = change_path / "test_results.md"
     test_script = change_path / "test.py"
@@ -273,7 +289,9 @@ def invoke_step8(change_path: Path, lane: str = "standard", dry_run: bool = Fals
     gates_results = {}
 
     if progress:
-        with progress.spinner(f"Running quality gates ({lane} lane)", "Quality gates completed"):
+        with progress.spinner(
+            f"Running quality gates ({lane} lane)", "Quality gates completed"
+        ):
             gates_success, gates_results = _run_quality_gates(lane, dry_run)
     else:
         gates_success, gates_results = _run_quality_gates(lane, dry_run)
@@ -292,9 +310,23 @@ def invoke_step8(change_path: Path, lane: str = "standard", dry_run: bool = Fals
     if not dry_run:
         if progress:
             with progress.spinner("Recording results", "Results recorded"):
-                _record_test_results(results, change_results, test_success, test_output, gates_success, gates_results)
+                _record_test_results(
+                    results,
+                    change_results,
+                    test_success,
+                    test_output,
+                    gates_success,
+                    gates_results,
+                )
         else:
-            _record_test_results(results, change_results, test_success, test_output, gates_success, gates_results)
+            _record_test_results(
+                results,
+                change_results,
+                test_success,
+                test_output,
+                gates_success,
+                gates_results,
+            )
             helpers.write_success(f"Updated: {results}")
     else:
         helpers.write_info(f"[DRY RUN] Would record test results: {results}")
@@ -317,7 +349,7 @@ def _record_test_results(
     """Record comprehensive test results and quality gates to test_results.md."""
     if gates_results is None:
         gates_results = {}
-    
+
     existing = results_file.read_text(encoding="utf-8") if results_file.exists() else ""
 
     # Determine overall status
@@ -367,7 +399,7 @@ def _record_test_results(
         lane = gates_results.get("lane", "standard")
         block += f"- **Status**: {gates_status}\n"
         block += f"- **Lane**: {lane}\n"
-        
+
         if gates_results.get("ruff"):
             block += f"- **Ruff**: {gates_results['ruff'].get('status', 'SKIP')} "
             block += f"({gates_results['ruff'].get('errors', 0)} errors)\n"
@@ -375,17 +407,23 @@ def _record_test_results(
             block += f"- **Mypy**: {gates_results['mypy'].get('status', 'SKIP')} "
             block += f"({gates_results['mypy'].get('errors', 0)} errors)\n"
         if gates_results.get("pytest"):
-            coverage = gates_results['pytest'].get('coverage', 0)
+            coverage = gates_results["pytest"].get("coverage", 0)
             block += f"- **Pytest**: {gates_results['pytest'].get('status', 'SKIP')} "
-            block += f"({int(coverage*100)}% coverage)\n"
+            block += f"({int(coverage * 100)}% coverage)\n"
         if gates_results.get("bandit"):
             block += f"- **Bandit**: {gates_results['bandit'].get('status', 'SKIP')} "
-            block += f"({gates_results['bandit'].get('high_severity', 0)} high-severity)\n"
+            block += (
+                f"({gates_results['bandit'].get('high_severity', 0)} high-severity)\n"
+            )
 
     block += "\n### Overall Result\n"
     overall = (
         "✅ PASS"
-        if (change_results["implementation_successful"] and test_success and gates_success)
+        if (
+            change_results["implementation_successful"]
+            and test_success
+            and gates_success
+        )
         else "⚠️ VERIFY"
     )
     block += f"- {overall}\n"

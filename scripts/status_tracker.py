@@ -51,6 +51,7 @@ from enum import Enum
 
 class StageStatus(Enum):
     """Stage execution status"""
+
     PENDING = "PENDING"
     RUNNING = "RUNNING"
     COMPLETED = "COMPLETED"
@@ -61,6 +62,7 @@ class StageStatus(Enum):
 @dataclass
 class StageInfo:
     """Information about a single workflow stage"""
+
     stage_num: int
     name: str
     status: str = StageStatus.PENDING.value
@@ -90,12 +92,17 @@ class StatusTracker:
 
     # SLA targets per lane (in seconds)
     SLA_TARGETS = {
-        "docs": 300,      # 5 minutes
+        "docs": 300,  # 5 minutes
         "standard": 900,  # 15 minutes
-        "heavy": 1200,    # 20 minutes
+        "heavy": 1200,  # 20 minutes
     }
 
-    def __init__(self, workflow_id: str, lane: str = "standard", status_file: Optional[Path] = None):
+    def __init__(
+        self,
+        workflow_id: str,
+        lane: str = "standard",
+        status_file: Optional[Path] = None,
+    ):
         """
         Initialize status tracker.
 
@@ -183,7 +190,9 @@ class StatusTracker:
         # Find stage entry
         for stage in self.status["stages"]:
             if stage["stage_num"] == stage_num:
-                stage["status"] = StageStatus.COMPLETED.value if success else StageStatus.FAILED.value
+                stage["status"] = (
+                    StageStatus.COMPLETED.value if success else StageStatus.FAILED.value
+                )
                 stage["completed_at"] = now
 
                 # Calculate duration
@@ -203,7 +212,9 @@ class StatusTracker:
         self._update_timing()
         self._save_status()
 
-    def skip_stage(self, stage_num: int, stage_name: str, reason: str = "Not applicable for lane") -> None:
+    def skip_stage(
+        self, stage_num: int, stage_name: str, reason: str = "Not applicable for lane"
+    ) -> None:
         """Record stage skip"""
         now = datetime.now().isoformat()
 
@@ -253,14 +264,22 @@ class StatusTracker:
 
         # Estimate remaining time (simple linear extrapolation)
         completed_stages = sum(
-            1 for s in self.status["stages"]
-            if s["status"] in (StageStatus.COMPLETED.value, StageStatus.FAILED.value, StageStatus.SKIPPED.value)
+            1
+            for s in self.status["stages"]
+            if s["status"]
+            in (
+                StageStatus.COMPLETED.value,
+                StageStatus.FAILED.value,
+                StageStatus.SKIPPED.value,
+            )
         )
         total_stages = 13  # Total workflow stages
         if completed_stages > 0:
             avg_time_per_stage = elapsed / completed_stages
             remaining_stages = total_stages - completed_stages
-            self.status["timing"]["estimated_remaining_seconds"] = avg_time_per_stage * remaining_stages
+            self.status["timing"]["estimated_remaining_seconds"] = (
+                avg_time_per_stage * remaining_stages
+            )
         else:
             self.status["timing"]["estimated_remaining_seconds"] = sla_target - elapsed
 
@@ -294,7 +313,8 @@ class StatusTracker:
     def get_summary(self) -> Dict[str, Any]:
         """Get human-readable summary"""
         stages_completed = sum(
-            1 for s in self.status["stages"]
+            1
+            for s in self.status["stages"]
             if s["status"] in (StageStatus.COMPLETED.value, StageStatus.FAILED.value)
         )
         stages_total = len(self.status["stages"])
@@ -311,7 +331,9 @@ class StatusTracker:
             "elapsed_seconds": elapsed,
             "elapsed_formatted": self._format_duration(elapsed),
             "remaining_formatted": self._format_duration(remaining),
-            "sla_status": "✅ On SLA" if self.status["timing"]["within_sla"] else "⚠️ Behind SLA",
+            "sla_status": "✅ On SLA"
+            if self.status["timing"]["within_sla"]
+            else "⚠️ Behind SLA",
             "sla_target": self._format_duration(sla),
         }
 
@@ -360,10 +382,12 @@ if __name__ == "__main__":
     tracker.start_stage(3, "Some Task")
     tracker.complete_stage(3, success=True)
 
-    tracker.update_metrics({
-        "files_modified": 3,
-        "files_created": 2,
-    })
+    tracker.update_metrics(
+        {
+            "files_modified": 3,
+            "files_created": 2,
+        }
+    )
 
     # Print summary
     summary = tracker.get_summary()

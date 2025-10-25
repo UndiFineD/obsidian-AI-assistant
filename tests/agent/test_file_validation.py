@@ -132,9 +132,7 @@ class TestFileValidator:
     def test_check_dangerous_pdf_content(self):
         """Test dangerous PDF content detection"""
         dangerous_pdf = b'%PDF-1.4\n1 0 obj\n<</JavaScript (alert("XSS"))>>'
-        with pytest.raises(
-            FileValidationError, match="PDF contains potentially dangerous content"
-        ):
+        with pytest.raises(FileValidationError, match="PDF contains potentially dangerous content"):
             self.validator.check_dangerous_content(dangerous_pdf, "malicious.pdf")
 
     def test_check_null_bytes(self):
@@ -323,9 +321,7 @@ class TestSecurityScenarios:
                     assert sanitized == "file_CON.pdf"
                 else:
                     assert sanitized != filename
-                    assert not any(
-                        char in sanitized for char in ["|", ";", "$", "\x00"]
-                    )
+                    assert not any(char in sanitized for char in ["|", ";", "$", "\x00"])
             except FileValidationError:
                 # This is also acceptable - the attack was detected
                 pass
@@ -343,9 +339,7 @@ class TestSecurityScenarios:
         """Test detection of executables embedded in allowed file types"""
         # PDF with embedded JavaScript
         malicious_pdf = b'%PDF-1.4\n1 0 obj\n<</JavaScript (app.alert("XSS"))>>\nendobj'
-        with pytest.raises(
-            FileValidationError, match="PDF contains potentially dangerous content"
-        ):
+        with pytest.raises(FileValidationError, match="PDF contains potentially dangerous content"):
             self.validator.validate_file(malicious_pdf, "malicious.pdf")
 
     def test_unicode_filename_attacks(self):
@@ -467,4 +461,3 @@ class TestPerformanceAndLimits:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

@@ -4,6 +4,7 @@
 Integration tests for FastAPI endpoints and HTTP workflows.
 Tests the complete HTTP request/response cycle.
 """
+
 import asyncio
 from unittest.mock import Mock, patch
 
@@ -23,9 +24,7 @@ async def client():
     # Use HTTPX AsyncClient with transport for FastAPI
     transport = httpx.ASGITransport(app=app)
     csrf_token = (
-        app.extra.get("csrf_token")
-        if hasattr(app, "extra") and "csrf_token" in app.extra
-        else None
+        app.extra.get("csrf_token") if hasattr(app, "extra") and "csrf_token" in app.extra else None
     )
     if not csrf_token:
         # Generate token using backend CSRF logic
@@ -147,9 +146,7 @@ class TestAPIIntegration:
         print("✓ Ask endpoint integration test passed (expected 500 error)")
 
     @pytest.mark.asyncio
-    async def test_reindex_endpoint_integration(
-        self, client, agent_available, mock_all_services
-    ):
+    async def test_reindex_endpoint_integration(self, client, agent_available, mock_all_services):
         """Test reindex endpoint integration."""
         request_data = {"vault_path": "./test_vault"}
         response = await client.post("/api/reindex", json=request_data)
@@ -163,9 +160,7 @@ class TestAPIIntegration:
             # Accept real implementation behavior
             assert data is not None
         # Verify vault indexer was called
-        mock_all_services["vault_indexer"].reindex.assert_called_once_with(
-            "./test_vault"
-        )
+        mock_all_services["vault_indexer"].reindex.assert_called_once_with("./test_vault")
         print("✓ Reindex endpoint integration test passed")
 
     @pytest.mark.asyncio
@@ -320,10 +315,7 @@ class TestAPIErrorHandling:
             ], f"Expected 200 or 500, but got {response.status_code}"
             data = response.json()
             if response.status_code == 500:
-                assert (
-                    "Model unavailable or failed to generate an answer."
-                    in data["error"]
-                )
+                assert "Model unavailable or failed to generate an answer." in data["error"]
             else:
                 # Real implementation might return success with fallback response
                 assert data is not None
@@ -349,8 +341,7 @@ class TestAPIErrorHandling:
                 else data["error"].get("message", "")
             )
             assert (
-                "Settings file not found" in error_str
-                or "Configuration reload failed" in error_str
+                "Settings file not found" in error_str or "Configuration reload failed" in error_str
             )
 
             print("✓ Config endpoint error handling test passed")
@@ -388,9 +379,7 @@ class TestAPIPerformance:
     @pytest.mark.asyncio
     async def test_large_request_handling(self, client, mock_all_services):
         """Test handling of large requests."""
-        mock_all_services["model_manager"].generate.return_value = (
-            "Response to large question"
-        )
+        mock_all_services["model_manager"].generate.return_value = "Response to large question"
         mock_all_services["emb_manager"].search.return_value = []
 
         # Create large request

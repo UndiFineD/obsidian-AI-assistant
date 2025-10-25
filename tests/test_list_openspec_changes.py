@@ -202,9 +202,7 @@ class TestGenerateSummaryStats:
 
     def test_summary_no_dates(self):
         """Test summary with no dated changes."""
-        changes = [
-            {"id": "feature1", "has_date": False, "date": None, "age_days": None}
-        ]
+        changes = [{"id": "feature1", "has_date": False, "date": None, "age_days": None}]
 
         stats = generate_summary_stats(changes)
 
@@ -385,15 +383,11 @@ class TestIntegration:
         # Sort by age
         aged_changes = [c for c in changes if c["age_days"] is not None]
         if len(aged_changes) > 1:
-            sorted_changes = sorted(
-                aged_changes, key=lambda c: c["age_days"], reverse=True
-            )
+            sorted_changes = sorted(aged_changes, key=lambda c: c["age_days"], reverse=True)
 
             # Verify sorting
             for i in range(1, len(sorted_changes)):
-                assert (
-                    sorted_changes[i - 1]["age_days"] >= sorted_changes[i]["age_days"]
-                )
+                assert sorted_changes[i - 1]["age_days"] >= sorted_changes[i]["age_days"]
 
 
 if __name__ == "__main__":

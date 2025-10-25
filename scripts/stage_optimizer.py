@@ -33,6 +33,7 @@ from typing import Any, Dict, List, Optional, Tuple
 # Try to import scikit-learn, but don't fail if unavailable
 try:
     from sklearn.ensemble import RandomForestClassifier  # noqa: F401
+
     SKLEARN_AVAILABLE = True
 except ImportError:
     SKLEARN_AVAILABLE = False
@@ -44,6 +45,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # Data Models
 # ============================================================================
+
 
 @dataclass
 class WorkflowExecution:
@@ -129,6 +131,7 @@ class OptimizationStats:
 # History Collection
 # ============================================================================
 
+
 class WorkflowHistoryCollector:
     """Collects and manages workflow execution history."""
 
@@ -202,14 +205,16 @@ class WorkflowHistoryCollector:
         change_types: Dict[str, int] = {}
 
         for execution in self.history:
-            change_types[execution.change_type] = change_types.get(
-                execution.change_type, 0
-            ) + 1
+            change_types[execution.change_type] = (
+                change_types.get(execution.change_type, 0) + 1
+            )
 
         return {
             "total": len(self.history),
             "success_rate": successful / len(self.history) if self.history else 0.0,
-            "average_duration": total_duration / len(self.history) if self.history else 0.0,
+            "average_duration": total_duration / len(self.history)
+            if self.history
+            else 0.0,
             "change_type_distribution": change_types,
         }
 
@@ -217,6 +222,7 @@ class WorkflowHistoryCollector:
 # ============================================================================
 # Stage Prediction
 # ============================================================================
+
 
 class StagePredictor:
     """Predicts optimal workflow stages using ML model."""
@@ -232,18 +238,18 @@ class StagePredictor:
 
     # Average stage durations (in seconds)
     STAGE_DURATIONS = {
-        0: 5,     # Setup
-        1: 10,    # Parse & Validate
-        2: 15,    # Quality Gates
-        3: 20,    # Pre-commit Hooks
-        4: 25,    # Commit Validation
-        5: 60,    # Unit Tests
-        6: 120,   # Integration Tests
-        7: 30,    # Type Checking
-        8: 45,    # Code Quality Analysis
-        9: 150,   # Performance Tests
+        0: 5,  # Setup
+        1: 10,  # Parse & Validate
+        2: 15,  # Quality Gates
+        3: 20,  # Pre-commit Hooks
+        4: 25,  # Commit Validation
+        5: 60,  # Unit Tests
+        6: 120,  # Integration Tests
+        7: 30,  # Type Checking
+        8: 45,  # Code Quality Analysis
+        9: 150,  # Performance Tests
         10: 300,  # Stress Testing
-        11: 60,   # Security Scanning
+        11: 60,  # Security Scanning
         12: 120,  # Compliance Validation
     }
 
@@ -276,12 +282,15 @@ class StagePredictor:
             return True, None
 
         if not history or len(history) < 5:
-            logger.warning(f"Insufficient history for training: {len(history)} executions")
+            logger.warning(
+                f"Insufficient history for training: {len(history)} executions"
+            )
             self.is_trained = False
             return True, None
 
         try:
             import time
+
             start_time = time.time()
 
             # Prepare features and targets
@@ -351,7 +360,10 @@ class StagePredictor:
         return mapping.get(code, "chore")
 
     def predict(
-        self, change_type: str, file_count: int = 1, file_types: Optional[List[str]] = None
+        self,
+        change_type: str,
+        file_count: int = 1,
+        file_types: Optional[List[str]] = None,
     ) -> Tuple[List[int], float]:
         """Predict optimal stages for given change.
 
@@ -384,18 +396,23 @@ class StagePredictor:
                 stages = [int(s) for s in prediction.split(",")]
                 self.stats.successful_predictions += 1
                 self.stats.average_confidence = (
-                    self.stats.average_confidence * (self.stats.successful_predictions - 1)
+                    self.stats.average_confidence
+                    * (self.stats.successful_predictions - 1)
                     + confidence
                 ) / self.stats.successful_predictions
 
-                logger.debug(f"Predicted stages for {change_type}: {stages} (confidence: {confidence:.2f})")
+                logger.debug(
+                    f"Predicted stages for {change_type}: {stages} (confidence: {confidence:.2f})"
+                )
                 return stages, confidence
 
             except Exception as e:
                 logger.warning(f"Prediction failed, falling back to defaults: {e}")
 
         # Fallback to default mapping
-        default_stages = self.DEFAULT_STAGE_MAPPING.get(change_type, self.DEFAULT_STAGE_MAPPING["chore"])
+        default_stages = self.DEFAULT_STAGE_MAPPING.get(
+            change_type, self.DEFAULT_STAGE_MAPPING["chore"]
+        )
         logger.debug(f"Using default stages for {change_type}: {default_stages}")
 
         return default_stages, 0.5  # Low confidence for defaults
@@ -467,6 +484,7 @@ class StagePredictor:
 # ============================================================================
 # Public API
 # ============================================================================
+
 
 def create_sample_history() -> List[WorkflowExecution]:
     """Create sample workflow history for testing."""
@@ -554,7 +572,9 @@ if __name__ == "__main__":
     print(f"Training: success={success}, error={error}")
 
     # Make predictions
-    stages, confidence = predictor.predict("feature", file_count=5, file_types=[".py", ".md"])
+    stages, confidence = predictor.predict(
+        "feature", file_count=5, file_types=[".py", ".md"]
+    )
     print(f"Predicted stages: {stages}, confidence: {confidence:.2f}")
 
     # Estimate time

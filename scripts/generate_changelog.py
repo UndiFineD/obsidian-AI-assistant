@@ -58,8 +58,8 @@ def generate_changelog(proposals):
     for month in sorted(grouped.keys(), reverse=True):
         lines.append(f"## {month}")
         for p in grouped[month]:
-            lines.append(f'- **{p["title"]}** ({p["type"]}, {p["date"]})')
-            lines.append(f'  _File: {p["file"]}_')
+            lines.append(f"- **{p['title']}** ({p['type']}, {p['date']})")
+            lines.append(f"  _File: {p['file']}_")
         lines.append("")
     return "\n".join(lines)
 

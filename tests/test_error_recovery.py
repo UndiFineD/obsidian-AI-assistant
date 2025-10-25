@@ -221,7 +221,9 @@ class TestStateValidator:
         assert error_dict["severity"] == "warning"
         assert "timestamp" in error_dict
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="File permissions work differently on Windows")
+    @pytest.mark.skipif(
+        sys.platform == "win32", reason="File permissions work differently on Windows"
+    )
     def test_validate_file_permission_error(self, temp_dir):
         """Test validation when file is not readable"""
         status_file = temp_dir / "unreadable.json"
@@ -394,9 +396,7 @@ class TestCheckpointRollback:
         restore_dir.mkdir()
 
         rollback = CheckpointRollback(checkpoint_dir)
-        success, message = rollback.rollback_to_checkpoint(
-            "checkpoint-999", restore_dir
-        )
+        success, message = rollback.rollback_to_checkpoint("checkpoint-999", restore_dir)
 
         assert not success
         assert "not found" in message.lower()

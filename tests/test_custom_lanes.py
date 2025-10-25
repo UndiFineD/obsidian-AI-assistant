@@ -187,7 +187,9 @@ class TestLaneDefinition:
     def test_invalid_stage_number(self):
         """Test lane with invalid stage number."""
         lane = LaneDefinition(
-            name="test", description="Test", stages=[0, 1, 15]  # 15 is out of range
+            name="test",
+            description="Test",
+            stages=[0, 1, 15],  # 15 is out of range
         )
         valid, errors = lane.validate()
 
@@ -196,9 +198,7 @@ class TestLaneDefinition:
 
     def test_negative_timeout(self):
         """Test lane with negative timeout."""
-        lane = LaneDefinition(
-            name="test", description="Test", stages=[0, 1], timeout=-100
-        )
+        lane = LaneDefinition(name="test", description="Test", stages=[0, 1], timeout=-100)
         valid, errors = lane.validate()
 
         assert valid is False

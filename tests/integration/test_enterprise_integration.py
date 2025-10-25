@@ -73,9 +73,7 @@ def test_enterprise_classes():
     print("\nTesting enterprise class definitions...")
 
     files_to_check = {
-        ".obsidian/plugins/obsidian-ai-agent/adminDashboard.js": [
-            "EnterpriseAdminDashboard"
-        ],
+        ".obsidian/plugins/obsidian-ai-agent/adminDashboard.js": ["EnterpriseAdminDashboard"],
         ".obsidian/plugins/obsidian-ai-agent/enterpriseAuth.js": ["EnterpriseAuth"],
         ".obsidian/plugins/obsidian-ai-agent/enterpriseConfig.js": ["EnterpriseConfig"],
     }

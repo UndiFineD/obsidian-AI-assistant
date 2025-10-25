@@ -262,13 +262,9 @@ class TestOpenSpecValidation:
         h2_indices = [i for i, line in enumerate(lines) if line.startswith("## ")]
         for idx in h2_indices:
             if idx > 0:
-                assert (
-                    lines[idx - 1] == ""
-                ), f"Missing blank line before heading at line {idx + 1}"
+                assert lines[idx - 1] == "", f"Missing blank line before heading at line {idx + 1}"
             if idx < len(lines) - 1:
-                assert (
-                    lines[idx + 1] == ""
-                ), f"Missing blank line after heading at line {idx + 1}"
+                assert lines[idx + 1] == "", f"Missing blank line after heading at line {idx + 1}"
 
     def test_spec_delta_openspec_compliance(self):
         """Test that spec deltas comply with OpenSpec format requirements."""
@@ -361,13 +357,7 @@ class TestOpenSpecIntegration:
         test_changes = ["update-doc-readme", "update-doc-openspec-agents"]
 
         for change_name in test_changes:
-            spec_file = (
-                changes_dir
-                / change_name
-                / "specs"
-                / "project-documentation"
-                / "spec.md"
-            )
+            spec_file = changes_dir / change_name / "specs" / "project-documentation" / "spec.md"
             if spec_file.exists():
                 content = spec_file.read_text()
 

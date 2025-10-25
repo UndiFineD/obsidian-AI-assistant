@@ -78,9 +78,7 @@ class TestConfigEndpoints:
             if not isinstance(data["error"], dict)
             else data["error"].get("message", "")
         )
-        assert (
-            "Update failed" in error_str or "Configuration update failed" in error_str
-        )
+        assert "Update failed" in error_str or "Configuration update failed" in error_str
 
     @patch("agent.agent.reload_settings")
     def test_post_config_reload_endpoint(self, mock_reload):
@@ -113,9 +111,7 @@ class TestConfigEndpoints:
             if not isinstance(data["error"], dict)
             else data["error"].get("message", "")
         )
-        assert (
-            "Reload failed" in error_str or "Configuration reload failed" in error_str
-        )
+        assert "Reload failed" in error_str or "Configuration reload failed" in error_str
 
 
 class TestConfigEndpointIntegration:

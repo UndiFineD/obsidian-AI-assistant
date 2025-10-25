@@ -31,21 +31,25 @@ def test_file_exists(file_path: Path, description: str) -> bool:
     if file_path.exists():
         print(" [PASS]", flush=True)
         test_results["passed"] += 1
-        test_results["tests"].append({
-            "name": description,
-            "result": "PASS",
-            "message": f"File exists: {file_path}"
-        })
+        test_results["tests"].append(
+            {
+                "name": description,
+                "result": "PASS",
+                "message": f"File exists: {file_path}",
+            }
+        )
         return True
     else:
         print(" [FAIL]", flush=True)
         print(f"  Expected: {file_path}")
         test_results["failed"] += 1
-        test_results["tests"].append({
-            "name": description,
-            "result": "FAIL",
-            "message": f"File not found: {file_path}"
-        })
+        test_results["tests"].append(
+            {
+                "name": description,
+                "result": "FAIL",
+                "message": f"File not found: {file_path}",
+            }
+        )
         return False
 
 
@@ -65,21 +69,25 @@ def test_content_matches(file_path: Path, pattern: str, description: str) -> boo
     if re.search(pattern, content, re.MULTILINE | re.IGNORECASE):
         print(" [PASS]", flush=True)
         test_results["passed"] += 1
-        test_results["tests"].append({
-            "name": description,
-            "result": "PASS",
-            "message": f"Pattern found in {file_path}"
-        })
+        test_results["tests"].append(
+            {
+                "name": description,
+                "result": "PASS",
+                "message": f"Pattern found in {file_path}",
+            }
+        )
         return True
     else:
         print(" [FAIL]", flush=True)
         print(f"  Pattern not found: {pattern}")
         test_results["failed"] += 1
-        test_results["tests"].append({
-            "name": description,
-            "result": "FAIL",
-            "message": f"Pattern not found in {file_path}"
-        })
+        test_results["tests"].append(
+            {
+                "name": description,
+                "result": "FAIL",
+                "message": f"Pattern not found in {file_path}",
+            }
+        )
         return False
 
 
@@ -96,27 +104,21 @@ def main() -> int:
     # Test: Verify proposal.md exists and has required sections
     test_file_exists(change_root / "proposal.md", "Proposal document exists")
     test_content_matches(
-        change_root / "proposal.md",
-        r"## Why",
-        "Proposal has 'Why' section"
+        change_root / "proposal.md", r"## Why", "Proposal has 'Why' section"
     )
     test_content_matches(
         change_root / "proposal.md",
         r"## What Changes",
-        "Proposal has 'What Changes' section"
+        "Proposal has 'What Changes' section",
     )
     test_content_matches(
-        change_root / "proposal.md",
-        r"## Impact",
-        "Proposal has 'Impact' section"
+        change_root / "proposal.md", r"## Impact", "Proposal has 'Impact' section"
     )
 
     # Test: Verify tasks.md exists and has tasks
     test_file_exists(change_root / "tasks.md", "Tasks document exists")
     test_content_matches(
-        change_root / "tasks.md",
-        r"- \[[\sx]\]",
-        "Tasks has checkboxes"
+        change_root / "tasks.md", r"- \[[\sx]\]", "Tasks has checkboxes"
     )
 
     # Test: Verify spec.md exists and has content
@@ -124,9 +126,9 @@ def main() -> int:
     test_content_matches(
         change_root / "spec.md",
         r"## Acceptance Criteria|## Requirements|## Implementation",
-        "Specification has required sections"
+        "Specification has required sections",
     )
-    
+
     # Test: Validate todo.md completion status
     test_file_exists(change_root / "todo.md", "Todo checklist exists")
 
@@ -138,7 +140,9 @@ def main() -> int:
     print(f"Passed: {test_results['passed']}")
     print(f"Failed: {test_results['failed']}")
     print(f"Skipped: {test_results['skipped']}")
-    print(f"Total: {test_results['passed'] + test_results['failed'] + test_results['skipped']}")
+    print(
+        f"Total: {test_results['passed'] + test_results['failed'] + test_results['skipped']}"
+    )
     print()
 
     if test_results["failed"] > 0:

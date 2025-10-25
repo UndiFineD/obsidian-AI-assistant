@@ -1,15 +1,8 @@
-
-
-
-
-
-
 import uvicorn
 from agent.backend import app
 
 #!/usr/bin/env python3
 """Simple backend server starter"""
-
 
 
 if __name__ == "__main__":

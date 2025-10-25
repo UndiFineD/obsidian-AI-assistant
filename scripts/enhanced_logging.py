@@ -29,6 +29,7 @@ from dataclasses import asdict, dataclass, field
 @dataclass
 class LogContext:
     """Context information for logging"""
+
     workflow_id: str
     lane: str
     stage_id: Optional[int] = None
@@ -77,14 +78,10 @@ class StructuredLogger:
         json_handler = logging.FileHandler(
             self.log_dir / f"{self.name}-structured.jsonl"
         )
-        json_handler.setFormatter(
-            logging.Formatter("%(message)s")
-        )
+        json_handler.setFormatter(logging.Formatter("%(message)s"))
 
         # Text file handler
-        text_handler = logging.FileHandler(
-            self.log_dir / f"{self.name}-details.log"
-        )
+        text_handler = logging.FileHandler(self.log_dir / f"{self.name}-details.log")
         text_formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
@@ -92,9 +89,7 @@ class StructuredLogger:
 
         # Console handler
         console_handler = logging.StreamHandler(sys.stdout)
-        console_formatter = logging.Formatter(
-            "%(levelname)s: %(message)s"
-        )
+        console_formatter = logging.Formatter("%(levelname)s: %(message)s")
         console_handler.setFormatter(console_formatter)
 
         self.logger.addHandler(json_handler)
@@ -108,12 +103,7 @@ class StructuredLogger:
         """Set logging context"""
         self.context = context
 
-    def _create_log_entry(
-        self,
-        level: str,
-        message: str,
-        **kwargs
-    ) -> str:
+    def _create_log_entry(self, level: str, message: str, **kwargs) -> str:
         """Create a structured log entry"""
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -132,21 +122,20 @@ class StructuredLogger:
         """Log debug message"""
         self.logger.debug(
             self._create_log_entry("DEBUG", message, **kwargs),
-            extra={"skip_json": True}
+            extra={"skip_json": True},
         )
 
     def info(self, message: str, **kwargs):
         """Log info message"""
         self.logger.info(
-            self._create_log_entry("INFO", message, **kwargs),
-            extra={"skip_json": True}
+            self._create_log_entry("INFO", message, **kwargs), extra={"skip_json": True}
         )
 
     def warning(self, message: str, **kwargs):
         """Log warning message"""
         self.logger.warning(
             self._create_log_entry("WARNING", message, **kwargs),
-            extra={"skip_json": True}
+            extra={"skip_json": True},
         )
 
     def error(self, message: str, exception: Optional[Exception] = None, **kwargs):
@@ -158,14 +147,14 @@ class StructuredLogger:
 
         self.logger.error(
             self._create_log_entry("ERROR", message, **entry_kwargs),
-            extra={"skip_json": True}
+            extra={"skip_json": True},
         )
 
     def critical(self, message: str, **kwargs):
         """Log critical message"""
         self.logger.critical(
             self._create_log_entry("CRITICAL", message, **kwargs),
-            extra={"skip_json": True}
+            extra={"skip_json": True},
         )
 
     def log_performance(
@@ -173,7 +162,7 @@ class StructuredLogger:
         operation: str,
         duration_seconds: float,
         status: str = "completed",
-        **kwargs
+        **kwargs,
     ):
         """Log performance metrics"""
         self.info(
@@ -181,7 +170,7 @@ class StructuredLogger:
             operation=operation,
             duration_seconds=duration_seconds,
             status=status,
-            **kwargs
+            **kwargs,
         )
 
     def log_stage_execution(
@@ -190,7 +179,7 @@ class StructuredLogger:
         stage_name: str,
         result: str,
         duration_seconds: float,
-        details: Optional[Dict] = None
+        details: Optional[Dict] = None,
     ):
         """Log stage execution details"""
         self.info(
@@ -199,7 +188,7 @@ class StructuredLogger:
             stage_name=stage_name,
             result=result,
             duration_seconds=duration_seconds,
-            details=details or {}
+            details=details or {},
         )
 
     def get_diagnostic_summary(self) -> Dict:
@@ -208,12 +197,9 @@ class StructuredLogger:
             "log_directory": str(self.log_dir),
             "context": self.context.to_dict() if self.context else None,
             "handlers": [
-                {
-                    "type": type(h).__name__,
-                    "level": logging.getLevelName(h.level)
-                }
+                {"type": type(h).__name__, "level": logging.getLevelName(h.level)}
                 for h in self.logger.handlers
-            ]
+            ],
         }
 
 
@@ -263,19 +249,16 @@ class DiagnosticCollector:
             return {"status": "unavailable"}
 
     @staticmethod
-    def generate_diagnostic_report(
-        log_dir: Path,
-        status_file: Path
-    ) -> Dict:
+    def generate_diagnostic_report(log_dir: Path, status_file: Path) -> Dict:
         """Generate comprehensive diagnostic report"""
         return {
             "timestamp": datetime.now().isoformat(),
             "environment": DiagnosticCollector.collect_environment_info(),
             "workflow_state": DiagnosticCollector.collect_workflow_state(status_file),
             "system_resources": DiagnosticCollector.collect_system_resources(),
-            "log_files": [
-                str(f) for f in log_dir.glob("*.log")
-            ] if log_dir.exists() else [],
+            "log_files": [str(f) for f in log_dir.glob("*.log")]
+            if log_dir.exists()
+            else [],
         }
 
 
@@ -284,7 +267,7 @@ class TroubleshootingSuggestions:
 
     SUGGESTIONS = {
         "timeout": "Check if the operation is taking longer than expected. "
-                  "Try increasing the timeout or splitting the operation.",
+        "Try increasing the timeout or splitting the operation.",
         "module_not_found": "Install missing module: pip install -r requirements.txt",
         "permission_denied": "Check file permissions or run with appropriate privileges",
         "network_error": "Check network connectivity and retry",
