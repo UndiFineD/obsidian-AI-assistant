@@ -20,7 +20,9 @@ except ImportError:  # pragma: no cover
 
 try:
     RequestsError = requests.RequestException  # type: ignore[attr-defined]
-    if not isinstance(RequestsError, type) or not issubclass(RequestsError, BaseException):
+    if not isinstance(RequestsError, type) or not issubclass(
+        RequestsError, BaseException
+    ):
         RequestsError = Exception
 except AttributeError:
     RequestsError = Exception
@@ -62,7 +64,9 @@ def _exercise_agent_via_test_client(
     try:
         from agent.backend import app
     except Exception as import_error:
-        raise AssertionError("Backend application import failed during fallback") from import_error
+        raise AssertionError(
+            "Backend application import failed during fallback"
+        ) from import_error
 
     with TestClient(app) as client:
         if method.lower() == "post":
@@ -232,7 +236,9 @@ def test_agent_endpoints():
         if status_code == 200:
             data = response.json()
             if data is None:
-                print("⚠️  /ask endpoint returned 200 but with None data (model error in test env)")
+                print(
+                    "⚠️  /ask endpoint returned 200 but with None data (model error in test env)"
+                )
                 assert True  # Acceptable when models are not available
             else:
                 print("✅ /ask endpoint working")
@@ -243,11 +249,14 @@ def test_agent_endpoints():
         elif status_code == 500:
             # Acceptable in environments without a local model available
             data = response.json()
-            print("⚠️  /ask endpoint returned 500 as expected in test env without models")
+            print(
+                "⚠️  /ask endpoint returned 500 as expected in test env without models"
+            )
             if data:  # Only check for detail key if data is not None
                 assert "detail" in data
                 assert (
-                    "Model unavailable" in data["detail"] or "failed to generate" in data["detail"]
+                    "Model unavailable" in data["detail"]
+                    or "failed to generate" in data["detail"]
                 )
         else:
             print(f"❌ /ask endpoint returned {status_code}")
@@ -270,10 +279,14 @@ def test_agent_endpoints():
                 preview = str(data.get("answer", "No answer key in response"))
                 print(f"✅ Fallback /ask response: {preview[:50]}...")
             else:
-                print("⚠️  Fallback /ask returned 200 but with None data (expected without models)")
+                print(
+                    "⚠️  Fallback /ask returned 200 but with None data (expected without models)"
+                )
         else:
             data = fallback_response.json()
-            print("⚠️  Fallback /ask response indicates missing model (expected in tests)")
+            print(
+                "⚠️  Fallback /ask response indicates missing model (expected in tests)"
+            )
             if data:  # Only check for detail key if data is not None
                 assert "detail" in data
 

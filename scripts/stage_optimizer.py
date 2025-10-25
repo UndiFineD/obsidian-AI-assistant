@@ -25,7 +25,7 @@ Key Functions:
 
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -212,9 +212,9 @@ class WorkflowHistoryCollector:
         return {
             "total": len(self.history),
             "success_rate": successful / len(self.history) if self.history else 0.0,
-            "average_duration": total_duration / len(self.history)
-            if self.history
-            else 0.0,
+            "average_duration": (
+                total_duration / len(self.history) if self.history else 0.0
+            ),
             "change_type_distribution": change_types,
         }
 

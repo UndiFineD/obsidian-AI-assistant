@@ -31,14 +31,14 @@ License: MIT
 Version: 0.1.45
 """
 
+import hashlib
 import json
 import os
 import time
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
-import hashlib
 
 
 @dataclass
@@ -411,9 +411,11 @@ class EnhancedStatusTracker:
             "average_stage_duration": (
                 total_duration / len(completed) if completed else 0
             ),
-            "success_rate": len(completed) / len(self.snapshot.stages) * 100
-            if self.snapshot.stages
-            else 0,
+            "success_rate": (
+                len(completed) / len(self.snapshot.stages) * 100
+                if self.snapshot.stages
+                else 0
+            ),
         }
 
     def can_resume(self) -> bool:

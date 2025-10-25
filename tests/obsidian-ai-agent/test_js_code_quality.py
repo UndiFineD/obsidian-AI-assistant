@@ -58,7 +58,9 @@ class TestJavaScriptCodeQuality:
         """Test that JavaScript files are not empty"""
         for js_file in js_files:
             content = js_file.read_text(encoding="utf-8")
-            assert len(content.strip()) > 0, f"JavaScript file {js_file.name} should not be empty"
+            assert (
+                len(content.strip()) > 0
+            ), f"JavaScript file {js_file.name} should not be empty"
 
     def test_js_syntax_validity(self, js_files):
         """Test JavaScript syntax validity using Node.js syntax check"""
@@ -71,9 +73,9 @@ class TestJavaScriptCodeQuality:
                     text=True,
                     cwd=js_file.parent,
                 )
-                assert result.returncode == 0, (
-                    f"JavaScript file {js_file.name} has syntax errors: {result.stderr}"
-                )
+                assert (
+                    result.returncode == 0
+                ), f"JavaScript file {js_file.name} has syntax errors: {result.stderr}"
             except FileNotFoundError:
                 # Skip if Node.js is not available
                 pytest.skip("Node.js not available for syntax checking")
@@ -87,16 +89,16 @@ class TestJavaScriptCodeQuality:
             for line_num, line in enumerate(lines, 1):
                 if line.strip():  # Skip empty lines
                     # Check for tabs (should be converted to spaces)
-                    assert "\t" not in line, (
-                        f"File {js_file.name} line {line_num} contains tabs instead of spaces"
-                    )
+                    assert (
+                        "\t" not in line
+                    ), f"File {js_file.name} line {line_num} contains tabs instead of spaces"
 
                     # Check for consistent indentation (multiples of 4 spaces)
                     leading_spaces = len(line) - len(line.lstrip())
                     if leading_spaces > 0:
-                        assert leading_spaces % 4 == 0, (
-                            f"File {js_file.name} line {line_num} has inconsistent indentation ({leading_spaces} spaces)"
-                        )
+                        assert (
+                            leading_spaces % 4 == 0
+                        ), f"File {js_file.name} line {line_num} has inconsistent indentation ({leading_spaces} spaces)"
 
     def test_no_trailing_whitespace(self, js_files):
         """Test that JavaScript files have no trailing whitespace"""
@@ -106,9 +108,9 @@ class TestJavaScriptCodeQuality:
 
             for line_num, line in enumerate(lines, 1):
                 if line:  # Skip completely empty lines
-                    assert not line.endswith(" ") and not line.endswith("\t"), (
-                        f"File {js_file.name} line {line_num} has trailing whitespace"
-                    )
+                    assert not line.endswith(" ") and not line.endswith(
+                        "\t"
+                    ), f"File {js_file.name} line {line_num} has trailing whitespace"
 
     def test_consistent_quotes(self, js_files):
         """Test for quote usage patterns (informational)"""
@@ -136,16 +138,20 @@ class TestJavaScriptCodeQuality:
             content = js_file.read_text(encoding="utf-8")
 
             # Find class definitions
-            class_matches = re.findall(r"class\s+(\w+)\s*(?:extends\s+\w+)?\s*{", content)
+            class_matches = re.findall(
+                r"class\s+(\w+)\s*(?:extends\s+\w+)?\s*{", content
+            )
 
             for class_name in class_matches:
                 # Class names should be PascalCase
-                assert class_name[0].isupper(), (
+                assert class_name[
+                    0
+                ].isupper(), (
                     f"Class {class_name} in {js_file.name} should start with uppercase"
                 )
-                assert re.match(r"^[A-Z][a-zA-Z0-9]*$", class_name), (
-                    f"Class {class_name} in {js_file.name} should be PascalCase"
-                )
+                assert re.match(
+                    r"^[A-Z][a-zA-Z0-9]*$", class_name
+                ), f"Class {class_name} in {js_file.name} should be PascalCase"
 
     def test_function_definitions(self, js_files):
         """Test that functions are properly defined"""
@@ -167,9 +173,9 @@ class TestJavaScriptCodeQuality:
                     # This might be a class name, skip
                     continue
 
-                assert func_name[0].islower(), (
-                    f"Function {func_name} in {js_file.name} should start with lowercase"
-                )
+                assert func_name[
+                    0
+                ].islower(), f"Function {func_name} in {js_file.name} should start with lowercase"
 
     def test_console_log_usage(self, js_files):
         """Test that console.log usage is reasonable (not excessive)"""
@@ -182,9 +188,9 @@ class TestJavaScriptCodeQuality:
             # Console.log should not be more than 5% of the file
             if lines_count > 20:  # Only check for files with substantial content
                 ratio = console_logs / lines_count
-                assert ratio < 0.05, (
-                    f"File {js_file.name} has too many console.log statements ({console_logs} in {lines_count} lines)"
-                )
+                assert (
+                    ratio < 0.05
+                ), f"File {js_file.name} has too many console.log statements ({console_logs} in {lines_count} lines)"
 
     def test_error_handling(self, js_files):
         """Test that files contain proper error handling"""
@@ -193,7 +199,9 @@ class TestJavaScriptCodeQuality:
 
             # Check for try-catch blocks in substantial files
             lines_count = len(content.split("\n"))
-            if lines_count > 100:  # Only check very substantial files (raised threshold)
+            if (
+                lines_count > 100
+            ):  # Only check very substantial files (raised threshold)
                 try_catch_count = len(re.findall(r"try\s*{", content))
                 # More lenient - just warn if no error handling
                 if try_catch_count == 0:
@@ -220,9 +228,9 @@ class TestJavaScriptCodeQuality:
             has_functions = bool(re.search(r"function\s+\w+", content))
 
             if has_classes or has_functions:
-                assert has_exports, (
-                    f"File {js_file.name} defines classes/functions but doesn't export them"
-                )
+                assert (
+                    has_exports
+                ), f"File {js_file.name} defines classes/functions but doesn't export them"
 
 
 class TestJavaScriptFunctionality:
@@ -300,9 +308,9 @@ class TestJavaScriptFunctionality:
 
             # Should handle media/audio
             if "voice.js" in file_name:
-                assert "mediaRecorder" in content or "MediaRecorder" in content, (
-                    "voice.js should handle media recording"
-                )
+                assert (
+                    "mediaRecorder" in content or "MediaRecorder" in content
+                ), "voice.js should handle media recording"
 
             # Check for error handling patterns (more flexible)
             has_error_handling = (
@@ -313,9 +321,9 @@ class TestJavaScriptFunctionality:
                 or "console.log" in content
                 or "console.error" in content
             )
-            assert has_error_handling, (
-                f"{file_name} should have some form of error handling or logging"
-            )
+            assert (
+                has_error_handling
+            ), f"{file_name} should have some form of error handling or logging"
 
 
 class TestJavaScriptSecurity:
@@ -348,7 +356,8 @@ class TestJavaScriptSecurity:
                 for match in matches:
                     # More sophisticated check - exclude common false positives
                     if any(
-                        word in match for word in ["error", "console", "log", "message", "debug"]
+                        word in match
+                        for word in ["error", "console", "log", "message", "debug"]
                     ):
                         continue  # Skip error handling patterns
 
@@ -365,7 +374,9 @@ class TestJavaScriptSecurity:
 
             # Check for eval usage
             eval_matches = re.findall(r"\beval\s*\(", content)
-            assert len(eval_matches) == 0, f"File {js_file.name} uses eval() which is unsafe"
+            assert (
+                len(eval_matches) == 0
+            ), f"File {js_file.name} uses eval() which is unsafe"
 
     def test_dom_manipulation_safety(self, js_files):
         """Test that DOM manipulation is done safely"""
@@ -376,9 +387,9 @@ class TestJavaScriptSecurity:
             innerHTML_matches = re.findall(r"\.innerHTML\s*=", content)
             if innerHTML_matches:
                 # Should use textContent or proper sanitization
-                assert "createEl" in content or "textContent" in content, (
-                    f"File {js_file.name} uses innerHTML without proper sanitization"
-                )
+                assert (
+                    "createEl" in content or "textContent" in content
+                ), f"File {js_file.name} uses innerHTML without proper sanitization"
 
 
 def run_js_tests():
@@ -387,7 +398,9 @@ def run_js_tests():
 
     for test_file in test_files:
         if Path(test_file).exists():
-            result = subprocess.run(["pytest", test_file, "-v"], capture_output=True, text=True)
+            result = subprocess.run(
+                ["pytest", test_file, "-v"], capture_output=True, text=True
+            )
             print(f"Test results for {test_file}:")
             print(result.stdout)
             if result.stderr:

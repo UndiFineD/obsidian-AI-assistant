@@ -11,26 +11,26 @@ Tests cover:
 Test Status Target: 7+ test classes, 100% passing, A+ quality
 """
 
-import pytest
-import json
 import csv
+import json
+import sys
+import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List
-import tempfile
-import sys
+
+import pytest
 
 from scripts.workflow_analytics import (
-    WorkflowMetric,
-    MetricsAggregator,
-    TrendAnalyzer,
-    DashboardGenerator,
-    ReportFormatter,
     AggregatedMetrics,
+    DashboardGenerator,
+    MetricsAggregator,
+    ReportFormatter,
+    TrendAnalyzer,
     TrendData,
+    WorkflowMetric,
     create_analytics_pipeline,
 )
-
 
 # ============================================================================
 # Fixtures
@@ -79,7 +79,9 @@ def analyzer(aggregator: MetricsAggregator) -> TrendAnalyzer:
 
 
 @pytest.fixture
-def dashboard_gen(aggregator: MetricsAggregator, analyzer: TrendAnalyzer) -> DashboardGenerator:
+def dashboard_gen(
+    aggregator: MetricsAggregator, analyzer: TrendAnalyzer
+) -> DashboardGenerator:
     """Create dashboard generator."""
     return DashboardGenerator(aggregator, analyzer)
 
@@ -148,7 +150,9 @@ class TestMetricsAggregator:
         assert "max_time" in stage_0_metrics
         assert "count" in stage_0_metrics
 
-    def test_aggregate_time_filtering(self, sample_metrics: List[WorkflowMetric]) -> None:
+    def test_aggregate_time_filtering(
+        self, sample_metrics: List[WorkflowMetric]
+    ) -> None:
         """Test filtering by time period."""
         agg = MetricsAggregator()
         agg.add_metrics_batch(sample_metrics)
@@ -285,7 +289,9 @@ class TestDashboardGenerator:
             assert "Workflow Analytics Dashboard" in content
             assert "<!DOCTYPE html>" in content
 
-    def test_dashboard_contains_metrics(self, dashboard_gen: DashboardGenerator) -> None:
+    def test_dashboard_contains_metrics(
+        self, dashboard_gen: DashboardGenerator
+    ) -> None:
         """Test dashboard contains metric values."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "dashboard.html"
@@ -307,7 +313,9 @@ class TestDashboardGenerator:
             content = output_path.read_text()
             assert custom_title in content
 
-    def test_dashboard_generation_performance(self, dashboard_gen: DashboardGenerator) -> None:
+    def test_dashboard_generation_performance(
+        self, dashboard_gen: DashboardGenerator
+    ) -> None:
         """Test dashboard generation is fast (<1s)."""
         import time
 
@@ -320,7 +328,9 @@ class TestDashboardGenerator:
 
             assert elapsed < 1.0, f"Dashboard generation took {elapsed}s (expected <1s)"
 
-    def test_dashboard_contains_trend_info(self, dashboard_gen: DashboardGenerator) -> None:
+    def test_dashboard_contains_trend_info(
+        self, dashboard_gen: DashboardGenerator
+    ) -> None:
         """Test dashboard contains trend information."""
         with tempfile.TemporaryDirectory() as tmpdir:
             output_path = Path(tmpdir) / "dashboard.html"

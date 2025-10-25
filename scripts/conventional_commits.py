@@ -23,11 +23,11 @@ Examples:
   refactor(performance): optimize caching layer
 """
 
-import subprocess
-import re
-from pathlib import Path
-from typing import List, Tuple, Optional
 import importlib.util
+import re
+import subprocess
+from pathlib import Path
+from typing import List, Optional, Tuple
 
 # Import helpers
 try:
@@ -51,32 +51,47 @@ class CommitValidator:
         r"^(feat|fix|docs|style|refactor|test|chore)(\([^)]+\))?: .{1,100}(?: #\d+)?$"
     )
 
+    # Enhanced validation limits
+    MAX_SUBJECT_LENGTH = 50
+    MAX_BODY_LINE_LENGTH = 72
+
     @staticmethod
-    def validate_commit(message: str) -> Tuple[bool, Optional[str]]:
+    def validate_commit(
+        message: str, skip_verify: bool = False
+    ) -> Tuple[bool, Optional[str]]:
         """
-        Validate a commit message.
+        Validate a commit message with enhanced checks.
 
         Args:
             message: Commit message to validate
+            skip_verify: If True, skip validation (--no-verify flag)
 
         Returns:
             (is_valid, error_message)
         """
+        if skip_verify:
+            return True, None
+
         if not message or not message.strip():
             return False, "Commit message is empty"
 
         # Remove trailing newlines
         message = message.strip()
 
+        # Split into subject and body
+        lines = message.split("\n", 1)
+        subject = lines[0].strip()
+        body = lines[1] if len(lines) > 1 else ""
+
         # Check basic format
-        if not re.match(CommitValidator.COMMIT_PATTERN, message):
+        if not re.match(CommitValidator.COMMIT_PATTERN, subject):
             return (
                 False,
-                f"Invalid format. Expected: type(scope): subject\nGot: {message}",
+                f"Invalid format. Expected: type(scope): subject\nGot: {subject}",
             )
 
-        # Parse to verify
-        match = re.match(r"^(\w+)(\([^)]+\))?: (.+)$", message)
+        # Parse to verify type
+        match = re.match(r"^(\w+)(\([^)]+\))?: (.+)$", subject)
         if not match:
             return False, "Could not parse commit message"
 
@@ -84,6 +99,31 @@ class CommitValidator:
         if msg_type not in CommitValidator.VALID_TYPES:
             valid_str = ", ".join(CommitValidator.VALID_TYPES)
             return False, f"Invalid type '{msg_type}'. Valid types: {valid_str}"
+
+        # Enhanced validation: Subject length
+        if len(subject) > CommitValidator.MAX_SUBJECT_LENGTH:
+            return (
+                False,
+                f"Subject too long ({len(subject)} chars). Maximum: {CommitValidator.MAX_SUBJECT_LENGTH} chars",
+            )
+
+        # Enhanced validation: Subject capitalization and punctuation
+        subject_content = match.group(3).strip()
+        if subject_content and subject_content[0].islower():
+            return False, "Subject should start with a capital letter"
+
+        if subject_content.endswith("."):
+            return False, "Subject should not end with a period"
+
+        # Enhanced validation: Body line length
+        if body:
+            body_lines = body.split("\n")
+            for i, line in enumerate(body_lines):
+                if len(line) > CommitValidator.MAX_BODY_LINE_LENGTH:
+                    return (
+                        False,
+                        f"Body line {i+1} too long ({len(line)} chars). Maximum: {CommitValidator.MAX_BODY_LINE_LENGTH} chars",
+                    )
 
         return True, None
 
@@ -112,7 +152,7 @@ class CommitValidator:
     @staticmethod
     def fix_commit(message: str) -> str:
         """
-        Attempt to fix a commit message to Conventional Commits format.
+        Attempt to fix a commit message to Conventional Commits format with enhanced rules.
 
         Args:
             message: Potentially invalid commit message
@@ -122,12 +162,17 @@ class CommitValidator:
         """
         message = message.strip()
 
+        # Split into subject and body
+        lines = message.split("\n", 1)
+        subject = lines[0].strip()
+        body = lines[1] if len(lines) > 1 else ""
+
         # Try to extract type and subject
         # Pattern: extract first word (potential type) and rest as subject
-        parts = message.split(":", 1)
+        parts = subject.split(":", 1)
         if len(parts) == 2:
             type_part = parts[0].strip()
-            subject = parts[1].strip()
+            subject_content = parts[1].strip()
 
             # Check if type_part has scope
             type_match = re.match(r"^(\w+)(?:\(([^)]+)\))?$", type_part)
@@ -141,31 +186,66 @@ class CommitValidator:
                     msg_lower = message.lower()
                     if any(kw in msg_lower for kw in ["fix", "bug", "issue", "error"]):
                         msg_type = "fix"
-                    elif any(kw in msg_lower for kw in ["add", "implement", "new"]):
+                    elif any(
+                        kw in msg_lower for kw in ["add", "implement", "new", "feat"]
+                    ):
                         msg_type = "feat"
-                    elif any(kw in msg_lower for kw in ["doc", "readme", "comment"]):
+                    elif any(
+                        kw in msg_lower for kw in ["doc", "readme", "comment", "docs"]
+                    ):
                         msg_type = "docs"
-                    elif any(kw in msg_lower for kw in ["test", "test"]):
+                    elif any(kw in msg_lower for kw in ["test", "spec"]):
                         msg_type = "test"
-                    elif any(kw in msg_lower for kw in ["refactor", "reorganize"]):
+                    elif any(
+                        kw in msg_lower for kw in ["refactor", "reorganize", "cleanup"]
+                    ):
                         msg_type = "refactor"
                     else:
                         msg_type = "chore"
 
-                # Build fixed message
+                # Fix subject: capitalize first letter, remove trailing period
+                if subject_content:
+                    subject_content = subject_content[0].upper() + subject_content[1:]
+                    subject_content = subject_content.rstrip(".")
+
+                # Truncate subject if too long
+                if len(subject_content) > CommitValidator.MAX_SUBJECT_LENGTH - len(
+                    f"{msg_type}({scope}): " if scope else f"{msg_type}: "
+                ):
+                    max_content_len = CommitValidator.MAX_SUBJECT_LENGTH - len(
+                        f"{msg_type}({scope}): " if scope else f"{msg_type}: "
+                    )
+                    subject_content = subject_content[: max_content_len - 3] + "..."
+
+                # Build fixed subject
                 if scope:
-                    fixed = f"{msg_type}({scope}): {subject}"
+                    fixed_subject = f"{msg_type}({scope}): {subject_content}"
                 else:
-                    fixed = f"{msg_type}: {subject}"
+                    fixed_subject = f"{msg_type}: {subject_content}"
 
-                # Ensure subject length is reasonable
-                if len(fixed) > 100:
-                    fixed = fixed[:97] + "..."
+                # Fix body line lengths
+                if body:
+                    body_lines = body.split("\n")
+                    fixed_body_lines = []
+                    for line in body_lines:
+                        if len(line) > CommitValidator.MAX_BODY_LINE_LENGTH:
+                            # Truncate long lines
+                            fixed_body_lines.append(
+                                line[: CommitValidator.MAX_BODY_LINE_LENGTH - 3] + "..."
+                            )
+                        else:
+                            fixed_body_lines.append(line)
+                    fixed_body = "\n".join(fixed_body_lines)
+                    return f"{fixed_subject}\n\n{fixed_body}"
 
-                return fixed
+                return fixed_subject
 
-        # Fallback: default to chore
-        return f"chore: {message[:100]}"
+        # Fallback: default to chore with proper formatting
+        fallback_subject = message[: CommitValidator.MAX_SUBJECT_LENGTH]
+        if fallback_subject and fallback_subject[0].islower():
+            fallback_subject = fallback_subject[0].upper() + fallback_subject[1:]
+        fallback_subject = fallback_subject.rstrip(".")
+        return f"chore: {fallback_subject}"
 
     @staticmethod
     def get_recent_commits(count: int = 5) -> List[str]:
@@ -187,12 +267,14 @@ class CommitValidator:
     @staticmethod
     def validate_all_commits(
         branch: str = "HEAD",
+        skip_verify: bool = False,
     ) -> Tuple[bool, List[Tuple[str, bool]]]:
         """
         Validate all commits in a branch.
 
         Args:
             branch: Git branch/ref to validate
+            skip_verify: If True, skip validation (--no-verify flag)
 
         Returns:
             (all_valid, [(commit, is_valid), ...])
@@ -201,7 +283,7 @@ class CommitValidator:
         results = []
 
         for commit in commits:
-            valid, _ = CommitValidator.validate_commit(commit)
+            valid, _ = CommitValidator.validate_commit(commit, skip_verify=skip_verify)
             results.append((commit, valid))
 
         all_valid = all(valid for _, valid in results)

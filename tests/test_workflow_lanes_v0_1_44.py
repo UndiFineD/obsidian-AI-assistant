@@ -11,21 +11,22 @@ Tests for:
 - Parallel execution
 """
 
-import pytest
-import sys
 import json
+import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from datetime import datetime, timedelta
+
+import pytest
 
 # Add scripts directory to path for imports
 scripts_dir = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(scripts_dir))
 
+from pre_step_hooks import HookStatus, PreStepHooks
 from quality_gates import QualityGates
-from status_tracker import StatusTracker, StageStatus
+from status_tracker import StageStatus, StatusTracker
 from workflow_resumption import WorkflowResumption
-from pre_step_hooks import PreStepHooks, HookStatus
 
 
 class TestQualityGates:

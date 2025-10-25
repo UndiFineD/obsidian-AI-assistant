@@ -30,27 +30,27 @@ Options:
     --project-root ROOT Override project root path
 """
 
+import argparse
 import json
+import logging
 import subprocess
 import sys
-from dataclasses import dataclass, asdict
+from collections import Counter
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Dict, List, Tuple
-import argparse
-import logging
-from collections import Counter
+from typing import Dict, List, Optional, Tuple
 
 # Try to import rich for better terminal UI
 try:
+    from rich import box
     from rich.console import Console
     from rich.panel import Panel
-    from rich.table import Table
     from rich.progress import Progress, SpinnerColumn, TextColumn
+    from rich.table import Table
     from rich.text import Text
     from rich.tree import Tree
-    from rich import box
 
     HAS_RICH = True
 except ImportError:
@@ -506,8 +506,10 @@ class InteractiveLaneSelector:
             )
 
             if json_output:
-                console.print_json(data=result.to_dict()) if HAS_RICH else print(
-                    json.dumps(result.to_dict(), indent=2)
+                (
+                    console.print_json(data=result.to_dict())
+                    if HAS_RICH
+                    else print(json.dumps(result.to_dict(), indent=2))
                 )
 
             return result
@@ -760,7 +762,7 @@ class InteractiveLaneSelector:
             )
             console.print(panel)
         else:
-            print(f"\n✓ Workflow Completed Successfully")
+            print("\n✓ Workflow Completed Successfully")
             print(f"  Lane: {self.selected_lane.value.upper()}")
             print(f"  Duration: {self._format_duration(duration)}")
 

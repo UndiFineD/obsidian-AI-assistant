@@ -26,19 +26,18 @@ Author: v0.1.44 Enhancement Cycle
 Version: 1.0.0
 """
 
-import json
-import time
 import hashlib
-import threading
-from pathlib import Path
-from dataclasses import dataclass, asdict, field
-from enum import Enum
-from typing import Dict, List, Optional, Callable, Any, Tuple
-from datetime import datetime, timedelta
+import json
 import logging
 import pickle
+import threading
+import time
 from collections import OrderedDict
-import re
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 # ============================================================================
 # Configuration & Constants
@@ -372,9 +371,11 @@ class L3PersistentCache:
         try:
             with self.lock:
                 self.cache[key] = {
-                    "value": json.dumps(entry.value)
-                    if isinstance(entry.value, (dict, list))
-                    else entry.value,
+                    "value": (
+                        json.dumps(entry.value)
+                        if isinstance(entry.value, (dict, list))
+                        else entry.value
+                    ),
                     "created_at": entry.created_at,
                     "accessed_at": entry.accessed_at,
                     "expires_at": entry.expires_at,
@@ -556,9 +557,9 @@ class StateSnapshotCache:
 
                 # Update metadata
                 if checkpoint_id in self.metadata:
-                    self.metadata[checkpoint_id]["accessed_at"] = (
-                        datetime.now().isoformat()
-                    )
+                    self.metadata[checkpoint_id][
+                        "accessed_at"
+                    ] = datetime.now().isoformat()
                     self.metadata[checkpoint_id]["access_count"] += 1
                     self._save_metadata()
 
@@ -765,13 +766,15 @@ class CacheManager:
             "timestamp": datetime.now().isoformat(),
             "l1": self.l1.get_metrics(),
             "l2": self.l2.get_metrics(),
-            "l3": {
-                "entries": len(self.l3.cache),
-                "hits": self.l3.hits,
-                "misses": self.l3.misses,
-            }
-            if self.policy.persistence_enabled
-            else None,
+            "l3": (
+                {
+                    "entries": len(self.l3.cache),
+                    "hits": self.l3.hits,
+                    "misses": self.l3.misses,
+                }
+                if self.policy.persistence_enabled
+                else None
+            ),
             "policy": asdict(self.policy),
         }
 

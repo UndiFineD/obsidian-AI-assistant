@@ -33,7 +33,9 @@ def mock_request():
     request = Mock(spec=Request)
     request.url.path = "/api/test"
     request.method = "GET"
-    request.headers = Headers({"user-agent": "TestClient/1.0", "x-forwarded-for": "192.168.1.100"})
+    request.headers = Headers(
+        {"user-agent": "TestClient/1.0", "x-forwarded-for": "192.168.1.100"}
+    )
     request.client.host = "192.168.1.100"
     return request
 
@@ -132,7 +134,9 @@ async def test_create_security_hardening_middleware_factory():
 @pytest.mark.asyncio
 async def test_middleware_adds_security_headers(mock_request, mock_call_next):
     """Test that middleware adds security headers to response"""
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.STANDARD
+    )
 
     # Patch SecurityContext at module level to avoid complex setup
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
@@ -147,7 +151,9 @@ async def test_middleware_adds_security_headers(mock_request, mock_call_next):
 @pytest.mark.asyncio
 async def test_middleware_minimal_security_level(mock_request, mock_call_next):
     """Test middleware behavior with MINIMAL security level"""
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MINIMAL)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.MINIMAL
+    )
 
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
@@ -159,7 +165,9 @@ async def test_middleware_minimal_security_level(mock_request, mock_call_next):
 @pytest.mark.asyncio
 async def test_middleware_maximum_security_level(mock_request, mock_call_next):
     """Test middleware behavior with MAXIMUM security level"""
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MAXIMUM)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.MAXIMUM
+    )
 
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
@@ -177,7 +185,9 @@ async def test_middleware_options_request_bypass(mock_call_next):
     request.headers = Headers({"user-agent": "Test"})
     request.client.host = "127.0.0.1"
 
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MAXIMUM)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.MAXIMUM
+    )
 
     response = await middleware.dispatch(request, mock_call_next)
     assert response.status_code == 200
@@ -250,7 +260,9 @@ async def test_middleware_handles_exceptions(mock_request):
     async def failing_call_next(request):
         raise Exception("Test exception")
 
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.STANDARD
+    )
 
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
@@ -317,7 +329,9 @@ def test_security_context_timestamp_recent(mock_request):
 @pytest.mark.asyncio
 async def test_middleware_preserves_response_content(mock_request, mock_call_next):
     """Test middleware preserves response content"""
-    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
+    middleware = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.STANDARD
+    )
 
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)
@@ -332,7 +346,9 @@ async def test_middleware_preserves_response_content(mock_request, mock_call_nex
 async def test_create_security_hardening_middleware_default_level():
     """Test factory with default security level"""
     # Factory should work but middleware initialization requires event loop
-    with patch("agent.security_hardening.SecurityHardeningMiddleware.__init__") as mock_init:
+    with patch(
+        "agent.security_hardening.SecurityHardeningMiddleware.__init__"
+    ) as mock_init:
         mock_init.return_value = None
         middleware_func = create_security_hardening_middleware()
         # Should create middleware instance
@@ -385,8 +401,12 @@ def test_authentication_method_string_representation():
 @pytest.mark.asyncio
 async def test_middleware_chain_compatibility(mock_request, mock_call_next):
     """Test middleware works in a chain"""
-    middleware1 = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MINIMAL)
-    middleware2 = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
+    middleware1 = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.MINIMAL
+    )
+    middleware2 = SecurityHardeningMiddleware(
+        Mock(), security_level=SecurityLevel.STANDARD
+    )
 
     with patch("agent.security_hardening.SecurityContext") as MockSecurityContext:
         MockSecurityContext.return_value = SecurityContext(mock_request)

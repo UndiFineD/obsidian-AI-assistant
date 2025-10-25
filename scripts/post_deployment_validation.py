@@ -13,12 +13,12 @@ Usage:
     python post_deployment_validation.py [--full] [--skip-timing] [--notify]
 """
 
+import json
 import subprocess
 import time
-import json
-from pathlib import Path
 from datetime import datetime
-from typing import Dict, List, Tuple
+from pathlib import Path
+from typing import Dict
 
 
 class PostDeploymentValidator:
@@ -81,7 +81,7 @@ class PostDeploymentValidator:
                     return False
 
             except subprocess.TimeoutExpired:
-                print(f"  ❌ TIMEOUT - Exceeded 5 minute limit")
+                print("  ❌ TIMEOUT - Exceeded 5 minute limit")
                 return False
             except Exception as e:
                 print(f"  ❌ ERROR: {e}")
@@ -236,7 +236,7 @@ class PostDeploymentValidator:
                         "--change-id",
                         f"test-{lane}-usability",
                         "--title",
-                        f"Usability Test",
+                        "Usability Test",
                         "--owner",
                         "automation",
                         "--lane",
@@ -256,7 +256,7 @@ class PostDeploymentValidator:
                 results.append(passed)
 
             except subprocess.TimeoutExpired:
-                print(f"    ❌ Timeout")
+                print("    ❌ Timeout")
                 results.append(False)
             except Exception as e:
                 print(f"    ❌ Error: {e}")
@@ -285,7 +285,7 @@ class PostDeploymentValidator:
         print("POST-5: All Tests Passing Validation")
         print("=" * 70)
 
-        print(f"\n  Running pytest tests/test_workflow_lanes.py...")
+        print("\n  Running pytest tests/test_workflow_lanes.py...")
 
         try:
             result = subprocess.run(
@@ -307,7 +307,7 @@ class PostDeploymentValidator:
             output_lines = result.stdout.split("\n")
             summary_line = [l for l in output_lines if "passed" in l.lower()]
 
-            print(f"  Test Output Summary:")
+            print("  Test Output Summary:")
             for line in summary_line:
                 print(f"    {line.strip()}")
 
@@ -324,7 +324,7 @@ class PostDeploymentValidator:
             return success
 
         except subprocess.TimeoutExpired:
-            print(f"  ❌ Tests timed out")
+            print("  ❌ Tests timed out")
             self.results["tests"]["post_5_all_tests"] = {
                 "status": "FAIL",
                 "reason": "timeout",

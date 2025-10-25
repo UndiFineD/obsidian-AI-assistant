@@ -166,7 +166,9 @@ def test_json_validation():
     assert not is_valid  # Should be blocked due to XSS content
 
     # Test overly complex JSON
-    complex_json = '{"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": {"i": {"j": {}}}}}}}}}}'
+    complex_json = (
+        '{"a": {"b": {"c": {"d": {"e": {"f": {"g": {"h": {"i": {"j": {}}}}}}}}}}'
+    )
     is_valid, data = validator.validate_json_input(complex_json, max_depth=5)
     assert not is_valid  # Should be blocked due to depth
 
@@ -211,7 +213,9 @@ async def test_security_integration():
     assert sanitized == "Normal input"
 
     # Test threat detection integration
-    is_safe, sanitized = validate_input_security("<script>alert('xss')</script>", "test")
+    is_safe, sanitized = validate_input_security(
+        "<script>alert('xss')</script>", "test"
+    )
     # Should be sanitized even if not completely blocked
     assert "&lt;" in sanitized or not is_safe
 

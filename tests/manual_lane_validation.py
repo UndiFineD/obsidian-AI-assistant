@@ -15,13 +15,13 @@ Usage:
     python tests/manual_lane_validation.py all      # Run all validations
 """
 
-import subprocess
-import time
 import json
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, Tuple, Optional
+import subprocess
 import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, Optional, Tuple
 
 
 class ManualLaneValidator:
@@ -59,7 +59,8 @@ class ManualLaneValidator:
         test_dir.mkdir(parents=True, exist_ok=True)
 
         test_file = test_dir / "TEST_README.md"
-        test_file.write_text("""
+        test_file.write_text(
+            """
 # Test Documentation
 
 This is a test documentation file created for TEST-13 validation.
@@ -74,7 +75,8 @@ Validate that the docs lane:
 ## Result
 
 If you're reading this, TEST-13 passed!
-""")
+"""
+        )
 
         print(f"✓ Created test file: {test_file}")
 
@@ -107,13 +109,17 @@ If you're reading this, TEST-13 passed!
 
             # Check results
             success = (
-                result.returncode == 0 and elapsed_time < 300 and "docs" in result.stdout.lower()
+                result.returncode == 0
+                and elapsed_time < 300
+                and "docs" in result.stdout.lower()
             )
 
             status = "✅ PASS" if success else "❌ FAIL"
 
             print(f"\n{status} TEST-13 Results:")
-            print(f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)")
+            print(
+                f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)"
+            )
             print(f"  • Time Requirement: < 5 minutes (300s)")
             print(f"  • SLA Met: {'✅ Yes' if elapsed_time < 300 else '❌ No'}")
             print(f"  • Return Code: {result.returncode} (expected: 0)")
@@ -132,11 +138,17 @@ If you're reading this, TEST-13 passed!
 
         except subprocess.TimeoutExpired:
             print("❌ TIMEOUT - Exceeded 5 minute limit")
-            self.results["tests"]["test_13_docs_lane"] = {"status": "FAIL", "reason": "timeout"}
+            self.results["tests"]["test_13_docs_lane"] = {
+                "status": "FAIL",
+                "reason": "timeout",
+            }
             return False
         except Exception as e:
             print(f"❌ ERROR: {e}")
-            self.results["tests"]["test_13_docs_lane"] = {"status": "FAIL", "reason": str(e)}
+            self.results["tests"]["test_13_docs_lane"] = {
+                "status": "FAIL",
+                "reason": str(e),
+            }
             return False
 
     def test_14_standard_lane(self) -> bool:
@@ -162,7 +174,8 @@ If you're reading this, TEST-13 passed!
 
         # Create code file
         code_file = test_dir / "test_module.py"
-        code_file.write_text("""
+        code_file.write_text(
+            """
 \"\"\"Test module for TEST-14 standard lane validation.\"\"\"
 
 
@@ -179,11 +192,13 @@ def add_numbers(a: int, b: int) -> int:
 if __name__ == "__main__":
     print(hello_world())
     print(f"2 + 3 = {add_numbers(2, 3)}")
-""")
+"""
+        )
 
         # Create documentation file
         doc_file = test_dir / "TEST_FEATURE.md"
-        doc_file.write_text("""
+        doc_file.write_text(
+            """
 # Test Feature
 
 This is a test feature with code and documentation.
@@ -201,7 +216,8 @@ from test_module import add_numbers
 result = add_numbers(5, 3)
 print(result)  # Output: 8
 ```
-""")
+"""
+        )
 
         print(f"✓ Created code file: {code_file}")
         print(f"✓ Created doc file: {doc_file}")
@@ -243,7 +259,9 @@ print(result)  # Output: 8
             status = "✅ PASS" if success else "❌ FAIL"
 
             print(f"\n{status} TEST-14 Results:")
-            print(f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)")
+            print(
+                f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)"
+            )
             print(f"  • Time Requirement: < 15 minutes (900s)")
             print(f"  • SLA Met: {'✅ Yes' if elapsed_time < 900 else '❌ No'}")
             print(f"  • Return Code: {result.returncode} (expected: 0)")
@@ -262,11 +280,17 @@ print(result)  # Output: 8
 
         except subprocess.TimeoutExpired:
             print("❌ TIMEOUT - Exceeded 15 minute limit")
-            self.results["tests"]["test_14_standard_lane"] = {"status": "FAIL", "reason": "timeout"}
+            self.results["tests"]["test_14_standard_lane"] = {
+                "status": "FAIL",
+                "reason": "timeout",
+            }
             return False
         except Exception as e:
             print(f"❌ ERROR: {e}")
-            self.results["tests"]["test_14_standard_lane"] = {"status": "FAIL", "reason": str(e)}
+            self.results["tests"]["test_14_standard_lane"] = {
+                "status": "FAIL",
+                "reason": str(e),
+            }
             return False
 
     def test_15_heavy_lane(self) -> bool:
@@ -300,7 +324,8 @@ print(result)  # Output: 8
                 f'"""Module {module}."""\n__version__ = "0.1.0"\n'
             )
 
-            (module_dir / f"{module}.py").write_text(f"""
+            (module_dir / f"{module}.py").write_text(
+                f"""
 \"\"\"Module {module} - Part of heavy lane test.\"\"\"
 
 
@@ -324,10 +349,12 @@ class {module.capitalize()}Handler:
     def process(self, data: str) -> str:
         \"\"\"Process data.\"\"\"
         return f"Processing {{data}} with {{self.module_name}}"
-""")
+"""
+            )
 
         # Create README for the complex change
-        (test_dir / "REFACTORING.md").write_text("""
+        (test_dir / "REFACTORING.md").write_text(
+            """
 # Heavy Refactoring
 
 This test simulates a major refactoring across multiple modules:
@@ -352,7 +379,8 @@ Heavy lane should:
 - Require 85%+ test coverage (vs 70% for standard)
 - Enforce 0 high-severity security issues
 - Complete within 20 minutes
-""")
+"""
+        )
 
         print(f"✓ Created test modules: {len(modules)} modules with 3+ files each")
 
@@ -385,13 +413,17 @@ Heavy lane should:
 
             # Check results
             success = (
-                result.returncode == 0 and elapsed_time < 1200 and "heavy" in result.stdout.lower()
+                result.returncode == 0
+                and elapsed_time < 1200
+                and "heavy" in result.stdout.lower()
             )
 
             status = "✅ PASS" if success else "❌ FAIL"
 
             print(f"\n{status} TEST-15 Results:")
-            print(f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)")
+            print(
+                f"  • Execution Time: {elapsed_time:.1f}s ({elapsed_time / 60:.2f} min)"
+            )
             print(f"  • Time Requirement: < 20 minutes (1200s)")
             print(f"  • SLA Met: {'✅ Yes' if elapsed_time < 1200 else '❌ No'}")
             print(f"  • Return Code: {result.returncode} (expected: 0)")
@@ -410,11 +442,17 @@ Heavy lane should:
 
         except subprocess.TimeoutExpired:
             print("❌ TIMEOUT - Exceeded 20 minute limit")
-            self.results["tests"]["test_15_heavy_lane"] = {"status": "FAIL", "reason": "timeout"}
+            self.results["tests"]["test_15_heavy_lane"] = {
+                "status": "FAIL",
+                "reason": "timeout",
+            }
             return False
         except Exception as e:
             print(f"❌ ERROR: {e}")
-            self.results["tests"]["test_15_heavy_lane"] = {"status": "FAIL", "reason": str(e)}
+            self.results["tests"]["test_15_heavy_lane"] = {
+                "status": "FAIL",
+                "reason": str(e),
+            }
             return False
 
     def run_all_validations(self) -> Dict:
@@ -490,7 +528,9 @@ if __name__ == "__main__":
             exit(0 if results["summary"]["overall_status"] == "PASS" else 1)
         else:
             print(f"Unknown test: {test}")
-            print("Usage: python tests/manual_lane_validation.py [test-13|test-14|test-15|all]")
+            print(
+                "Usage: python tests/manual_lane_validation.py [test-13|test-14|test-15|all]"
+            )
             exit(1)
 
         exit(0 if success else 1)

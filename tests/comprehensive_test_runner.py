@@ -149,7 +149,9 @@ class ComprehensiveTestRunner:
         )
         print("=" * 80)
         print(f"Test Discovery: {Colors.colorize('ACTIVE', Colors.GREEN)}")
-        print(f"Timestamp: {Colors.colorize(time.strftime('%Y-%m-%d %H:%M:%S'), Colors.BLUE)}")
+        print(
+            f"Timestamp: {Colors.colorize(time.strftime('%Y-%m-%d %H:%M:%S'), Colors.BLUE)}"
+        )
         print("=" * 80 + "\n")
 
     def print_test_status(
@@ -210,7 +212,9 @@ class ComprehensiveTestRunner:
         results = []
         relative_path = test_file.relative_to(self.test_root.parent)
 
-        print(f"\n{Colors.colorize(f'📁 Running {relative_path}', Colors.BOLD + Colors.BLUE)}")
+        print(
+            f"\n{Colors.colorize(f'📁 Running {relative_path}', Colors.BOLD + Colors.BLUE)}"
+        )
 
         # Get individual test functions
         test_functions = self.get_test_functions_from_file(test_file)
@@ -332,10 +336,14 @@ class ComprehensiveTestRunner:
             try:
                 self.run_single_test_file(test_file)
             except KeyboardInterrupt:
-                print(f"\n{Colors.colorize('⚠️ Test execution interrupted by user', Colors.YELLOW)}")
+                print(
+                    f"\n{Colors.colorize('⚠️ Test execution interrupted by user', Colors.YELLOW)}"
+                )
                 break
             except Exception as e:
-                print(f"\n{Colors.colorize(f'💥 Error running {test_file}: {e}', Colors.RED)}")
+                print(
+                    f"\n{Colors.colorize(f'💥 Error running {test_file}: {e}', Colors.RED)}"
+                )
                 continue
 
         # Print final summary
@@ -361,15 +369,25 @@ class ComprehensiveTestRunner:
             total_test_time += result.duration
 
         print("\n" + "=" * 80)
-        print(Colors.colorize("📊 COMPREHENSIVE TEST SUMMARY", Colors.BOLD + Colors.CYAN))
+        print(
+            Colors.colorize("📊 COMPREHENSIVE TEST SUMMARY", Colors.BOLD + Colors.CYAN)
+        )
         print("=" * 80)
 
         # Overall statistics
         total_tests = len(self.results)
-        pass_rate = (status_counts[TestStatus.PASSED] / total_tests * 100) if total_tests > 0 else 0
+        pass_rate = (
+            (status_counts[TestStatus.PASSED] / total_tests * 100)
+            if total_tests > 0
+            else 0
+        )
 
-        print(f"🕐 Total Execution Time: {Colors.colorize(f'{total_duration:.2f}s', Colors.BLUE)}")
-        print(f"⚡ Total Test Time: {Colors.colorize(f'{total_test_time:.2f}s', Colors.BLUE)}")
+        print(
+            f"🕐 Total Execution Time: {Colors.colorize(f'{total_duration:.2f}s', Colors.BLUE)}"
+        )
+        print(
+            f"⚡ Total Test Time: {Colors.colorize(f'{total_test_time:.2f}s', Colors.BLUE)}"
+        )
         print(f"🧪 Total Tests: {Colors.colorize(str(total_tests), Colors.BOLD)}")
         print(
             f"📈 Pass Rate: {Colors.colorize(f'{pass_rate:.1f}%', Colors.GREEN if pass_rate >= 90 else Colors.YELLOW)}"
@@ -379,8 +397,12 @@ class ComprehensiveTestRunner:
         print(
             f"  ✅ Passed:  {Colors.colorize(str(status_counts[TestStatus.PASSED]), Colors.GREEN)}"
         )
-        print(f"  ❌ Failed:  {Colors.colorize(str(status_counts[TestStatus.FAILED]), Colors.RED)}")
-        print(f"  💥 Errors:  {Colors.colorize(str(status_counts[TestStatus.ERROR]), Colors.RED)}")
+        print(
+            f"  ❌ Failed:  {Colors.colorize(str(status_counts[TestStatus.FAILED]), Colors.RED)}"
+        )
+        print(
+            f"  💥 Errors:  {Colors.colorize(str(status_counts[TestStatus.ERROR]), Colors.RED)}"
+        )
         print(
             f"  ⏭️ Skipped: {Colors.colorize(str(status_counts[TestStatus.SKIPPED]), Colors.YELLOW)}"
         )
@@ -394,7 +416,9 @@ class ComprehensiveTestRunner:
             for result in failed_tests:
                 print(f"  {result.number:3d}. {result.name} ({result.file_path})")
                 if result.error_message and len(result.error_message) < 100:
-                    print(f"       {Colors.colorize(result.error_message.strip(), Colors.RED)}")
+                    print(
+                        f"       {Colors.colorize(result.error_message.strip(), Colors.RED)}"
+                    )
 
         # Performance insights
         slowest_tests = sorted(self.results, key=lambda x: x.duration, reverse=True)[:5]
@@ -406,8 +430,13 @@ class ComprehensiveTestRunner:
         print("=" * 80)
 
         # Final status
-        if status_counts[TestStatus.FAILED] == 0 and status_counts[TestStatus.ERROR] == 0:
-            print(Colors.colorize("🎉 ALL TESTS PASSED! 🎉", Colors.BOLD + Colors.GREEN))
+        if (
+            status_counts[TestStatus.FAILED] == 0
+            and status_counts[TestStatus.ERROR] == 0
+        ):
+            print(
+                Colors.colorize("🎉 ALL TESTS PASSED! 🎉", Colors.BOLD + Colors.GREEN)
+            )
         else:
             print(Colors.colorize("💥 SOME TESTS FAILED", Colors.BOLD + Colors.RED))
 
@@ -432,7 +461,9 @@ class ComprehensiveTestRunner:
             "errors": status_counts[TestStatus.ERROR],
             "skipped": status_counts[TestStatus.SKIPPED],
             "pass_rate": (
-                (status_counts[TestStatus.PASSED] / len(self.results) * 100) if self.results else 0
+                (status_counts[TestStatus.PASSED] / len(self.results) * 100)
+                if self.results
+                else 0
             ),
             "total_duration": time.time() - self.start_time,
             "results": [
@@ -466,7 +497,9 @@ def cleanup_old_test_files():
         "test_server.py",
     ]
 
-    print(Colors.colorize("🧹 CLEANING UP TEST DIRECTORIES", Colors.BOLD + Colors.YELLOW))
+    print(
+        Colors.colorize("🧹 CLEANING UP TEST DIRECTORIES", Colors.BOLD + Colors.YELLOW)
+    )
     print("=" * 60)
 
     removed_count = 0
@@ -479,7 +512,9 @@ def cleanup_old_test_files():
                 import shutil
 
                 shutil.rmtree(dir_path)
-                print(f"  {Colors.colorize('✅ Removed directory:', Colors.GREEN)} {dir_name}")
+                print(
+                    f"  {Colors.colorize('✅ Removed directory:', Colors.GREEN)} {dir_name}"
+                )
                 removed_count += 1
             except Exception as e:
                 print(
@@ -492,7 +527,9 @@ def cleanup_old_test_files():
         try:
             if full_path.is_file():
                 full_path.unlink()
-                print(f"  {Colors.colorize('✅ Removed file:', Colors.GREEN)} {file_path}")
+                print(
+                    f"  {Colors.colorize('✅ Removed file:', Colors.GREEN)} {file_path}"
+                )
                 removed_count += 1
         except Exception as e:
             print(
@@ -507,7 +544,11 @@ def cleanup_old_test_files():
 
 def main():
     """Main entry point."""
-    print(Colors.colorize("🚀 Initializing Comprehensive Test Runner", Colors.BOLD + Colors.CYAN))
+    print(
+        Colors.colorize(
+            "🚀 Initializing Comprehensive Test Runner", Colors.BOLD + Colors.CYAN
+        )
+    )
 
     # Cleanup old files first
     cleanup_old_test_files()

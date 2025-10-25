@@ -8,29 +8,29 @@ Tests cover:
 - Resource cleanup (temp files, lock files, orphaned directories)
 """
 
-import pytest
 import json
-import tempfile
 import shutil
 import subprocess
 import sys
-from pathlib import Path
+import tempfile
 from datetime import datetime
-from unittest.mock import patch, MagicMock
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from scripts.error_recovery import (
-    StateValidator,
-    StateRepair,
     CheckpointRollback,
-    ResourceCleaner,
-    ValidationError,
     RepairResult,
-    validate_state,
+    ResourceCleaner,
+    StateRepair,
+    StateValidator,
+    ValidationError,
+    cleanup_resources,
     repair_state,
     rollback_to_checkpoint,
-    cleanup_resources,
+    validate_state,
 )
-
 
 # ==================== Fixtures ====================
 
@@ -382,7 +382,9 @@ class TestCheckpointRollback:
         restore_dir.mkdir()
 
         rollback = CheckpointRollback(checkpoint_dir)
-        success, message = rollback.rollback_to_checkpoint("checkpoint-001", restore_dir)
+        success, message = rollback.rollback_to_checkpoint(
+            "checkpoint-001", restore_dir
+        )
 
         assert success
         assert (restore_dir / "state.json").exists()
@@ -396,7 +398,9 @@ class TestCheckpointRollback:
         restore_dir.mkdir()
 
         rollback = CheckpointRollback(checkpoint_dir)
-        success, message = rollback.rollback_to_checkpoint("checkpoint-999", restore_dir)
+        success, message = rollback.rollback_to_checkpoint(
+            "checkpoint-999", restore_dir
+        )
 
         assert not success
         assert "not found" in message.lower()

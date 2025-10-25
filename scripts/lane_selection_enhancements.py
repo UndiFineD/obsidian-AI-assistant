@@ -13,15 +13,14 @@ Date: 2025-10-24
 """
 
 import json
+import logging
 import os
 import subprocess
-import sys
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
-from datetime import datetime
-import logging
+from typing import Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(
@@ -314,7 +313,7 @@ class LaneErrorHandler:
         Returns:
             True if user wants to continue, False to cancel
         """
-        message = f"\n⚠️  WARNING: Code changes detected in docs lane\n"
+        message = "\n⚠️  WARNING: Code changes detected in docs lane\n"
         message += f"   Files: {', '.join(code_files[:3])}"
         if len(code_files) > 3:
             message += f" ... and {len(code_files) - 3} more"

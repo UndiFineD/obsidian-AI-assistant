@@ -26,7 +26,9 @@ class TestServiceInitialization:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture
@@ -143,7 +145,9 @@ class TestConfigurationIntegration:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     # def test_settings_propagation_to_services(self):
@@ -225,7 +229,9 @@ class TestCrossServiceCommunication:
     @pytest_asyncio.fixture
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     # @pytest.mark.asyncio

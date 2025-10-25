@@ -12,24 +12,23 @@ Tests for:
 import json
 import tempfile
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 import pytest
 import yaml
 
 from scripts.custom_lanes import (
     LaneDefinition,
-    QualityGateConfig,
     LaneRegistry,
     LaneValidator,
-    get_registry,
-    get_lane_by_name,
-    list_all_lanes,
+    QualityGateConfig,
     get_all_lane_names,
+    get_lane_by_name,
+    get_registry,
+    list_all_lanes,
     validate_lane,
     validate_yaml_file,
 )
-
 
 # ============================================================================
 # Fixtures
@@ -198,7 +197,9 @@ class TestLaneDefinition:
 
     def test_negative_timeout(self):
         """Test lane with negative timeout."""
-        lane = LaneDefinition(name="test", description="Test", stages=[0, 1], timeout=-100)
+        lane = LaneDefinition(
+            name="test", description="Test", stages=[0, 1], timeout=-100
+        )
         valid, errors = lane.validate()
 
         assert valid is False
@@ -371,7 +372,9 @@ class TestLaneRegistry:
 
     def test_override_built_in_with_flag(self, fresh_registry, lane_definition):
         """Test overriding built-in lane with overwrite flag."""
-        success, error = fresh_registry.register_lane("docs", lane_definition, overwrite=True)
+        success, error = fresh_registry.register_lane(
+            "docs", lane_definition, overwrite=True
+        )
 
         assert success is True
 

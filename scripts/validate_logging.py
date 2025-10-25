@@ -44,9 +44,9 @@ def test_logging_framework_structure():
     ]
 
     for class_name in required_classes:
-        assert f"class {class_name}" in framework_content, (
-            f"Missing required class: {class_name}"
-        )
+        assert (
+            f"class {class_name}" in framework_content
+        ), f"Missing required class: {class_name}"
 
     # Check for required functions
     required_functions = [
@@ -61,9 +61,9 @@ def test_logging_framework_structure():
     ]
 
     for func_name in required_functions:
-        assert f"def {func_name}" in framework_content, (
-            f"Missing required function: {func_name}"
-        )
+        assert (
+            f"def {func_name}" in framework_content
+        ), f"Missing required function: {func_name}"
 
     print("✓ Logging framework structure validation passed")
 
@@ -132,9 +132,9 @@ def test_agent_integration():
         assert import_item in agent_content, f"Missing required import: {import_item}"
 
     # Check for router inclusion
-    assert "app.include_router(log_router)" in agent_content, (
-        "Log management router not included"
-    )
+    assert (
+        "app.include_router(log_router)" in agent_content
+    ), "Log management router not included"
 
     # Check for logging initialization
     assert "initialize_logging(" in agent_content, "Logging initialization not found"
@@ -165,9 +165,9 @@ def test_settings_integration():
     ]
 
     for setting in required_settings:
-        assert setting in settings_content, (
-            f"Missing required logging setting: {setting}"
-        )
+        assert (
+            setting in settings_content
+        ), f"Missing required logging setting: {setting}"
 
     # Check allowed update keys
     allowed_keys_content = settings_content[
@@ -190,9 +190,9 @@ def test_settings_integration():
     ]
 
     for key in logging_keys:
-        assert key in allowed_keys_content, (
-            f"Missing logging key in allowed updates: {key}"
-        )
+        assert (
+            key in allowed_keys_content
+        ), f"Missing logging key in allowed updates: {key}"
 
     print("✓ Settings integration validation passed")
 
@@ -216,9 +216,9 @@ def test_pii_redaction():
     for pattern in sensitive_patterns:
         if pattern in test_data:
             # In actual implementation, this would be redacted
-            assert test_data[pattern] is not None, (
-                f"Should detect {pattern} for redaction"
-            )
+            assert (
+                test_data[pattern] is not None
+            ), f"Should detect {pattern} for redaction"
 
     print("✓ PII redaction pattern validation passed")
 
@@ -283,9 +283,9 @@ def test_performance_tracking():
     ]
 
     for method in performance_methods:
-        assert method in framework_content, (
-            f"Missing performance tracking method: {method}"
-        )
+        assert (
+            method in framework_content
+        ), f"Missing performance tracking method: {method}"
 
     print("✓ Performance tracking validation passed")
 
@@ -306,9 +306,9 @@ def test_audit_and_security_logging():
 
     # Check for security handler setup
     assert "_setup_audit_handler" in framework_content, "Missing audit handler setup"
-    assert "_setup_security_handler" in framework_content, (
-        "Missing security handler setup"
-    )
+    assert (
+        "_setup_security_handler" in framework_content
+    ), "Missing security handler setup"
 
     print("✓ Audit and security logging validation passed")
 
@@ -330,14 +330,14 @@ def test_api_error_handling():
     ]
 
     for import_item in error_handling_imports:
-        assert import_item in api_content, (
-            f"Missing error handling import: {import_item}"
-        )
+        assert (
+            import_item in api_content
+        ), f"Missing error handling import: {import_item}"
 
     # Check for error context usage
-    assert "with error_context(" in api_content, (
-        "Error context not used in API endpoints"
-    )
+    assert (
+        "with error_context(" in api_content
+    ), "Error context not used in API endpoints"
 
     print("✓ API error handling validation passed")
 
@@ -366,9 +366,9 @@ def test_structured_logging_format():
     ]
 
     for field in structured_fields:
-        assert f"'{field}'" in framework_content, (
-            f"Missing structured log field: {field}"
-        )
+        assert (
+            f"'{field}'" in framework_content
+        ), f"Missing structured log field: {field}"
 
     print("✓ Structured logging format validation passed")
 

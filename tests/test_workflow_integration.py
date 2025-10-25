@@ -15,13 +15,12 @@ Test execution: pytest tests/test_workflow_integration.py -v
 
 import json
 import sys
+import tempfile
 import time
 from pathlib import Path
-from unittest.mock import Mock, MagicMock, patch
-import tempfile
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
 
 # Mock sys.modules for ML libraries before importing
 sys.modules["torch"] = MagicMock()
@@ -31,9 +30,9 @@ sys.modules["transformers"] = MagicMock()
 SCRIPTS_DIR = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS_DIR))
 
-from workflow import LANE_MAPPING, get_stages_for_lane, get_lane_config
-from hook_registry import HookRegistry
 from conventional_commits import CommitValidator
+from hook_registry import HookRegistry
+from workflow import LANE_MAPPING, get_lane_config, get_stages_for_lane
 
 
 class TestLaneConfiguration:
@@ -57,7 +56,10 @@ class TestLaneConfiguration:
     def test_standard_lane_configuration(self):
         """Verify standard lane runs all stages with validation."""
         lane_config = LANE_MAPPING["standard"]
-        assert lane_config["description"] == "Standard workflow with basic validation (~15 min)"
+        assert (
+            lane_config["description"]
+            == "Standard workflow with basic validation (~15 min)"
+        )
         assert lane_config["quality_gates_enabled"] is True
         assert lane_config["parallelization_enabled"] is True
         assert lane_config["max_duration_seconds"] == 900

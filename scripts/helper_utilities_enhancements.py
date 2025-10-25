@@ -39,13 +39,13 @@ Version: 0.1.45
 import base64
 import json
 import os
-import psutil
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, TypeVar, Generic, Tuple
+from typing import Any, Callable, Dict, Generic, List, Optional, Tuple, TypeVar
 
+import psutil
 
 T = TypeVar("T")
 

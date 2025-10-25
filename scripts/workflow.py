@@ -54,6 +54,14 @@ spec = importlib.util.spec_from_file_location(
 helpers = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(helpers)
 
+# Configure structured logging
+log_file = PROJECT_ROOT / "logs" / "workflow.log"
+log_file.parent.mkdir(parents=True, exist_ok=True)  # Ensure logs directory exists
+helpers.configure_logger(
+    log_file=log_file, level=helpers.LogLevel.NORMAL, enable_json=True
+)
+logger = helpers.get_logger()
+
 # Import progress indicators
 try:
     from progress_indicators import workflow_progress
@@ -460,6 +468,316 @@ def cleanup_checkpoints_cmd(change_id: str, keep_count: int):
         return 1
 
 
+def generate_summary_report_cmd(change_id: str, output_file: Optional[Path] = None) -> int:
+    """Generate a comprehensive summary report for a change."""
+    change_path = CHANGES_DIR / change_id
+    if not change_path.exists():
+        helpers.write_error(f"Change not found: {change_id}")
+        return 1
+
+    try:
+        report = helpers.WorkflowVisualizer.generate_summary_report(change_path, output_file)
+        if output_file:
+            helpers.write_success(f"Summary report saved to {output_file}")
+        else:
+            print(report)
+        return 0
+    except Exception as e:
+        helpers.write_error(f"Failed to generate summary report: {e}")
+        return 1
+
+
+def generate_quality_report_cmd(change_id: str, output_file: Optional[Path] = None) -> int:
+    """Generate a quality metrics report for a change."""
+    change_path = CHANGES_DIR / change_id
+    if not change_path.exists():
+        helpers.write_error(f"Change not found: {change_id}")
+        return 1
+
+    try:
+        report = helpers.WorkflowVisualizer.generate_quality_metrics_report(
+            change_path, PROJECT_ROOT, output_file
+        )
+        if output_file:
+            helpers.write_success(f"Quality metrics report saved to {output_file}")
+        else:
+            print(report)
+        return 0
+    except Exception as e:
+        helpers.write_error(f"Failed to generate quality report: {e}")
+        return 1
+
+
+def generate_cross_validation_report_cmd(change_id: str, output_file: Optional[Path] = None) -> int:
+    """Generate a cross-validation report for a change."""
+    change_path = CHANGES_DIR / change_id
+    if not change_path.exists():
+        helpers.write_error(f"Change not found: {change_id}")
+        return 1
+
+    try:
+        report = helpers.WorkflowVisualizer.generate_cross_validation_report(
+            change_path, PROJECT_ROOT, output_file
+        )
+        if output_file:
+            helpers.write_success(f"Cross-validation report saved to {output_file}")
+        else:
+            print(report)
+        return 0
+    except Exception as e:
+        helpers.write_error(f"Failed to generate cross-validation report: {e}")
+        return 1
+
+def generate_performance_report_cmd(change_id: str, output_file: Optional[Path] = None) -> int:
+    """Generate a performance analysis report for a change."""
+    change_path = CHANGES_DIR / change_id
+    if not change_path.exists():
+        helpers.write_error(f"Change not found: {change_id}")
+        return 1
+
+    try:
+        report = helpers.WorkflowVisualizer.generate_performance_report(change_path, output_file)
+        if output_file:
+            helpers.write_success(f"Performance report saved to {output_file}")
+        else:
+            print(report)
+        return 0
+    except Exception as e:
+        helpers.write_error(f"Failed to generate performance report: {e}")
+        return 1
+
+def execute_with_agent(
+    step_num: int,
+    change_path: Path,
+    title: Optional[str] = None,
+    owner: Optional[str] = None,
+    dry_run: bool = False,
+    release_type: Optional[str] = None,
+    template: str = "default",
+    enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
+    lane: str = "standard",
+    force_hooks: bool = False,
+    skip_verify: bool = False,
+) -> bool:
+    """
+    Execute a workflow step with AI agent assistance.
+
+    This function attempts to use an AI agent to execute the step, with fallback
+    to manual execution if the agent is unavailable or fails.
+
+    Args:
+        step_num: Step number to execute (0-12)
+        change_path: Path to change directory
+        title: Change title
+        owner: Change owner
+        dry_run: Dry run mode
+        release_type: Release type for versioning
+        template: Template to use
+        enable_checkpoints: Enable checkpoint creation
+        skip_quality_gates: Skip quality gates
+        lane: Workflow lane
+        force_hooks: Skip pre-step hooks
+        skip_verify: Skip Conventional Commits validation
+
+    Returns:
+        True if step succeeds, False otherwise
+    """
+    import json
+    import os
+    from datetime import datetime
+
+    # Create agent logs directory
+    agent_logs_dir = change_path / "agent_logs"
+    agent_logs_dir.mkdir(exist_ok=True)
+
+    # Log agent execution attempt
+    log_file = agent_logs_dir / f"step_{step_num}_agent_execution.json"
+    execution_log = {
+        "timestamp": datetime.now().isoformat(),
+        "step": step_num,
+        "lane": lane,
+        "dry_run": dry_run,
+        "agent_attempted": True,
+        "agent_available": False,
+        "agent_success": False,
+        "fallback_used": False,
+        "error": None,
+        "execution_details": {},
+    }
+
+    try:
+        # Check if agent is available (environment variable or config)
+        agent_available = os.getenv("OPENSPEC_AGENT_ENABLED", "false").lower() == "true"
+
+        if not agent_available:
+            execution_log["agent_available"] = False
+            execution_log["fallback_used"] = True
+            helpers.write_info(
+                f"[AGENT] Agent not available, using manual execution for step {step_num}"
+            )
+
+            # Fallback to manual execution
+            success = execute_step(
+                step_num,
+                change_path,
+                title,
+                owner,
+                dry_run,
+                release_type,
+                template,
+                enable_checkpoints,
+                skip_quality_gates,
+                lane,
+                force_hooks,
+                use_agent=False,  # Prevent recursion
+                skip_verify=skip_verify,
+            )
+
+            execution_log["manual_success"] = success
+            return success
+
+        execution_log["agent_available"] = True
+        helpers.write_info(
+            f"[AGENT] Attempting AI-assisted execution for step {step_num}"
+        )
+
+        # Import agent execution module (if available)
+        try:
+            from agent_execution import execute_step_with_agent
+
+            agent_func = execute_step_with_agent
+        except ImportError:
+            # Fallback if agent module not available
+            execution_log["error"] = "agent_execution module not found"
+            execution_log["fallback_used"] = True
+            helpers.write_warning(
+                "[AGENT] Agent execution module not found, falling back to manual"
+            )
+
+            success = execute_step(
+                step_num,
+                change_path,
+                title,
+                owner,
+                dry_run,
+                release_type,
+                template,
+                enable_checkpoints,
+                skip_quality_gates,
+                lane,
+                force_hooks,
+                use_agent=False,
+                skip_verify=skip_verify,
+            )
+
+            execution_log["manual_success"] = success
+            return success
+
+        # Execute with agent
+        agent_result = agent_func(
+            step_num=step_num,
+            change_path=change_path,
+            title=title,
+            owner=owner,
+            dry_run=dry_run,
+            release_type=release_type,
+            template=template,
+            lane=lane,
+        )
+
+        # Check agent result
+        if agent_result.get("success", False):
+            execution_log["agent_success"] = True
+            execution_log["execution_details"] = agent_result.get("details", {})
+            helpers.write_success(
+                f"[AGENT] Step {step_num} completed successfully with AI assistance"
+            )
+
+            # Log successful agent execution
+            logger.log_agent_execution(
+                change_id=change_path.name,
+                step_id=step_num,
+                agent_available=True,
+                agent_success=True,
+                fallback_used=False,
+                duration=None,
+            )
+
+            return True
+        else:
+            # Agent failed, fallback to manual
+            execution_log["agent_success"] = False
+            execution_log["error"] = agent_result.get("error", "Agent execution failed")
+            execution_log["fallback_used"] = True
+
+            helpers.write_warning(
+                f"[AGENT] Agent execution failed for step {step_num}, falling back to manual"
+            )
+            helpers.write_info(f"[AGENT] Error: {execution_log['error']}")
+
+            success = execute_step(
+                step_num,
+                change_path,
+                title,
+                owner,
+                dry_run,
+                release_type,
+                template,
+                enable_checkpoints,
+                skip_quality_gates,
+                lane,
+                force_hooks,
+                use_agent=False,
+                skip_verify=skip_verify,
+            )
+
+            execution_log["manual_success"] = success
+            return success
+
+    except Exception as e:
+        # Unexpected error, fallback to manual
+        execution_log["error"] = str(e)
+        execution_log["fallback_used"] = True
+
+        helpers.write_error(f"[AGENT] Unexpected error in agent execution: {e}")
+        helpers.write_info(
+            f"[AGENT] Falling back to manual execution for step {step_num}"
+        )
+
+        try:
+            success = execute_step(
+                step_num,
+                change_path,
+                title,
+                owner,
+                dry_run,
+                release_type,
+                template,
+                enable_checkpoints,
+                skip_quality_gates,
+                lane,
+                force_hooks,
+                use_agent=False,
+                skip_verify=skip_verify,
+            )
+
+            execution_log["manual_success"] = success
+            return success
+        except Exception as manual_error:
+            execution_log["manual_error"] = str(manual_error)
+            execution_log["complete_failure"] = True
+            return False
+
+    finally:
+        # Write execution log
+        try:
+            with open(log_file, "w", encoding="utf-8") as f:
+                json.dump(execution_log, f, indent=2, ensure_ascii=False)
+        except Exception as log_error:
+            helpers.write_warning(f"[AGENT] Failed to write execution log: {log_error}")
+
+
 def execute_step(
     step_num: int,
     change_path: Path,
@@ -472,6 +790,8 @@ def execute_step(
     skip_quality_gates: bool = False,
     lane: str = "standard",
     force_hooks: bool = False,
+    use_agent: bool = False,
+    skip_verify: bool = False,
 ) -> bool:
     """
     Execute a specific workflow step with optional checkpoint creation and status tracking.
@@ -484,13 +804,21 @@ def execute_step(
         dry_run: If True, preview without making changes
         template: Proposal template type (for step 2)
         enable_checkpoints: If True, create checkpoint before execution
-        skip_quality_gates: If True, skip quality gates (not recommended)
+        skip_quality_gates: If True, skip quality gates
         lane: Workflow lane (docs, standard, heavy)
         force_hooks: If True, skip pre-step hooks (not recommended)
 
     Returns:
         True if successful, False otherwise
     """
+    change_id = change_path.name
+    step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
+
+    # Log step start
+    logger.log_step_start(
+        step_id=step_num, step_name=step_name, change_id=change_id, lane=lane
+    )
+
     # Initialize checkpoint manager if available and enabled
     checkpoint_manager = None
     checkpoint_id = None
@@ -498,10 +826,18 @@ def execute_step(
     if CHECKPOINT_AVAILABLE and enable_checkpoints and not dry_run:
         try:
             checkpoint_manager = CheckpointManager(change_path)
-            step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
             checkpoint_id = checkpoint_manager.create_checkpoint(
                 step_num, step_name, notes=f"Before executing step {step_num}"
             )
+
+            # Log checkpoint creation
+            logger.log_checkpoint(
+                change_id=change_id,
+                step_id=step_num,
+                checkpoint_id=checkpoint_id,
+                operation="create",
+            )
+
         except Exception as e:
             helpers.write_warning(f"Could not create checkpoint: {e}")
 
@@ -514,7 +850,6 @@ def execute_step(
                 lane=lane,
                 status_file=change_path / ".checkpoints" / "status.json",
             )
-            step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
             status_tracker.start_stage(step_num, step_name)
         except Exception as e:
             helpers.write_warning(f"Could not initialize status tracker: {e}")
@@ -573,9 +908,33 @@ def execute_step(
     if dry_run:
         kwargs["dry_run"] = dry_run
 
+    if use_agent:
+        kwargs["use_agent"] = use_agent
+
+    if step_num == 10 and skip_verify:
+        # Pass skip_verify flag to step 10 for conventional commits validation
+        kwargs["skip_verify"] = skip_verify
+
     # Note: skip_quality_gates is tracked at workflow level but not passed to individual
     # steps since they don't directly control quality gate execution. The flag is meant
     # to be used by generated test.py and implement.py scripts.
+
+    # Check if agent-assisted execution is requested
+    if use_agent:
+        return execute_with_agent(
+            step_num,
+            change_path,
+            title,
+            owner,
+            dry_run,
+            release_type,
+            template,
+            enable_checkpoints,
+            skip_quality_gates,
+            lane,
+            force_hooks,
+            skip_verify,
+        )
 
     # Execute step
     try:
@@ -585,9 +944,29 @@ def execute_step(
         if success and checkpoint_manager:
             checkpoint_manager.mark_step_success(step_num)
 
+            # Log successful checkpoint marking
+            if checkpoint_id:
+                logger.log_checkpoint(
+                    change_id=change_id,
+                    step_id=step_num,
+                    checkpoint_id=checkpoint_id,
+                    operation="mark_success",
+                )
+
         # Record completion in status tracker
         if status_tracker and not dry_run:
             status_tracker.complete_stage(step_num, success=success)
+
+        # Log step completion
+        logger.log_step_end(
+            step_id=step_num,
+            step_name=step_name,
+            change_id=change_id,
+            success=success,
+            duration=None,  # Could be calculated if we tracked start time
+            files_created=None,  # Could be tracked if we monitored file operations
+            files_modified=None,
+        )
 
         return success
     except Exception as e:
@@ -601,6 +980,16 @@ def execute_step(
             status_tracker.complete_stage(
                 step_num, success=False, metrics={"error": str(e)}
             )
+
+        # Log step failure
+        logger.log_step_end(
+            step_id=step_num,
+            step_name=step_name,
+            change_id=change_id,
+            success=False,
+            duration=None,
+            error=str(e),
+        )
 
         # Offer rollback if checkpoint was created
         if checkpoint_manager and checkpoint_id:
@@ -625,6 +1014,8 @@ def run_single_step(
     skip_quality_gates: bool = False,
     lane: str = "standard",
     force_hooks: bool = False,
+    use_agent: bool = False,
+    skip_verify: bool = False,
 ):
     """Run a single workflow step."""
     change_path = CHANGES_DIR / change_id
@@ -661,6 +1052,8 @@ def run_single_step(
         skip_quality_gates,
         lane,
         force_hooks,
+        use_agent,
+        skip_verify,
     )
 
     print()
@@ -820,6 +1213,8 @@ def execute_stages_parallel(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     max_workers: int = 3,
+    use_agent: bool = False,
+    skip_verify: bool = False,
 ) -> bool:
     """
     Execute multiple stages in parallel (used for stages 2-6).
@@ -835,6 +1230,8 @@ def execute_stages_parallel(
         enable_checkpoints: Enable checkpoint creation
         skip_quality_gates: Skip quality gates
         max_workers: Max parallel workers (default: 3)
+        use_agent: Enable AI-assisted execution
+        skip_verify: Skip Conventional Commits validation
 
     Returns:
         True if all stages succeed, False if any stage fails
@@ -853,6 +1250,8 @@ def execute_stages_parallel(
                 template,
                 enable_checkpoints,
                 skip_quality_gates,
+                use_agent=use_agent,
+                skip_verify=skip_verify,
             )
             if not success:
                 return False
@@ -877,6 +1276,10 @@ def execute_stages_parallel(
                     template,
                     enable_checkpoints,
                     skip_quality_gates,
+                    "standard",  # lane - default for parallel execution
+                    False,  # force_hooks - default for parallel execution
+                    use_agent,
+                    skip_verify,
                 ],
                 {},
             )
@@ -916,6 +1319,8 @@ def run_interactive_workflow(
     skip_quality_gates: bool = False,
     lane: str = "standard",
     force_hooks: bool = False,
+    use_agent: bool = False,
+    skip_verify: bool = False,
 ):
     """Run the complete interactive workflow."""
     change_path = CHANGES_DIR / change_id
@@ -930,6 +1335,17 @@ def run_interactive_workflow(
         )
         change_path.mkdir(parents=True, exist_ok=True)
         helpers.write_success(f"Created directory: {change_path}\n")
+
+    # Log workflow start
+    total_steps = len(get_stages_for_lane(lane))
+    logger.log_workflow_start(
+        change_id=change_id,
+        title=title,
+        owner=owner,
+        lane=lane,
+        total_steps=total_steps,
+        dry_run=dry_run,
+    )
 
     # Check for code changes in docs lane
     if lane == "docs":
@@ -1059,14 +1475,24 @@ def run_interactive_workflow(
                             template,
                             enable_checkpoints,
                             skip_quality_gates,
+                            use_agent=use_agent,
+                            skip_verify=skip_verify,
                         )
 
                         if not success:
-                            wp.finish(f"Failed at Parallel Stages")
+                            wp.finish("Failed at Parallel Stages")
                             print()
                             helpers.write_error(
                                 "Parallel stages failed. Stopping workflow."
                             )
+
+                            # Log workflow failure
+                            logger.log_workflow_end(
+                                change_id=change_id,
+                                success=False,
+                                steps_completed=i - 1,
+                            )
+
                             return 1
 
                         wp.update_step_progress("Complete")
@@ -1105,6 +1531,8 @@ def run_interactive_workflow(
                     skip_quality_gates,
                     lane=lane,
                     force_hooks=force_hooks,
+                    use_agent=use_agent,
+                    skip_verify=skip_verify,
                 )
 
                 if not success:
@@ -1116,6 +1544,12 @@ def run_interactive_workflow(
                     helpers.write_info(
                         f"Fix the issue and re-run with: python workflow.py --change-id {change_id} --step {current_step}"
                     )
+
+                    # Log workflow failure
+                    logger.log_workflow_end(
+                        change_id=change_id, success=False, steps_completed=i - 1
+                    )
+
                     return 1
 
                 wp.update_step_progress("Complete")
@@ -1142,6 +1576,8 @@ def run_interactive_workflow(
                 skip_quality_gates,
                 lane=lane,
                 force_hooks=force_hooks,
+                use_agent=use_agent,
+                skip_verify=skip_verify,
             )
 
             if not success:
@@ -1150,6 +1586,14 @@ def run_interactive_workflow(
                 helpers.write_info(
                     f"Fix the issue and re-run with: python workflow.py --change-id {change_id} --step {current_step}"
                 )
+
+                # Log workflow failure
+                logger.log_workflow_end(
+                    change_id=change_id,
+                    success=False,
+                    steps_completed=current_step,  # Approximate
+                )
+
                 return 1
 
             print()
@@ -1166,6 +1610,14 @@ def run_interactive_workflow(
     if VISUALIZER_AVAILABLE:
         print()
         show_status(change_id, "tree")
+
+    # Log workflow completion
+    logger.log_workflow_end(
+        change_id=change_id,
+        success=True,
+        total_duration=None,  # Could be calculated if we tracked start time
+        steps_completed=total_steps,
+    )
 
     return 0
 
@@ -1307,16 +1759,24 @@ Examples:
     # Mode selection
     mode_group = parser.add_mutually_exclusive_group()
     mode_group.add_argument(
-        "--list", action="store_true", help="List all active changes"
+        "--list",
+        action="store_true",
+        help="List all active changes"
     )
     mode_group.add_argument(
-        "--validate", action="store_true", help="Validate change directory structure"
+        "--validate",
+        action="store_true",
+        help="Validate change directory structure"
     )
     mode_group.add_argument(
-        "--archive", action="store_true", help="Archive a completed change"
+        "--archive",
+        action="store_true",
+        help="Archive a completed change"
     )
     mode_group.add_argument(
-        "--status", action="store_true", help="Show workflow status visualization"
+        "--status",
+        action="store_true",
+        help="Show workflow status visualization"
     )
     mode_group.add_argument(
         "--list-checkpoints",
@@ -1330,12 +1790,24 @@ Examples:
         help="Rollback to a specific checkpoint",
     )
     mode_group.add_argument(
-        "--cleanup-checkpoints",
-        type=int,
-        metavar="KEEP",
-        nargs="?",
-        const=10,
-        help="Remove old checkpoints, keeping the most recent N (default: 10)",
+        "--generate-summary-report",
+        action="store_true",
+        help="Generate a comprehensive summary report for a change",
+    )
+    mode_group.add_argument(
+        "--generate-quality-report",
+        action="store_true",
+        help="Generate a quality metrics report for a change",
+    )
+    mode_group.add_argument(
+        "--generate-cross-validation-report",
+        action="store_true",
+        help="Generate a cross-validation report for a change",
+    )
+    mode_group.add_argument(
+        "--generate-performance-report",
+        action="store_true",
+        help="Generate a performance analysis report for a change",
     )
 
     # Change identification
@@ -1344,13 +1816,11 @@ Examples:
         type=str,
         help='Change identifier (kebab-case, e.g., "update-readme")',
     )
-
     parser.add_argument(
         "--path",
         type=str,
         help='Path to change directory (e.g., "openspec/changes/my-change")',
     )
-
     # Change metadata
     parser.add_argument(
         "--title",
@@ -1369,7 +1839,6 @@ Examples:
         default="default",
         help="Proposal template to use (feature, bugfix, docs, refactor, or default)",
     )
-
     # Execution control
     parser.add_argument(
         "--lane",
@@ -1421,6 +1890,27 @@ Examples:
         action="store_true",
         help="Skip pre-step hooks without validation (not recommended)",
     )
+    parser.add_argument(
+        "--use-agent",
+        action="store_true",
+        help="Enable AI-assisted workflow execution with audit logging",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        help="Output file path for generated reports (optional, defaults to change directory)",
+    )
+    parser.add_argument(
+        "--cleanup-checkpoints",
+        type=int,
+        metavar="N",
+        help="Clean up old checkpoints, keeping the N most recent (requires --change-id)",
+    )
+    parser.add_argument(
+        "--no-verify",
+        action="store_true",
+        help="Skip Conventional Commits validation in Step 10",
+    )
 
     args = parser.parse_args()
 
@@ -1430,10 +1920,8 @@ Examples:
         print(f"[LANE] {lane_config['name']}: {lane_config['description']}")
         # Stages to execute will be determined by: get_stages_for_lane(args.lane)
         # Quality gates will run: {should_run_quality_gates(args.lane)}
-
     # Ensure changes directory exists
     CHANGES_DIR.mkdir(parents=True, exist_ok=True)
-
     # Normalize --path to change_id if provided
     if args.path:
         change_id = Path(args.path).name
@@ -1478,6 +1966,31 @@ Examples:
             parser.error("--cleanup-checkpoints requires either --change-id or --path")
         return cleanup_checkpoints_cmd(args.change_id, args.cleanup_checkpoints)
 
+    # Report generation operations
+    if args.generate_summary_report:
+        if not args.change_id:
+            parser.error("--generate-summary-report requires either --change-id or --path")
+        output_file = Path(args.output) if args.output else None
+        return generate_summary_report_cmd(args.change_id, output_file)
+
+    if args.generate_quality_report:
+        if not args.change_id:
+            parser.error("--generate-quality-report requires either --change-id or --path")
+        output_file = Path(args.output) if args.output else None
+        return generate_quality_report_cmd(args.change_id, output_file)
+
+    if args.generate_cross_validation_report:
+        if not args.change_id:
+            parser.error("--generate-cross-validation-report requires either --change-id or --path")
+        output_file = Path(args.output) if args.output else None
+        return generate_cross_validation_report_cmd(args.change_id, output_file)
+
+    if args.generate_performance_report:
+        if not args.change_id:
+            parser.error("--generate-performance-report requires either --change-id or --path")
+        output_file = Path(args.output) if args.output else None
+        return generate_performance_report_cmd(args.change_id, output_file)
+
     # Regular workflow execution
     if not args.change_id:
         parser.error("--change-id or --path is required (or use --list)")
@@ -1499,6 +2012,8 @@ Examples:
             args.skip_quality_gates,
             args.lane,
             args.force_hooks,
+            args.use_agent,
+            args.no_verify,
         )
     else:
         # Interactive workflow
@@ -1513,6 +2028,8 @@ Examples:
             args.skip_quality_gates,
             args.lane,
             args.force_hooks,
+            args.use_agent,
+            args.no_verify,
         )
 
 

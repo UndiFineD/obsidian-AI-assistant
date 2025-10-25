@@ -39,7 +39,9 @@ sys.modules["sentence_transformers"].SentenceTransformer = MagicMock(
 )
 
 persistent_client_mock = MagicMock()
-sys.modules["chromadb"].PersistentClient = MagicMock(return_value=persistent_client_mock)
+sys.modules["chromadb"].PersistentClient = MagicMock(
+    return_value=persistent_client_mock
+)
 
 
 @pytest.fixture(scope="session", autouse=True)

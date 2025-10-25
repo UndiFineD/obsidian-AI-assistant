@@ -2310,9 +2310,7 @@ async def get_performance_health():
             "status": (
                 "healthy"
                 if memory_usage < 80
-                else "critical"
-                if memory_usage > 90
-                else "warning"
+                else "critical" if memory_usage > 90 else "warning"
             ),
             "usage_percent": memory_usage,
             "message": f"Memory usage: {memory_usage:.1f}%",
@@ -2329,9 +2327,7 @@ async def get_performance_health():
             "status": (
                 "healthy"
                 if avg_response_time < 500
-                else "critical"
-                if avg_response_time > 2000
-                else "warning"
+                else "critical" if avg_response_time > 2000 else "warning"
             ),
             "avg_response_ms": avg_response_time,
             "message": f"Average response time: {avg_response_time}ms",
@@ -2532,9 +2528,7 @@ def _calculate_performance_score(system_metrics: dict, cache_stats: dict) -> dic
                     else (
                         "C"
                         if overall_score >= 70
-                        else "D"
-                        if overall_score >= 60
-                        else "F"
+                        else "D" if overall_score >= 60 else "F"
                     )
                 )
             ),

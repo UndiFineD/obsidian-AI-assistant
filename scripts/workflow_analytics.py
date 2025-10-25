@@ -14,14 +14,14 @@ Author: Obsidian AI Agent
 License: MIT
 """
 
+import csv
+import json
+import statistics
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
-import json
-import csv
-import statistics
-from collections import defaultdict
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -686,9 +686,9 @@ End:   {metrics.time_period_end.isoformat()}
 
 
 # Public API functions
-def create_analytics_pipeline() -> Tuple[
-    MetricsAggregator, TrendAnalyzer, DashboardGenerator, ReportFormatter
-]:
+def create_analytics_pipeline() -> (
+    Tuple[MetricsAggregator, TrendAnalyzer, DashboardGenerator, ReportFormatter]
+):
     """Create a complete analytics pipeline."""
     aggregator = MetricsAggregator()
     analyzer = TrendAnalyzer(aggregator)

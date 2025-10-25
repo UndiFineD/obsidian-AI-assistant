@@ -20,10 +20,10 @@ License: MIT
 import json
 import logging
 import sys
-from pathlib import Path
+from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, Any, Optional, List
-from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 @dataclass
@@ -209,8 +209,8 @@ class DiagnosticCollector:
     @staticmethod
     def collect_environment_info() -> Dict:
         """Collect environment information"""
-        import platform
         import os
+        import platform
 
         return {
             "python_version": platform.python_version(),
@@ -256,9 +256,9 @@ class DiagnosticCollector:
             "environment": DiagnosticCollector.collect_environment_info(),
             "workflow_state": DiagnosticCollector.collect_workflow_state(status_file),
             "system_resources": DiagnosticCollector.collect_system_resources(),
-            "log_files": [str(f) for f in log_dir.glob("*.log")]
-            if log_dir.exists()
-            else [],
+            "log_files": (
+                [str(f) for f in log_dir.glob("*.log")] if log_dir.exists() else []
+            ),
         }
 
 

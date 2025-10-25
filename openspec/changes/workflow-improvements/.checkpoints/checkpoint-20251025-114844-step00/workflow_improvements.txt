@@ -1,0 +1,408 @@
+
+
+templates
+logging
+
+prompt and context writing
+
+
+
+proposal
+A proposal is a document that outlines a plan, idea, or project that you want
+to pursue or implement, often requiring approval or funding from others.
+Writing a well-structured, clear, and persuasive proposal is essential for gaining the support and resources you need.
+Whether it’s for academic research, business, or a project, a good proposal conveys your goals, methods, and anticipated outcomes.
+
+Identify Your Purpose and Audience
+Purpose: Clearly define why you are writing the proposal.
+Are you seeking approval, funding, or collaboration?
+Audience: Tailor the proposal to the audience’s knowledge level and interests.
+Business proposals might focus on ROI, while academic proposals may emphasize research methods.
+
+The main objectives of a proposal are:
+Persuasion: Convince the reader or audience of the feasibility and value of your plan.
+Clarity: Clearly outline the steps, timeline, and resources needed.
+Structure: Organize your ideas to demonstrate careful planning and preparation.
+
+Common Elements of a Proposal (or Proposal Content and Format)
+Most sponsoring agencies have specific format guidelines for preparing proposals,
+including the required forms for cover page, text, biographical data and budget.
+IN THE ABSENCE OF SUCH GUIDELINES, the following format, including a cover/title page, 
+abstract, table of contents, introduction/statement of need, description of proposed research, 
+biographical sketch, current and pending, facilities and equipment, and budget, may be useful.
+
+Abstract
+While an abstract, or project summary, is not required by all sponsors, 
+it is a highly effective means of presenting a project to a reviewer or review board.
+The abstract should highlight the scope of the proposed research, including its objectives
+and the intended methodology, the anticipated results, a statement of potential significance,
+and the time span of the project.
+Abstracts should be approximately 200-250 words, unless otherwise noted in the application instructions.
+Keep in mind that many program directors and review panel members will not read much more than the abstract.
+Program directors also use abstracts to select appropriate reviewers.
+
+Table of Contents
+The table of contents should list major sections of the proposal
+and give the specific page location where each section begins in the narrative.
+It need not include all subheadings but should be detailed enough to allow reviewers
+to find the section or sections of interest, without having to search through the entire proposal. 
+
+Statement of Work or Research Plan
+One of the most critical elements of a proposal or subagreement is the Statement of Work.
+At a minimum, it should provide a full and detailed explanation of the proposed activity,
+typically including project goals and Investigator responsibilities.
+
+The introduction should engage the reviewer’s attention, encouraging a full reading of the proposal.
+Conduct research to support your proposal with accurate data, statistics, and credible sources.
+Review similar proposals or projects to ensure your idea is unique and feasible.
+Gather information on the resources, budget, and timeline required for successful completion.
+
+Create an outline to organize your proposal sections logically.
+Typical proposal sections include an introduction, objectives, methodology, timeline, budget, and conclusion.
+
+Executive Summary
+Purpose: Summarize the main points of your proposal in a clear and concise way.
+Content: Briefly introduce your project, its objectives, and the impact you expect it to have.
+Example: “This proposal outlines a community health project aimed at reducing childhood obesity by 20%
+over three years through nutrition education and physical activity programs.”
+
+Introduction and Background
+Purpose: Provide context to your proposal, explaining why the project or idea is necessary.
+Content: Describe the current situation, problem, or opportunity that your proposal addresses.
+Background Information: Include relevant statistics, previous studies, or projects to justify the proposal’s importance.
+
+Objectives
+Purpose: Clearly state what you intend to achieve with this proposal.
+Content: List specific, measurable objectives. Each objective should address the main goals of your project.
+Example:
+
+“Reduce childhood obesity by 20% in the target area.”
+“Implement bi-weekly nutrition workshops in 10 local schools.”
+“Establish after-school physical activity programs to engage 300 children per semester.”
+
+Methodology or Approach
+Purpose: Describe how you plan to achieve the objectives.
+Content: Outline the methods, activities, and strategies you will use.
+Include details on how each activity supports the objectives.
+Subsections:
+Project Activities: Break down each activity, explaining its purpose and implementation process.
+Roles and Responsibilities: Specify who will be responsible for each task or phase.
+Example:
+
+“Conduct nutrition workshops led by certified dietitians.”
+“Organize physical activity sessions in partnership with local fitness centers.”
+“Distribute educational materials to schools for continued learning.”
+
+Timeline
+Purpose: Provide a schedule for project milestones and completion dates.
+Content: Use a table or chart to show each phase of the project and its expected duration.
+Example:
+
+Phase	Description	Timeline
+Research and Planning	Data collection, surveys	Month 1 – Month 2
+Program Implementation	Launch workshops & activities	Month 3 – Month 8
+Evaluation and Reporting	Analyze outcomes, report findings	Month 9 – Month 10
+
+Budget and Budget Justification
+The budget includes a reasonable estimate of the financial support required to conduct the project,
+including justification of budget expenses.
+Detail the direct costs and indirect costs that are being requested to conduct the project
+(see Budget Development for additional information).
+It is important to substantiate your budget with an explanation or a budget justification.
+The budget justification is used to clarify various line items such as the percentage of inflation,
+fringe benefits, difference in cost shared effort vs. salary requested, 
+the type of equipment you plan to purchase, travel, etc.
+
+Purpose: Outline the financial resources required for the project.
+Content: Provide a breakdown of costs by category, including personnel, materials, transportation, and any other expenses.
+Funding Sources: Mention any potential sources of funding or contributions if applicable.
+Example:
+
+Expense Type	Description	Estimated Cost
+Personnel	Workshop instructors	$10,000
+Materials	Educational brochures	$2,000
+Facilities	Venue rental for events	$1,500
+Transportation	Bus services for students	$3,000
+Total		$16,500
+
+Biographical Sketch
+If no format is requested, the format of the NIH four page biographical sketch is recommended.
+In its current format it includes a personal statement as well as current and pending support.
+If the sponsor requests these items separately you can use the older template.
+The CV or Biographical Sketch is required for all key project personnel. 
+
+Current and Pending Support
+This section should include current and pending support with the sponsor name, 
+title of the project, your percent of effort, amount of the award and the period of support.
+Some sponsors may require you to note any overlap and how it will be addressed if funded (total effort cannot exceed 100%). 
+
+Facilities and Equipment
+List the facilities where the project will take place, indicating the availability of equipment and laboratory or research space.
+Include separate listings for all partners or sub awardees if at different locations.
+
+
+Evaluation Plan Checklist
+The checklist shows the breakdown of the indirect cost rate calculations.
+Purpose: Outline how you will measure the success of the project or objectives.
+Content: Specify the metrics, data collection methods, and assessment tools you will use.
+Outcome Measurement: Describe how you’ll track progress, including any surveys, interviews, or data analysis.
+Example: “Evaluate the impact of the workshops by comparing pre- and post-program surveys 
+on children’s nutrition knowledge and activity levels.
+Track obesity rates quarterly in collaboration with local healthcare providers.”
+
+Conclusion
+Writing a proposal requires clear planning, structure, and persuasive communication.
+By following this step-by-step guide and using the provided template, you can effectively convey your idea, 
+project, or plan, increasing the likelihood of gaining support, funding, or approval.
+Whether you are preparing a proposal for business, research, or community projects, 
+a well-organized proposal demonstrates commitment, feasibility, and thoroughness.
+
+Purpose: Reinforce the need for the project and summarize the benefits.
+Content: Restate the main points, emphasizing the project’s potential impact
+and aligning it with the organization’s goals or values.
+Example: “This project has the potential to significantly improve community health by reducing childhood obesity rates.
+Through education and activity programs, we can promote healthier lifestyles and create lasting positive change.”
+
+Appendices (Optional)
+Purpose: Include any supplementary materials, such as charts, graphs, supporting documents, or detailed data.
+Content: Additional information that supports the main proposal
+but would otherwise disrupt the flow if included in the main body.
+Additional information may consist of the following:
+- Current and pending support.
+- Sponsor may require a listing of the PI and Key Personnel on current awards and pending proposals.
+- Letters of support from non-university investigators may also be required.
+References
+A list of all references needs to be cited in the proposal.
+
+Additional Tips for Writing a Strong Proposal
+Be Clear and Concise: Avoid unnecessary jargon, and focus on conveying your points in a straightforward way.
+Use Visuals: Charts, graphs, or tables can make data easier to understand and more persuasive.
+Tailor to the Audience: Adjust the language, level of detail, and emphasis based on who will be reading the proposal.
+Proofread and Edit: Carefully review your proposal for errors, clarity, and coherence.
+Anticipate Questions: Try to answer any potential questions within the proposal, including justifying the budget and timeline.
+
+
+specifications
+
+Content and best practices
+• Step 1: Introduce the company
+• Step 2: Present your project
+• Step 3: Describe the project target
+• Step 4: Evaluate your competition
+• Step 5: Define your graphic and ergonomic guidelines
+• Step 6: Set a budget
+• Step 7: Specify lead times
+• Step 8: List functional specifications
+• Step 9: List the technical specifications
+• Step 10: Add any appendices
+• Download sample project specifications
+• Example of a complete specification
+• Company presentation
+• Project overview
+• Project target
+• Competitor evaluation
+• Graphic and ergonomic charter
+• Budget
+• Timeframe
+• Functional specifications
+• Technical specifications
+• Appendices
+• Make writing your specifications easier with AI: 5 tools
+• Specifications and agility to anticipate change
+
+Designing new software requires collaboration from many different stakeholders, such as managers, developers and engineers.
+A technical specification document helps facilitate communication and coordinate everyone’s efforts
+by outlining the project’s scope and requirements.
+
+Writing technical specification documents involves a significant time investment—from drafting to collaborating with stakeholders.
+Luckily, you can streamline that process with tricks like starting with a template. 
+
+Read on for helpful information about technical specification documents along with templates and best practices for creating them. 
+
+What’s a Technical Specification Document?
+A technical specifications document is an internal plan for developing a software product or feature.
+It describes the proposed product's functional and non-functional requirements, 
+the development process’s and the stakeholders involved. 
+
+This document is quite similar to a project plan.
+It includes the end product’s specifications and functionality with a roadmap for production.
+Engineers, developers and managers collaborate to create technical specification documents
+that describe the result they envision and break down its development process into achievable goals.
+
+Importance of a Technical Specification Document
+A technical specifications document ensures a shared understanding of development goals,
+preventing miscommunication and division within the team.
+Without it, differing interpretations can create friction.
+
+Your specification document isn’t all you need to facilitate efficient cross collaboration, but it is essential.
+It serves as a central hub for information, goals and standards that everyone can refer 
+to for a high-level perspective of the development process.
+
+Another key feature of your technical specification document is linking to all the other resources teams need to do their work, 
+such as standard operating procedures (SOPs), technical descriptions and training manuals.
+Since it already references all key components, this document serves as the ideal starting point for employees 
+to access other necessary information.
+
+Types of Technical Specification Documents
+Technical specification documents are already a very specific type of planning documentation.
+However, people use several different terms to refer to them in various contexts.
+Here are the kinds of technical specification documents teams use:
+
+Technical design documents focus on a project’s design aspects.
+They still outline the functionalities developers need to create, but they prioritize describing how designers will use
+those features to design the software’s interface and user experience.
+Product reference documents (PRDs) provide a detailed summary of the requirements
+and specifications a product needs to meet before launch.
+After launch, it’s updated to describe the product’s current state and outline future goals.
+IT documents describe how IT teams plan to set up and maintain a network of software and hardware that’ll make a product work.
+Project scope documents are high-level blueprints for how managers intend to oversee a project’s journey toward completion.
+‍
+
+One thing all technical specification documents have in common is that process instructions make up a large portion of them.
+You’ll need to provide instructions for common procedures teams will perform, like assigning tasks, 
+pushing changes and creating prototypes.
+
+How To Write Technical Specifications: 5 Steps
+Writing technical specifications documents is a team effort.
+Project managers usually draft and maintain the document, but they lean on development teams and other stakeholders 
+to fill in precise details and identify reasonable timelines. 
+
+Here’s a process project managers can follow to create and finalize a technical specifications document.
+
+1. Start With an Outline
+An outline helps you identify all the high-level touchpoints your technical specifications document must cover.
+To give yourself a head start, choose a template from the list in the next section and repurpose it to suit your needs.
+
+2. Describe Goals
+Fill out each main section of your outline with the primary goals the teams should strive toward.
+Describe the milestones they’ll need to reach and list all the stakeholders and approvers involved in each process.
+
+3. Meet With Stakeholders
+Share what you have so far with everyone involved in the development process.
+Then, meet with each team separately to surface all the details the finished technical specifications document should include.
+Ask them for links to SOPs, asset libraries and anything else they use to do their job so you can centralize resources
+in the relevant sections. Then, establish a reasonable timeline for meeting each milestone and goal.
+
+4. Define Strategies
+Lay out the processes and communication platforms teams will use to complete their work on time.
+Set up regular meetings, establish cross-functional collaboration guidelines and polish the document to provide relevant,
+helpful information about how to contribute to the finished product.
+
+5. Get Executive Buy-in
+Present your technical specifications document to your executive team to get their approval on the timelines,
+requirements and goals you’ve outlined.
+If they have any feedback, coordinate with stakeholders to make the necessary changes and then resubmit the document.
+
+3 Technical Specification Examples
+The following templates are prime examples of what your technical specification documents should include.
+Use them to inspire, build and customize your own spec documentation.
+
+1. Product Reference Document Example
+This PRD presentation template begins with a section for describing the vision for the finished product.
+Source: Scribe
+This PRD presentation template offers a comprehensive outline for everything your technical specification documentation needs.
+It has headings to describe the product vision, the team involved in development
+and all the necessary requirements and components.
+It also includes several sections for providing relevant research like user personas and use cases.
+Including this information in your document helps teams better understand the target audience 
+so they can calibrate their design decisions accordingly.
+
+This template is a great starting point for your documentation.
+It offers over a dozen unique headings, but you might not need them all.
+Edit it as needed for your organizational requirements, and add anything you think will help everyone stay on track.
+When you find a version that works, save a blank copy for future projects.
+
+
+The smart way to create and manage documentation
+Try Scribe free
+
+2. IT Documentation Template
+This IT Documentation template begins with a section for detailing the product, author and version number of the document.
+This IT documentation template begins with a section listing basic details about the project 
+so readers can quickly understand what they’re looking at. 
+The rest of the document details the phases the project will move through. 
+Each phase lists the team members involved and the intended timeline. 
+The template provides some naming suggestions for these phases, but you can customize them as needed. 
+
+3. Project Scope Document Template
+This project scope documentation template begins with a section to summarize the project and its objectives.
+Source: Scribe
+Project scope documentation includes everything you need to plan and launch a software project.
+This template offers space to summarize the project, list all the necessary resources and outline essential milestones.
+It also includes a helpful section for listing deliverables teams need to produce, such as storyboards and prototypes.
+
+This template is quite versatile as-is, and you can add new headings to refine it for your needs.
+For instance, you might add sections listing the stakeholders involved or detailing regulations teams must comply with. 
+
+todo
+tasks
+plan features
+test_plan
+
+test
+implementation
+test implementation
+
+code implementation summary missing
+code implementation review
+
+abort workflow
+update workflow from step
+run code implementation
+
+check for success
+test project
+
+create patch 
+add files
+commit 
+commit message
+push files
+pull request
+fetch from main
+
+
+
+-----------------------
+
+basic tests:
+- files exist
+- comments
+- functions exist
+- code indentation
+- brackets []{}()""''``
+security:
+input validation
+
+bulk operations
+
+drive operations
+folder operations
+file operations
+file content operations
+
+websearch
+
+
+ask copilot to improve prompt
+
+pip install copilot-api
+
+from copilot_api import Copilot
+
+# Initialize Copilot
+copilot = Copilot()
+
+# Define messages for interaction
+messages = [
+{"role": "system", "content": "You are a helpful AI assistant."},
+{"role": "user", "content": "Write a Python function to reverse a string."}
+]
+
+# Get responses
+for response in copilot.create_completion(model="Copilot", messages=messages, stream=True):
+if isinstance(response, str):
+print(response, end='', flush=True)
+
+
+

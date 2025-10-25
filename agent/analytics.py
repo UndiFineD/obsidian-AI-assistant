@@ -31,13 +31,12 @@ Usage:
 
 import json
 import sqlite3
-import time
-from pathlib import Path
-from datetime import datetime, timedelta
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Tuple, Any
-from enum import Enum
 import statistics
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 class LaneType(Enum):
@@ -132,7 +131,8 @@ class MetricsCollector:
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             CREATE TABLE IF NOT EXISTS workflow_metrics (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 timestamp TEXT NOT NULL,
@@ -152,7 +152,8 @@ class MetricsCollector:
                 metadata TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
-        """)
+        """
+        )
 
         # Create indexes for common queries
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_lane ON workflow_metrics(lane)")

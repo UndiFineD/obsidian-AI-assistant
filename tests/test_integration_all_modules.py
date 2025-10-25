@@ -1,18 +1,19 @@
 """Integration tests for v0.1.46 - 30 tests across all 5 modules."""
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 scripts_path = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(scripts_path))
 
 try:
     from custom_lanes import get_registry, list_all_lanes
-    from stage_optimizer import get_stage_predictor, PerformanceAnalyzer
-    from error_recovery import StateValidator, CheckpointManager
-    from workflow_analytics import MetricsAggregator, DashboardGenerator
+    from error_recovery import CheckpointManager, StateValidator
     from performance_profiler import StageProfiler, create_profiler_pipeline
+    from stage_optimizer import PerformanceAnalyzer, get_stage_predictor
+    from workflow_analytics import DashboardGenerator, MetricsAggregator
 except ImportError:
     pytest.skip("v0.1.46 modules unavailable", allow_module_level=True)
 

@@ -6,9 +6,10 @@ Tests lane selection, stage mapping, quality gates, and code change detection.
 """
 
 import sys
-import pytest
 from pathlib import Path
 from unittest import mock
+
+import pytest
 
 # Add scripts to path
 SCRIPTS_DIR = Path(__file__).parent.parent / "scripts"
@@ -189,7 +190,9 @@ class TestCodeChangeDetection:
         (temp_change_dir / "CHANGELOG.md").write_text("# Changes")
 
         # Import the check function
-        spec = importlib.util.spec_from_file_location("workflow", SCRIPTS_DIR / "workflow.py")
+        spec = importlib.util.spec_from_file_location(
+            "workflow", SCRIPTS_DIR / "workflow.py"
+        )
         workflow = importlib.util.module_from_spec(spec)
 
         # This will need to check the function is defined
@@ -219,7 +222,13 @@ class TestLaneIntegration:
         stages = get_stages_for_lane("docs")
 
         # These stages are skipped in docs lane
-        heavy_stages = [1, 5, 6, 7, 8]  # Version, Implementation, Scripts, DocReview, Testing
+        heavy_stages = [
+            1,
+            5,
+            6,
+            7,
+            8,
+        ]  # Version, Implementation, Scripts, DocReview, Testing
 
         for stage in heavy_stages:
             assert stage not in stages, f"Stage {stage} should not be in docs lane"
@@ -243,9 +252,9 @@ class TestLaneIntegration:
         required_fields = {"name", "description", "stages", "max_time", "quality_gates"}
 
         for lane_name, lane_config in LANE_MAPPING.items():
-            assert required_fields.issubset(lane_config.keys()), (
-                f"Lane {lane_name} missing required fields"
-            )
+            assert required_fields.issubset(
+                lane_config.keys()
+            ), f"Lane {lane_name} missing required fields"
 
 
 # ============================================================================

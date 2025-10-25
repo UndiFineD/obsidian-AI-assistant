@@ -1,0 +1,49 @@
+{
+  "workflow_id": "workflow-improvements-v1.0",
+  "change_type": "feature",
+  "lane": "standard",
+  "started_at": null,
+  "current_stage": 0,
+  "completed_stages": [],
+  "failed_stages": [],
+  "skipped_stages": [],
+  "status": "in_progress",
+  "quality_gates_results": {
+    "status": "SKIP",
+    "details": {
+      "ruff": {
+        "status": "SKIP",
+        "errors": 0
+      },
+      "mypy": {
+        "status": "SKIP",
+        "errors": 0
+      },
+      "pytest": {
+        "status": "SKIP",
+        "pass_rate": 0,
+        "coverage": 0
+      },
+      "bandit": {
+        "status": "SKIP",
+        "high_severity": 0
+      }
+    }
+  },
+  "resumable": true,
+  "resume_from_stage": 0,
+  "last_stage_attempt": null,
+  "last_stage_error": null,
+  "execution_times": {},
+  "metadata": {
+    "parallelization_enabled": true,
+    "max_workers": 3,
+    "agent_enabled": false,
+    "dry_run": false
+  },
+  "timestamps": {
+    "created_at": null,
+    "last_updated_at": null,
+    "completed_at": null
+  }
+}

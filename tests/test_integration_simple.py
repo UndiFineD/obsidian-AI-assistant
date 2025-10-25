@@ -3,9 +3,10 @@ Integration tests for v0.1.46 modules - Simplified version.
 Tests cross-module workflows and data flow between modules.
 """
 
-import pytest
 import sys
 from pathlib import Path
+
+import pytest
 
 
 def test_all_modules_exist():
@@ -98,10 +99,10 @@ def test_module_classes_callable():
     scripts_dir = Path(__file__).parent.parent / "scripts"
     sys.path.insert(0, str(scripts_dir))
 
-    import stage_optimizer
     import error_recovery
-    import workflow_analytics
     import performance_profiler
+    import stage_optimizer
+    import workflow_analytics
 
     # Test class instantiation
     predictor = stage_optimizer.StagePredictor()
@@ -123,10 +124,10 @@ def test_module_methods_exist():
     sys.path.insert(0, str(scripts_dir))
 
     import custom_lanes
-    import stage_optimizer
     import error_recovery
-    import workflow_analytics
     import performance_profiler
+    import stage_optimizer
+    import workflow_analytics
 
     # Check custom_lanes functions
     registry = custom_lanes.get_registry()
@@ -245,7 +246,9 @@ def test_all_modules_production_ready():
         # Check for tests in same repo
         test_file = Path(__file__).parent / f"test_{module_name[:-3]}.py"
         if test_file.exists():
-            assert test_file.stat().st_size > 100, f"test_{module_name[:-3]}.py is incomplete"
+            assert (
+                test_file.stat().st_size > 100
+            ), f"test_{module_name[:-3]}.py is incomplete"
 
 
 def test_complete_workflow():
@@ -254,9 +257,9 @@ def test_complete_workflow():
     sys.path.insert(0, str(scripts_dir))
 
     import custom_lanes
+    import performance_profiler
     import stage_optimizer
     import workflow_analytics
-    import performance_profiler
 
     # Create workflow using multiple modules
     lanes = custom_lanes.list_all_lanes()

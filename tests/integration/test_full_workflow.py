@@ -31,10 +31,16 @@ class TestFullWorkflowIntegration:
             vault_dir = temp_path / "vault"
             vault_dir.mkdir()
             # Create sample markdown files
-            (vault_dir / "note1.md").write_text("# Test Note 1\nThis is a test note about AI.")
-            (vault_dir / "note2.md").write_text("# Research\nImportant research findings.")
+            (vault_dir / "note1.md").write_text(
+                "# Test Note 1\nThis is a test note about AI."
+            )
+            (vault_dir / "note2.md").write_text(
+                "# Research\nImportant research findings."
+            )
             (vault_dir / "folder").mkdir()
-            (vault_dir / "folder" / "nested.md").write_text("# Nested Note\nNested content.")
+            (vault_dir / "folder" / "nested.md").write_text(
+                "# Nested Note\nNested content."
+            )
             # Create models directory
             models_dir = temp_path / "backend" / "models"
             models_dir.mkdir(parents=True)
@@ -101,11 +107,15 @@ class TestFullWorkflowIntegration:
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.mark.asyncio
-    async def test_complete_ask_workflow(self, client, mock_services, temp_workspace: dict):
+    async def test_complete_ask_workflow(
+        self, client, mock_services, temp_workspace: dict
+    ):
         """Test complete ask workflow: Question → Search → Context → AI → Response."""
         # Prepare request
         request_data = {
@@ -127,7 +137,9 @@ class TestFullWorkflowIntegration:
         print("✓ Complete ask workflow integration test passed")
 
     @pytest.mark.asyncio
-    async def test_vault_indexing_workflow(self, client, mock_services, temp_workspace: dict):
+    async def test_vault_indexing_workflow(
+        self, client, mock_services, temp_workspace: dict
+    ):
         """Test vault indexing workflow: Files → Parse → Embed → Store."""
         vault_path = str(temp_workspace["vault_dir"])
         # Execute vault scanning/indexing
@@ -183,7 +195,9 @@ class TestErrorScenarios:
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture(scope="class")
@@ -215,7 +229,9 @@ class TestErrorScenarios:
     async def test_embeddings_failure_handling(self, client, failing_services):
         """Test handling when embeddings service fails."""
         # Should handle embeddings failure gracefully
-        response = await client.post("/api/search", params={"query": "test query", "top_k": 5})
+        response = await client.post(
+            "/api/search", params={"query": "test query", "top_k": 5}
+        )
         # Accept either graceful 200 or a 5xx error
         assert response.status_code in [200, 500]
 
@@ -238,7 +254,9 @@ class TestRealWorldScenarios:
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.fixture(scope="class")
@@ -320,7 +338,9 @@ Your research notes mention these applications effectively."""
             "max_tokens": 256,
         }
         realistic_services["model_manager"].generate.reset_mock()
-        realistic_services["model_manager"].generate.return_value = "AI response from model"
+        realistic_services["model_manager"].generate.return_value = (
+            "AI response from model"
+        )
         response1 = await client.post("/api/ask", json=request_data)
         assert response1.status_code == 200
         assert "answer" in response1.json()
@@ -337,7 +357,9 @@ class TestPerformanceAndLimits:
     @pytest_asyncio.fixture(scope="class")
     async def client(self):
         """Create an async test client for the app."""
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://test"
+        ) as c:
             yield c
 
     @pytest.mark.asyncio
@@ -353,7 +375,10 @@ class TestPerformanceAndLimits:
             mock_em.is_None = False
             mock_init.return_value = None
 
-            tasks = [client.post("/api/ask", json={"question": f"Question {i}"}) for i in range(5)]
+            tasks = [
+                client.post("/api/ask", json={"question": f"Question {i}"})
+                for i in range(5)
+            ]
             http_responses = await asyncio.gather(*tasks)
             assert len(http_responses) == 5
             for r in http_responses:

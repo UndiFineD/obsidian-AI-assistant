@@ -9,16 +9,17 @@ Author: Obsidian AI Agent Team
 License: MIT
 """
 
-import re
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Dict, List, Optional
 import json
-from datetime import datetime
+import logging
+import logging.handlers
+import re
 import subprocess
 import sys
-import time
-import threading
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Dict, List, Optional
 
 
 # ANSI color codes for terminal output
@@ -69,38 +70,30 @@ def write_error_hint(message: str, hint: str) -> None:
 def show_changes(changes_dir: Path) -> None:
     """
     Display all active changes with completion percentages.
-
     Args:
         changes_dir: Path to openspec/changes directory
     """
     if not changes_dir.exists():
         write_warning(f"Changes directory not found: {changes_dir}")
         return
-
     changes = [d for d in changes_dir.iterdir() if d.is_dir()]
-
     if not changes:
         write_info("No active changes found")
         return
-
     write_info("Active Changes:")
-
     for change in sorted(changes):
         todo_path = change / "todo.md"
-
         if todo_path.exists():
             content = todo_path.read_text(encoding="utf-8")
             completed = len(re.findall(r"- \[x\]", content))
             total = len(re.findall(r"- \[[ x]\]", content))
             percent = round((completed / total) * 100) if total > 0 else 0
-
             if percent == 100:
                 color = Colors.GREEN
             elif percent > 50:
                 color = Colors.YELLOW
             else:
                 color = Colors.WHITE
-
             print(f"  {color}[{percent}%] {change.name}{Colors.RESET}")
         else:
             print(f"{Colors.GRAY}  [???] {change.name}{Colors.RESET}")
@@ -109,22 +102,18 @@ def show_changes(changes_dir: Path) -> None:
 def test_change_structure(change_path: Path) -> bool:
     """
     Validate that all required OpenSpec files exist.
-
     Args:
         change_path: Path to change directory
-
     Returns:
         True if all required files exist, False otherwise
     """
     required_files = ["todo.md", "proposal.md", "spec.md", "tasks.md", "test_plan.md"]
     valid = True
-
     for filename in required_files:
         file_path = change_path / filename
         if not file_path.exists():
             write_warning(f"Missing required file: {filename}")
             valid = False
-
     return valid
 
 
@@ -141,17 +130,14 @@ class CrossValidationResult:
 def test_documentation_cross_validation(change_path: Path) -> CrossValidationResult:
     """
     Cross-validate OpenSpec documentation files for consistency and completeness.
-
     Performs 5 validation checks:
     1. All "What Changes" from proposal.md appear in tasks.md
     2. Spec.md acceptance criteria match test_plan.md test cases
     3. Tasks.md implementation tasks align with spec.md requirements
     4. No orphaned references (broken links)
     5. Affected files consistency across documents
-
     Args:
         change_path: Path to change directory
-
     Returns:
         CrossValidationResult with validation status and details
     """
@@ -162,7 +148,6 @@ def test_documentation_cross_validation(change_path: Path) -> CrossValidationRes
         "tasks_to_spec": [],
         "orphaned_references": [],
     }
-
     # Load all documentation files
     docs = {}
     for doc_name in ["proposal", "spec", "tasks", "test_plan"]:
@@ -171,13 +156,11 @@ def test_documentation_cross_validation(change_path: Path) -> CrossValidationRes
             docs[doc_name] = doc_path.read_text(encoding="utf-8")
         else:
             docs[doc_name] = None
-
     # Validation 1: Verify all "What Changes" from proposal.md appear in tasks.md
     if docs["proposal"] and docs["tasks"]:
         print(
             f"{Colors.CYAN}  [CROSS-VALIDATION] Checking proposal.md → tasks.md alignment...{Colors.RESET}"
         )
-
         # Extract "What Changes" section
         what_match = re.search(
             r"##\s+What Changes\s+(.+?)(?=##|$)", docs["proposal"], re.DOTALL
@@ -185,19 +168,16 @@ def test_documentation_cross_validation(change_path: Path) -> CrossValidationRes
         if what_match:
             changes_block = what_match.group(1)
             proposal_changes = re.findall(r"(?m)^\s*-\s+(.+?)$", changes_block)
-
             missing_in_tasks = []
             for change in proposal_changes:
                 # Skip template placeholders
                 if re.match(r"^\[.*\]$", change):
                     continue
-
                 # Check if change is referenced in tasks.md
                 # Use first 30 chars as search pattern
                 change_pattern = re.escape(change[: min(30, len(change))])
                 if not re.search(change_pattern, docs["tasks"]):
                     missing_in_tasks.append(change)
-
             if missing_in_tasks:
                 result.issues.append(
                     f"Proposal changes missing from tasks.md: {len(missing_in_tasks)} item(s)"
@@ -210,44 +190,36 @@ def test_documentation_cross_validation(change_path: Path) -> CrossValidationRes
                 print(
                     f"{Colors.GREEN}    ✓ All proposal changes referenced in tasks.md{Colors.RESET}"
                 )
-
     # Validation 2: Verify spec.md acceptance criteria match test_plan.md test cases
     if docs["spec"] and docs["test_plan"]:
         print(
             f"{Colors.CYAN}  [CROSS-VALIDATION] Checking spec.md → test_plan.md alignment...{Colors.RESET}"
         )
-
         # Extract acceptance criteria
         criteria_match = re.search(
             r"##\s+Acceptance Criteria\s+(.+?)(?=\r?\n##\s|\Z)", docs["spec"], re.DOTALL
         )
-
         acceptance_criteria = []
         if criteria_match:
             criteria_block = criteria_match.group(1)
             acceptance_criteria = re.findall(
                 r"(?m)^\s*-\s+\[\s?\]\s+(.+?)$", criteria_block
             )
-
         # Check coverage against test_plan.md
         criteria_without_tests = []
         for criteria in acceptance_criteria:
             # Skip template placeholders
             if re.match(r"^\[.*\]$", criteria) or "provides" in criteria.lower():
                 continue
-
             # Extract key terms for matching (words > 4 chars)
             key_terms = [w for w in re.findall(r"\w+", criteria) if len(w) > 4][:3]
-
             has_test_coverage = False
             for term in key_terms:
                 if re.search(re.escape(term), docs["test_plan"], re.IGNORECASE):
                     has_test_coverage = True
                     break
-
             if not has_test_coverage:
                 criteria_without_tests.append(criteria)
-
         if criteria_without_tests:
             result.warnings.append(
                 f"Acceptance criteria may lack test coverage: {len(criteria_without_tests)} item(s)"
@@ -741,11 +713,327 @@ class DocumentGenerator:
         return "".join(out)
 
 
+class LogLevel(Enum):
+    """Log verbosity levels."""
+
+    QUIET = 0
+    NORMAL = 1
+    VERBOSE = 2
+    DEBUG = 3
+
+
+class StructuredLogger:
+    """
+    Structured JSON logger for workflow operations.
+
+    Provides both console output (colored) and JSON logging to files.
+    Supports different verbosity levels and log rotation.
+    """
+
+    def __init__(
+        self,
+        log_file: Optional[Path] = None,
+        level: LogLevel = LogLevel.NORMAL,
+        enable_json: bool = True,
+        max_bytes: int = 10 * 1024 * 1024,  # 10MB
+        backup_count: int = 5,
+    ):
+        """
+        Initialize structured logger.
+
+        Args:
+            log_file: Path to log file (optional)
+            level: Logging verbosity level
+            enable_json: Whether to write JSON logs
+            max_bytes: Max log file size before rotation
+            backup_count: Number of backup files to keep
+        """
+        self.level = level
+        self.enable_json = enable_json
+        self.log_file = log_file
+
+        # Setup Python logging for JSON output
+        if enable_json and log_file:
+            self.logger = logging.getLogger("openspec_workflow")
+            self.logger.setLevel(logging.DEBUG)
+
+            # Create rotating file handler
+            handler = logging.handlers.RotatingFileHandler(
+                log_file, maxBytes=max_bytes, backupCount=backup_count
+            )
+            handler.setFormatter(logging.Formatter("%(message)s"))  # Raw JSON
+            self.logger.addHandler(handler)
+        else:
+            self.logger = None
+
+    def _should_log(self, message_level: LogLevel) -> bool:
+        """Check if message should be logged at current verbosity level."""
+        return message_level.value <= self.level.value
+
+    def _log_json(self, event_type: str, data: Dict) -> None:
+        """Log structured data as JSON."""
+        if not self.enable_json or not self.logger:
+            return
+
+        log_entry = {
+            "timestamp": datetime.now().isoformat(),
+            "event_type": event_type,
+            "level": self.level.name.lower(),
+            **data,
+        }
+
+        self.logger.info(json.dumps(log_entry, ensure_ascii=False))
+
+    def log_step_start(
+        self, step_id: int, step_name: str, change_id: str, lane: str = "standard"
+    ) -> None:
+        """Log the start of a workflow step."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        self._log_json(
+            "step_start",
+            {
+                "step_id": step_id,
+                "step_name": step_name,
+                "change_id": change_id,
+                "lane": lane,
+            },
+        )
+
+    def log_step_end(
+        self,
+        step_id: int,
+        step_name: str,
+        change_id: str,
+        success: bool,
+        duration: Optional[float] = None,
+        error: Optional[str] = None,
+        files_created: Optional[List[str]] = None,
+        files_modified: Optional[List[str]] = None,
+    ) -> None:
+        """Log the completion of a workflow step."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        data = {
+            "step_id": step_id,
+            "step_name": step_name,
+            "change_id": change_id,
+            "success": success,
+            "duration_seconds": duration,
+        }
+
+        if error:
+            data["error"] = error
+        if files_created:
+            data["files_created"] = files_created
+        if files_modified:
+            data["files_modified"] = files_modified
+
+        self._log_json("step_end", data)
+
+    def log_file_operation(
+        self,
+        operation: str,
+        file_path: str,
+        change_id: str,
+        step_id: Optional[int] = None,
+        success: bool = True,
+        error: Optional[str] = None,
+    ) -> None:
+        """Log file operations (create, modify, delete)."""
+        if not self._should_log(LogLevel.VERBOSE):
+            return
+
+        data = {
+            "operation": operation,
+            "file_path": file_path,
+            "change_id": change_id,
+            "success": success,
+        }
+
+        if step_id is not None:
+            data["step_id"] = step_id
+        if error:
+            data["error"] = error
+
+        self._log_json("file_operation", data)
+
+    def log_command_execution(
+        self,
+        command: str,
+        change_id: str,
+        step_id: Optional[int] = None,
+        success: bool = True,
+        exit_code: Optional[int] = None,
+        duration: Optional[float] = None,
+        output: Optional[str] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Log external command execution."""
+        if not self._should_log(LogLevel.VERBOSE):
+            return
+
+        data = {"command": command, "change_id": change_id, "success": success}
+
+        if step_id is not None:
+            data["step_id"] = step_id
+        if exit_code is not None:
+            data["exit_code"] = exit_code
+        if duration is not None:
+            data["duration_seconds"] = duration
+        if output and self._should_log(LogLevel.DEBUG):
+            data["output"] = output[:1000]  # Truncate long output
+        if error:
+            data["error"] = error
+
+        self._log_json("command_execution", data)
+
+    def log_workflow_start(
+        self,
+        change_id: str,
+        title: str,
+        owner: str,
+        lane: str,
+        total_steps: int,
+        dry_run: bool = False,
+    ) -> None:
+        """Log the start of a workflow execution."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        self._log_json(
+            "workflow_start",
+            {
+                "change_id": change_id,
+                "title": title,
+                "owner": owner,
+                "lane": lane,
+                "total_steps": total_steps,
+                "dry_run": dry_run,
+            },
+        )
+
+    def log_workflow_end(
+        self,
+        change_id: str,
+        success: bool,
+        total_duration: Optional[float] = None,
+        steps_completed: Optional[int] = None,
+    ) -> None:
+        """Log the completion of a workflow execution."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        data = {"change_id": change_id, "success": success}
+
+        if total_duration is not None:
+            data["total_duration_seconds"] = total_duration
+        if steps_completed is not None:
+            data["steps_completed"] = steps_completed
+
+        self._log_json("workflow_end", data)
+
+    def log_error(
+        self,
+        message: str,
+        change_id: str,
+        step_id: Optional[int] = None,
+        error_type: str = "general",
+        context: Optional[Dict] = None,
+    ) -> None:
+        """Log error conditions."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        data = {"message": message, "change_id": change_id, "error_type": error_type}
+
+        if step_id is not None:
+            data["step_id"] = step_id
+        if context:
+            data["context"] = context
+
+        self._log_json("error", data)
+
+    def log_checkpoint(
+        self,
+        change_id: str,
+        step_id: int,
+        checkpoint_id: str,
+        operation: str,  # "create", "restore", "delete"
+    ) -> None:
+        """Log checkpoint operations."""
+        if not self._should_log(LogLevel.VERBOSE):
+            return
+
+        self._log_json(
+            "checkpoint",
+            {
+                "change_id": change_id,
+                "step_id": step_id,
+                "checkpoint_id": checkpoint_id,
+                "operation": operation,
+            },
+        )
+
+    def log_agent_execution(
+        self,
+        change_id: str,
+        step_id: int,
+        agent_available: bool,
+        agent_success: bool,
+        fallback_used: bool,
+        duration: Optional[float] = None,
+        error: Optional[str] = None,
+    ) -> None:
+        """Log AI agent execution attempts."""
+        if not self._should_log(LogLevel.NORMAL):
+            return
+
+        data = {
+            "change_id": change_id,
+            "step_id": step_id,
+            "agent_available": agent_available,
+            "agent_success": agent_success,
+            "fallback_used": fallback_used,
+        }
+
+        if duration is not None:
+            data["duration_seconds"] = duration
+        if error:
+            data["error"] = error
+
+        self._log_json("agent_execution", data)
+
+
+# Global logger instance
+_logger: Optional[StructuredLogger] = None
+
+
+def get_logger() -> StructuredLogger:
+    """Get the global structured logger instance."""
+    global _logger
+    if _logger is None:
+        # Default logger configuration
+        _logger = StructuredLogger()
+    return _logger
+
+
+def configure_logger(
+    log_file: Optional[Path] = None,
+    level: LogLevel = LogLevel.NORMAL,
+    enable_json: bool = True,
+) -> StructuredLogger:
+    """Configure the global structured logger."""
+    global _logger
+    _logger = StructuredLogger(log_file=log_file, level=level, enable_json=enable_json)
+    return _logger
+
+
 # ============================================================================
 # Status Tracking System
 # ============================================================================
-
-
 @dataclass
 class StepStatus:
     """Represents the status of a single workflow step."""
@@ -939,9 +1227,7 @@ class WorkflowStatusTracker:
             symbol = (
                 "✓"
                 if status.result == "success"
-                else "✗"
-                if status.result == "failure"
-                else "⊘"
+                else "✗" if status.result == "failure" else "⊘"
             )
             duration = (
                 f" ({status.duration_seconds:.1f}s)" if status.duration_seconds else ""
@@ -956,8 +1242,6 @@ class WorkflowStatusTracker:
 # ============================================================================
 # Environment Validation Hooks
 # ============================================================================
-
-
 def check_python_version(required_version: str = "3.11") -> bool:
     """
     Check if Python version meets minimum requirement.
@@ -1076,8 +1360,6 @@ def print_environment_validation_report(
 # ============================================================================
 # Workflow Resumption System
 # ============================================================================
-
-
 def check_incomplete_workflow(change_path: Path) -> Optional[int]:
     """
     Check if a workflow is incomplete and return the last completed step.
@@ -1166,8 +1448,6 @@ def handle_workflow_resumption(change_path: Path) -> Optional[int]:
 # ============================================================================
 # Workflow Visualization System
 # ============================================================================
-
-
 class WorkflowVisualizer:
     """Visualize workflow status and progress."""
 
@@ -1325,529 +1605,768 @@ class WorkflowVisualizer:
         except (json.JSONDecodeError, KeyError) as e:
             write_warning(f"Could not load workflow summary: {e}")
 
-
-# ============================================================================
-# Progress Indicators
-# ============================================================================
-
-
-def spinner(duration: float, message: str = "Processing...") -> None:
-    """
-    Show a spinning progress indicator for a duration.
-
-    Args:
-        duration: How long to show the spinner (seconds)
-        message: Message to display with spinner
-    """
-    spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-    start_time = time.time()
-    i = 0
-
-    while time.time() - start_time < duration:
-        print(
-            f"\r{Colors.CYAN}{spinner_chars[i % len(spinner_chars)]}{Colors.RESET} {message}",
-            end="",
-            flush=True,
-        )
-        time.sleep(0.1)
-        i += 1
-
-    # Clear the spinner line
-    print(f"\r{' ' * (len(message) + 2)}\r", end="", flush=True)
-
-
-def progress_bar(
-    current: int, total: int, width: int = 50, prefix: str = "Progress:"
-) -> None:
-    """
-    Display a progress bar.
-
-    Args:
-        current: Current progress value
-        total: Total progress value
-        width: Width of the progress bar
-        prefix: Text to show before the progress bar
-    """
-    if total == 0:
-        percent = 100
-        filled = width
-    else:
-        percent = round((current / total) * 100)
-        filled = round((current / total) * width)
-
-    bar = "█" * filled + "░" * (width - filled)
-    print(f"{Colors.CYAN}{prefix} [{bar}] {percent}%{Colors.RESET}")
-
-
-def show_progress_with_spinner(func, *args, message: str = "Processing...", **kwargs):
-    """
-    Execute a function with a spinner progress indicator.
-
-    Args:
-        func: Function to execute
-        *args: Arguments for the function
-        message: Message to show with spinner
-        **kwargs: Keyword arguments for the function
-
-    Returns:
-        Result of the function execution
-    """
-    result = [None]
-    exception = [None]
-
-    def run_func():
-        try:
-            result[0] = func(*args, **kwargs)
-        except Exception as e:
-            exception[0] = e
-
-    # Start function in background thread
-    thread = threading.Thread(target=run_func, daemon=True)
-    thread.start()
-
-    # Show spinner while function runs
-    spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-    i = 0
-
-    while thread.is_alive():
-        print(
-            f"\r{Colors.CYAN}{spinner_chars[i % len(spinner_chars)]}{Colors.RESET} {message}",
-            end="",
-            flush=True,
-        )
-        time.sleep(0.1)
-        i += 1
-
-    # Clear the spinner line
-    print(f"\r{' ' * (len(message) + 2)}\r", end="", flush=True)
-
-    # Check for exceptions
-    if exception[0]:
-        raise exception[0]
-
-    return result[0]
-
-
-# ============================================================================
-# Version Management System
-# ============================================================================
-
-
-class VersionManager:
-    """Manage version detection and bumping for the project."""
-
     @staticmethod
-    def get_current_version(project_root: Path) -> str:
+    def generate_summary_report(
+        change_path: Path, output_file: Optional[Path] = None
+    ) -> str:
         """
-        Get the current version from version files.
+        Generate a comprehensive summary report of the workflow.
 
         Args:
-            project_root: Path to the project root
+            change_path: Path to the change directory
+            output_file: Optional file to save the report to
 
         Returns:
-            Current version string
+            The summary report as a string
         """
-        # Check pyproject.toml first
-        pyproject_path = project_root / "pyproject.toml"
-        if pyproject_path.exists():
-            try:
-                import tomllib
+        # Check for checkpoint state first, then fall back to status.json
+        checkpoint_state_file = change_path / ".checkpoints" / "state.json"
+        status_file = change_path / "status.json"
 
-                data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-                version = data.get("tool", {}).get("poetry", {}).get("version")
-                if version:
-                    return version
-                version = data.get("project", {}).get("version")
-                if version:
-                    return version
-            except Exception:
+        state_data = None
+        last_updated = "Unknown"
+
+        # Try to read from checkpoint state first
+        if checkpoint_state_file.exists():
+            try:
+                data = json.loads(checkpoint_state_file.read_text(encoding="utf-8"))
+                checkpoints = data.get("checkpoints", [])
+                last_successful_step = data.get("last_successful_step", 0)
+
+                # Convert checkpoint data to step format
+                steps = []
+                for checkpoint in checkpoints:
+                    step_data = {
+                        "step_id": checkpoint["step_num"],
+                        "step_name": checkpoint["step_name"],
+                        "result": "success",  # Checkpoints are created before successful steps
+                        "duration_seconds": 0,  # Not tracked in checkpoints
+                        "timestamp": checkpoint["timestamp"],
+                    }
+                    steps.append(step_data)
+
+                # Add any remaining steps that haven't been checkpointed
+                total_expected_steps = 13  # Standard workflow has 13 steps
+                for step_num in range(last_successful_step + 1, total_expected_steps):
+                    if step_num not in [cp["step_num"] for cp in checkpoints]:
+                        steps.append({
+                            "step_id": step_num,
+                            "step_name": f"Step {step_num}",
+                            "result": "pending",
+                            "duration_seconds": 0,
+                        })
+
+                state_data = {
+                    "steps": steps,
+                    "total_steps": total_expected_steps,
+                    "completed_steps": last_successful_step + 1,
+                    "last_updated": checkpoints[-1]["timestamp"] if checkpoints else "Unknown"
+                }
+                last_updated = state_data["last_updated"]
+
+            except (json.JSONDecodeError, KeyError) as e:
+                # Fall back to status.json if checkpoint parsing fails
                 pass
 
-        # Check setup.py
-        setup_path = project_root / "setup.py"
-        if setup_path.exists():
-            content = setup_path.read_text(encoding="utf-8")
-            match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
-            if match:
-                return match.group(1)
-
-        # Check package.json
-        package_path = project_root / "package.json"
-        if package_path.exists():
+        # Fall back to status.json if checkpoint data not available
+        if state_data is None and status_file.exists():
             try:
-                import json
+                data = json.loads(status_file.read_text(encoding="utf-8"))
+                steps = data.get("steps", [])
+                total_steps = data.get("total_steps", 0)
+                completed_steps = data.get("completed_steps", 0)
+                last_updated = data.get("last_updated", "Unknown")
 
-                data = json.loads(package_path.read_text(encoding="utf-8"))
-                version = data.get("version")
-                if version:
-                    return version
-            except Exception:
+                state_data = {
+                    "steps": steps,
+                    "total_steps": total_steps,
+                    "completed_steps": completed_steps,
+                    "last_updated": last_updated
+                }
+
+            except (json.JSONDecodeError, KeyError) as e:
                 pass
 
-        # Check __init__.py files
-        init_paths = [
-            project_root / "agent" / "__init__.py",
-            project_root / "__init__.py",
+        if not state_data:
+            report = "No workflow status found - workflow not started"
+            if output_file:
+                output_file.write_text(report, encoding="utf-8")
+            return report
+
+        # Extract data from state
+        steps = state_data.get("steps", [])
+        total_steps = state_data.get("total_steps", len(steps))
+        completed_steps = state_data.get("completed_steps", len([s for s in steps if s.get("result") == "success"]))
+        last_updated = state_data.get("last_updated", "Unknown")
+
+        # Calculate metrics
+        successful_steps = len([s for s in steps if s.get("result") == "success"])
+        failed_steps = len([s for s in steps if s.get("result") == "failure"])
+        skipped_steps = len([s for s in steps if s.get("result") == "skipped"])
+        pending_steps = len([s for s in steps if s.get("result") == "pending"])
+
+        total_duration = sum(
+            s.get("duration_seconds", 0) for s in steps if s.get("duration_seconds")
+        )
+        avg_duration = total_duration / len([s for s in steps if s.get("duration_seconds")]) if any(s.get("duration_seconds") for s in steps) else 0
+
+        # Generate report
+        report_lines = [
+            "# Workflow Summary Report",
+            "",
+            f"**Change ID:** {change_path.name}",
+            f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"**Last Updated:** {last_updated}",
+            "",
+            "## Progress Overview",
+            "",
+            f"- **Total Steps:** {total_steps}",
+            f"- **Completed Steps:** {completed_steps}",
+            f"- **Successful Steps:** {successful_steps}",
+            f"- **Failed Steps:** {failed_steps}",
+            f"- **Skipped Steps:** {skipped_steps}",
+            f"- **Pending Steps:** {pending_steps}",
+            "",
+            "## Performance Metrics",
+            "",
+            f"- **Total Duration:** {total_duration:.1f} seconds",
+            f"- **Average Step Duration:** {avg_duration:.1f} seconds",
+            (
+                f"- **Completion Rate:** {(successful_steps/total_steps*100):.1f}%"
+                if total_steps > 0
+                else "0%"
+            ),
+            "",
+            "## Step Details",
+            "",
         ]
-        for init_path in init_paths:
-            if init_path.exists():
-                content = init_path.read_text(encoding="utf-8")
-                match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
-                if match:
-                    return match.group(1)
 
-        return "0.0.0"
+        # Add step details
+        for step_data in sorted(steps, key=lambda x: x["step_id"]):
+            step_id = step_data["step_id"]
+            step_name = step_data.get("step_name", f"Step {step_id}")
+            result = step_data.get("result", "pending")
+            duration = step_data.get("duration_seconds", 0)
+
+            status_icon = {
+                "success": "✅",
+                "failure": "❌",
+                "skipped": "⏭️",
+                "in_progress": "🔄",
+                "pending": "⏳",
+            }.get(result, "❓")
+
+            report_lines.append(f"### {status_icon} Step {step_id}: {step_name}")
+            report_lines.append(f"- **Status:** {result}")
+            report_lines.append(
+                f"- **Duration:** {duration:.1f}s"
+                if duration
+                else "- **Duration:** N/A"
+            )
+
+            if step_data.get("files_created"):
+                report_lines.append(
+                    f"- **Files Created:** {', '.join(step_data['files_created'])}"
+                )
+
+            if step_data.get("errors"):
+                report_lines.append(
+                    f"- **Errors:** {len(step_data['errors'])} error(s)"
+                )
+
+            if step_data.get("metrics"):
+                report_lines.append("- **Metrics:**")
+                for key, value in step_data["metrics"].items():
+                    report_lines.append(f"  - {key}: {value}")
+
+            report_lines.append("")
+
+        report = "\n".join(report_lines)
+
+        if output_file:
+            output_file.write_text(report, encoding="utf-8")
+            write_success(f"Summary report saved to {output_file}")
+
+        return report
 
     @staticmethod
-    def bump_version(current_version: str, bump_type: str) -> str:
+    def generate_quality_metrics_report(
+        change_path: Path, project_root: Path, output_file: Optional[Path] = None
+    ) -> str:
         """
-        Bump a version number.
+        Generate a quality metrics report for the workflow and codebase.
 
         Args:
-            current_version: Current version string
-            bump_type: Type of bump (major, minor, patch)
-
-        Returns:
-            New version string
-        """
-        # Parse version
-        match = re.match(r"^(\d+)\.(\d+)\.(\d+)(.*)$", current_version)
-        if not match:
-            raise ValueError(f"Invalid version format: {current_version}")
-
-        major, minor, patch = map(int, match.groups()[:3])
-        suffix = match.group(4) or ""
-
-        if bump_type == "major":
-            major += 1
-            minor = 0
-            patch = 0
-        elif bump_type == "minor":
-            minor += 1
-            patch = 0
-        elif bump_type == "patch":
-            patch += 1
-        else:
-            raise ValueError(f"Invalid bump type: {bump_type}")
-
-        return f"{major}.{minor}.{patch}{suffix}"
-
-    @staticmethod
-    def update_version_files(project_root: Path, new_version: str) -> List[str]:
-        """
-        Update version in all relevant files.
-
-        Args:
+            change_path: Path to the change directory
             project_root: Path to the project root
-            new_version: New version string
+            output_file: Optional file to save the report to
 
         Returns:
-            List of files that were updated
+            The quality metrics report as a string
         """
-        updated_files = []
+        try:
+            report_lines = [
+                "# Quality Metrics Report",
+                "",
+                f"**Change ID:** {change_path.name}",
+                f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+                "",
+                "## Code Quality Metrics",
+                "",
+            ]
 
-        # Update pyproject.toml
-        pyproject_path = project_root / "pyproject.toml"
-        if pyproject_path.exists():
-            content = pyproject_path.read_text(encoding="utf-8")
-            # Update both poetry and standard project version formats
-            content = re.sub(
-                r'(\[tool\.poetry\]|\[project\])\s*\n.*?\n\s*version\s*=\s*["\'][^"\']*["\']',
-                f'\\1\nversion = "{new_version}"',
-                content,
-                flags=re.MULTILINE | re.DOTALL,
-            )
-            if set_content_atomic(pyproject_path, content):
-                updated_files.append(str(pyproject_path))
+            # Check for quality tools
+            tools_status = {
+                "pytest": check_tool_available("pytest"),
+                "ruff": check_tool_available("ruff"),
+                "mypy": check_tool_available("mypy"),
+                "bandit": check_tool_available("bandit"),
+                "isort": check_tool_available("isort"),
+            }
 
-        # Update setup.py
-        setup_path = project_root / "setup.py"
-        if setup_path.exists():
-            content = setup_path.read_text(encoding="utf-8")
-            content = re.sub(
-                r'version\s*=\s*["\'][^"\']*["\']', f'version="{new_version}"', content
-            )
-            if set_content_atomic(setup_path, content):
-                updated_files.append(str(setup_path))
+            report_lines.append("### Tool Availability")
+            for tool, available in tools_status.items():
+                status = "✅ Available" if available else "❌ Not Available"
+                report_lines.append(f"- **{tool}:** {status}")
+            report_lines.append("")
 
-        # Update package.json
-        package_path = project_root / "package.json"
-        if package_path.exists():
+            # Run quality checks if tools are available
+            if tools_status["ruff"]:
+                report_lines.append("### Code Quality Checks")
+                try:
+                    result = subprocess.run(
+                        ["ruff", "check", "--output-format=json", str(project_root)],
+                        capture_output=True,
+                        text=True,
+                        cwd=project_root,
+                        timeout=60,
+                    )
+                    if result.returncode == 0:
+                        report_lines.append("✅ **Ruff:** No issues found")
+                    else:
+                        try:
+                            issues = json.loads(result.stdout)
+                            report_lines.append(f"⚠️ **Ruff:** {len(issues)} issue(s) found")
+                            # Group by severity
+                            severity_count = {}
+                            for issue in issues:
+                                severity = issue.get("code", "UNK")[
+                                    :1
+                                ]  # First letter indicates severity
+                                severity_count[severity] = (
+                                    severity_count.get(severity, 0) + 1
+                                )
+                            for severity, count in severity_count.items():
+                                report_lines.append(f"  - {severity}: {count} issue(s)")
+                        except json.JSONDecodeError:
+                            report_lines.append(
+                                "⚠️ **Ruff:** Issues found (could not parse output)"
+                            )
+                except subprocess.TimeoutExpired:
+                    report_lines.append("⏱️ **Ruff:** Check timed out")
+                except Exception as e:
+                    report_lines.append(f"❌ **Ruff:** Check failed - {e}")
+                report_lines.append("")
+
+            # Security checks
+            report_lines.append("### Security Analysis")
             try:
-                import json
-
-                data = json.loads(package_path.read_text(encoding="utf-8"))
-                data["version"] = new_version
-                if set_content_atomic(package_path, json.dumps(data, indent=2)):
-                    updated_files.append(str(package_path))
-            except Exception:
-                pass
-
-        # Update __init__.py files
-        init_paths = [
-            project_root / "agent" / "__init__.py",
-            project_root / "__init__.py",
-        ]
-        for init_path in init_paths:
-            if init_path.exists():
-                content = init_path.read_text(encoding="utf-8")
-                content = re.sub(
-                    r'__version__\s*=\s*["\'][^"\']*["\']',
-                    f'__version__ = "{new_version}"',
-                    content,
-                )
-                if set_content_atomic(init_path, content):
-                    updated_files.append(str(init_path))
-
-        return updated_files
-
-
-# ============================================================================
-# Security Validation System
-# ============================================================================
-
-
-def validate_security(project_root: Path) -> tuple[bool, List[str]]:
-    """
-    Run security validation checks on the project.
-
-    Args:
-        project_root: Path to the project root
-
-    Returns:
-        Tuple of (success: bool, issues: List[str])
-    """
-    issues = []
-
-    # Check for common security issues
-    security_checks = [
-        ("Secret files", _check_secret_files, project_root),
-        ("Dependencies", _check_dependencies, project_root),
-        ("Code patterns", _check_code_patterns, project_root),
-    ]
-
-    for check_name, check_func, *args in security_checks:
-        try:
-            success, check_issues = check_func(*args)
-            if not success:
-                issues.extend([f"{check_name}: {issue}" for issue in check_issues])
-        except Exception as e:
-            issues.append(f"{check_name}: Check failed - {e}")
-
-    return (len(issues) == 0, issues)
-
-
-def _check_secret_files(project_root: Path) -> tuple[bool, List[str]]:
-    """Check for accidentally committed secret files."""
-    issues = []
-
-    # Common secret file patterns
-    secret_patterns = [
-        ".env",
-        ".env.local",
-        ".env.*.local",
-        "secrets.json",
-        "credentials.json",
-        "*.key",
-        "*.pem",
-        "id_rsa",
-        "id_dsa",
-    ]
-
-    for pattern in secret_patterns:
-        for file_path in project_root.rglob(pattern):
-            if file_path.is_file():
-                issues.append(f"Potential secret file found: {file_path}")
-
-    return (len(issues) == 0, issues)
-
-
-def _check_dependencies(project_root: Path) -> tuple[bool, List[str]]:
-    """Check for vulnerable dependencies."""
-    issues = []
-
-    # Check requirements.txt
-    req_path = project_root / "requirements.txt"
-    if req_path.exists():
-        try:
-            content = req_path.read_text(encoding="utf-8")
-            # Look for known vulnerable packages (simplified check)
-            vulnerable = ["insecure-package", "old-version-package"]
-            for vuln in vulnerable:
-                if vuln in content:
-                    issues.append(f"Vulnerable dependency found: {vuln}")
-        except Exception as e:
-            issues.append(f"Could not check requirements.txt: {e}")
-
-    # Check pyproject.toml
-    pyproject_path = project_root / "pyproject.toml"
-    if pyproject_path.exists():
-        try:
-            import tomllib
-
-            data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
-            deps = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
-            deps.update(data.get("project", {}).get("dependencies", {}))
-
-            # Check for known vulnerable packages
-            vulnerable = ["insecure-package", "old-version-package"]
-            for dep in deps:
-                for vuln in vulnerable:
-                    if vuln in dep.lower():
-                        issues.append(f"Vulnerable dependency found: {dep}")
-        except Exception as e:
-            issues.append(f"Could not check pyproject.toml: {e}")
-
-    return (len(issues) == 0, issues)
-
-
-def _check_code_patterns(project_root: Path) -> tuple[bool, List[str]]:
-    """Check for insecure code patterns."""
-    issues = []
-
-    # Patterns to check for
-    insecure_patterns = [
-        (r"eval\s*\(", "Use of eval()"),
-        (r"exec\s*\(", "Use of exec()"),
-        (r"input\s*\(", "Use of input() for sensitive data"),
-        (r"pickle\.loads?\s*\(", "Use of pickle for deserialization"),
-        (
-            r"subprocess\.(call|Popen|run)\s*\(\s*shell\s*=\s*True",
-            "Shell injection vulnerability",
-        ),
-    ]
-
-    # Check Python files
-    for py_file in project_root.rglob("*.py"):
-        try:
-            content = py_file.read_text(encoding="utf-8")
-            for pattern, description in insecure_patterns:
-                if re.search(pattern, content):
-                    issues.append(f"{description} in {py_file}")
-        except Exception:
-            continue
-
-    return (len(issues) == 0, issues)
-
-
-# ============================================================================
-# Code Quality Improvement System
-# ============================================================================
-
-
-def run_code_quality_improvements(project_root: Path) -> tuple[bool, List[str]]:
-    """
-    Run automated code quality improvements.
-
-    Args:
-        project_root: Path to the project root
-
-    Returns:
-        Tuple of (success: bool, improvements: List[str])
-    """
-    improvements = []
-
-    # Code quality checks and fixes
-    quality_checks = [
-        ("Python formatting", _fix_python_formatting, project_root),
-        ("JavaScript formatting", _fix_javascript_formatting, project_root),
-        ("Import sorting", _fix_import_sorting, project_root),
-    ]
-
-    for check_name, check_func, *args in quality_checks:
-        try:
-            success, check_improvements = check_func(*args)
-            if success and check_improvements:
-                improvements.extend(
-                    [f"{check_name}: {imp}" for imp in check_improvements]
-                )
-        except Exception as e:
-            write_warning(f"{check_name} check failed: {e}")
-
-    return (len(improvements) > 0, improvements)
-
-
-def _fix_python_formatting(project_root: Path) -> tuple[bool, List[str]]:
-    """Fix Python code formatting issues."""
-    improvements = []
-
-    if not check_tool_available("ruff"):
-        return False, ["ruff not available"]
-
-    try:
-        # Run ruff format
-        result = subprocess.run(
-            ["ruff", "format", "--check", str(project_root)],
-            capture_output=True,
-            text=True,
-            cwd=project_root,
-            timeout=30,
-        )
-
-        if result.returncode != 0:
-            # Files need formatting
-            format_result = subprocess.run(
-                ["ruff", "format", str(project_root)],
-                capture_output=True,
-                text=True,
-                cwd=project_root,
-                timeout=30,
-            )
-
-            if format_result.returncode == 0:
-                improvements.append("Python files formatted with ruff")
-            else:
-                return False, ["Failed to format Python files"]
-
-    except subprocess.TimeoutExpired:
-        return False, ["Python formatting timed out"]
-
-    return True, improvements
-
-
-def _fix_javascript_formatting(project_root: Path) -> tuple[bool, List[str]]:
-    """Fix JavaScript code formatting issues."""
-    improvements = []
-
-    # Check for JavaScript files
-    js_files = list(project_root.rglob("*.js"))
-    if not js_files:
-        return True, []
-
-    # Basic JavaScript formatting (remove trailing whitespace, fix indentation)
-    for js_file in js_files:
-        try:
-            content = js_file.read_text(encoding="utf-8")
-            original_content = content
-
-            # Remove trailing whitespace
-            lines = content.split("\n")
-            lines = [line.rstrip() for line in lines]
-            content = "\n".join(lines)
-
-            # Fix basic indentation (4 spaces)
-            # This is a simplified formatter - in practice you'd use prettier
-            formatted_lines = []
-            for line in lines:
-                stripped = line.lstrip()
-                if stripped and line.startswith(" "):
-                    # Count leading spaces and convert to multiples of 4
-                    leading_spaces = len(line) - len(line.lstrip(" "))
-                    new_leading_spaces = (leading_spaces // 4) * 4
-                    formatted_lines.append(" " * new_leading_spaces + stripped)
+                security_success, security_issues = validate_security(project_root)
+                if security_success:
+                    report_lines.append("✅ **Security:** No issues found")
                 else:
-                    formatted_lines.append(line)
+                    report_lines.append(
+                        f"⚠️ **Security:** {len(security_issues)} issue(s) found"
+                    )
+                    for issue in security_issues[:10]:  # Limit to first 10
+                        report_lines.append(f"  - {issue}")
+                    if len(security_issues) > 10:
+                        report_lines.append(f"  ... and {len(security_issues) - 10} more")
+            except Exception as e:
+                report_lines.append(f"❌ **Security:** Analysis failed - {e}")
+            report_lines.append("")
 
-            content = "\n".join(formatted_lines)
+            # Test coverage (if available)
+            if tools_status["pytest"]:
+                report_lines.append("### Test Coverage")
+                coverage_file = project_root / "coverage.xml"
+                if coverage_file.exists():
+                    try:
+                        import xml.etree.ElementTree as ET
 
-            if content != original_content:
-                if set_content_atomic(js_file, content):
-                    improvements.append(f"Formatted {js_file.name}")
+                        tree = ET.parse(coverage_file)
+                        root = tree.getroot()
+                        line_rate = root.get("line-rate")
+                        if line_rate:
+                            coverage_percent = float(line_rate) * 100
+                            report_lines.append(f"📊 **Coverage:** {coverage_percent:.1f}%")
+                        else:
+                            report_lines.append(
+                                "📊 **Coverage:** Data available but could not parse"
+                            )
+                    except Exception as e:
+                        report_lines.append(
+                            f"📊 **Coverage:** Could not read coverage data - {e}"
+                        )
+                else:
+                    report_lines.append(
+                        "📊 **Coverage:** No coverage data found (run tests with coverage)"
+                    )
+                report_lines.append("")
+
+            # Workflow quality metrics - read from checkpoint data first
+            checkpoint_state_file = change_path / ".checkpoints" / "state.json"
+            status_file = change_path / "status.json"
+
+            workflow_data = None
+
+            # Try to read from checkpoint state first
+            if checkpoint_state_file.exists():
+                try:
+                    data = json.loads(checkpoint_state_file.read_text(encoding="utf-8"))
+                    checkpoints = data.get("checkpoints", [])
+                    last_successful_step = data.get("last_successful_step", 0)
+
+                    # Convert checkpoint data to step format
+                    steps = []
+                    for checkpoint in checkpoints:
+                        step_data = {
+                            "step_id": checkpoint["step_num"],
+                            "step_name": checkpoint["step_name"],
+                            "result": "success",
+                            "duration_seconds": 0,
+                            "errors": [],
+                            "files_created": [],
+                            "metrics": {},
+                        }
+                        steps.append(step_data)
+
+                    workflow_data = {"steps": steps}
+
+                except (json.JSONDecodeError, KeyError) as e:
+                    pass
+
+            # Fall back to status.json if checkpoint data not available
+            if workflow_data is None and status_file.exists():
+                try:
+                    workflow_data = json.loads(status_file.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, KeyError) as e:
+                    pass
+
+            if workflow_data:
+                steps = workflow_data.get("steps", [])
+
+                report_lines.append("### Workflow Quality Metrics")
+                report_lines.append("")
+
+                # Success rate
+                successful_steps = len(
+                    [s for s in steps if s.get("result") == "success"]
+                )
+                total_steps = len(steps)
+                if total_steps > 0:
+                    success_rate = (successful_steps / total_steps) * 100
+                    report_lines.append(f"- **Step Success Rate:** {success_rate:.1f}%")
+
+                # Error analysis
+                error_steps = [s for s in steps if s.get("errors")]
+                if error_steps:
+                    total_errors = sum(len(s.get("errors", [])) for s in error_steps)
+                    report_lines.append(f"- **Steps with Errors:** {len(error_steps)}")
+                    report_lines.append(f"- **Total Errors:** {total_errors}")
+
+                # Performance analysis
+                durations = [
+                    s.get("duration_seconds", 0)
+                    for s in steps
+                    if s.get("duration_seconds")
+                ]
+                if durations:
+                    avg_duration = sum(durations) / len(durations)
+                    max_duration = max(durations)
+                    report_lines.append(
+                        f"- **Average Step Duration:** {avg_duration:.1f}s"
+                    )
+                    report_lines.append(
+                        f"- **Longest Step Duration:** {max_duration:.1f}s"
+                    )
+            else:
+                report_lines.append("### Workflow Quality Metrics")
+                report_lines.append("❌ No workflow data available for quality analysis")
+                report_lines.append("")
+
+            report = "\n".join(report_lines)
+
+            if output_file:
+                output_file.write_text(report, encoding="utf-8")
+                write_success(f"Quality metrics report saved to {output_file}")
+
+            return report
 
         except Exception as e:
-            write_warning(f"Could not format {js_file}: {e}")
+            write_error(f"Could not generate quality metrics report: {e}")
+            error_report = f"Error generating quality metrics report: {e}"
+            if output_file:
+                output_file.write_text(error_report, encoding="utf-8")
+            return error_report
 
-    return True, improvements
+    @staticmethod
+    def generate_cross_validation_report(
+        change_path: Path, project_root: Path, output_file: Optional[Path] = None
+    ) -> str:
+        """
+        Generate a cross-validation report checking consistency across workflow outputs.
+
+        Args:
+            change_path: Path to the change directory
+            project_root: Path to the project root
+            output_file: Optional file to save the report to
+
+        Returns:
+            The cross-validation report as a string
+        """
+        report_lines = [
+            "# Cross-Validation Report",
+            "",
+            f"**Change ID:** {change_path.name}",
+            f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "",
+            "## Validation Overview",
+            "",
+            "This report validates consistency across workflow outputs and project state.",
+            "",
+            "## File Consistency Checks",
+            "",
+        ]
+
+        # Check for required files
+        required_files = ["proposal.md", "spec.md", "tasks.md", "status.json"]
+
+        for filename in required_files:
+            file_path = change_path / filename
+            if file_path.exists():
+                report_lines.append(f"✅ **{filename}:** Present")
+            else:
+                report_lines.append(f"❌ **{filename}:** Missing")
+
+        report_lines.append("")
+
+        # Check version consistency
+        report_lines.append("## Version Consistency")
+        report_lines.append("")
+
+        try:
+            current_version = VersionManager.get_current_version(project_root)
+            report_lines.append(f"✅ **Current Project Version:** {current_version}")
+
+            # Check if version was updated in workflow
+            version_snapshot = change_path / "version_snapshot.md"
+            if version_snapshot.exists():
+                content = version_snapshot.read_text(encoding="utf-8")
+                # Look for version information in the snapshot
+                version_match = re.search(r"(\d+\.\d+\.\d+)", content)
+                if version_match:
+                    workflow_version = version_match.group(1)
+                    report_lines.append(f"✅ **Workflow Version:** {workflow_version}")
+                    if workflow_version == current_version:
+                        report_lines.append(
+                            "✅ **Version Consistency:** Versions match"
+                        )
+                    else:
+                        report_lines.append(
+                            f"⚠️ **Version Consistency:** Version mismatch (workflow: {workflow_version}, current: {current_version})"
+                        )
+                else:
+                    report_lines.append(
+                        "⚠️ **Workflow Version:** Could not extract from snapshot"
+                    )
+            else:
+                report_lines.append(
+                    "❌ **Workflow Version:** No version snapshot found"
+                )
+
+        except Exception as e:
+            report_lines.append(f"❌ **Version Check:** Failed - {e}")
+
+        report_lines.append("")
+
+        # Validate workflow status consistency - read from checkpoint data first
+        checkpoint_state_file = change_path / ".checkpoints" / "state.json"
+        status_file = change_path / "status.json"
+
+        workflow_data = None
+
+        # Try to read from checkpoint state first
+        if checkpoint_state_file.exists():
+            try:
+                data = json.loads(checkpoint_state_file.read_text(encoding="utf-8"))
+                checkpoints = data.get("checkpoints", [])
+                last_successful_step = data.get("last_successful_step", 0)
+
+                # Convert checkpoint data to step format
+                steps = []
+                for checkpoint in checkpoints:
+                    step_data = {
+                        "step_id": checkpoint["step_num"],
+                        "step_name": checkpoint["step_name"],
+                        "result": "success",
+                        "duration_seconds": 0,
+                        "errors": [],
+                        "files_created": [],
+                        "metrics": {},
+                    }
+                    steps.append(step_data)
+
+                workflow_data = {"steps": steps, "total_steps": 13, "completed_steps": last_successful_step + 1}
+
+            except (json.JSONDecodeError, KeyError) as e:
+                pass
+
+        # Fall back to status.json if checkpoint data not available
+        if workflow_data is None and status_file.exists():
+            try:
+                workflow_data = json.loads(status_file.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, KeyError) as e:
+                pass
+
+        if workflow_data:
+            steps = workflow_data.get("steps", [])
+            total_steps = workflow_data.get("total_steps", 0)
+            completed_steps = workflow_data.get("completed_steps", 0)
+
+            # Check step count consistency
+            if len(steps) == total_steps:
+                report_lines.append("✅ **Step Count:** Consistent")
+            else:
+                report_lines.append(
+                    f"⚠️ **Step Count:** Mismatch (recorded: {len(steps)}, expected: {total_steps})"
+                )
+
+            # Check completed steps consistency
+            actual_completed = len(
+                [s for s in steps if s.get("result") == "success"]
+            )
+            if actual_completed == completed_steps:
+                report_lines.append("✅ **Completed Steps:** Consistent")
+            else:
+                report_lines.append(
+                    f"⚠️ **Completed Steps:** Mismatch (recorded: {completed_steps}, actual: {actual_completed})"
+                )
+
+            # Check for orphaned files
+            all_created_files = []
+            for step in steps:
+                all_created_files.extend(step.get("files_created", []))
+
+            orphaned_files = []
+            for created_file in all_created_files:
+                file_path = change_path / created_file
+                if not file_path.exists():
+                    orphaned_files.append(created_file)
+
+            if orphaned_files:
+                report_lines.append(
+                    f"⚠️ **Orphaned Files:** {len(orphaned_files)} file(s) marked as created but not found"
+                )
+                for orphaned in orphaned_files[:5]:  # Show first 5
+                    report_lines.append(f"  - {orphaned}")
+                if len(orphaned_files) > 5:
+                    report_lines.append(f"  ... and {len(orphaned_files) - 5} more")
+            else:
+                report_lines.append(
+                    "✅ **File Tracking:** All created files present"
+                )
+        else:
+            report_lines.append(f"❌ **Workflow Validation:** No workflow data available")
+
+        # Check for consistency between documents
+        report_lines.append("## Document Consistency")
+        report_lines.append("")
+
+        proposal_file = change_path / "proposal.md"
+        spec_file = change_path / "spec.md"
+        tasks_file = change_path / "tasks.md"
+
+        documents = [
+            ("Proposal", proposal_file),
+            ("Specification", spec_file),
+            ("Tasks", tasks_file),
+        ]
+
+        for doc_name, doc_path in documents:
+            if doc_path.exists():
+                try:
+                    content = doc_path.read_text(encoding="utf-8")
+                    word_count = len(content.split())
+                    line_count = len(content.split("\n"))
+                    report_lines.append(
+                        f"✅ **{doc_name}:** {word_count} words, {line_count} lines"
+                    )
+                except Exception as e:
+                    report_lines.append(f"❌ **{doc_name}:** Could not read - {e}")
+            else:
+                report_lines.append(f"❌ **{doc_name}:** File not found")
+
+        report_lines.append("")
+
+        report = "\n".join(report_lines)
+
+        if output_file:
+            output_file.write_text(report, encoding="utf-8")
+            write_success(f"Cross-validation report saved to {output_file}")
+
+        return report
+
+    @staticmethod
+    def generate_performance_report(
+        change_path: Path, output_file: Optional[Path] = None
+    ) -> str:
+        """
+        Generate a performance analysis report for the workflow.
+
+        Args:
+            change_path: Path to the change directory
+            output_file: Optional file to save the report to
+
+        Returns:
+            The performance report as a string
+        """
+        # Read workflow data from checkpoint first, then status.json
+        checkpoint_state_file = change_path / ".checkpoints" / "state.json"
+        status_file = change_path / "status.json"
+
+        workflow_data = None
+
+        # Try to read from checkpoint state first
+        if checkpoint_state_file.exists():
+            try:
+                data = json.loads(checkpoint_state_file.read_text(encoding="utf-8"))
+                checkpoints = data.get("checkpoints", [])
+
+                # Convert checkpoint data to step format
+                steps = []
+                for checkpoint in checkpoints:
+                    step_data = {
+                        "step_id": checkpoint["step_num"],
+                        "step_name": checkpoint["step_name"],
+                        "result": "success",
+                        "duration_seconds": 0,  # Not tracked in checkpoints
+                    }
+                    steps.append(step_data)
+
+                workflow_data = {"steps": steps}
+
+            except (json.JSONDecodeError, KeyError) as e:
+                pass
+
+        # Fall back to status.json if checkpoint data not available
+        if workflow_data is None and status_file.exists():
+            try:
+                workflow_data = json.loads(status_file.read_text(encoding="utf-8"))
+            except (json.JSONDecodeError, KeyError) as e:
+                pass
+
+        if not workflow_data:
+            report = "No workflow status found - cannot generate performance report"
+            if output_file:
+                output_file.write_text(report, encoding="utf-8")
+            return report
+
+        report_lines = [
+            "# Performance Analysis Report",
+            "",
+            f"**Change ID:** {change_path.name}",
+            f"**Generated:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "",
+            "## Performance Overview",
+            "",
+        ]
+
+        steps = workflow_data.get("steps", [])
+
+        if not steps:
+            report_lines.append("No step data available for performance analysis.")
+            report = "\n".join(report_lines)
+            if output_file:
+                output_file.write_text(report, encoding="utf-8")
+            return report
+
+        # Calculate performance metrics
+        durations = [
+            s.get("duration_seconds", 0) for s in steps if s.get("duration_seconds")
+        ]
+        successful_durations = [
+            s.get("duration_seconds", 0)
+            for s in steps
+            if s.get("duration_seconds") and s.get("result") == "success"
+        ]
+
+        if durations:
+            total_duration = sum(durations)
+            avg_duration = total_duration / len(durations)
+            max_duration = max(durations)
+            min_duration = min(durations)
+
+            report_lines.append("### Overall Performance")
+            report_lines.append(
+                f"- **Total Workflow Duration:** {total_duration:.1f} seconds"
+            )
+            report_lines.append(
+                f"- **Average Step Duration:** {avg_duration:.1f} seconds"
+            )
+            report_lines.append(f"- **Fastest Step:** {min_duration:.1f} seconds")
+            report_lines.append(f"- **Slowest Step:** {max_duration:.1f} seconds")
+            report_lines.append("")
+
+            # Performance distribution
+            report_lines.append("### Performance Distribution")
+            if len(durations) > 1:
+                # Calculate percentiles
+                sorted_durations = sorted(durations)
+                p50 = sorted_durations[len(sorted_durations) // 2]
+                p90 = sorted_durations[int(len(sorted_durations) * 0.9)]
+                p95 = sorted_durations[int(len(sorted_durations) * 0.95)]
+
+                report_lines.append(
+                    f"- **50th Percentile (Median):** {p50:.1f} seconds"
+                )
+                report_lines.append(f"- **90th Percentile:** {p90:.1f} seconds")
+                report_lines.append(f"- **95th Percentile:** {p95:.1f} seconds")
+            report_lines.append("")
+
+        # Step-by-step performance breakdown
+        report_lines.append("### Step Performance Breakdown")
+        report_lines.append("")
+
+        # Sort steps by duration (descending)
+        steps_with_duration = [
+            (s, s.get("duration_seconds", 0))
+            for s in steps
+            if s.get("duration_seconds")
+        ]
+        steps_with_duration.sort(key=lambda x: x[1], reverse=True)
+
+        for step, duration in steps_with_duration[:10]:  # Top 10 slowest
+            step_id = step["step_id"]
+            step_name = step.get("step_name", f"Step {step_id}")
+            result = step.get("result", "unknown")
+
+            status_icon = (
+                "✅"
+                if result == "success"
+                else "❌" if result == "failure" else "⚠️"
+            )
+            report_lines.append(
+                f"1. **{status_icon} {step_name}** ({step_id}): {duration:.1f}s"
+            )
+
+        report = "\n".join(report_lines)
+
+        if output_file:
+            output_file.write_text(report, encoding="utf-8")
+            write_success(f"Performance report saved to {output_file}")
+
+        return report
 
 
 def _fix_import_sorting(project_root: Path) -> tuple[bool, List[str]]:
@@ -1886,3 +2405,83 @@ def _fix_import_sorting(project_root: Path) -> tuple[bool, List[str]]:
         return False, ["Import sorting timed out"]
 
     return True, improvements
+
+
+def validate_security(project_root: Path) -> tuple[bool, List[str]]:
+    """
+    Validate security configuration and files.
+
+    Args:
+        project_root: Path to the project root directory
+
+    Returns:
+        Tuple of (success: bool, issues: List[str])
+    """
+    try:
+        # Import the validate_security module
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location(
+            "validate_security", project_root / "scripts" / "validate_security.py"
+        )
+        if spec is None or spec.loader is None:
+            return False, ["Could not load validate_security module"]
+
+        validate_security_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validate_security_module)
+
+        # Call the validation function
+        success, issues = validate_security_module.validate_security_workflow()
+        return success, issues
+
+    except Exception as e:
+        return False, [f"Security validation failed: {str(e)}"]
+
+
+def run_code_quality_improvements(project_root: Path) -> tuple[bool, List[str]]:
+    """
+    Run automated code quality improvements.
+
+    Args:
+        project_root: Path to the project root directory
+
+    Returns:
+        Tuple of (success: bool, improvements: List[str])
+    """
+    try:
+        # Run the code quality improvements script
+        script_path = project_root / "scripts" / "code_quality_improvements.py"
+
+        if not script_path.exists():
+            return False, ["Code quality improvements script not found"]
+
+        result = subprocess.run(
+            [sys.executable, str(script_path)],
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+            timeout=300,  # 5 minute timeout
+        )
+
+        improvements = []
+
+        if result.returncode == 0:
+            # Parse output for improvements made
+            lines = result.stdout.split("\n")
+            for line in lines:
+                if "[ok]" in line or "[PASS]" in line or "Fixed" in line:
+                    improvements.append(line.strip())
+            return True, (
+                improvements if improvements else ["Code quality checks completed"]
+            )
+        else:
+            # Check stderr for specific errors
+            error_lines = result.stderr.split("\n") if result.stderr else []
+            return False, (
+                error_lines if error_lines else ["Code quality improvements failed"]
+            )
+
+    except subprocess.TimeoutExpired:
+        return False, ["Code quality improvements timed out"]
+    except Exception as e:
+        return False, [f"Code quality improvements failed: {str(e)}"]

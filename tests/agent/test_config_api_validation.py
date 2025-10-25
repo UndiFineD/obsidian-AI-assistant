@@ -81,7 +81,9 @@ class TestCORSOriginsValidation:
             "https://localhost:3000",
         ]
 
-        response = client.post("/api/config", json={"cors_allowed_origins": new_origins})
+        response = client.post(
+            "/api/config", json={"cors_allowed_origins": new_origins}
+        )
 
         # Should succeed or return validation error
         assert response.status_code in [200, 400, 422, 500]
@@ -97,7 +99,9 @@ class TestCORSOriginsValidation:
         try:
             update_settings({"cors_allowed_origins": wildcard_origins})
             # Check if warning was logged
-            assert any("wildcard" in record.message.lower() for record in caplog.records)
+            assert any(
+                "wildcard" in record.message.lower() for record in caplog.records
+            )
         except Exception:
             # Settings update may fail in test environment, that's okay
             pass
@@ -281,7 +285,9 @@ class TestCSRFToggle:
         try:
             update_settings({"csrf_enabled": False})
             warning_messages = [
-                record.message.lower() for record in caplog.records if record.levelname == "WARNING"
+                record.message.lower()
+                for record in caplog.records
+                if record.levelname == "WARNING"
             ]
             assert any("csrf" in msg for msg in warning_messages)
         except Exception:
@@ -295,7 +301,9 @@ class TestProtectedFields:
         """Test that agent_url cannot be updated (derived field)."""
         # Should be rejected by /api/config endpoint as unknown key
         try:
-            response = client.post("/api/config", json={"agent_url": "http://malicious.com:9999"})
+            response = client.post(
+                "/api/config", json={"agent_url": "http://malicious.com:9999"}
+            )
             # Should return error (unknown key)
             assert response.status_code in [400, 422, 500]
         except Exception:
@@ -306,7 +314,9 @@ class TestProtectedFields:
         """Test that project_root cannot be updated (system path)."""
         # Should be rejected by /api/config endpoint as unknown key
         try:
-            response = client.post("/api/config", json={"project_root": "/malicious/path"})
+            response = client.post(
+                "/api/config", json={"project_root": "/malicious/path"}
+            )
             # Should return error (unknown key)
             assert response.status_code in [400, 422, 500]
         except Exception:

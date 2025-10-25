@@ -8,8 +8,8 @@ Verifies that all three lanes execute correctly with proper stage skipping.
 import subprocess
 import sys
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def run_command(cmd, cwd=None):
@@ -76,13 +76,17 @@ def test_lane_stages():
     checks = [
         (
             "docs lane stages",
-            '"docs": {' in content and '"stages": [0, 2, 3, 4, 9, 10, 11, 12]' in content,
+            '"docs": {' in content
+            and '"stages": [0, 2, 3, 4, 9, 10, 11, 12]' in content,
         ),
         (
             "standard lane stages",
             '"standard": {' in content and '"stages": list(range(13))' in content,
         ),
-        ("heavy lane stages", '"heavy": {' in content and '"strict_thresholds": True' in content),
+        (
+            "heavy lane stages",
+            '"heavy": {' in content and '"strict_thresholds": True' in content,
+        ),
         (
             "quality_gates flag",
             '"quality_gates": False' in content and '"quality_gates": True' in content,
@@ -114,7 +118,10 @@ def test_lane_code_detection():
             "check_code_changes_in_docs_lane function defined",
             "def check_code_changes_in_docs_lane" in content,
         ),
-        ("Code extension detection", "code_extensions = {'.py', '.js', '.ts'" in content),
+        (
+            "Code extension detection",
+            "code_extensions = {'.py', '.js', '.ts'" in content,
+        ),
         ("Docs lane check integration", 'if lane == "docs":' in content),
     ]
 
@@ -187,12 +194,14 @@ def test_workflow_documentation():
         (
             "README.md - Lane feature",
             Path("README.md").exists(),
-            "Documentation Lane" in Path("README.md").read_text(encoding="utf-8", errors="replace"),
+            "Documentation Lane"
+            in Path("README.md").read_text(encoding="utf-8", errors="replace"),
         ),
         (
             "CHANGELOG.md - v0.1.43 release",
             Path("CHANGELOG.md").exists(),
-            "v0.1.43" in Path("CHANGELOG.md").read_text(encoding="utf-8", errors="replace"),
+            "v0.1.43"
+            in Path("CHANGELOG.md").read_text(encoding="utf-8", errors="replace"),
         ),
     ]
 

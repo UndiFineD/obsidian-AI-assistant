@@ -10,9 +10,15 @@ def test_dependency_manager_merge_and_deduplication():
     # Create temporary requirements files
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)
-        (tmpdir_path / "requirements.txt").write_text("requests==2.31.0\nflask==2.0.0\n")
-        (tmpdir_path / "requirements-dev.txt").write_text("requests>=2.0.0\npytest==7.4.0\n")
-        (tmpdir_path / "requirements-test.txt").write_text("pytest==7.4.0\nflask>=2.0.0\n")
+        (tmpdir_path / "requirements.txt").write_text(
+            "requests==2.31.0\nflask==2.0.0\n"
+        )
+        (tmpdir_path / "requirements-dev.txt").write_text(
+            "requests>=2.0.0\npytest==7.4.0\n"
+        )
+        (tmpdir_path / "requirements-test.txt").write_text(
+            "pytest==7.4.0\nflask>=2.0.0\n"
+        )
 
         # Run dependency_manager.py in summary mode
         result = subprocess.run(

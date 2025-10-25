@@ -15,20 +15,21 @@ Validates:
 - Resumption capability
 """
 
-import pytest
 import sys
 import time
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 # Add scripts directory to path for imports
 scripts_dir = Path(__file__).parent.parent / "scripts"
 sys.path.insert(0, str(scripts_dir))
 
+from pre_step_hooks import HookStatus, PreStepHooks
 from quality_gates import QualityGates
-from status_tracker import StatusTracker, StageStatus
+from status_tracker import StageStatus, StatusTracker
 from workflow_resumption import WorkflowResumption
-from pre_step_hooks import PreStepHooks, HookStatus
 
 
 class TestDocsLaneWorkflow:
@@ -39,7 +40,9 @@ class TestDocsLaneWorkflow:
         with TemporaryDirectory() as tmpdir:
             # Initialize workflow
             tracker = StatusTracker(
-                workflow_id="docs-test", lane="docs", status_file=Path(tmpdir) / "status.json"
+                workflow_id="docs-test",
+                lane="docs",
+                status_file=Path(tmpdir) / "status.json",
             )
             hooks = PreStepHooks()
 
@@ -76,7 +79,9 @@ class TestDocsLaneWorkflow:
         """Test that docs lane meets SLA target"""
         with TemporaryDirectory() as tmpdir:
             tracker = StatusTracker(
-                workflow_id="docs-sla-test", lane="docs", status_file=Path(tmpdir) / "status.json"
+                workflow_id="docs-sla-test",
+                lane="docs",
+                status_file=Path(tmpdir) / "status.json",
             )
 
             # Simulate quick workflow
@@ -122,7 +127,9 @@ class TestStandardLaneWorkflow:
                     # Quality gates would run here
                     gates_result = gates.run_all()
                     tracker.complete_stage(
-                        stage, success=gates_result, metrics={"gates_passed": gates_result}
+                        stage,
+                        success=gates_result,
+                        metrics={"gates_passed": gates_result},
                     )
                 else:
                     tracker.complete_stage(stage, success=True)
@@ -171,7 +178,9 @@ class TestHeavyLaneWorkflow:
         with TemporaryDirectory() as tmpdir:
             # Initialize workflow
             tracker = StatusTracker(
-                workflow_id="heavy-test", lane="heavy", status_file=Path(tmpdir) / "status.json"
+                workflow_id="heavy-test",
+                lane="heavy",
+                status_file=Path(tmpdir) / "status.json",
             )
             hooks = PreStepHooks()
             gates = QualityGates(lane="heavy")
@@ -190,7 +199,9 @@ class TestHeavyLaneWorkflow:
                 if stage == 8:
                     gates_result = gates.run_all()
                     tracker.complete_stage(
-                        stage, success=gates_result, metrics={"gates_passed": gates_result}
+                        stage,
+                        success=gates_result,
+                        metrics={"gates_passed": gates_result},
                     )
                 else:
                     tracker.complete_stage(stage, success=True)
@@ -216,7 +227,9 @@ class TestHeavyLaneWorkflow:
         """Test that heavy lane meets SLA target"""
         with TemporaryDirectory() as tmpdir:
             tracker = StatusTracker(
-                workflow_id="heavy-sla-test", lane="heavy", status_file=Path(tmpdir) / "status.json"
+                workflow_id="heavy-sla-test",
+                lane="heavy",
+                status_file=Path(tmpdir) / "status.json",
             )
 
             # Simulate workflow

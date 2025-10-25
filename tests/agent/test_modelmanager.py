@@ -141,8 +141,12 @@ class TestModelManager:
         """Test listing available models from models.txt."""
         with patch("agent.modelmanager.load_dotenv"), patch(
             "agent.modelmanager.huggingface_hub.login"
-        ), patch("os.getenv", return_value=None), patch("agent.modelmanager.HybridLLMRouter"):
-            manager = ModelManager(models_dir=temp_models_dir, models_file=mock_models_file)
+        ), patch("os.getenv", return_value=None), patch(
+            "agent.modelmanager.HybridLLMRouter"
+        ):
+            manager = ModelManager(
+                models_dir=temp_models_dir, models_file=mock_models_file
+            )
             # Login not expected to be called when no token is available
             models = manager.list_available_models()
             expected_models = ["gpt4all-lora", "llama-7b-q4", "code-llama-13b"]
@@ -167,7 +171,9 @@ class TestModelManager:
         """Test downloading model when it already exists locally."""
         with patch("agent.modelmanager.load_dotenv"), patch(
             "agent.modelmanager.huggingface_hub.login"
-        ), patch("os.getenv", return_value=None), patch("agent.modelmanager.HybridLLMRouter"):
+        ), patch("os.getenv", return_value=None), patch(
+            "agent.modelmanager.HybridLLMRouter"
+        ):
             # Create fake model file
             models_path = Path(temp_models_dir)
             model_file = models_path / "existing-model.bin"
@@ -184,7 +190,9 @@ class TestModelManager:
             "agent.modelmanager.huggingface_hub.login"
         ), patch("os.getenv", return_value="test_token"), patch(
             "agent.modelmanager.HybridLLMRouter"
-        ), patch("agent.modelmanager.huggingface_hub.hf_hub_download") as mock_download:
+        ), patch(
+            "agent.modelmanager.huggingface_hub.hf_hub_download"
+        ) as mock_download:
             mock_download.return_value = f"{temp_models_dir}/downloaded-model.bin"
             # Disable automatic downloads for testing
             manager = ModelManager(models_dir=temp_models_dir, minimal_models=[])
@@ -298,7 +306,9 @@ class TestModelManager:
         """Test that models directory is created if it doesn't exist."""
         with patch("agent.modelmanager.load_dotenv"), patch(
             "agent.modelmanager.huggingface_hub.login"
-        ), patch("os.getenv", return_value=None), patch("agent.modelmanager.HybridLLMRouter"):
+        ), patch("os.getenv", return_value=None), patch(
+            "agent.modelmanager.HybridLLMRouter"
+        ):
             models_dir = Path(temp_models_dir) / "new_models_dir"
             manager = ModelManager(models_dir=str(models_dir))
             # Directory should be created during initialization or first use
@@ -320,7 +330,9 @@ class TestModelManagerIntegration:
             mock_router_instance.generate.return_value = "Test response"
             mock_router_instance.get_available_models.return_value = {"llama": True}
             mock_router.return_value = mock_router_instance
-            manager = ModelManager(models_dir=temp_models_dir, models_file=mock_models_file)
+            manager = ModelManager(
+                models_dir=temp_models_dir, models_file=mock_models_file
+            )
             # List models
             models = manager.list_available_models()
             assert len(models) > 0

@@ -13,20 +13,16 @@ Author: @kdejo
 Date: 2025-10-24
 """
 
-import json
-import os
-import subprocess
-import sys
-import time
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor, as_completed
-from dataclasses import dataclass, asdict, field
-from datetime import datetime, timedelta
-from enum import Enum
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Callable, Any
 import logging
+import os
 import threading
-from collections import deque
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
 import psutil  # For CPU and memory monitoring
 
 # Configure logging
@@ -589,7 +585,7 @@ if __name__ == "__main__":
             print(f"  Optimal workers: {optimal}")
 
     # Create adaptive pool
-    print(f"\nCreating adaptive worker pool...")
+    print("\nCreating adaptive worker pool...")
     pool = AdaptiveWorkerPool(strategy=ParallelizationStrategy.ADAPTIVE)
     print(f"  Strategy: {pool.strategy.value}")
     print(f"  Pool size: {pool.size}")
