@@ -79,6 +79,15 @@ except ImportError:
     StatusTracker = None
     create_tracker = None
 
+# Import hook registry if available
+try:
+    from hook_registry import HookRegistry, run_stage_hooks
+    HOOK_REGISTRY_AVAILABLE = True
+except ImportError:
+    HOOK_REGISTRY_AVAILABLE = False
+    HookRegistry = None
+    run_stage_hooks = None
+
 # Directory paths
 CHANGES_DIR = PROJECT_ROOT / "openspec" / "changes"
 ARCHIVE_DIR = PROJECT_ROOT / "openspec" / "archive"
@@ -461,6 +470,7 @@ def execute_step(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ) -> bool:
     """
     Execute a specific workflow step with optional checkpoint creation and status tracking.
@@ -475,6 +485,7 @@ def execute_step(
         enable_checkpoints: If True, create checkpoint before execution
         skip_quality_gates: If True, skip quality gates (not recommended)
         lane: Workflow lane (docs, standard, heavy)
+        force_hooks: If True, skip pre-step hooks (not recommended)
 
     Returns:
         True if successful, False otherwise
@@ -502,6 +513,18 @@ def execute_step(
             status_tracker.start_stage(step_num, step_name)
         except Exception as e:
             helpers.write_warning(f"Could not initialize status tracker: {e}")
+
+    # Run pre-step hooks for specific stages (0, 1, 10, 12)
+    if HOOK_REGISTRY_AVAILABLE and step_num in [0, 1, 10, 12] and not dry_run:
+        try:
+            if not run_stage_hooks(step_num, force=force_hooks):
+                helpers.write_error(f"Pre-step hooks failed for Stage {step_num}")
+                helpers.write_info("Fix issues above and retry, or use --force-hooks to skip (not recommended)")
+                if status_tracker:
+                    status_tracker.complete_stage(step_num, success=False, metrics={"reason": "Pre-step hooks failed"})
+                return False
+        except Exception as e:
+            helpers.write_warning(f"Error running pre-step hooks: {e}")
 
     # Load step module
     step_module = load_step_module(step_num)
@@ -588,6 +611,7 @@ def run_single_step(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ):
     """Run a single workflow step."""
     change_path = CHANGES_DIR / change_id
@@ -608,6 +632,12 @@ def run_single_step(
         )
         print()
 
+    if force_hooks:
+        helpers.write_warning(
+            "⚠️  Pre-step hooks SKIPPED - validation may be bypassed"
+        )
+        print()
+
     success = execute_step(
         step_num,
         change_path,
@@ -619,6 +649,7 @@ def run_single_step(
         enable_checkpoints,
         skip_quality_gates,
         lane,
+        force_hooks,
     )
 
     print()
@@ -815,6 +846,7 @@ def run_interactive_workflow(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ):
     """Run the complete interactive workflow."""
     change_path = CHANGES_DIR / change_id
@@ -984,6 +1016,7 @@ def run_interactive_workflow(
                     enable_checkpoints,
                     skip_quality_gates,
                     lane=lane,
+                    force_hooks=force_hooks,
                 )
 
                 if not success:
@@ -1020,6 +1053,7 @@ def run_interactive_workflow(
                 enable_checkpoints,
                 skip_quality_gates,
                 lane=lane,
+                force_hooks=force_hooks,
             )
 
             if not success:
@@ -1276,6 +1310,11 @@ Examples:
         action="store_true",
         help="Disable parallelization of stages 2-6 (useful for debugging)",
     )
+    parser.add_argument(
+        "--force-hooks",
+        action="store_true",
+        help="Skip pre-step hooks without validation (not recommended)",
+    )
 
     args = parser.parse_args()
     
@@ -1353,6 +1392,7 @@ Examples:
             enable_checkpoints,
             args.skip_quality_gates,
             args.lane,
+            args.force_hooks,
         )
     else:
         # Interactive workflow
@@ -1366,6 +1406,7 @@ Examples:
             enable_checkpoints,
             args.skip_quality_gates,
             args.lane,
+            args.force_hooks,
         )
 
 
