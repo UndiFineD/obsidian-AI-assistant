@@ -320,6 +320,13 @@ def invoke_step1(
         except Exception as e:
             helpers.write_warning(f"Could not show changes: {e}")
 
+    # Detect next step
+    try:
+        next_step = helpers.detect_next_step(change_path)
+        helpers.write_info(f"Next workflow step: {next_step}")
+    except Exception as e:
+        helpers.write_warning(f"Could not detect next step: {e}")
+
     # Persist new_version and version_branch to state file for downstream steps
     if new_version:
         state_file = change_path / ".workflow_state.json"

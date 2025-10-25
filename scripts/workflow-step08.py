@@ -349,6 +349,13 @@ def invoke_step8(
         helpers.show_changes(change_path)
         helpers.validate_step_artifacts(change_path, 8)
 
+    # Detect next step
+    try:
+        next_step = helpers.detect_next_step(change_path)
+        helpers.write_info(f"Next workflow step: {next_step}")
+    except Exception as e:
+        helpers.write_warning(f"Could not detect next step: {e}")
+
     # Success if implementation happened, tests passed, and quality gates passed
     return impl_success and test_success and gates_success
 

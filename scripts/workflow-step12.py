@@ -18,6 +18,15 @@ from pathlib import Path
 SCRIPTS_DIR = Path(__file__).parent
 sys.path.insert(0, str(SCRIPTS_DIR))
 
+# Import workflow helpers
+import importlib.util
+spec = importlib.util.spec_from_file_location(
+    "workflow_helpers",
+    SCRIPTS_DIR / "workflow-helpers.py",
+)
+helpers = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(helpers)
+
 from progress_indicators import StatusTracker
 
 # Import status tracking
@@ -220,7 +229,7 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
     Returns:
         True if successful, False otherwise
     """
-    print("\n═════════  STEP 12: Create Pull Request ═════════\n")
+    helpers.write_step(12, "Create Pull Request")
 
     change_path = Path(change_path)
     change_id = change_path.name
@@ -373,16 +382,11 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
         # Show changes and validate artifacts
         if not dry_run:
-            # Import helpers for validation
-            import importlib.util
-            spec = importlib.util.spec_from_file_location(
-                "workflow_helpers",
-                SCRIPTS_DIR / "workflow-helpers.py",
-            )
-            helpers = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(helpers)
             helpers.show_changes(change_path)
             helpers.validate_step_artifacts(change_path, 12)
+
+        # Detect next step
+        helpers.detect_next_step(change_path)
 
         return True  # Non-blocking, user can create PR manually
 
@@ -394,6 +398,10 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
         print("PR body preview:")
         for line in pr_body_lines[:20]:
             print(f"  {line}")
+        
+        # Detect next step
+        helpers.detect_next_step(change_path)
+        
         return True
 
     # Check for existing PR
@@ -409,16 +417,11 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
         # Show changes and validate artifacts
         if not dry_run:
-            # Import helpers for validation
-            import importlib.util
-            spec = importlib.util.spec_from_file_location(
-                "workflow_helpers",
-                SCRIPTS_DIR / "workflow-helpers.py",
-            )
-            helpers = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(helpers)
             helpers.show_changes(change_path)
             helpers.validate_step_artifacts(change_path, 12)
+
+        # Detect next step
+        helpers.detect_next_step(change_path)
 
         return True
 
@@ -453,16 +456,11 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
             # Show changes and validate artifacts
             if not dry_run:
-                # Import helpers for validation
-                import importlib.util
-                spec = importlib.util.spec_from_file_location(
-                    "workflow_helpers",
-                    SCRIPTS_DIR / "workflow-helpers.py",
-                )
-                helpers = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(helpers)
                 helpers.show_changes(change_path)
                 helpers.validate_step_artifacts(change_path, 12)
+
+            # Detect next step
+            helpers.detect_next_step(change_path)
 
             return True
         else:
@@ -487,16 +485,11 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
 
             # Show changes and validate artifacts
             if not dry_run:
-                # Import helpers for validation
-                import importlib.util
-                spec = importlib.util.spec_from_file_location(
-                    "workflow_helpers",
-                    SCRIPTS_DIR / "workflow-helpers.py",
-                )
-                helpers = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(helpers)
                 helpers.show_changes(change_path)
                 helpers.validate_step_artifacts(change_path, 12)
+
+            # Detect next step
+            helpers.detect_next_step(change_path)
 
             return True
         else:
@@ -523,6 +516,10 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
             )
             print()
             print("Step 12 completed with warnings (PR creation pending)")
+            
+            # Detect next step
+            helpers.detect_next_step(change_path)
+            
             return True  # Return True to allow workflow to complete
 
 

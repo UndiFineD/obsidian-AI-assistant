@@ -87,6 +87,13 @@ def invoke_step0(
         except Exception as e:
             write_warning(f"Could not initialize status tracker: {e}")
 
+    # Log environment validation
+    write_info("Validating environment and workspace structure")
+    write_info(f"  Change path: {change_path}")
+    write_info(f"  Title: {title}")
+    write_info(f"  Owner: {owner}")
+    write_info(f"  Dry run: {dry_run}")
+
     todo_path = change_path / "todo.md"
     # Calculate template path: go up from change_path to project root, then to templates
     # change_path is like: project_root/openspec/changes/change-id
@@ -116,6 +123,13 @@ def invoke_step0(
                 return False
         except Exception as e:
             write_warning(f"Document validation error: {e}")
+
+    # Detect next step
+    try:
+        next_step = workflow_helpers.detect_next_step(change_path)
+        write_info(f"Next workflow phase: Step {next_step}")
+    except Exception as e:
+        write_warning(f"Could not detect next step: {e}")
 
     if not dry_run:
         try:
@@ -165,6 +179,27 @@ def invoke_step0(
                     if status_tracker:
                         status_tracker.complete_stage(0, success=False, metrics={"reason": "Failed to write file"})
                     return False
+
+            # Write status.json
+            status_data = {
+                "step": 0,
+                "completed": True,
+                "timestamp": datetime.now().isoformat(),
+                "change_id": change_path.name,
+                "title": title,
+                "owner": owner,
+                "artifacts": {
+                    "todo.md": str(todo_path),
+                    "template_used": str(template_path)
+                }
+            }
+            
+            status_file = change_path / "status.json"
+            import json
+            if not set_content_atomic(status_file, json.dumps(status_data, indent=2)):
+                write_warning("Failed to write status.json")
+            else:
+                write_success("Created status.json")
 
             # Validate step artifacts
             if not workflow_helpers.validate_step_artifacts(change_path, 0):
