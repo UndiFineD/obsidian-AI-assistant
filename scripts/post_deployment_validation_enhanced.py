@@ -20,15 +20,15 @@ Exit Codes:
     2 - Critical error
 """
 
-import subprocess
-import time
 import json
+import subprocess
 import sys
-from pathlib import Path
+import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List
 
 
 class ValidationStatus(Enum):
@@ -357,7 +357,7 @@ class PostDeploymentValidator:
                         "--change-id",
                         f"post4-test-{lane}",
                         "--title",
-                        f"POST-4 Usability Test",
+                        "POST-4 Usability Test",
                         "--owner",
                         "post_deployment",
                         "--lane",
@@ -378,7 +378,7 @@ class PostDeploymentValidator:
                 lane_results.append((lane, passed))
 
             except subprocess.TimeoutExpired:
-                self.log(f"  ❌ Timeout", "ERROR")
+                self.log("  ❌ Timeout", "ERROR")
                 lane_results.append((lane, False))
             except Exception as e:
                 self.log(f"  ❌ Exception: {e}", "ERROR")
@@ -584,9 +584,11 @@ class PostDeploymentValidator:
                 "errors": sum(
                     1 for r in self.results if r.status == ValidationStatus.ERROR
                 ),
-                "overall_status": "PASS"
-                if all(r.status != ValidationStatus.FAIL for r in self.results)
-                else "FAIL",
+                "overall_status": (
+                    "PASS"
+                    if all(r.status != ValidationStatus.FAIL for r in self.results)
+                    else "FAIL"
+                ),
             },
         }
 

@@ -15,15 +15,15 @@ Test Coverage:
 - Edge cases (no changes, empty repo, etc.)
 """
 
-import subprocess
-import tempfile
 import json
-import shutil
 import os
+import shutil
+import subprocess
 import sys
-from pathlib import Path
+import tempfile
 from datetime import datetime
-from typing import Tuple, Optional
+from pathlib import Path
+from typing import Optional, Tuple
 
 
 # ANSI Colors for output
@@ -87,7 +87,9 @@ class LaneDetectionTest:
             os.chdir("/")
             shutil.rmtree(self.test_dir)
 
-    def detect_lane(self, base_ref: str = "HEAD~1", head_ref: str = "HEAD") -> Tuple[str, int]:
+    def detect_lane(
+        self, base_ref: str = "HEAD~1", head_ref: str = "HEAD"
+    ) -> Tuple[str, int]:
         """
         Run lane detection script.
 
@@ -145,7 +147,9 @@ class LaneDetectionTest:
     def assert_exit_code(self, code: int, expected: int, message: str = "") -> None:
         """Assert exit code matches expected."""
         if code != expected:
-            raise AssertionError(f"Expected exit code {expected}, got {code}. {message}")
+            raise AssertionError(
+                f"Expected exit code {expected}, got {code}. {message}"
+            )
         log_pass(f"Exit code {code} as expected")
 
 
@@ -157,7 +161,10 @@ class TestDocsonlyChanges(LaneDetectionTest):
         self.setup()
         try:
             self.add_commit(
-                {"docs/guide.md": "# Installation Guide", "README.md": "# Updated README"},
+                {
+                    "docs/guide.md": "# Installation Guide",
+                    "README.md": "# Updated README",
+                },
                 "docs: Update documentation",
             )
 
@@ -268,7 +275,9 @@ class TestHeavyChanges(LaneDetectionTest):
         """Test breaking change detection."""
         self.setup()
         try:
-            self.add_commit({"agent/api.py": "# API redesign"}, "BREAKING: Redesign API endpoints")
+            self.add_commit(
+                {"agent/api.py": "# API redesign"}, "BREAKING: Redesign API endpoints"
+            )
 
             lane, code = self.detect_lane()
             self.assert_lane(lane, "heavy", "Breaking change triggers heavy lane")
@@ -331,7 +340,9 @@ class TestEdgeCases(LaneDetectionTest):
             self.add_commit({"file.py": "content"}, "initial: Add file")
             Path("file.py").unlink()
             subprocess.run(["git", "add", "."], check=True)
-            subprocess.run(["git", "commit", "-m", "chore: Remove old file"], check=True)
+            subprocess.run(
+                ["git", "commit", "-m", "chore: Remove old file"], check=True
+            )
 
             lane, code = self.detect_lane()
             # Deletions shouldn't affect lane detection

@@ -150,7 +150,8 @@ Closes {issue}""",
 {solution}
 
 Fixes {issue}""",
-        CommitType.REFACTOR: """\
+        CommitType.REFACTOR: (
+            """\
 {type}({scope}): {subject}
 
 **Changes**:
@@ -160,15 +161,16 @@ Fixes {issue}""",
 {impact}
 
 BREAKING CHANGE: {breaking_change}"""
-        if "{breaking_change}"
-        else """\
+            if "{breaking_change}"
+            else """\
 {type}({scope}): {subject}
 
 **Changes**:
 {body}
 
 **Impact**:
-{impact}""",
+{impact}"""
+        ),
         CommitType.DOCS: """\
 {type}({scope}): {subject}
 

@@ -50,9 +50,9 @@ class TestPluginStructure:
         # Validate specific values
         assert manifest["id"] == "obsidian-ai-agent"
         assert manifest["name"] == "AI Assistant"
-        assert re.match(r"\d+\.\d+\.\d+", manifest["version"]), (
-            "Version should follow semantic versioning"
-        )
+        assert re.match(
+            r"\d+\.\d+\.\d+", manifest["version"]
+        ), "Version should follow semantic versioning"
         print("✓ Manifest.json is valid and complete")
 
     def test_main_js_exists(self):
@@ -64,9 +64,9 @@ class TestPluginStructure:
             content = f.read()
 
         assert len(content) > 1000, "main.js should contain substantial code"
-        assert "require('obsidian'" in content or "from 'obsidian'" in content, (
-            "main.js should import from obsidian"
-        )
+        assert (
+            "require('obsidian'" in content or "from 'obsidian'" in content
+        ), "main.js should import from obsidian"
         assert "class" in content, "main.js should contain class definitions"
 
         print(f"✓ main.js exists and contains {len(content)} characters")
@@ -108,18 +108,20 @@ class TestMainPluginFile:
         content = self.main_js_content
 
         # Check for main plugin class
-        assert "class ObsidianAIAgent extends Plugin" in content, (
-            "Should have ObsidianAIAgent class extending Plugin"
-        )
+        assert (
+            "class ObsidianAIAgent extends Plugin" in content
+        ), "Should have ObsidianAIAgent class extending Plugin"
 
         # Check for essential methods (onload is required, onunload is optional
-        assert "onload(" in content or "onload (" in content, "Plugin should have onload method"
-        assert "loadSettings(" in content or "loadSettings (" in content, (
-            "Plugin should have loadSettings method"
-        )
-        assert "saveSettings(" in content or "saveSettings (" in content, (
-            "Plugin should have saveSettings method"
-        )
+        assert (
+            "onload(" in content or "onload (" in content
+        ), "Plugin should have onload method"
+        assert (
+            "loadSettings(" in content or "loadSettings (" in content
+        ), "Plugin should have loadSettings method"
+        assert (
+            "saveSettings(" in content or "saveSettings (" in content
+        ), "Plugin should have saveSettings method"
 
         print("✓ Main plugin class structure is correct")
 
@@ -128,7 +130,9 @@ class TestMainPluginFile:
         content = self.main_js_content
 
         # Check for AIModal class
-        assert "class AIModal extends Modal" in content, "Should have AIModal class extending Modal"
+        assert (
+            "class AIModal extends Modal" in content
+        ), "Should have AIModal class extending Modal"
 
         # Check for onOpen method (onClose is optional
         pattern = r"onOpen\s*\([^)]*\)\s*\{"
@@ -141,12 +145,14 @@ class TestMainPluginFile:
         content = self.main_js_content
 
         # Check for settings tab class
-        assert "class AIAssistantSettingTab extends PluginSettingTab" in content, (
-            "Should have AIAssistantSettingTab class"
-        )
+        assert (
+            "class AIAssistantSettingTab extends PluginSettingTab" in content
+        ), "Should have AIAssistantSettingTab class"
 
         # Check for display method
-        assert re.search(r"display\s*\(", content), "Settings tab should have a display() method"
+        assert re.search(
+            r"display\s*\(", content
+        ), "Settings tab should have a display() method"
 
         print("✓ Settings tab structure is correct")
 
@@ -162,9 +168,9 @@ class TestMainPluginFile:
         for setting in essential_settings:
             # Look for property name in JavaScript object (can be with or without quotes)
             pattern = rf'["\']?{setting}["\']?\s*:'
-            assert re.search(pattern, content), (
-                f"DEFAULT_SETTINGS should include {setting} property"
-            )
+            assert re.search(
+                pattern, content
+            ), f"DEFAULT_SETTINGS should include {setting} property"
 
         print("✓ Default settings are properly defined")
 
@@ -183,9 +189,9 @@ class TestMainPluginFile:
         for pattern in communication_patterns:
             if re.search(pattern, content, re.IGNORECASE):
                 found_patterns.append(pattern)
-        assert len(found_patterns) >= 2, (
-            f"Should have backend communication setup. Found patterns: {found_patterns}"
-        )
+        assert (
+            len(found_patterns) >= 2
+        ), f"Should have backend communication setup. Found patterns: {found_patterns}"
         print("✓ Backend communication setup detected")
 
 
@@ -212,7 +218,9 @@ class TestPluginModules:
                 "=>" in content,  # Arrow functions
             ]
         )
-        assert has_structure, "analyticsPane.js should contain function or class definitions"
+        assert (
+            has_structure
+        ), "analyticsPane.js should contain function or class definitions"
 
         print("✓ analyticsPane.js has proper structure")
 
@@ -228,12 +236,14 @@ class TestPluginModules:
         queue_patterns = [r"queue", r"push", r"pop", r"shift", r"unshift", r"length"]
 
         found_queue_patterns = sum(
-            1 for pattern in queue_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in queue_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
 
-        assert found_queue_patterns >= 2, (
-            f"taskQueue.js should contain queue functionality. Found {found_queue_patterns} patterns"
-        )
+        assert (
+            found_queue_patterns >= 2
+        ), f"taskQueue.js should contain queue functionality. Found {found_queue_patterns} patterns"
 
         print("✓ taskQueue.js has queue functionality")
 
@@ -251,12 +261,14 @@ class TestPluginModules:
             voice_patterns = [r"audio", r"microphone", r"record", r"speech", r"voice"]
 
             found_patterns = sum(
-                1 for pattern in voice_patterns if re.search(pattern, content, re.IGNORECASE)
+                1
+                for pattern in voice_patterns
+                if re.search(pattern, content, re.IGNORECASE)
             )
 
-            assert found_patterns >= 1, (
-                f"{filename} should contain voice-related functionality. Found {found_patterns} patterns"
-            )
+            assert (
+                found_patterns >= 1
+            ), f"{filename} should contain voice-related functionality. Found {found_patterns} patterns"
 
         print("✓ Voice modules have proper structure")
 
@@ -277,7 +289,9 @@ class TestPluginModules:
 
         found_css = sum(1 for pattern in css_patterns if re.search(pattern, content))
 
-        assert found_css >= 2, f"styles.css should contain valid CSS. Found {found_css} patterns"
+        assert (
+            found_css >= 2
+        ), f"styles.css should contain valid CSS. Found {found_css} patterns"
         print("✓ styles.css contains valid CSS")
 
 
@@ -296,7 +310,9 @@ class TestPluginConfiguration:
                 config = json.load(f)
 
             # Should be valid JSON with some configuration
-            assert isinstance(config, dict), "config.template.json should be a JSON object"
+            assert isinstance(
+                config, dict
+            ), "config.template.json should be a JSON object"
             print("✓ config.template.json exists and is valid JSON")
         else:
             print("⚠ config.template.json not found (optional)")
@@ -318,7 +334,9 @@ class TestPluginConfiguration:
 
             for pattern in sensitive_patterns:
                 matches = re.findall(pattern, content, re.IGNORECASE)
-                assert not matches, f"Found potential sensitive data in {js_file.name}: {matches}"
+                assert (
+                    not matches
+                ), f"Found potential sensitive data in {js_file.name}: {matches}"
 
         print("✓ No sensitive data found in plugin files")
 

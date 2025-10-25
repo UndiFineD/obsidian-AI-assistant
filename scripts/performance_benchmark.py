@@ -21,22 +21,22 @@ Author: v0.1.44 Enhancement Cycle
 Version: 1.0.0
 """
 
-import json
-import time
-import subprocess
-import threading
-import statistics
-from pathlib import Path
-from dataclasses import dataclass, asdict, field
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any
-from datetime import datetime, timedelta
-import logging
 import argparse
 import csv
+import json
+import logging
+import statistics
+import subprocess
+import threading
+import time
 from collections import defaultdict
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
 import psutil
-import math
 
 # ============================================================================
 # Configuration & Constants
@@ -345,9 +345,7 @@ class BenchmarkSuite:
             timeout_val = timeout or (
                 300
                 if lane == LaneType.DOCS
-                else 900
-                if lane == LaneType.STANDARD
-                else 1200
+                else 900 if lane == LaneType.STANDARD else 1200
             )
 
             result = subprocess.run(
@@ -970,7 +968,7 @@ def main():
         lane = LaneType[args.lane.upper()]
         result = suite.run_benchmark(lane, args.iterations, args.timeout)
 
-        print(f"\n✓ Benchmark Result:")
+        print("\n✓ Benchmark Result:")
         print(f"  Lane: {result.lane}")
         print(f"  Status: {result.status}")
         print(f"  Duration: {result.duration:.2f}s")
@@ -1025,7 +1023,7 @@ def main():
             print(f"   Description: {suggestion.description}")
             print(f"   Estimated Improvement: {suggestion.estimated_improvement}%")
             print(f"   Effort Level: {suggestion.effort_level}")
-            print(f"   Steps:")
+            print("   Steps:")
             for step in suggestion.implementation_steps:
                 print(f"     - {step}")
 
@@ -1039,7 +1037,7 @@ def main():
 
         if args.output_format in ["csv", "both"]:
             generator.generate_csv_report()
-            print(f"✓ CSV report: .benchmark_results/performance_metrics.csv")
+            print("✓ CSV report: .benchmark_results/performance_metrics.csv")
 
 
 if __name__ == "__main__":

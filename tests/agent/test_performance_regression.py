@@ -251,9 +251,13 @@ class TestConcurrencyPerformance:
             return (response.status_code, duration_ms)
 
         # Make concurrent requests
-        with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=num_requests
+        ) as executor:
             futures = [executor.submit(make_request) for _ in range(num_requests)]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         # Check all requests completed successfully
         assert all(status in [200, 503] for status, _ in results)
@@ -283,9 +287,13 @@ class TestConcurrencyPerformance:
             duration_ms = (time.perf_counter() - start_time) * 1000
             return (response.status_code, duration_ms)
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
+        with concurrent.futures.ThreadPoolExecutor(
+            max_workers=num_requests
+        ) as executor:
             futures = [executor.submit(make_request) for _ in range(num_requests)]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+            results = [
+                future.result() for future in concurrent.futures.as_completed(futures)
+            ]
 
         assert all(status == 200 for status, _ in results)
 

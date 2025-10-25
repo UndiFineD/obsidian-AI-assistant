@@ -330,7 +330,7 @@ def _generate_generic_test_template(
 {files_list}
 """
 
-    return f'''#!/usr/bin/env python3
+    return rf'''#!/usr/bin/env python3
 """
 Test script for change: {change_id}
 

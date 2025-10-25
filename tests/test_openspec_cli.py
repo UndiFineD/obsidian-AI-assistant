@@ -22,7 +22,9 @@ class TestOpenSpecCLITools:
         assert script_path.exists(), "generate_openspec_changes.py script not found"
 
         # Test that script is importable
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
 
         # Should not raise import errors
@@ -42,16 +44,18 @@ class TestOpenSpecCLITools:
         assert script_path.exists(), "repair_openspec_changes.py script not found"
 
         # Test that script is importable
-        spec = importlib.util.spec_from_file_location("repair_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "repair_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
 
         # Should not raise import errors
         spec.loader.exec_module(module)
 
         # Test key functions exist
-        assert hasattr(module, "infer_target_relpath_from_text"), (
-            "Missing infer_target_relpath_from_text function"
-        )
+        assert hasattr(
+            module, "infer_target_relpath_from_text"
+        ), "Missing infer_target_relpath_from_text function"
 
     def test_script_execution_paths(self):
         """Test that scripts can be executed from various paths."""
@@ -85,7 +89,9 @@ class TestOpenSpecValidationUtilities:
         repo_root = Path(__file__).parent.parent
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -99,9 +105,9 @@ class TestOpenSpecValidationUtilities:
         for input_path, _ in test_cases:
             if input_path.exists():
                 result = module.to_change_id(input_path)
-                assert result.startswith("update-doc-"), (
-                    f"Change ID should start with update-doc-, got {result}"
-                )
+                assert result.startswith(
+                    "update-doc-"
+                ), f"Change ID should start with update-doc-, got {result}"
                 assert "-" in result, f"Change ID should be kebab-case, got {result}"
 
     def test_markdown_template_validation(self):
@@ -109,7 +115,9 @@ class TestOpenSpecValidationUtilities:
         repo_root = Path(__file__).parent.parent
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -140,7 +148,9 @@ class TestOpenSpecValidationUtilities:
         repo_root = Path(__file__).parent.parent
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -169,7 +179,9 @@ class TestOpenSpecValidationUtilities:
         repo_root = Path(__file__).parent.parent
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -202,7 +214,9 @@ class TestOpenSpecFileOperations:
         repo_root = Path(__file__).parent.parent
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
-        spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+        spec = importlib.util.spec_from_file_location(
+            "generate_openspec_changes", script_path
+        )
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
 
@@ -213,9 +227,9 @@ class TestOpenSpecFileOperations:
         assert "Path(" in script_content, "Should use pathlib.Path for file operations"
 
         # Should check for existence before operations
-        assert "exists()" in script_content or "is_file()" in script_content, (
-            "Should check file existence"
-        )
+        assert (
+            "exists()" in script_content or "is_file()" in script_content
+        ), "Should check file existence"
 
         # Should create directories safely
         assert "mkdir(" in script_content, "Should create directories safely"
@@ -232,7 +246,9 @@ class TestOpenSpecFileOperations:
         exclusion_indicators = ["__pycache__", ".git", "node_modules", "venv"]
 
         # At least some exclusion logic should be present
-        has_exclusions = any(indicator in script_content for indicator in exclusion_indicators)
+        has_exclusions = any(
+            indicator in script_content for indicator in exclusion_indicators
+        )
         assert has_exclusions, "Script should have some exclusion logic"
 
     def test_archive_functionality_patterns(self):
@@ -246,7 +262,9 @@ class TestOpenSpecFileOperations:
             # Should have archive functionality
             archive_indicators = ["archive", "datetime", "timestamp"]
 
-            has_archive_logic = any(indicator in script_content for indicator in archive_indicators)
+            has_archive_logic = any(
+                indicator in script_content for indicator in archive_indicators
+            )
             assert has_archive_logic, "Repair script should have archive functionality"
 
 
@@ -267,7 +285,9 @@ class TestOpenSpecErrorHandling:
         for script_path in scripts:
             if script_path.exists():
                 # Test that script can be loaded without syntax errors
-                spec = importlib.util.spec_from_file_location("test_script", script_path)
+                spec = importlib.util.spec_from_file_location(
+                    "test_script", script_path
+                )
                 assert spec is not None, f"Could not create spec for {script_path.name}"
 
                 module = importlib.util.module_from_spec(spec)
@@ -275,9 +295,9 @@ class TestOpenSpecErrorHandling:
                 spec.loader.exec_module(module)
 
                 # Basic smoke test - script loaded successfully
-                assert hasattr(module, "__name__"), (
-                    f"Script {script_path.name} should load as a module"
-                )
+                assert hasattr(
+                    module, "__name__"
+                ), f"Script {script_path.name} should load as a module"
 
     def test_invalid_input_handling(self):
         """Test handling of invalid inputs."""
@@ -287,7 +307,9 @@ class TestOpenSpecErrorHandling:
         script_path = repo_root / "scripts" / "generate_openspec_changes.py"
 
         if script_path.exists():
-            spec = importlib.util.spec_from_file_location("generate_openspec_changes", script_path)
+            spec = importlib.util.spec_from_file_location(
+                "generate_openspec_changes", script_path
+            )
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
@@ -302,12 +324,14 @@ class TestOpenSpecErrorHandling:
                 try:
                     result = module.to_change_id(edge_case)
                     # Should produce some result (not necessarily valid, but not crash)
-                    assert isinstance(result, str), f"Should return string for {edge_case}"
+                    assert isinstance(
+                        result, str
+                    ), f"Should return string for {edge_case}"
                 except Exception as e:
                     # If it throws, should be a reasonable exception
-                    assert isinstance(e, (ValueError, TypeError)), (
-                        f"Unexpected exception type for {edge_case}: {type(e)}"
-                    )
+                    assert isinstance(
+                        e, (ValueError, TypeError)
+                    ), f"Unexpected exception type for {edge_case}: {type(e)}"
 
 
 class TestOpenSpecIntegrationCompliance:
@@ -333,14 +357,16 @@ class TestOpenSpecIntegrationCompliance:
         repo_root = Path(__file__).parent.parent
         capability_spec = repo_root / "openspec" / "specs" / "project-documentation.md"
 
-        assert capability_spec.exists(), "project-documentation capability spec should exist"
+        assert (
+            capability_spec.exists()
+        ), "project-documentation capability spec should exist"
 
         content = capability_spec.read_text()
 
         # Should be a proper capability spec
-        assert "# Capability: project-documentation" in content, (
-            "Should have proper capability title"
-        )
+        assert (
+            "# Capability: project-documentation" in content
+        ), "Should have proper capability title"
 
         # Should have requirements section
         assert "## Requirements" in content, "Should have requirements section"
@@ -353,14 +379,16 @@ class TestOpenSpecIntegrationCompliance:
         for change_dir in changes_dir.iterdir():
             if change_dir.is_dir() and change_dir.name != "archive":
                 # Should have spec in correct location
-                expected_spec_path = change_dir / "specs" / "project-documentation" / "spec.md"
+                expected_spec_path = (
+                    change_dir / "specs" / "project-documentation" / "spec.md"
+                )
 
                 if expected_spec_path.exists():
                     # Verify it references the capability correctly
                     content = expected_spec_path.read_text()
-                    assert "project-documentation" in content, (
-                        f"Change {change_dir.name} should reference project-documentation capability"
-                    )
+                    assert (
+                        "project-documentation" in content
+                    ), f"Change {change_dir.name} should reference project-documentation capability"
 
     @pytest.mark.skip(
         reason="Changes archived during Phase 3 consolidation (Oct 20, 2025). Test expects 10+ active changes but they were archived."
@@ -371,8 +399,12 @@ class TestOpenSpecIntegrationCompliance:
         changes_dir = repo_root / "openspec" / "changes"
 
         # Should have a reasonable number of changes
-        changes = [d for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"]
-        assert len(changes) >= 10, f"Should have at least 10 changes, found {len(changes)}"
+        changes = [
+            d for d in changes_dir.iterdir() if d.is_dir() and d.name != "archive"
+        ]
+        assert (
+            len(changes) >= 10
+        ), f"Should have at least 10 changes, found {len(changes)}"
 
         # Sample some changes for completeness testing
         sample_size = min(5, len(changes))
@@ -384,9 +416,11 @@ class TestOpenSpecIntegrationCompliance:
 
             for required_file in required_files:
                 file_path = change_dir / required_file
-                assert file_path.exists(), f"Missing {required_file} in {change_dir.name}"
+                assert (
+                    file_path.exists()
+                ), f"Missing {required_file} in {change_dir.name}"
 
                 content = file_path.read_text()
-                assert len(content.strip()) > 50, (
-                    f"File {required_file} too short in {change_dir.name}"
-                )
+                assert (
+                    len(content.strip()) > 50
+                ), f"File {required_file} too short in {change_dir.name}"

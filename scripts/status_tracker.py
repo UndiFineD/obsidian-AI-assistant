@@ -42,11 +42,11 @@ Status JSON Structure:
 """
 
 import json
-from pathlib import Path
-from datetime import datetime, timedelta
-from typing import Dict, Any, Optional
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 
 class StageStatus(Enum):
@@ -331,9 +331,9 @@ class StatusTracker:
             "elapsed_seconds": elapsed,
             "elapsed_formatted": self._format_duration(elapsed),
             "remaining_formatted": self._format_duration(remaining),
-            "sla_status": "✅ On SLA"
-            if self.status["timing"]["within_sla"]
-            else "⚠️ Behind SLA",
+            "sla_status": (
+                "✅ On SLA" if self.status["timing"]["within_sla"] else "⚠️ Behind SLA"
+            ),
             "sla_target": self._format_duration(sla),
         }
 

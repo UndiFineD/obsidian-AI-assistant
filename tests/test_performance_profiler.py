@@ -12,17 +12,19 @@ Author: GitHub Copilot
 Version: 0.1.46
 """
 
-import pytest
 import time
 from datetime import datetime
+
+import pytest
+
 from scripts.performance_profiler import (
-    StageProfiler,
     BottleneckDetector,
-    ProfileAnalyzer,
-    RecommendationEngine,
-    ProfilePoint,
     BottleneckInfo,
+    ProfileAnalyzer,
+    ProfilePoint,
     Recommendation,
+    RecommendationEngine,
+    StageProfiler,
     create_profiler_pipeline,
 )
 
@@ -126,7 +128,9 @@ class TestBottleneckDetector:
         assert len(bottlenecks) > 0
 
         # Find slow_stage bottleneck
-        slow_bottleneck = next((b for b in bottlenecks if b.stage_name == "slow_stage"), None)
+        slow_bottleneck = next(
+            (b for b in bottlenecks if b.stage_name == "slow_stage"), None
+        )
         assert slow_bottleneck is not None
         assert slow_bottleneck.severity in ["critical", "high"]
 
@@ -136,7 +140,9 @@ class TestBottleneckDetector:
 
         # Create profiles: one stage with high variance
         profiles = {
-            "stable_stage": [ProfilePoint("stable", 10.0, metadata={}) for _ in range(10)],
+            "stable_stage": [
+                ProfilePoint("stable", 10.0, metadata={}) for _ in range(10)
+            ],
             "variable_stage": [
                 ProfilePoint("variable", time, metadata={})
                 for time in [5.0, 15.0, 8.0, 20.0, 10.0, 25.0, 5.0, 30.0, 8.0, 15.0]
@@ -190,7 +196,9 @@ class TestProfileAnalyzer:
 
         # Create stable profiles
         profiles = {
-            "stable_stage": [ProfilePoint("stable", 10.0, metadata={}) for _ in range(10)],
+            "stable_stage": [
+                ProfilePoint("stable", 10.0, metadata={}) for _ in range(10)
+            ],
         }
 
         trends = analyzer.analyze_performance_trends(profiles)
@@ -204,7 +212,9 @@ class TestProfileAnalyzer:
         # Create degrading profiles: first half faster, second half slower
         times = [10.0] * 5 + [15.0] * 5
         profiles = {
-            "degrading_stage": [ProfilePoint("degrading", t, metadata={}) for t in times],
+            "degrading_stage": [
+                ProfilePoint("degrading", t, metadata={}) for t in times
+            ],
         }
 
         trends = analyzer.analyze_performance_trends(profiles)
@@ -218,7 +228,9 @@ class TestProfileAnalyzer:
         # Create improving profiles: first half slower, second half faster
         times = [20.0] * 5 + [10.0] * 5
         profiles = {
-            "improving_stage": [ProfilePoint("improving", t, metadata={}) for t in times],
+            "improving_stage": [
+                ProfilePoint("improving", t, metadata={}) for t in times
+            ],
         }
 
         trends = analyzer.analyze_performance_trends(profiles)
@@ -258,7 +270,9 @@ class TestProfileAnalyzer:
             ),
         ]
 
-        opportunities = analyzer.identify_optimization_opportunities(profiles, bottlenecks)
+        opportunities = analyzer.identify_optimization_opportunities(
+            profiles, bottlenecks
+        )
         assert "slow_stage" in opportunities["slow_stages"]
 
 
@@ -294,7 +308,9 @@ class TestRecommendationEngine:
             "candidate_for_parallelization": [],
         }
 
-        recommendations = engine.generate_recommendations(bottlenecks, trends, opportunities)
+        recommendations = engine.generate_recommendations(
+            bottlenecks, trends, opportunities
+        )
         assert any(r.stage_name == "variable_stage" for r in recommendations)
 
     def test_degrading_performance_recommendation(self):
@@ -326,7 +342,9 @@ class TestRecommendationEngine:
             "candidate_for_parallelization": [],
         }
 
-        recommendations = engine.generate_recommendations(bottlenecks, trends, opportunities)
+        recommendations = engine.generate_recommendations(
+            bottlenecks, trends, opportunities
+        )
         assert any("memory leak" in r.suggested_action.lower() for r in recommendations)
 
     def test_recommendation_serialization(self):
@@ -356,7 +374,9 @@ class TestRecommendationEngine:
             "candidate_for_parallelization": ["some_stage"],
         }
 
-        recommendations = engine.generate_recommendations(bottlenecks, trends, opportunities)
+        recommendations = engine.generate_recommendations(
+            bottlenecks, trends, opportunities
+        )
         # Low-confidence parallelization recommendations should be filtered
         assert all(r.confidence >= 0.8 for r in recommendations)
 
@@ -404,11 +424,15 @@ class TestIntegration:
         assert len(trends) > 0
 
         # Get opportunities
-        opportunities = analyzer.identify_optimization_opportunities(profiler.profiles, bottlenecks)
+        opportunities = analyzer.identify_optimization_opportunities(
+            profiler.profiles, bottlenecks
+        )
         assert "slow_stages" in opportunities
 
         # Generate recommendations
-        recommendations = engine.generate_recommendations(bottlenecks, trends, opportunities)
+        recommendations = engine.generate_recommendations(
+            bottlenecks, trends, opportunities
+        )
         assert len(recommendations) >= 0  # May be empty if confidence too low
 
     def test_workflow_performance_tracking(self):
@@ -463,7 +487,9 @@ class TestEdgeCases:
         """Test handling very large execution times."""
         detector = BottleneckDetector()
         profiles = {
-            "huge_stage": [ProfilePoint("huge", t, metadata={}) for t in [1000000.0] * 5],
+            "huge_stage": [
+                ProfilePoint("huge", t, metadata={}) for t in [1000000.0] * 5
+            ],
         }
 
         bottlenecks = detector.detect_bottlenecks(profiles)
@@ -475,7 +501,9 @@ class TestEdgeCases:
 
         # Create profile with identical values (stdev would be 0)
         profiles = {
-            "identical": [ProfilePoint("identical", 10.0, metadata={}) for _ in range(5)],
+            "identical": [
+                ProfilePoint("identical", 10.0, metadata={}) for _ in range(5)
+            ],
         }
 
         # Should not crash

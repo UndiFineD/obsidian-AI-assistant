@@ -92,7 +92,9 @@ class TestCompleteWorkflows:
         # Note: Cache behavior depends on implementation
 
         # Step 6: Perform semantic search
-        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
+        response = client.post(
+            "/api/search", params={"query": "machine learning", "top_k": 5}
+        )
         assert response.status_code == 200
 
         search_results = response.json()
@@ -184,7 +186,9 @@ class TestCompleteWorkflows:
             assert scan_result is not None  # Error response is still valid
 
         # Step 2: Search for existing content
-        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
+        response = client.post(
+            "/api/search", params={"query": "machine learning", "top_k": 5}
+        )
         assert response.status_code == 200
         initial_results = response.json()["results"]
 
@@ -195,7 +199,9 @@ class TestCompleteWorkflows:
         assert isinstance(reindex_result, dict)
 
         # Step 4: Search again to verify updated index
-        response = client.post("/api/search", params={"query": "machine learning", "top_k": 5})
+        response = client.post(
+            "/api/search", params={"query": "machine learning", "top_k": 5}
+        )
         assert response.status_code == 200
         updated_results = response.json()["results"]
 
@@ -203,7 +209,9 @@ class TestCompleteWorkflows:
         assert len(updated_results) == len(initial_results)
 
         # Step 5: Test PDF indexing workflow
-        response = client.post("/api/index_pdf", json={"pdf_path": "./documents/test.pdf"})
+        response = client.post(
+            "/api/index_pdf", json={"pdf_path": "./documents/test.pdf"}
+        )
         # PDF file may not exist in test environment, accept 400 error
         assert response.status_code in [200, 400, 422]
         pdf_result = response.json()
@@ -366,16 +374,20 @@ class TestPerformanceBenchmarks:
         # Most requests should succeed (allow for some model unavailability issues)
         successful_requests = [r for r in results if r["status_code"] == 200]
         # Expect at least 4 successful requests in concurrent scenario
-        assert len(successful_requests) >= 4, (
-            f"Only {len(successful_requests)} requests succeeded, expected at least 4"
-        )
+        assert (
+            len(successful_requests) >= 4
+        ), f"Only {len(successful_requests)} requests succeeded, expected at least 4"
         # Calculate performance metrics
         response_times = [r["response_time"] for r in results]
         avg_response_time = sum(response_times) / len(response_times)
         max_response_time = max(response_times)
         # Performance assertions (reasonable thresholds)
-        assert avg_response_time < 1.0, f"Average response time too high: {avg_response_time:.3f}s"
-        assert max_response_time < 2.0, f"Max response time too high: {max_response_time:.3f}s"
+        assert (
+            avg_response_time < 1.0
+        ), f"Average response time too high: {avg_response_time:.3f}s"
+        assert (
+            max_response_time < 2.0
+        ), f"Max response time too high: {max_response_time:.3f}s"
 
     def test_cache_performance_benchmark(self, benchmark_client):
         """Benchmark cache performance improvements"""
@@ -434,7 +446,9 @@ class TestPerformanceBenchmarks:
         print(f"Final memory: {final_memory:.1f} MB")
         print(f"Memory increase: {memory_increase:.1f} MB")
         # Memory increase should be reasonable
-        assert memory_increase < 100, f"Memory increase too high: {memory_increase:.1f} MB"
+        assert (
+            memory_increase < 100
+        ), f"Memory increase too high: {memory_increase:.1f} MB"
         # Get performance metrics
 
     def test_performance_metrics(self):

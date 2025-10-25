@@ -194,7 +194,9 @@ class TestConfigSchemaValidation:
                 updated_settings.dict.return_value = {"security_level": level}
                 update_data = {"security_level": level}
                 response = client.post("/api/config", json=update_data)
-                assert response.status_code == 200, f"Failed for security_level: {level}"
+                assert (
+                    response.status_code == 200
+                ), f"Failed for security_level: {level}"
 
     def test_log_level_pattern_validation(self, client):
         """Test log_level field pattern validation."""

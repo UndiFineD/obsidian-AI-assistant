@@ -34,19 +34,18 @@ Options:
     --lane LANE         Lane-specific recovery
 """
 
+import argparse
+import hashlib
 import json
+import logging
+import shutil
 import subprocess
 import sys
-from dataclasses import dataclass, asdict, field
+from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Optional, Dict, List, Any
-import argparse
-import logging
-import hashlib
-import shutil
-from collections import defaultdict
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -879,9 +878,9 @@ class RollbackRecoverySystem:
 
         return RecoveryResult(
             success=True,
-            recovery_strategy=actions[0].action_type
-            if actions
-            else RecoveryStrategy.MANUAL,
+            recovery_strategy=(
+                actions[0].action_type if actions else RecoveryStrategy.MANUAL
+            ),
             checkpoint_id=None,
             duration=0,
             steps_executed=len(actions),

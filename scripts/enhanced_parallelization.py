@@ -16,12 +16,13 @@ Author: Obsidian AI Agent Team
 License: MIT
 """
 
-import os
-import psutil
 import logging
+import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, Dict, List, Optional, Tuple, Any
 from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+import psutil
 
 
 @dataclass

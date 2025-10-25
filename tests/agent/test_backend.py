@@ -385,7 +385,9 @@ class TestServiceIntegration:
         data = response.json()
         # Should return empty answer when no models are available
         assert "answer" in data
-        assert data["answer"] == {} or "No model available" in str(data.get("answer", ""))
+        assert data["answer"] == {} or "No model available" in str(
+            data.get("answer", "")
+        )
 
 
 class TestOpenSpecAndSecurityEndpoints:
@@ -462,7 +464,9 @@ class TestOpenSpecAndSecurityEndpoints:
             data = r.json()
             assert data["success"] is True
 
-    @pytest.mark.skip(reason="Starlette/FastAPI CancelledError bug; all logic validated")
+    @pytest.mark.skip(
+        reason="Starlette/FastAPI CancelledError bug; all logic validated"
+    )
     def test_bulk_validate_openspec_changes(self):
         import hmac
         from hashlib import sha256
@@ -498,7 +502,9 @@ class TestOpenSpecAndSecurityEndpoints:
 
     def test_get_openspec_metrics(self, client):
         with patch("agent.agent.get_openspec_governance") as mock_gov:
-            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
+            mock_gov.return_value.get_governance_metrics.return_value = {
+                "total_changes": 1
+            }
             r = client.get("/api/openspec/metrics")
             assert r.status_code == 200
             data = r.json()
@@ -509,8 +515,12 @@ class TestOpenSpecAndSecurityEndpoints:
             mock_gov.return_value.list_changes.return_value = [
                 {"change_id": "abc", "status": "active"}
             ]
-            mock_gov.return_value.get_governance_metrics.return_value = {"total_changes": 1}
-            mock_gov.return_value.bulk_validate.return_value = [{"change_id": "abc", "valid": True}]
+            mock_gov.return_value.get_governance_metrics.return_value = {
+                "total_changes": 1
+            }
+            mock_gov.return_value.bulk_validate.return_value = [
+                {"change_id": "abc", "valid": True}
+            ]
             r = client.get("/api/openspec/dashboard")
             assert r.status_code == 200
             data = r.json()
@@ -569,7 +579,9 @@ class TestOpenSpecAndSecurityEndpoints:
 
         dummy_sec = type("Sec", (), {"compliance_manager": DummyComplianceManager()})()
         with patch("agent.agent.get_advanced_security_config", return_value=dummy_sec):
-            r = client.post("/api/security/gdpr/deletion-request", params={"user_id": "u1"})
+            r = client.post(
+                "/api/security/gdpr/deletion-request", params={"user_id": "u1"}
+            )
             assert r.status_code == 200
             data = r.json()
             assert data["success"] is True

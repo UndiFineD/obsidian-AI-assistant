@@ -115,7 +115,10 @@ def add_basic_error_handling(content):
             if needs_try_catch and not has_try_catch and len(fixed_lines) > 1:
                 # Insert try-catch around function body
                 function_start_idx = len(fixed_lines) - 1
-                while function_start_idx > 0 and "async" not in fixed_lines[function_start_idx]:
+                while (
+                    function_start_idx > 0
+                    and "async" not in fixed_lines[function_start_idx]
+                ):
                     function_start_idx -= 1
 
                 # Simple approach: just add a catch block before the closing brace

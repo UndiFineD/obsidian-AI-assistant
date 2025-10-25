@@ -17,12 +17,11 @@ Exit Codes:
   2: Hook warning, can continue with --force-hooks flag
 """
 
+import importlib.util
 import subprocess
 import sys
-import re
 from pathlib import Path
-from typing import Callable, Dict, List, Tuple, Optional
-import importlib.util
+from typing import Callable, Dict, List, Tuple
 
 # Import helpers
 try:
@@ -244,16 +243,25 @@ class HookRegistry:
     @staticmethod
     def _check_tools_available() -> HookResult:
         """Check required tools (ruff, mypy, pytest, bandit) are available"""
+        import sys
         tools = ["ruff", "mypy", "pytest", "bandit"]
         missing = []
 
         for tool in tools:
             try:
-                result = subprocess.run(
-                    [tool, "--version"], capture_output=True, timeout=5
-                )
-                if result.returncode != 0:
-                    missing.append(tool)
+                # For Python packages, use sys.executable -m to ensure virtual environment
+                if tool in ["pytest", "mypy", "ruff", "bandit"]:
+                    cmd = [sys.executable, "-m", tool, "--version"]
+                    result = subprocess.run(cmd, capture_output=True, timeout=10)
+                    if result.returncode != 0:
+                        missing.append(tool)
+                else:
+                    # For non-Python tools, use direct command
+                    result = subprocess.run(
+                        [tool, "--version"], capture_output=True, timeout=5
+                    )
+                    if result.returncode != 0:
+                        missing.append(tool)
             except FileNotFoundError:
                 missing.append(tool)
             except Exception:

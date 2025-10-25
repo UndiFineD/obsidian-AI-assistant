@@ -32,9 +32,13 @@ def test_agent_connectivity():
         response = requests.get("http://localhost:8000/status", timeout=5)
         if response.status_code == 200:
             data = response.json()
-            print_test("Status Endpoint", True, f"Status: {data.get('status', 'unknown')}")
+            print_test(
+                "Status Endpoint", True, f"Status: {data.get('status', 'unknown')}"
+            )
             print_test("Backend Mode", True, f"Mode: {data.get('backend', 'unknown')}")
-            print_test("Models Available", True, f"Models: {', '.join(data.get('models', []))}")
+            print_test(
+                "Models Available", True, f"Models: {', '.join(data.get('models', []))}"
+            )
         else:
             print_test("Status Endpoint", False, f"Status code: {response.status_code}")
     except Exception as e:
@@ -44,7 +48,9 @@ def test_agent_connectivity():
     try:
         # Test ask endpoint
         test_question = {"question": "Hello from Python test!"}
-        response = requests.post("http://localhost:8000/ask", json=test_question, timeout=5)
+        response = requests.post(
+            "http://localhost:8000/ask", json=test_question, timeout=5
+        )
         if response.status_code == 200:
             data = response.json()
             print_test(
@@ -52,7 +58,9 @@ def test_agent_connectivity():
                 True,
                 f"Response: {data.get('response', 'No response')[:50]}...",
             )
-            print_test("Model Processing", True, f"Model: {data.get('model_used', 'unknown')}")
+            print_test(
+                "Model Processing", True, f"Model: {data.get('model_used', 'unknown')}"
+            )
         else:
             print_test("Ask Endpoint", False, f"Status code: {response.status_code}")
     except Exception as e:
@@ -103,7 +111,9 @@ def test_plugin_content():
 
     # Test main.js content
     try:
-        with open(".obsidian/plugins/obsidian-ai-agent/main.js", "r", encoding="utf-8") as f:
+        with open(
+            ".obsidian/plugins/obsidian-ai-agent/main.js", "r", encoding="utf-8"
+        ) as f:
             main_content = f.read()
 
         required_features = [
@@ -142,7 +152,9 @@ def test_plugin_content():
 
     # Test styles.css content
     try:
-        with open(".obsidian/plugins/obsidian-ai-agent/styles.css", "r", encoding="utf-8") as f:
+        with open(
+            ".obsidian/plugins/obsidian-ai-agent/styles.css", "r", encoding="utf-8"
+        ) as f:
             styles_content = f.read()
 
         required_styles = [
@@ -182,7 +194,9 @@ def test_server_endpoints():
 
             if response.status_code == 200:
                 result = response.json()
-                print_test(f"{name} Endpoint", True, f"Response type: {type(result).__name__}")
+                print_test(
+                    f"{name} Endpoint", True, f"Response type: {type(result).__name__}"
+                )
             else:
                 print_test(f"{name} Endpoint", False, f"Status: {response.status_code}")
         except Exception as e:

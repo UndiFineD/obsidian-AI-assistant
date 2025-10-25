@@ -12,20 +12,19 @@ Tests for:
 
 import json
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import pytest
 
 from scripts.stage_optimizer import (
+    OptimizationStats,
+    Recommendation,
+    StagePredictor,
     WorkflowExecution,
     WorkflowHistoryCollector,
-    StagePredictor,
-    Recommendation,
-    OptimizationStats,
     create_sample_history,
 )
-
 
 # ============================================================================
 # Fixtures

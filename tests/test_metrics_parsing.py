@@ -10,7 +10,9 @@ COVERAGE_PATTERNS = [
 ]
 
 PYTEST_SUMMARY_PATTERNS = [
-    re.compile(r"(\d+) passed(?:,\s*(\d+) failed)?(?:,\s*(\d+) skipped)?.*? in ([0-9.]+s)"),
+    re.compile(
+        r"(\d+) passed(?:,\s*(\d+) failed)?(?:,\s*(\d+) skipped)?.*? in ([0-9.]+s)"
+    ),
     re.compile(r"(\d+) passed.*? in ([0-9.]+s)"),
 ]
 

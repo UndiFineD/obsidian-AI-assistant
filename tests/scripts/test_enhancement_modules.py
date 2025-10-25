@@ -14,10 +14,9 @@ import json
 import tempfile
 import time
 from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-
 
 # ============================================================================
 # Test enhanced_pre_step_hooks.py
@@ -85,11 +84,11 @@ class TestEnhancedPreStepHooks:
     def test_hook_registry_registration(self):
         """Test hook registration."""
         from scripts.enhanced_pre_step_hooks import (
-            HookRegistry,
             Hook,
             HookContext,
-            HookStatus,
+            HookRegistry,
             HookResult,
+            HookStatus,
         )
 
         class TestHook(Hook):
@@ -112,11 +111,11 @@ class TestEnhancedPreStepHooks:
     def test_dependency_resolver(self):
         """Test dependency resolution."""
         from scripts.enhanced_pre_step_hooks import (
+            DependencyResolver,
             Hook,
             HookContext,
-            HookStatus,
             HookResult,
-            DependencyResolver,
+            HookStatus,
         )
 
         class DependentHook(Hook):
@@ -201,7 +200,10 @@ class TestCommitValidationEnhancements:
 
     def test_validation_result(self):
         """Test ValidationResult."""
-        from scripts.commit_validation_enhancements import ValidationResult, ValidationStatus
+        from scripts.commit_validation_enhancements import (
+            ValidationResult,
+            ValidationStatus,
+        )
 
         result = ValidationResult(
             status=ValidationStatus.VALID,
@@ -213,7 +215,10 @@ class TestCommitValidationEnhancements:
 
     def test_commit_message_template(self):
         """Test commit message templates."""
-        from scripts.commit_validation_enhancements import CommitMessageTemplate, CommitType
+        from scripts.commit_validation_enhancements import (
+            CommitMessageTemplate,
+            CommitType,
+        )
 
         template = CommitMessageTemplate.get_template(CommitType.FEATURE)
         assert template is not None
@@ -247,7 +252,10 @@ Closes #123"""
 
     def test_commit_validator_long_subject(self):
         """Test validator with long subject."""
-        from scripts.commit_validation_enhancements import CommitValidator, ValidationStatus
+        from scripts.commit_validation_enhancements import (
+            CommitValidator,
+            ValidationStatus,
+        )
 
         validator = CommitValidator()
 
@@ -259,8 +267,9 @@ Closes #123"""
 
     def test_commit_info_creation(self):
         """Test CommitInfo creation."""
-        from scripts.commit_validation_enhancements import CommitInfo
         from datetime import datetime
+
+        from scripts.commit_validation_enhancements import CommitInfo
 
         info = CommitInfo(
             hash="abc123",
@@ -452,11 +461,11 @@ class TestIntegration:
     def test_hook_workflow(self):
         """Test complete hook workflow."""
         from scripts.enhanced_pre_step_hooks import (
-            HookRegistry,
             Hook,
             HookContext,
-            HookStatus,
+            HookRegistry,
             HookResult,
+            HookStatus,
         )
 
         class ValidationHook(Hook):
@@ -482,9 +491,9 @@ class TestIntegration:
     def test_commit_workflow(self):
         """Test complete commit workflow."""
         from scripts.commit_validation_enhancements import (
-            CommitValidator,
             CommitMessageTemplate,
             CommitType,
+            CommitValidator,
         )
 
         # Build message
@@ -509,7 +518,10 @@ class TestIntegration:
 
     def test_profiling_with_cache(self):
         """Test profiler with cache manager."""
-        from scripts.helper_utilities_enhancements import PerformanceProfiler, CacheManager
+        from scripts.helper_utilities_enhancements import (
+            CacheManager,
+            PerformanceProfiler,
+        )
 
         profiler = PerformanceProfiler()
         cache = CacheManager()

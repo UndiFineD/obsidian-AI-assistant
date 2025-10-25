@@ -19,10 +19,10 @@ Hook Results:
 """
 
 import sys
-from pathlib import Path
-from typing import Callable, Dict, List, Optional, Any
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 
 class HookStatus(Enum):

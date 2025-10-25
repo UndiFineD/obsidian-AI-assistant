@@ -142,12 +142,15 @@ class TestTracingDataCollection:
         # (This may not be present if RequestTracingMiddleware not active)
         # Just check for either header format
         has_response_time = (
-            "X-Response-Time" in response.headers or "x-response-time" in response.headers
+            "X-Response-Time" in response.headers
+            or "x-response-time" in response.headers
         )
 
         # This is expected but not critical
         if not has_response_time:
-            pytest.skip("RequestTracingMiddleware not active - X-Response-Time header not present")
+            pytest.skip(
+                "RequestTracingMiddleware not active - X-Response-Time header not present"
+            )
 
     def test_endpoint_stats_aggregation(self, client):
         """Test that endpoint statistics are aggregated correctly"""
@@ -204,7 +207,9 @@ class TestSlowRequestDetection:
         # Most recent health check should NOT be in slow requests
         # (unless system is under extreme load)
         slow_requests = data["slow_requests"]
-        recent_health_checks = [req for req in slow_requests if req.get("path") == "/health"]
+        recent_health_checks = [
+            req for req in slow_requests if req.get("path") == "/health"
+        ]
 
         # Should typically be empty, but allow for slow systems
         # Just verify structure is correct
@@ -234,9 +239,9 @@ class TestTracingPerformance:
 
         # Average response time should still be fast (<100ms)
         # Even with tracing overhead
-        assert avg_duration < 100, (
-            f"Tracing overhead too high: average response time {avg_duration:.2f}ms"
-        )
+        assert (
+            avg_duration < 100
+        ), f"Tracing overhead too high: average response time {avg_duration:.2f}ms"
 
 
 class TestTracingErrorHandling:

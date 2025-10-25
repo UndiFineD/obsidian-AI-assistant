@@ -245,7 +245,9 @@ class TestSSOManager:
         """Test authentication with unsupported provider."""
         # Create a config with an invalid provider (mock it)
         with patch.object(self.sso_manager.config, "provider", "invalid_provider"):
-            with patch.object(self.sso_manager.provider_handlers, "get", return_value=None):
+            with patch.object(
+                self.sso_manager.provider_handlers, "get", return_value=None
+            ):
                 result = await self.sso_manager.authenticate("auth_code")
                 assert result is None
 
@@ -356,7 +358,9 @@ class TestSSOManager:
         secret_key = "expired_secret"
 
         # Create token that expires immediately
-        token = self.sso_manager.generate_jwt_token(user_info, secret_key, expiry_hours=-1)
+        token = self.sso_manager.generate_jwt_token(
+            user_info, secret_key, expiry_hours=-1
+        )
         result = self.sso_manager.validate_jwt_token(token, secret_key)
 
         assert result is None
@@ -768,7 +772,9 @@ class TestAdditionalJWTScenarios:
             groups=["RefreshGroup"],
         )
 
-        token1 = self.sso_manager.generate_jwt_token(user_info, self.secret_key, expiry_hours=1)
+        token1 = self.sso_manager.generate_jwt_token(
+            user_info, self.secret_key, expiry_hours=1
+        )
 
         # Validate it
         payload1 = self.sso_manager.validate_jwt_token(token1, self.secret_key)
@@ -776,7 +782,9 @@ class TestAdditionalJWTScenarios:
         assert payload1["email"] == "refresh@test.com"
 
         # Generate new token (simulate refresh)
-        token2 = self.sso_manager.generate_jwt_token(user_info, self.secret_key, expiry_hours=24)
+        token2 = self.sso_manager.generate_jwt_token(
+            user_info, self.secret_key, expiry_hours=24
+        )
 
         # Both tokens should be valid
         payload2 = self.sso_manager.validate_jwt_token(token2, self.secret_key)

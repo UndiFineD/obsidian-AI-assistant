@@ -44,7 +44,9 @@ class TestBackendHealthAndBasics:
 
         assert app is not None
         # Accept both standard and enterprise edition titles
-        assert "Obsidian AI Agent" in app.title  # Accepts both standard and enterprise edition
+        assert (
+            "Obsidian AI Agent" in app.title
+        )  # Accepts both standard and enterprise edition
         print("✓ FastAPI app created successfully")
 
     @patch.dict(os.environ, {"HUGGINGFACE_TOKEN": "test_token"})
@@ -189,7 +191,9 @@ class TestMockedWorkflowIntegration:
             print("✓ Search integration completed")
 
             # Verify embeddings manager was called
-            mock_services["emb_manager"].search.assert_called_once_with("test query", top_k=3)
+            mock_services["emb_manager"].search.assert_called_once_with(
+                "test query", top_k=3
+            )
 
         except Exception as e:
             print(f"Search integration test: {e}")
@@ -207,7 +211,9 @@ class TestMockedWorkflowIntegration:
             print("✓ Vault indexing integration completed")
 
             # Verify vault indexer was called
-            mock_services["vault_indexer"].index_vault.assert_called_once_with("./test_vault")
+            mock_services["vault_indexer"].index_vault.assert_called_once_with(
+                "./test_vault"
+            )
 
         except Exception as e:
             print(f"Vault indexing integration test: {e}")

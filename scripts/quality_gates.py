@@ -13,12 +13,12 @@ Lanes:
 Emits quality_metrics.json with PASS/FAIL results.
 """
 
-import subprocess
-import json
-import sys
 import importlib.util
-from pathlib import Path
+import json
+import subprocess
+import sys
 from datetime import datetime
+from pathlib import Path
 
 # Import workflow helpers for colored output
 try:

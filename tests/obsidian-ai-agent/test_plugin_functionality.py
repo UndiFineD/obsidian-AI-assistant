@@ -39,7 +39,9 @@ class TestPluginFunctionality:
         health_patterns = [r"/status", r"/health", r"status.*check", r"agent.*status"]
 
         found_health = sum(
-            1 for pattern in health_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in health_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
 
         assert found_health >= 1, "Should have backend health check functionality"
@@ -48,7 +50,9 @@ class TestPluginFunctionality:
         error_patterns = [r"catch\s*\(", r"\.catch", r"try\s*\{", r"error"]
 
         found_error_handling = sum(
-            1 for pattern in error_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in error_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
 
         assert found_error_handling >= 2, "Should have proper error handling"
@@ -68,7 +72,9 @@ class TestPluginFunctionality:
         ]
 
         found_settings = sum(
-            1 for pattern in settings_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in settings_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
         assert found_settings >= 2, "Should have settings save/load functionality"
         # Check for default settings merge
@@ -80,16 +86,18 @@ class TestPluginFunctionality:
         content = self.main_js_content
 
         # Should use fetch for HTTP requests
-        assert "fetch" in content or "request" in content, (
-            "Should use fetch or a request helper for HTTP"
-        )
+        assert (
+            "fetch" in content or "request" in content
+        ), "Should use fetch or a request helper for HTTP"
         # Should handle different HTTP methods
         http_methods = ["GET", "POST"]  # Check for the most common methods
         found_methods = sum(
             1 for method in http_methods if re.search(method, content, re.IGNORECASE)
         )
 
-        assert found_methods >= 2, f"Should use multiple HTTP methods, found {found_methods}"
+        assert (
+            found_methods >= 2
+        ), f"Should use multiple HTTP methods, found {found_methods}"
 
         # Should handle JSON content
         json_patterns = [r"JSON\.parse", r"JSON\.stringify", r"application/json"]
@@ -113,7 +121,9 @@ class TestPluginFunctionality:
             r"button",
         ]
 
-        found_ui = sum(1 for pattern in ui_patterns if re.search(pattern, content, re.IGNORECASE))
+        found_ui = sum(
+            1 for pattern in ui_patterns if re.search(pattern, content, re.IGNORECASE)
+        )
         assert found_ui >= 3, f"Should create UI elements, found {found_ui} patterns"
         # Should handle user interactions
         interaction_patterns = [
@@ -123,7 +133,9 @@ class TestPluginFunctionality:
             r"\.click",
         ]
         found_interactions = sum(
-            1 for pattern in interaction_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in interaction_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
         assert found_interactions >= 1, "Should handle user interactions"
         print("✓ UI elements and interactions are implemented")
@@ -141,7 +153,9 @@ class TestPluginFunctionality:
             r"new\s+Notice",
         ]
 
-        found_notices = sum(1 for pattern in notice_patterns if re.search(pattern, content))
+        found_notices = sum(
+            1 for pattern in notice_patterns if re.search(pattern, content)
+        )
 
         assert found_notices >= 1, "Should provide meaningful user feedback"
 
@@ -170,9 +184,13 @@ class TestTaskQueueFunctionality:
             r"length",
         ]
         found_queue_ops = sum(
-            1 for pattern in queue_indicators if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in queue_indicators
+            if re.search(pattern, content, re.IGNORECASE)
         )
-        assert found_queue_ops >= 3, f"Should implement queue operations, found {found_queue_ops}"
+        assert (
+            found_queue_ops >= 3
+        ), f"Should implement queue operations, found {found_queue_ops}"
         print("✓ Task queue operations implemented")
 
     def test_task_processing(self):
@@ -188,7 +206,9 @@ class TestTaskQueueFunctionality:
             r"await",
         ]
         found_processing = sum(
-            1 for pattern in processing_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in processing_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
         assert found_processing >= 2, "Should have task processing logic"
         print("✓ Task processing logic implemented")
@@ -225,9 +245,13 @@ class TestVoiceFunctionality:
             r"stop.*record",
         ]
         found_audio = sum(
-            1 for pattern in audio_patterns if re.search(pattern, combined_content, re.IGNORECASE)
+            1
+            for pattern in audio_patterns
+            if re.search(pattern, combined_content, re.IGNORECASE)
         )
-        assert found_audio >= 2, f"Should implement audio recording, found {found_audio} patterns"
+        assert (
+            found_audio >= 2
+        ), f"Should implement audio recording, found {found_audio} patterns"
         print("✓ Audio recording functionality detected")
 
     def test_voice_processing_workflow(self):
@@ -276,7 +300,9 @@ class TestAnalyticsFunctionality:
             r"display.*data",
         ]
         found_analytics = sum(
-            1 for pattern in analytics_patterns if re.search(pattern, content, re.IGNORECASE)
+            1
+            for pattern in analytics_patterns
+            if re.search(pattern, content, re.IGNORECASE)
         )
         assert found_analytics >= 2, "Should handle analytics data"
         print("✓ Analytics data handling implemented")
@@ -293,7 +319,9 @@ class TestAnalyticsFunctionality:
             r"update.*ui",
             r"element",
         ]
-        found_ui = sum(1 for pattern in ui_patterns if re.search(pattern, content, re.IGNORECASE))
+        found_ui = sum(
+            1 for pattern in ui_patterns if re.search(pattern, content, re.IGNORECASE)
+        )
         assert found_ui >= 2, "Should create analytics UI"
         print("✓ Analytics UI rendering implemented")
 
@@ -321,13 +349,15 @@ class TestErrorHandlingAndRobustness:
             ]
             return any(re.search(pattern, content) for pattern in error_patterns)
 
-        files_with_error_handling = sum(1 for js_file in js_files if has_error_handling(js_file))
+        files_with_error_handling = sum(
+            1 for js_file in js_files if has_error_handling(js_file)
+        )
 
         # At least 40% of files should have error handling (main files)
         error_coverage = files_with_error_handling / len(js_files)
-        assert error_coverage >= 0.40, (
-            f"Should have error handling in key files. Coverage: {error_coverage:.2%}"
-        )
+        assert (
+            error_coverage >= 0.40
+        ), f"Should have error handling in key files. Coverage: {error_coverage:.2%}"
         print(
             f"✓ Error handling coverage: {error_coverage:.2%} ({files_with_error_handling}/{len(js_files)} files)"
         )

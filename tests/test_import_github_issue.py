@@ -30,7 +30,10 @@ class TestSlugify:
         assert slugify("Hello World") == "hello-world"
 
     def test_special_characters(self):
-        assert slugify("Fix: Bug in @user's feature (v2.0)") == "fix-bug-in-user-s-feature-v2-0"
+        assert (
+            slugify("Fix: Bug in @user's feature (v2.0)")
+            == "fix-bug-in-user-s-feature-v2-0"
+        )
 
     def test_multiple_spaces(self):
         assert slugify("Multiple   Spaces") == "multiple-spaces"
@@ -289,7 +292,9 @@ class TestCreateChangeDirectory:
             "labels": [],
         }
 
-        change_dir = create_change_directory(issue_data, tmp_path, change_id="test-change")
+        change_dir = create_change_directory(
+            issue_data, tmp_path, change_id="test-change"
+        )
 
         # Should still create files, including basic todo.md
         assert (change_dir / "todo.md").exists()
@@ -309,11 +314,15 @@ class TestCreateChangeDirectory:
         }
 
         # Create directory first time
-        change_dir = create_change_directory(issue_data, tmp_path, change_id="existing-change")
+        change_dir = create_change_directory(
+            issue_data, tmp_path, change_id="existing-change"
+        )
 
         # Try to create again without force
         with pytest.raises(ValueError, match="already exists"):
-            create_change_directory(issue_data, tmp_path, change_id="existing-change", force=False)
+            create_change_directory(
+                issue_data, tmp_path, change_id="existing-change", force=False
+            )
 
     def test_create_directory_exists_with_force(self, tmp_path):
         issue_data = {
@@ -328,7 +337,9 @@ class TestCreateChangeDirectory:
         }
 
         # Create directory first time
-        change_dir = create_change_directory(issue_data, tmp_path, change_id="existing-change")
+        change_dir = create_change_directory(
+            issue_data, tmp_path, change_id="existing-change"
+        )
 
         # Create marker file
         (change_dir / "marker.txt").write_text("original")
@@ -389,7 +400,9 @@ class TestIntegration:
         # Setup
         template_dir = tmp_path / "openspec" / "templates"
         template_dir.mkdir(parents=True)
-        (template_dir / "todo.md").write_text("# TODO: <Change Title>\nChange ID: <change-id>\n")
+        (template_dir / "todo.md").write_text(
+            "# TODO: <Change Title>\nChange ID: <change-id>\n"
+        )
 
         # Mock GitHub API
         mock_response = Mock()

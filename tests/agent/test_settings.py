@@ -140,7 +140,9 @@ class TestSettingsPrecedence:
         """Test that invalid environment values are ignored gracefully."""
         # Use empty YAML and test invalid env vars
         with patch("agent.settings._load_yaml_config", return_value={}):
-            with patch.dict(os.environ, {"CHUNK_SIZE": "not_a_number", "GPU": "maybe"}, clear=True):
+            with patch.dict(
+                os.environ, {"CHUNK_SIZE": "not_a_number", "GPU": "maybe"}, clear=True
+            ):
                 s = get_settings()
                 # Invalid int values should be ignored, booleans parsed as False
                 assert s.chunk_size == 800  # Invalid int ignored, falls back to default
@@ -175,7 +177,9 @@ class TestSettingsHelpers:
 
     def test_load_yaml_config_no_yaml_module(self):
         """Test loading YAML when yaml module is not available."""
-        with patch("builtins.__import__", side_effect=ImportError("No module named 'yaml'")):
+        with patch(
+            "builtins.__import__", side_effect=ImportError("No module named 'yaml'")
+        ):
             result = _load_yaml_config()
             assert result == {}
 
@@ -490,7 +494,9 @@ class TestUpdateSettings:
         # Invalid float
         assert _coerce_value_for_field("similarity_threshold", "not_a_float") is None
         # Invalid bool
-        assert _coerce_value_for_field("gpu", "not_a_bool") is False  # fallback is False
+        assert (
+            _coerce_value_for_field("gpu", "not_a_bool") is False
+        )  # fallback is False
         # Unknown field
         assert _coerce_value_for_field("not_a_field", "value") is None
 

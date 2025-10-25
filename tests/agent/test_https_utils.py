@@ -39,7 +39,9 @@ class TestHTTPSRedirectMiddleware:
         request = Mock(spec=Request)
         request.url = Mock()
         request.url.scheme = "http"
-        request.url.replace = Mock(return_value=Mock(__str__=lambda x: "https://example.com/test"))
+        request.url.replace = Mock(
+            return_value=Mock(__str__=lambda x: "https://example.com/test")
+        )
 
         # Create middleware instance
         middleware = HTTPSRedirectMiddleware(app)
@@ -86,7 +88,9 @@ class TestHTTPSRedirectMiddleware:
         request.url = Mock()
         request.url.scheme = "http"
         request.url.replace = Mock(
-            return_value=Mock(__str__=lambda x: "https://example.com:8443/api/test?param=value")
+            return_value=Mock(
+                __str__=lambda x: "https://example.com:8443/api/test?param=value"
+            )
         )
 
         middleware = HTTPSRedirectMiddleware(app)
@@ -156,13 +160,17 @@ class TestGetSSLConfig:
 
     def test_ssl_config_empty_strings(self):
         """Test SSL config handles empty string environment variables"""
-        with patch.dict(os.environ, {"SSL_CERTFILE": "", "SSL_KEYFILE": ""}, clear=True):
+        with patch.dict(
+            os.environ, {"SSL_CERTFILE": "", "SSL_KEYFILE": ""}, clear=True
+        ):
             config = get_ssl_config()
             assert config is None
 
     def test_ssl_config_whitespace_values(self):
         """Test SSL config handles whitespace-only values"""
-        with patch.dict(os.environ, {"SSL_CERTFILE": "   ", "SSL_KEYFILE": "   "}, clear=True):
+        with patch.dict(
+            os.environ, {"SSL_CERTFILE": "   ", "SSL_KEYFILE": "   "}, clear=True
+        ):
             config = get_ssl_config()
             # Empty strings after stripping should return None
             # Current implementation doesn't strip, but test documents behavior

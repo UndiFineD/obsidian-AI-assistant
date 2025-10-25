@@ -12,12 +12,12 @@ Author: GitHub Copilot
 Version: 0.1.46
 """
 
-from dataclasses import dataclass, field, asdict
-from functools import wraps
-from typing import Callable, Any, Dict, List, Tuple, Optional
-import time
-from datetime import datetime
 import statistics
+import time
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -339,10 +339,10 @@ class ProfileAnalyzer:
                 "first_half_avg": first_half_avg,
                 "second_half_avg": second_half_avg,
                 "change_percent": (
-                    (second_half_avg - first_half_avg) / first_half_avg * 100
-                )
-                if first_half_avg > 0
-                else 0,
+                    ((second_half_avg - first_half_avg) / first_half_avg * 100)
+                    if first_half_avg > 0
+                    else 0
+                ),
             }
 
         return trends
@@ -479,9 +479,9 @@ class RecommendationEngine:
         return [r for r in recommendations if r.confidence >= self.confidence_threshold]
 
 
-def create_profiler_pipeline() -> Tuple[
-    StageProfiler, BottleneckDetector, ProfileAnalyzer, RecommendationEngine
-]:
+def create_profiler_pipeline() -> (
+    Tuple[StageProfiler, BottleneckDetector, ProfileAnalyzer, RecommendationEngine]
+):
     """
     Factory function to create complete profiler pipeline.
 

@@ -241,7 +241,9 @@ class TestRBACManager:
 
     def test_get_role_permissions_admin(self):
         """Test getting permissions for admin roles."""
-        admin_permissions = self.rbac_manager.get_role_permissions(UserRole.SYSTEM_ADMIN)
+        admin_permissions = self.rbac_manager.get_role_permissions(
+            UserRole.SYSTEM_ADMIN
+        )
 
         assert isinstance(admin_permissions, set)
         assert Permission.system_admin in admin_permissions
@@ -264,7 +266,9 @@ class TestRBACManager:
         role = UserRole.USER
         granted_by = "admin_user"
 
-        success = self.rbac_manager.assign_role_to_user(user_id, tenant_id, role, granted_by)
+        success = self.rbac_manager.assign_role_to_user(
+            user_id, tenant_id, role, granted_by
+        )
 
         assert success is True
 
@@ -285,7 +289,9 @@ class TestRBACManager:
         granted_by = "admin"
 
         for role in roles:
-            success = self.rbac_manager.assign_role_to_user(user_id, tenant_id, role, granted_by)
+            success = self.rbac_manager.assign_role_to_user(
+                user_id, tenant_id, role, granted_by
+            )
             assert success is True
 
         user_key = f"{user_id}:{tenant_id}"
@@ -328,7 +334,9 @@ class TestRBACManager:
         tenant_id = "tenant_permission"
 
         # Assign a role with specific permissions
-        self.rbac_manager.assign_role_to_user(user_id, tenant_id, UserRole.USER, "admin")
+        self.rbac_manager.assign_role_to_user(
+            user_id, tenant_id, UserRole.USER, "admin"
+        )
 
         # Check a permission that should be granted
         has_permission = self.rbac_manager.check_user_permission(
@@ -343,7 +351,9 @@ class TestRBACManager:
         tenant_id = "tenant_limited"
 
         # Assign a limited role
-        self.rbac_manager.assign_role_to_user(user_id, tenant_id, UserRole.READONLY, "admin")
+        self.rbac_manager.assign_role_to_user(
+            user_id, tenant_id, UserRole.READONLY, "admin"
+        )
 
         # Check a permission that should be denied
         has_permission = self.rbac_manager.check_user_permission(
@@ -432,7 +442,9 @@ class TestRBACManager:
         tenant_id = "tenant_escalation"
 
         # Assign basic user role
-        self.rbac_manager.assign_role_to_user(user_id, tenant_id, UserRole.USER, "admin")
+        self.rbac_manager.assign_role_to_user(
+            user_id, tenant_id, UserRole.USER, "admin"
+        )
 
         # User should not have admin permissions
         has_admin_perm = self.rbac_manager.check_user_permission(
@@ -457,7 +469,9 @@ class TestRBACDecorators:
             return "success"
 
         # Mock the check_user_permission to return True
-        with patch.object(self.rbac_manager, "check_user_permission", return_value=True):
+        with patch.object(
+            self.rbac_manager, "check_user_permission", return_value=True
+        ):
             with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 result = protected_function("user", "tenant")
                 assert result == "success"
@@ -470,7 +484,9 @@ class TestRBACDecorators:
             return "admin_success"
 
         # Mock the check_user_permission to return False
-        with patch.object(self.rbac_manager, "check_user_permission", return_value=False):
+        with patch.object(
+            self.rbac_manager, "check_user_permission", return_value=False
+        ):
             with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 with pytest.raises(PermissionError):
                     admin_function("user", "tenant")
@@ -483,7 +499,9 @@ class TestRBACDecorators:
             return "user_success"
 
         # Mock get_user_roles to return the required role
-        with patch.object(self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]):
+        with patch.object(
+            self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]
+        ):
             with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 result = user_function("user", "tenant")
                 assert result == "user_success"
@@ -496,7 +514,9 @@ class TestRBACDecorators:
             return "admin_success"
 
         # Mock get_user_roles to return a different role
-        with patch.object(self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]):
+        with patch.object(
+            self.rbac_manager, "get_user_roles", return_value=[UserRole.USER]
+        ):
             with patch("agent.enterprise_rbac.rbac_manager", self.rbac_manager):
                 with pytest.raises(PermissionError):
                     admin_function("user", "tenant")
@@ -593,7 +613,9 @@ class TestRBACIntegration:
         tenant_id = "workflow_tenant"
 
         # Step 1: Assign role
-        success = self.rbac_manager.assign_role_to_user(user_id, tenant_id, UserRole.USER, "system")
+        success = self.rbac_manager.assign_role_to_user(
+            user_id, tenant_id, UserRole.USER, "system"
+        )
         assert success is True
 
         # Step 2: Check permissions
@@ -620,7 +642,9 @@ class TestRBACIntegration:
         assert can_view_analytics is True
 
         # Step 5: Remove role
-        success = self.rbac_manager.remove_role_from_user(user_id, tenant_id, UserRole.POWER_USER)
+        success = self.rbac_manager.remove_role_from_user(
+            user_id, tenant_id, UserRole.POWER_USER
+        )
         assert success is True
 
         # Step 6: Verify permission removed
@@ -637,7 +661,9 @@ class TestRBACIntegration:
         tenant2 = "tenant_2"
 
         # Assign role in tenant 1
-        self.rbac_manager.assign_role_to_user(user_id, tenant1, UserRole.POWER_USER, "admin")
+        self.rbac_manager.assign_role_to_user(
+            user_id, tenant1, UserRole.POWER_USER, "admin"
+        )
 
         # Check permissions in tenant 1 (should have)
         has_perm_t1 = self.rbac_manager.check_user_permission(

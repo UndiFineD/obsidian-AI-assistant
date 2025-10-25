@@ -90,15 +90,21 @@ async def test_consecutive_failures_tracking(health_monitor):
         raise Exception("Persistent failure")
 
     # First failure
-    result1 = await health_monitor.check_service_health("unstable_service", failing_service)
+    result1 = await health_monitor.check_service_health(
+        "unstable_service", failing_service
+    )
     assert result1.consecutive_failures == 1
 
     # Second failure
-    result2 = await health_monitor.check_service_health("unstable_service", failing_service)
+    result2 = await health_monitor.check_service_health(
+        "unstable_service", failing_service
+    )
     assert result2.consecutive_failures == 2
 
     # Third failure
-    result3 = await health_monitor.check_service_health("unstable_service", failing_service)
+    result3 = await health_monitor.check_service_health(
+        "unstable_service", failing_service
+    )
     assert result3.consecutive_failures == 3
 
 
@@ -118,7 +124,9 @@ async def test_service_recovery_resets_failures(health_monitor):
     await health_monitor.check_service_health("recovery_test", unstable_service)
 
     # Recovery
-    result = await health_monitor.check_service_health("recovery_test", unstable_service)
+    result = await health_monitor.check_service_health(
+        "recovery_test", unstable_service
+    )
     assert result.status == ServiceStatus.HEALTHY
     assert result.consecutive_failures == 0
 
@@ -208,7 +216,9 @@ async def test_alert_generation_on_failure(health_monitor):
     assert len(alerts) > 0
 
     # Find the service health alert
-    service_alert = next((a for a in alerts if "critical_service" in a["alert_id"]), None)
+    service_alert = next(
+        (a for a in alerts if "critical_service" in a["alert_id"]), None
+    )
     assert service_alert is not None
     assert service_alert["severity"] == "critical"
 

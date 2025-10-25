@@ -8,8 +8,8 @@ quality gates, and reporting systems.
 
 import time
 from pathlib import Path
-from agent.analytics import MetricsCollector, MetricsAnalyzer, MetricsReporter
 
+from agent.analytics import MetricsAnalyzer, MetricsCollector, MetricsReporter
 
 # ============================================================================
 # EXAMPLE 1: Integration with Workflow Execution
@@ -143,11 +143,11 @@ class AnalyticsDashboard:
 
             status["lanes"][lane] = {
                 "compliance": compliance,
-                "status": "good"
-                if compliance >= 95
-                else "warning"
-                if compliance >= 90
-                else "critical",
+                "status": (
+                    "good"
+                    if compliance >= 95
+                    else "warning" if compliance >= 90 else "critical"
+                ),
             }
 
             # Generate alerts
@@ -306,11 +306,11 @@ class QualityMetricsAnalyzer:
                 "executions": analysis["total_executions"],
                 "perfect_runs": analysis["perfect_runs"],
                 "perfect_rate": analysis["perfect_run_percentage"],
-                "status": "excellent"
-                if analysis["avg_pass_rate"] > 99
-                else "good"
-                if analysis["avg_pass_rate"] > 95
-                else "needs_attention",
+                "status": (
+                    "excellent"
+                    if analysis["avg_pass_rate"] > 99
+                    else "good" if analysis["avg_pass_rate"] > 95 else "needs_attention"
+                ),
             }
 
         return health

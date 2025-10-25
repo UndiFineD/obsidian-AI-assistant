@@ -17,11 +17,10 @@ License: MIT
 """
 
 import json
-import time
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass, field, asdict
+from typing import Dict, List, Optional
 
 
 @dataclass
@@ -178,9 +177,11 @@ class PerformanceEstimator:
 
         return {
             "estimated_seconds": estimated_seconds,
-            "confidence": len([s for s in stage_estimates if s]) / len(stage_estimates)
-            if stage_estimates
-            else 0,
+            "confidence": (
+                len([s for s in stage_estimates if s]) / len(stage_estimates)
+                if stage_estimates
+                else 0
+            ),
             "stage_estimates": stage_estimates,
         }
 

@@ -482,7 +482,11 @@ def _sync_github_issues(dry_run: bool = False) -> int:
 
 
 def invoke_step10(
-    change_path: Path, dry_run: bool = False, sync_issues: bool = True, **_: dict
+    change_path: Path,
+    dry_run: bool = False,
+    sync_issues: bool = True,
+    skip_verify: bool = False,
+    **_: dict,
 ) -> bool:
     """Execute Step 10: Git operations and GitHub issue sync.
 
@@ -493,6 +497,7 @@ def invoke_step10(
         change_path: Path to the change folder
         dry_run: If True, only show what would be done
         sync_issues: If True, sync GitHub issues to create change folders
+        skip_verify: If True, skip git commit hooks (like --no-verify)
         **_: Additional keyword arguments (ignored)
 
     Returns:
@@ -606,11 +611,11 @@ def invoke_step10(
                 # Validate commit message against Conventional Commits format
                 if CC_AVAILABLE:
                     valid, error = cc_module.CommitValidator.validate_commit(
-                        commit_message
+                        commit_message, skip_verify=skip_verify
                     )
                     if not valid:
                         helpers.write_error(
-                            f"Commit message not in Conventional Commits format:"
+                            "Commit message not in Conventional Commits format:"
                         )
                         helpers.write_error(f"  {error}")
 
@@ -645,6 +650,11 @@ def invoke_step10(
                     cwd=PROJECT_ROOT,
                     capture_output=True,
                     text=True,
+                    # Skip commit hooks if --no-verify flag is set
+                    env={
+                        "GIT_COMMITTER_NAME": "OpenSpec",
+                        "GIT_COMMITTER_EMAIL": "openspec@example.com",
+                    },
                 )
                 if result.returncode != 0:
                     helpers.write_error(f"Git commit failed: {result.stderr}")
