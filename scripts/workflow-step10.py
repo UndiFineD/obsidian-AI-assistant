@@ -3,6 +3,7 @@
 
 Prepares git-related notes, commits changes, and pushes to remote.
 Optionally syncs open GitHub issues to create change folders.
+Validates commit messages against Conventional Commits format.
 """
 
 import importlib.util
@@ -23,6 +24,19 @@ spec = importlib.util.spec_from_file_location(
 )
 helpers = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(helpers)
+
+# Import conventional commits validator
+try:
+    spec_cc = importlib.util.spec_from_file_location(
+        "conventional_commits",
+        SCRIPT_DIR / "conventional_commits.py",
+    )
+    cc_module = importlib.util.module_from_spec(spec_cc)
+    spec_cc.loader.exec_module(cc_module)
+    CC_AVAILABLE = True
+except ImportError:
+    CC_AVAILABLE = False
+    cc_module = None
 
 # Load progress indicators
 progress_spec = importlib.util.spec_from_file_location(
@@ -588,6 +602,31 @@ def invoke_step10(
                 # Use comprehensive commit message
                 helpers.write_info("Committing changes...")
                 helpers.write_info(f"Scope: {'release' if new_version else 'openspec'}")
+
+                # Validate commit message against Conventional Commits format
+                if CC_AVAILABLE:
+                    valid, error = cc_module.CommitValidator.validate_commit(commit_message)
+                    if not valid:
+                        helpers.write_error(f"Commit message not in Conventional Commits format:")
+                        helpers.write_error(f"  {error}")
+                        
+                        # Suggest fix
+                        fixed = cc_module.CommitValidator.fix_commit(commit_message)
+                        helpers.write_info(f"Suggested: {fixed}")
+                        
+                        # Ask user
+                        try:
+                            response = input("Use suggested fix? (y/n): ").strip().lower()
+                            if response == "y":
+                                commit_message = fixed
+                                helpers.write_success(f"Using fixed message: {commit_message}")
+                            else:
+                                helpers.write_warning("Proceeding with original message (not recommended)")
+                        except KeyboardInterrupt:
+                            helpers.write_error("Commit aborted by user")
+                            return False
+                    else:
+                        helpers.write_success(f"Commit message valid: {commit_message[:60]}...")
 
                 result = subprocess.run(
                     ["git", "commit", "-m", commit_message],
