@@ -30,6 +30,7 @@ write_info = workflow_helpers.write_info
 write_success = workflow_helpers.write_success
 write_error = workflow_helpers.write_error
 write_error_hint = workflow_helpers.write_error_hint
+write_warning = workflow_helpers.write_warning
 set_content_atomic = workflow_helpers.set_content_atomic
 
 # Import progress indicators
@@ -37,6 +38,23 @@ try:
     import progress_indicators as progress
 except ImportError:
     progress = None
+
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import document validator
+try:
+    DocumentValidator = workflow_helpers.DocumentValidator
+    DOCUMENT_VALIDATOR_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_VALIDATOR_AVAILABLE = False
+    DocumentValidator = None
 
 
 def invoke_step0(
@@ -56,6 +74,19 @@ def invoke_step0(
     """
     write_step(0, "Create TODOs")
 
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 0
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(0, "Create TODOs")
+        except Exception as e:
+            write_warning(f"Could not initialize status tracker: {e}")
+
     todo_path = change_path / "todo.md"
     # Calculate template path: go up from change_path to project root, then to templates
     # change_path is like: project_root/openspec/changes/change-id
@@ -69,12 +100,27 @@ def invoke_step0(
             "Ensure you're running from the project root so openspec/templates/todo.md resolves.",
         )
         write_info(f"Expected location: {template_path}")
+        if status_tracker:
+            status_tracker.complete_stage(0, success=False, metrics={"reason": "Template not found"})
         return False
+
+    # Use DocumentValidator if available
+    if DOCUMENT_VALIDATOR_AVAILABLE and DocumentValidator:
+        try:
+            validator = DocumentValidator()
+            # Validate that we can create the todo file
+            if not validator.validate_file_creation(change_path, "todo.md"):
+                write_error("Document validation failed for todo.md creation")
+                if status_tracker:
+                    status_tracker.complete_stage(0, success=False, metrics={"reason": "Document validation failed"})
+                return False
+        except Exception as e:
+            write_warning(f"Document validation error: {e}")
 
     if not dry_run:
         try:
             # Show progress while creating file
-            if progress:
+            if progress and hasattr(progress, 'spinner'):
                 with progress.spinner(
                     "Creating todo.md from template", "Todo file created"
                 ):
@@ -97,6 +143,8 @@ def invoke_step0(
 
                     # Write to file
                     if not set_content_atomic(todo_path, content):
+                        if status_tracker:
+                            status_tracker.complete_stage(0, success=False, metrics={"reason": "Failed to write file"})
                         return False
             else:
                 # No progress available - run directly
@@ -114,22 +162,50 @@ def invoke_step0(
                 )
 
                 if not set_content_atomic(todo_path, content):
+                    if status_tracker:
+                        status_tracker.complete_stage(0, success=False, metrics={"reason": "Failed to write file"})
                     return False
+
+            # Validate step artifacts
+            if not workflow_helpers.validate_step_artifacts(change_path, 0):
+                write_error("Step 0 artifact validation failed")
+                if status_tracker:
+                    status_tracker.complete_stage(0, success=False, metrics={"reason": "Artifact validation failed"})
+                return False
+
+            # Show changes if available
+            try:
+                changes_dir = change_path.parent
+                workflow_helpers.show_changes(changes_dir)
+            except Exception as e:
+                write_warning(f"Could not show changes: {e}")
 
             write_success("Created todo.md")
             write_info(f"  Location: {todo_path}")
             write_info(f"  Change ID: {change_id}")
             write_info(f"  Owner: {owner}")
+
+            # Record completion in status tracker
+            if status_tracker:
+                status_tracker.complete_stage(0, success=True)
+
             return True
 
         except Exception as e:
             write_error(f"Failed to create todo.md: {e}")
+            if status_tracker:
+                status_tracker.complete_stage(0, success=False, metrics={"error": str(e)})
             return False
     else:
         write_info(f"[DRY RUN] Would create: {todo_path}")
         write_info(f"  Template: {template_path}")
         write_info(f"  Title: {title}")
         write_info(f"  Owner: {owner}")
+
+        # Record dry run completion in status tracker
+        if status_tracker:
+            status_tracker.complete_stage(0, success=True, metrics={"dry_run": True})
+
         return True
 
 

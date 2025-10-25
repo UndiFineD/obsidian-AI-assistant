@@ -27,6 +27,12 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker
+except ImportError:
+    StatusTracker = None
+
 
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
@@ -64,6 +70,10 @@ def _execute_script(script_path: Path, dry_run: bool = False) -> tuple[bool, str
 
 def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     helpers.write_step(7, "Implementation")
+
+    # Initialize status tracker
+    tracker = StatusTracker(change_path, "step7") if StatusTracker else None
+
     notes = change_path / "implementation_notes.md"
     test_script = change_path / "test.py"
     implement_script = change_path / "implement.py"
@@ -180,6 +190,12 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
 
     _mark_complete(change_path)
     helpers.write_success("Step 7 completed")
+
+    # Show changes and validate artifacts
+    if not dry_run:
+        helpers.show_changes(change_path)
+        helpers.validate_step_artifacts(change_path, 7)
+
     return test_success and implement_success
 
 

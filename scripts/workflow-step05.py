@@ -26,6 +26,15 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
 
 def _extract_success_criteria(proposal_path: Path) -> list:
     """Extract success criteria from proposal.md.
@@ -212,6 +221,19 @@ def invoke_step5(
 ) -> bool:
     helpers.write_step(5, "Test Definition")
 
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 5
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(5, "Implementation Checklist")
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
     spec_path = change_path / "spec.md"
     proposal_path = change_path / "proposal.md"
     tasks_path = change_path / "tasks.md"
@@ -258,7 +280,7 @@ def invoke_step5(
                 )
         else:
             # No template found, generate from proposal
-            if progress:
+            if progress and hasattr(progress, 'spinner'):
                 with progress.spinner(
                     "Generating spec.md from proposal", "Spec generated"
                 ):
@@ -276,7 +298,27 @@ def invoke_step5(
             if dry_run:
                 helpers.write_info(f"[DRY RUN] Would create/update: {spec_path}")
 
+    # Validate step artifacts
+    if not dry_run and not helpers.validate_step_artifacts(change_path, 5):
+        helpers.write_error("Step 5 artifact validation failed")
+        if status_tracker:
+            status_tracker.complete_stage(5, success=False, metrics={"reason": "Artifact validation failed"})
+        return False
+
+    # Show changes if available
+    if not dry_run:
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
+
     _mark_complete(change_path)
+
+    # Record completion in status tracker
+    if status_tracker:
+        status_tracker.complete_stage(5, success=True)
+
     helpers.write_success("Step 5 completed")
     return True
 

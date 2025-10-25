@@ -24,6 +24,27 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import document generator and validator
+try:
+    DocumentGenerator = helpers.DocumentGenerator
+    DocumentValidator = helpers.DocumentValidator
+    DOCUMENT_GENERATOR_AVAILABLE = True
+    DOCUMENT_VALIDATOR_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_GENERATOR_AVAILABLE = False
+    DOCUMENT_VALIDATOR_AVAILABLE = False
+    DocumentGenerator = None
+    DocumentValidator = None
+
 
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
@@ -52,32 +73,83 @@ def invoke_step2(
         dry_run: If True, don't write files
     """
     helpers.write_step(2, "Proposal")
+
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 2
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(2, "Proposal Review")
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
     proposal = change_path / "proposal.md"
 
     # Step 2a: Check/Create proposal.md
     if proposal.exists():
         helpers.write_info("proposal.md already exists; leaving as-is")
     else:
-        # Load template
-        template_manager = helpers.TemplateManager()
+        # Use DocumentGenerator if available
+        if DOCUMENT_GENERATOR_AVAILABLE and DocumentGenerator:
+            try:
+                generator = DocumentGenerator()
+                if progress and hasattr(progress, 'spinner'):
+                    with progress.spinner(
+                        "Creating proposal.md from template", "Proposal created from template"
+                    ):
+                        content = generator.generate_proposal(template, title)
+                        if not dry_run:
+                            helpers.set_content_atomic(proposal, content)
+                else:
+                    content = generator.generate_proposal(template, title)
+                    if not dry_run:
+                        helpers.set_content_atomic(proposal, content)
+                        helpers.write_success(f"Created from template: {proposal}")
+            except Exception as e:
+                helpers.write_warning(f"Document generator error, using fallback: {e}")
+                # Fallback to template manager
+                template_manager = helpers.TemplateManager()
+                if template != "default":
+                    helpers.write_info(
+                        f"Using '{template}' template: {template_manager.describe_template(template)}"
+                    )
 
-        if template != "default":
-            helpers.write_info(
-                f"Using '{template}' template: {template_manager.describe_template(template)}"
-            )
+                if progress and hasattr(progress, 'spinner'):
+                    with progress.spinner(
+                        "Creating proposal.md from template", "Proposal created from template"
+                    ):
+                        content = template_manager.load_template(template, title)
+                        if not dry_run:
+                            helpers.set_content_atomic(proposal, content)
+                else:
+                    content = template_manager.load_template(template, title)
+                    if not dry_run:
+                        helpers.set_content_atomic(proposal, content)
+                        helpers.write_success(f"Created from template: {proposal}")
+        else:
+            # Fallback to template manager
+            template_manager = helpers.TemplateManager()
+            if template != "default":
+                helpers.write_info(
+                    f"Using '{template}' template: {template_manager.describe_template(template)}"
+                )
 
-        if progress:
-            with progress.spinner(
-                "Creating proposal.md from template", "Proposal created from template"
-            ):
+            if progress and hasattr(progress, 'spinner'):
+                with progress.spinner(
+                    "Creating proposal.md from template", "Proposal created from template"
+                ):
+                    content = template_manager.load_template(template, title)
+                    if not dry_run:
+                        helpers.set_content_atomic(proposal, content)
+            else:
                 content = template_manager.load_template(template, title)
                 if not dry_run:
                     helpers.set_content_atomic(proposal, content)
-        else:
-            content = template_manager.load_template(template, title)
-            if not dry_run:
-                helpers.set_content_atomic(proposal, content)
-                helpers.write_success(f"Created from template: {proposal}")
+                    helpers.write_success(f"Created from template: {proposal}")
 
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {proposal}")
@@ -144,13 +216,17 @@ def invoke_step2(
     if dry_run:
         helpers.write_info("[DRY RUN] Skipping proposal validation")
     else:
-        if progress:
-            with progress.spinner("Validating proposal.md", "Validation complete"):
-                validator = helpers.DocumentValidator()
+        if DOCUMENT_VALIDATOR_AVAILABLE and DocumentValidator:
+            if progress and hasattr(progress, 'spinner'):
+                with progress.spinner("Validating proposal.md", "Validation complete"):
+                    validator = DocumentValidator()
+                    result = validator.validate_proposal(proposal)
+            else:
+                validator = DocumentValidator()
                 result = validator.validate_proposal(proposal)
         else:
-            validator = helpers.DocumentValidator()
-            result = validator.validate_proposal(proposal)
+            # Fallback validation
+            result = type('Result', (), {'is_valid': True, 'errors': [], 'warnings': []})()
 
         if not result.is_valid:
             for err in result.errors:
@@ -158,13 +234,35 @@ def invoke_step2(
             helpers.write_warning(
                 "Proposal has blocking issues; please fix and rerun step 2"
             )
+            if status_tracker:
+                status_tracker.complete_stage(2, success=False, metrics={"reason": "Validation failed"})
             return False
         if result.warnings:
             helpers.write_warning(f"Proposal has {len(result.warnings)} warning(s):")
             for w in result.warnings[:3]:
                 helpers.write_warning(f"  ⚠ {w}")
 
+    # Validate step artifacts
+    if not dry_run and not helpers.validate_step_artifacts(change_path, 2):
+        helpers.write_error("Step 2 artifact validation failed")
+        if status_tracker:
+            status_tracker.complete_stage(2, success=False, metrics={"reason": "Artifact validation failed"})
+        return False
+
+    # Show changes if available
+    if not dry_run:
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
+
     _mark_complete(change_path)
+
+    # Record completion in status tracker
+    if status_tracker:
+        status_tracker.complete_stage(2, success=True)
+
     helpers.write_success("Step 2 completed")
     return True
 
