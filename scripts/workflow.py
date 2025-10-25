@@ -70,6 +70,24 @@ except ImportError:
     PARALLEL_EXECUTOR_AVAILABLE = False
     ParallelExecutor = None  # Provide fallback for type checking
 
+# Import status tracker if available
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import hook registry if available
+try:
+    from hook_registry import HookRegistry, run_stage_hooks
+    HOOK_REGISTRY_AVAILABLE = True
+except ImportError:
+    HOOK_REGISTRY_AVAILABLE = False
+    HookRegistry = None
+    run_stage_hooks = None
+
 # Directory paths
 CHANGES_DIR = PROJECT_ROOT / "openspec" / "changes"
 ARCHIVE_DIR = PROJECT_ROOT / "openspec" / "archive"
@@ -452,9 +470,10 @@ def execute_step(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ) -> bool:
     """
-    Execute a specific workflow step with optional checkpoint creation.
+    Execute a specific workflow step with optional checkpoint creation and status tracking.
 
     Args:
         step_num: Step number (0-12)
@@ -466,6 +485,7 @@ def execute_step(
         enable_checkpoints: If True, create checkpoint before execution
         skip_quality_gates: If True, skip quality gates (not recommended)
         lane: Workflow lane (docs, standard, heavy)
+        force_hooks: If True, skip pre-step hooks (not recommended)
 
     Returns:
         True if successful, False otherwise
@@ -483,6 +503,28 @@ def execute_step(
             )
         except Exception as e:
             helpers.write_warning(f"Could not create checkpoint: {e}")
+
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE and not dry_run:
+        try:
+            status_tracker = create_tracker(change_path.name, lane=lane, status_file=change_path / ".checkpoints" / "status.json")
+            step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
+            status_tracker.start_stage(step_num, step_name)
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
+    # Run pre-step hooks for specific stages (0, 1, 10, 12)
+    if HOOK_REGISTRY_AVAILABLE and step_num in [0, 1, 10, 12] and not dry_run:
+        try:
+            if not run_stage_hooks(step_num, force=force_hooks):
+                helpers.write_error(f"Pre-step hooks failed for Stage {step_num}")
+                helpers.write_info("Fix issues above and retry, or use --force-hooks to skip (not recommended)")
+                if status_tracker:
+                    status_tracker.complete_stage(step_num, success=False, metrics={"reason": "Pre-step hooks failed"})
+                return False
+        except Exception as e:
+            helpers.write_warning(f"Error running pre-step hooks: {e}")
 
     # Load step module
     step_module = load_step_module(step_num)
@@ -532,12 +574,20 @@ def execute_step(
         if success and checkpoint_manager:
             checkpoint_manager.mark_step_success(step_num)
 
+        # Record completion in status tracker
+        if status_tracker and not dry_run:
+            status_tracker.complete_stage(step_num, success=success)
+
         return success
     except Exception as e:
         helpers.write_error(f"Step {step_num} failed: {e}")
         import traceback
 
         traceback.print_exc()
+
+        # Record failure in status tracker
+        if status_tracker and not dry_run:
+            status_tracker.complete_stage(step_num, success=False, metrics={"error": str(e)})
 
         # Offer rollback if checkpoint was created
         if checkpoint_manager and checkpoint_id:
@@ -561,6 +611,7 @@ def run_single_step(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ):
     """Run a single workflow step."""
     change_path = CHANGES_DIR / change_id
@@ -581,6 +632,12 @@ def run_single_step(
         )
         print()
 
+    if force_hooks:
+        helpers.write_warning(
+            "⚠️  Pre-step hooks SKIPPED - validation may be bypassed"
+        )
+        print()
+
     success = execute_step(
         step_num,
         change_path,
@@ -592,6 +649,7 @@ def run_single_step(
         enable_checkpoints,
         skip_quality_gates,
         lane,
+        force_hooks,
     )
 
     print()
@@ -704,6 +762,80 @@ def detect_code_changes(change_path: Path) -> dict:
     return results
 
 
+def execute_stages_parallel(
+    stages: List[int],
+    change_path: Path,
+    title: Optional[str] = None,
+    owner: Optional[str] = None,
+    dry_run: bool = False,
+    release_type: Optional[str] = None,
+    template: str = "default",
+    enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
+    max_workers: int = 3,
+) -> bool:
+    """
+    Execute multiple stages in parallel (used for stages 2-6).
+    
+    Args:
+        stages: List of stage numbers to execute in parallel
+        change_path: Path to change directory
+        title: Change title
+        owner: Change owner
+        dry_run: Dry run mode
+        release_type: Release type for versioning
+        template: Template to use
+        enable_checkpoints: Enable checkpoint creation
+        skip_quality_gates: Skip quality gates
+        max_workers: Max parallel workers (default: 3)
+        
+    Returns:
+        True if all stages succeed, False if any stage fails
+    """
+    if not PARALLEL_EXECUTOR_AVAILABLE or not ParallelExecutor:
+        # Fallback to sequential execution
+        helpers.write_warning("ParallelExecutor not available, executing sequentially")
+        for stage in stages:
+            success = execute_step(
+                stage, change_path, title, owner, dry_run, release_type, template,
+                enable_checkpoints, skip_quality_gates
+            )
+            if not success:
+                return False
+        return True
+    
+    # Build task list
+    tasks = []
+    for stage in sorted(stages):
+        task_name = STEP_NAMES.get(stage, f"Stage {stage}")
+        tasks.append((
+            stage,
+            task_name,
+            execute_step,
+            [stage, change_path, title, owner, dry_run, release_type, template,
+             enable_checkpoints, skip_quality_gates],
+            {}
+        ))
+    
+    # Execute in parallel
+    executor = ParallelExecutor(max_workers=max_workers, verbose=False)
+    results = executor.execute_parallel(tasks)
+    
+    # Log results
+    helpers.write_info(f"\n╔ Parallel Execution Summary (Stages {min(stages)}-{max(stages)}) ╗")
+    all_success = True
+    for result in sorted(results, key=lambda r: r.task_id):
+        status_icon = "✓" if result.status.value == "completed" else "✗"
+        print(f"  {status_icon} Stage {result.task_id}: {result.task_name} ({result.duration:.1f}s)")
+        if result.status.value != "completed":
+            all_success = False
+            if result.error:
+                print(f"     Error: {result.error}")
+    helpers.write_info("╚" + "═" * 49 + "╝")
+    
+    return all_success
+
+
 def run_interactive_workflow(
     change_id: str,
     title: Optional[str] = None,
@@ -714,6 +846,7 @@ def run_interactive_workflow(
     enable_checkpoints: bool = True,
     skip_quality_gates: bool = False,
     lane: str = "standard",
+    force_hooks: bool = False,
 ):
     """Run the complete interactive workflow."""
     change_path = CHANGES_DIR / change_id
@@ -801,16 +934,71 @@ def run_interactive_workflow(
     # Calculate which steps will actually execute
     steps_to_run = [s for s in range(start_step, 13) if s in stages_to_execute]
     total_steps = len(steps_to_run)
+    
+    # Get lane config to check if parallelization is enabled
+    lane_config = get_lane_config(lane)
+    parallelization_enabled = lane_config.get("parallelization_enabled", True)
 
     # Execute steps with nested progress indicator if available
     if PROGRESS_AVAILABLE and total_steps > 1:
         print()  # Add space for progress display
 
         with workflow_progress(total_steps, "OpenSpec Workflow") as wp:
-            for i, current_step in enumerate(steps_to_run, 1):
+            i = 1
+            step_idx = 0
+            while step_idx < len(steps_to_run):
+                current_step = steps_to_run[step_idx]
+                
+                # Check if this is the start of stages 2-6 that can run in parallel
+                parallel_stages = []
+                if (parallelization_enabled and 
+                    current_step in [2, 3, 4, 5, 6] and 
+                    start_step <= 2):
+                    # Collect all stages 2-6 that are in this lane and haven't run yet
+                    for stage in range(2, 7):
+                        if stage in steps_to_run and stage >= start_step:
+                            parallel_stages.append(stage)
+                    
+                    # Only use parallelization if we have multiple stages
+                    if len(parallel_stages) > 1:
+                        wp.start_step(i, f"Parallel Stages {min(parallel_stages)}-{max(parallel_stages)}")
+                        wp.update_step_progress("Starting parallel execution...")
+                        
+                        # Execute in parallel
+                        success = execute_stages_parallel(
+                            parallel_stages,
+                            change_path,
+                            title,
+                            owner,
+                            dry_run,
+                            release_type,
+                            template,
+                            enable_checkpoints,
+                            skip_quality_gates,
+                        )
+                        
+                        if not success:
+                            wp.finish(f"Failed at Parallel Stages")
+                            print()
+                            helpers.write_error("Parallel stages failed. Stopping workflow.")
+                            return 1
+                        
+                        wp.update_step_progress("Complete")
+                        wp.complete_step()
+                        i += 1
+                        
+                        # Skip the stages we just executed
+                        step_idx = len(steps_to_run)
+                        for idx, step in enumerate(steps_to_run):
+                            if step > max(parallel_stages):
+                                step_idx = idx
+                                break
+                        continue
+                
                 # Skip steps not in this lane
                 if current_step not in stages_to_execute:
                     helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
+                    step_idx += 1
                     continue
                 
                 step_name = STEP_NAMES.get(current_step, f"Step {current_step}")
@@ -828,6 +1016,7 @@ def run_interactive_workflow(
                     enable_checkpoints,
                     skip_quality_gates,
                     lane=lane,
+                    force_hooks=force_hooks,
                 )
 
                 if not success:
@@ -864,6 +1053,7 @@ def run_interactive_workflow(
                 enable_checkpoints,
                 skip_quality_gates,
                 lane=lane,
+                force_hooks=force_hooks,
             )
 
             if not success:
@@ -1080,7 +1270,7 @@ Examples:
         type=str,
         choices=["docs", "standard", "heavy"],
         default="standard",
-        help="Workflow lane selection: docs (fast docs-only, <5min), standard (default, ~15min), or heavy (strict, ~20min)",
+        help="Workflow lane: docs (fast docs-only, <5min), standard (default, ~15min), or heavy (strict, ~20min)",
     )
     parser.add_argument(
         "--step",
@@ -1111,15 +1301,19 @@ Examples:
         help="Status visualization format (default: tree)",
     )
     parser.add_argument(
-        "--lane",
-        choices=["docs", "standard", "heavy"],
-        default="standard",
-        help="Workflow lane: docs (fast), standard (default), or heavy (strict)",
-    )
-    parser.add_argument(
         "--skip-quality-gates",
         action="store_true",
         help="Skip quality gates for faster local iteration (not recommended for production)",
+    )
+    parser.add_argument(
+        "--no-parallel",
+        action="store_true",
+        help="Disable parallelization of stages 2-6 (useful for debugging)",
+    )
+    parser.add_argument(
+        "--force-hooks",
+        action="store_true",
+        help="Skip pre-step hooks without validation (not recommended)",
     )
 
     args = parser.parse_args()
@@ -1198,6 +1392,7 @@ Examples:
             enable_checkpoints,
             args.skip_quality_gates,
             args.lane,
+            args.force_hooks,
         )
     else:
         # Interactive workflow
@@ -1211,6 +1406,7 @@ Examples:
             enable_checkpoints,
             args.skip_quality_gates,
             args.lane,
+            args.force_hooks,
         )
 
 
