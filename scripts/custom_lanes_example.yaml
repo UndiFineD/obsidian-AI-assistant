@@ -1,0 +1,97 @@
+# Example Custom Lanes Configuration
+# This file demonstrates how to define custom workflow lanes for v0.1.46
+
+# Fast Lane: Minimal validation for documentation changes
+fast:
+  name: fast
+  description: "Fast lane for quick documentation and minor changes"
+  stages:
+    - 0  # Stage 0: Setup
+    - 1  # Stage 1: Parse & Validate
+  parallel: true
+  timeout: 300
+  quality_gates:
+    enabled: true
+    ruff: true
+    mypy: false
+    pytest: false
+    bandit: false
+    coverage_threshold: 50.0
+    required_passes:
+      - ruff
+  metadata:
+    owner: "team"
+    version: "1.0"
+    use_case: "docs-only changes"
+
+# Full Lane: Complete validation with all tests
+full:
+  name: full
+  description: "Full lane for comprehensive feature development"
+  stages:
+    - 0   # Stage 0: Setup
+    - 1   # Stage 1: Parse & Validate
+    - 2   # Stage 2: Quality Gates
+    - 3   # Stage 3: Pre-commit Hooks
+    - 4   # Stage 4: Commit Validation
+    - 5   # Stage 5: Unit Tests
+    - 6   # Stage 6: Integration Tests
+    - 7   # Stage 7: Type Checking
+    - 8   # Stage 8: Code Quality Analysis
+    - 9   # Stage 9: Performance Tests
+  parallel: true
+  timeout: 3600
+  quality_gates:
+    enabled: true
+    ruff: true
+    mypy: true
+    pytest: true
+    bandit: true
+    coverage_threshold: 85.0
+    required_passes:
+      - ruff
+      - mypy
+      - pytest
+      - bandit
+  metadata:
+    owner: "team"
+    version: "1.0"
+    use_case: "full feature development"
+
+# Enterprise Lane: Extended validation with stress testing
+enterprise:
+  name: enterprise
+  description: "Enterprise lane with stress testing and compliance checks"
+  stages:
+    - 0   # Stage 0: Setup
+    - 1   # Stage 1: Parse & Validate
+    - 2   # Stage 2: Quality Gates
+    - 3   # Stage 3: Pre-commit Hooks
+    - 4   # Stage 4: Commit Validation
+    - 5   # Stage 5: Unit Tests
+    - 6   # Stage 6: Integration Tests
+    - 7   # Stage 7: Type Checking
+    - 8   # Stage 8: Code Quality Analysis
+    - 9   # Stage 9: Performance Tests
+    - 10  # Stage 10: Stress Testing
+    - 11  # Stage 11: Security Scanning
+    - 12  # Stage 12: Compliance Validation
+  parallel: false
+  timeout: 7200
+  quality_gates:
+    enabled: true
+    ruff: true
+    mypy: true
+    pytest: true
+    bandit: true
+    coverage_threshold: 90.0
+    required_passes:
+      - ruff
+      - mypy
+      - pytest
+      - bandit
+  metadata:
+    owner: "enterprise-team"
+    version: "1.0"
+    use_case: "mission-critical features"
+    compliance_required: true

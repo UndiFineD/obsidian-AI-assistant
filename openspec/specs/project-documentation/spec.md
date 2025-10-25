@@ -497,9 +497,7 @@ The project SHALL govern material changes to `AGENTS.md` via OpenSpec change pro
 
 - **WHEN** a contributor creates a change for updating `AGENTS.md`
 - **THEN** the change SHALL include:
-	- A `proposal.md` with a Why section and capability reference
-	- A `tasks.md` with three or more actionable checklist items and a validation step
-	- A delta spec at `changes/update-doc-agents/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
-	- A documented validation command: `openspec validate update-doc-agents --strict`
-
-
+    - A `proposal.md` with a Why section and capability reference
+    - A `tasks.md` with three or more actionable checklist items and a validation step
+    - A delta spec at `changes/update-doc-agents/specs/project-documentation/spec.md` using valid ADDED/MODIFIED/REMOVED sections
+    - A documented validation command: `openspec validate update-doc-agents --strict`
