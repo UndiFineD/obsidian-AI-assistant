@@ -21,6 +21,19 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, List, Optional
 
+# Import version manager
+try:
+    from version_manager import VersionManager
+except ImportError:
+    VersionManager = None
+
+# Import progress indicators
+try:
+    from progress_indicators import ProgressBar
+    PROGRESS_AVAILABLE = True
+except ImportError:
+    PROGRESS_AVAILABLE = False
+
 
 # ANSI color codes for terminal output
 class Colors:
@@ -412,42 +425,71 @@ def validate_step_artifacts(change_path: Path, step_num: int) -> bool:
 
 def detect_next_step(change_path: Path) -> int:
     """
-    Detect the next step to execute based on todo.md and artifact validation.
+    Detect which step should be executed next based on existing artifacts.
 
-    Returns the first step number (0-12) that is not marked complete or whose
-    required artifacts are missing. Returns 13 if all steps appear complete.
+    Analyzes the change directory to determine workflow progress and returns
+    the next step that needs to be executed.
+
+    Args:
+        change_path: Path to the change directory
+
+    Returns:
+        Step number (0-12) to execute next, or 0 if starting fresh
     """
-    todo_path = change_path / "todo.md"
-    if not todo_path.exists():
-        return 0
+    # Check for status.json first (most reliable indicator)
+    status_file = change_path / "status.json"
+    if status_file.exists():
+        try:
+            data = json.loads(status_file.read_text(encoding="utf-8"))
+            steps = data.get("steps", [])
 
-    try:
-        content = todo_path.read_text(encoding="utf-8")
-    except Exception:
-        return 0
+            # Find the last successfully completed step
+            completed_steps = []
+            for step_data in steps:
+                if step_data.get("result") == "success":
+                    completed_steps.append(step_data["step_id"])
 
-    # For each step in order, check if the checklist item exists and is checked.
+            if completed_steps:
+                last_completed = max(completed_steps)
+                # Return next step after the last completed one
+                return last_completed + 1
+
+        except (json.JSONDecodeError, KeyError) as e:
+            write_warning(f"Could not parse status.json: {e}")
+
+    # Fallback: check for file artifacts to infer progress
+    required_files_by_step = {
+        0: ["todo.md"],
+        1: ["version_snapshot.md"],
+        2: ["proposal.md"],
+        3: ["spec.md"],
+        4: ["tasks.md"],
+        5: ["test_plan.md"],
+        6: ["test.py", "implement.py"],
+        7: ["implementation_notes.md"],
+        8: ["quality_metrics.json"],
+        9: ["doc_changes.md"],
+        10: ["git_notes.md"],
+        11: ["PR_body.md"],
+        12: ["archive_manifest.md"],
+    }
+
+    # Check each step's artifacts
     for step_num in range(13):
-        # Pattern that tolerates space or x inside brackets
-        pattern = rf"- \\[[ x]\\] \\*\\*{step_num}\\."
-        m = re.search(pattern, content)
-        if not m:
-            # If the checklist item is missing, conservatively resume here
-            return step_num
+        required_files = required_files_by_step.get(step_num, [])
 
-        line = m.group(0)
-        is_checked = "[x]" in line
-        if not is_checked:
-            return step_num
-
-        # If marked complete, verify expected artifacts exist
-        if not validate_step_artifacts(change_path, step_num):
-            write_warning(
-                f"Step {step_num} marked complete but expected artifact(s) missing"
+        # If this step has required files, check if they exist
+        if required_files:
+            all_files_exist = all(
+                (change_path / filename).exists() for filename in required_files
             )
-            return step_num
 
-    return 13
+            if not all_files_exist:
+                # This step hasn't been completed, so start here
+                return step_num
+
+    # All steps appear to be complete
+    return 13  # Beyond the last step
 
 
 # --- Document validation and generation ---
@@ -466,66 +508,150 @@ class ValidationResult:
 class DocumentValidator:
     """Lightweight validators for proposal/spec/tasks/test_plan."""
 
-    def validate_proposal(self, proposal_path: Path) -> ValidationResult:
-        res = ValidationResult()
+    @staticmethod
+    def validate_file_creation(change_path: Path, filename: str) -> bool:
+        """
+        Validate that a file can be created in the change directory.
+
+        Args:
+            change_path: Path to the change directory
+            filename: Name of the file to create
+
+        Returns:
+            True if file can be created, False otherwise
+        """
+        try:
+            file_path = change_path / filename
+
+            # Check if parent directory exists and is writable
+            if not change_path.exists():
+                return False
+
+            if not change_path.is_dir():
+                return False
+
+            # Check if we can write to the directory
+            test_file = change_path / ".write_test"
+            try:
+                test_file.write_text("test", encoding="utf-8")
+                test_file.unlink()  # Clean up test file
+                return True
+            except (OSError, PermissionError):
+                return False
+
+        except Exception:
+            return False
+
+    @staticmethod
+    def validate_proposal_structure(proposal_path: Path) -> tuple[bool, List[str]]:
+        """
+        Validate the structure of a proposal.md file.
+
+        Args:
+            proposal_path: Path to the proposal.md file
+
+        Returns:
+            Tuple of (is_valid: bool, issues: List[str])
+        """
+        issues = []
+
         if not proposal_path.exists():
-            res.is_valid = False
-            res.errors.append("proposal.md not found")
-            return res
-        content = proposal_path.read_text(encoding="utf-8")
-        required = ["## Context", "## What Changes", "## Goals", "## Stakeholders"]
-        for section in required:
-            if section not in content:
-                res.is_valid = False
-                res.errors.append(f"Missing section: {section}")
-        if re.search(r"<[^>]+>", content):
-            res.warnings.append("Template placeholders remain (e.g., <...>)")
-        if len(content.split()) < 40:
-            res.warnings.append("Proposal is very short (< 40 words)")
-        return res
+            issues.append("proposal.md file does not exist")
+            return False, issues
 
-    def validate_spec(self, spec_path: Path) -> ValidationResult:
-        res = ValidationResult()
+        try:
+            content = proposal_path.read_text(encoding="utf-8")
+
+            required_sections = [
+                "## Context",
+                "## What Changes",
+                "## Goals",
+                "## Stakeholders"
+            ]
+
+            for section in required_sections:
+                if section not in content:
+                    issues.append(f"Missing required section: {section}")
+
+            # Check for basic content
+            if len(content.strip()) < 100:
+                issues.append("Proposal content is too short (minimum 100 characters)")
+
+        except Exception as e:
+            issues.append(f"Could not read proposal file: {e}")
+
+        return len(issues) == 0, issues
+
+    @staticmethod
+    def validate_spec_structure(spec_path: Path) -> tuple[bool, List[str]]:
+        """
+        Validate the structure of a spec.md file.
+
+        Args:
+            spec_path: Path to the spec.md file
+
+        Returns:
+            Tuple of (is_valid: bool, issues: List[str])
+        """
+        issues = []
+
         if not spec_path.exists():
-            res.is_valid = False
-            res.errors.append("spec.md not found")
-            return res
-        content = spec_path.read_text(encoding="utf-8")
-        required = ["## Requirements", "## Acceptance Criteria"]
-        for section in required:
-            if section not in content:
-                res.is_valid = False
-                res.errors.append(f"Missing section: {section}")
-        if not re.search(r"(?m)^\s*-\s+\*\*R-\d+\*\*:", content):
-            res.warnings.append("No requirements in expected format (- **R-01**: ...)")
-        if not re.search(r"(?m)^\s*-\s+\[[ x]\] ", content):
-            res.warnings.append("No acceptance criteria checklist items found")
-        return res
+            issues.append("spec.md file does not exist")
+            return False, issues
 
-    def validate_tasks(self, tasks_path: Path) -> ValidationResult:
-        res = ValidationResult()
+        try:
+            content = spec_path.read_text(encoding="utf-8")
+
+            required_sections = [
+                "## Requirements",
+                "## Acceptance Criteria"
+            ]
+
+            for section in required_sections:
+                if section not in content:
+                    issues.append(f"Missing required section: {section}")
+
+            # Check for basic content
+            if len(content.strip()) < 200:
+                issues.append("Spec content is too short (minimum 200 characters)")
+
+        except Exception as e:
+            issues.append(f"Could not read spec file: {e}")
+
+        return len(issues) == 0, issues
+
+    @staticmethod
+    def validate_tasks_structure(tasks_path: Path) -> tuple[bool, List[str]]:
+        """
+        Validate the structure of a tasks.md file.
+
+        Args:
+            tasks_path: Path to the tasks.md file
+
+        Returns:
+            Tuple of (is_valid: bool, issues: List[str])
+        """
+        issues = []
+
         if not tasks_path.exists():
-            res.is_valid = False
-            res.errors.append("tasks.md not found")
-            return res
-        content = tasks_path.read_text(encoding="utf-8")
-        if not re.search(r"(?m)^\s*-\s+\[[ x]\] ", content):
-            res.warnings.append("No tasks found (expected - [ ] ...)")
-        for sec in ("## 1. Implementation", "## 2. Testing", "## 3. Documentation"):
-            if sec not in content:
-                res.suggestions.append(f"Consider adding section: {sec}")
-        return res
+            issues.append("tasks.md file does not exist")
+            return False, issues
 
-    def validate_test_plan(self, plan_path: Path) -> ValidationResult:
-        res = ValidationResult()
-        if not plan_path.exists():
-            res.is_valid = False
-            res.errors.append("test_plan.md not found")
-            return res
-        content = plan_path.read_text(encoding="utf-8")
-        if "## Strategy" not in content:
-            res.suggestions.append("Consider adding '## Strategy' section")
-        return res
+        try:
+            content = tasks_path.read_text(encoding="utf-8")
+
+            # Check for task format
+            if "- [x]" not in content and "- [ ]" not in content:
+                issues.append("No task checkboxes found (expected format: - [x] or - [ ])")
+
+            # Check for basic content
+            if len(content.strip()) < 100:
+                issues.append("Tasks content is too short (minimum 100 characters)")
+
+        except Exception as e:
+            issues.append(f"Could not read tasks file: {e}")
+
+        return len(issues) == 0, issues
 
 
 class TemplateManager:
@@ -1475,7 +1601,14 @@ class WorkflowVisualizer:
             write_info(f"  Completed: {completed_steps}/{total_steps} steps")
 
             # Show progress bar
-            progress_bar(completed_steps, total_steps, width=40)
+            if PROGRESS_AVAILABLE:
+                pb = ProgressBar(total_steps, "Workflow Progress", width=40)
+                pb.set(completed_steps)
+                pb.complete()
+            else:
+                # Fallback if progress indicators not available
+                percentage = round((completed_steps / total_steps) * 100) if total_steps > 0 else 0
+                write_info(f"  Progress: {percentage}%")
 
             # Show step details
             for step_data in sorted(steps, key=lambda x: x["step_id"]):
@@ -2485,3 +2618,10 @@ def run_code_quality_improvements(project_root: Path) -> tuple[bool, List[str]]:
         return False, ["Code quality improvements timed out"]
     except Exception as e:
         return False, [f"Code quality improvements failed: {str(e)}"]
+
+
+# Make VersionManager available as helpers.VersionManager
+import sys
+if VersionManager is not None:
+    # Set as module-level variable instead of using setattr on sys.modules
+    VersionManager = VersionManager

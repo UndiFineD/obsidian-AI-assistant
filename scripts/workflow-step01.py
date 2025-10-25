@@ -34,6 +34,9 @@ try:
 except ImportError:
     progress = None
 
+# Import VersionManager directly
+from version_manager import VersionManager
+
 # Import status tracker
 try:
     from status_tracker import StatusTracker, create_tracker
@@ -56,12 +59,15 @@ except AttributeError:
     TemplateManager = None
 
 
-def _read_pyproject_version(pyproject: Path) -> Optional[str]:
+def _read_pyproject_version() -> Optional[str]:
+    """Read Python version from agent/__init__.py since this project doesn't use pyproject.toml."""
     try:
-        text = pyproject.read_text(encoding="utf-8")
-        m = re.search(r"^version\s*=\s*['\"]([^'\"]+)['\"]", text, re.M)
-        if m:
-            return m.group(1)
+        init_file = PROJECT_ROOT / "agent" / "__init__.py"
+        if init_file.exists():
+            text = init_file.read_text(encoding="utf-8")
+            m = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', text)
+            if m:
+                return m.group(1)
     except Exception:
         pass
     return None
@@ -188,7 +194,7 @@ def invoke_step1(
 
     pyproject = PROJECT_ROOT / "pyproject.toml"
     package_json = PROJECT_ROOT / "package.json"
-    py_ver = _read_pyproject_version(pyproject) if pyproject.exists() else None
+    py_ver = _read_pyproject_version()  # Read from agent/__init__.py instead of pyproject.toml
     js_ver = _read_package_json_version(package_json) if package_json.exists() else None
 
     helpers.write_info(f"Detected Python version: {py_ver or 'N/A'}")
@@ -213,15 +219,14 @@ def invoke_step1(
     current_version = None
 
     try:
-        current_version = helpers.VersionManager.get_current_version(PROJECT_ROOT)
+        vm = VersionManager(str(PROJECT_ROOT))
+        current_version = vm.get_current_version()
 
         # Always bump patch (hardcoded requirement)
         if release_type:
-            new_version = helpers.VersionManager.bump_version(
-                current_version, release_type
-            )
+            new_version = vm.bump_version(release_type)
         else:
-            new_version = helpers.VersionManager.bump_version(current_version, "patch")
+            new_version = vm.bump_version("patch")
 
         helpers.write_info(f"Bumped version: {current_version} → {new_version}")
 
@@ -230,13 +235,9 @@ def invoke_step1(
                 with progress.spinner(
                     "Updating version files", "Version files updated"
                 ):
-                    updated_files = helpers.VersionManager.update_version_files(
-                        PROJECT_ROOT, new_version
-                    )
+                    updated_files = vm.update_all_versions(new_version)
             else:
-                updated_files = helpers.VersionManager.update_version_files(
-                    PROJECT_ROOT, new_version
-                )
+                updated_files = vm.update_all_versions(new_version)
 
             for file in updated_files:
                 helpers.write_success(f"  ✅ Updated: {file}")

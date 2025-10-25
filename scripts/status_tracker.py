@@ -292,22 +292,42 @@ class StatusTracker:
 
     def _save_status(self) -> None:
         """Save status to JSON file (atomic write)"""
+        import platform
+
         # Create directory if needed
         self.status_file.parent.mkdir(parents=True, exist_ok=True)
 
         # Write to temporary file first
         temp_file = self.status_file.with_suffix(".tmp")
         try:
+            # Write to temp file
             temp_file.write_text(
                 json.dumps(self.status, indent=2),
                 encoding="utf-8",
             )
-            # Atomic rename
-            temp_file.replace(self.status_file)
+
+            # Atomic rename - handle Windows vs Unix differences
+            if platform.system() == "Windows":
+                # On Windows, replace() can fail if file is locked
+                # Try replace first, fall back to manual copy + delete
+                try:
+                    temp_file.replace(self.status_file)
+                except (OSError, PermissionError):
+                    # If replace fails, manually copy content and delete temp
+                    if self.status_file.exists():
+                        self.status_file.unlink()
+                    temp_file.rename(self.status_file)
+            else:
+                # Unix systems can use replace safely
+                temp_file.replace(self.status_file)
+
         except Exception as e:
             # Clean up temp file on error
             if temp_file.exists():
-                temp_file.unlink()
+                try:
+                    temp_file.unlink()
+                except Exception:
+                    pass  # Ignore cleanup errors
             raise RuntimeError(f"Failed to save status: {e}")
 
     def get_summary(self) -> Dict[str, Any]:

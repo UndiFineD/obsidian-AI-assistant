@@ -1555,6 +1555,9 @@ def run_interactive_workflow(
                 wp.update_step_progress("Complete")
                 wp.complete_step()
 
+                # Advance to next step
+                step_idx += 1
+
         print()  # Add space after progress
     else:
         # Fallback to non-progress mode

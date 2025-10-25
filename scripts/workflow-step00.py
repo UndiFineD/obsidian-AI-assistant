@@ -180,18 +180,26 @@ def invoke_step0(
                         status_tracker.complete_stage(0, success=False, metrics={"reason": "Failed to write file"})
                     return False
 
-            # Write status.json
+            # Write status.json in WorkflowStatusTracker format
             status_data = {
-                "step": 0,
-                "completed": True,
-                "timestamp": datetime.now().isoformat(),
-                "change_id": change_path.name,
-                "title": title,
-                "owner": owner,
-                "artifacts": {
-                    "todo.md": str(todo_path),
-                    "template_used": str(template_path)
-                }
+                "workflow_version": "0.1.41",
+                "last_updated": datetime.now().isoformat(),
+                "total_steps": 1,  # Only step 0 completed so far
+                "completed_steps": 1,
+                "steps": [
+                    {
+                        "step_id": 0,
+                        "step_name": "Create TODOs",
+                        "start_time": datetime.now().isoformat(),
+                        "end_time": datetime.now().isoformat(),
+                        "result": "success",
+                        "duration_seconds": 0.0,
+                        "metrics": {},
+                        "errors": [],
+                        "files_created": ["todo.md"],
+                        "files_modified": []
+                    }
+                ]
             }
             
             status_file = change_path / "status.json"
