@@ -3,7 +3,7 @@
   "lane": "standard",
   "status": "FAILED",
   "started_at": "2025-10-25T08:38:30.768019",
-  "updated_at": "2025-10-25T08:39:00.680888",
+  "updated_at": "2025-10-25T08:42:59.458605",
   "stages": [
     {
       "stage_num": 0,
@@ -18,17 +18,17 @@
       "stage_num": 1,
       "name": "Version Bump",
       "status": "FAILED",
-      "started_at": "2025-10-25T08:38:59.661926",
-      "completed_at": "2025-10-25T08:39:00.680888",
-      "duration_seconds": 1.018962,
+      "started_at": "2025-10-25T08:42:59.197473",
+      "completed_at": "2025-10-25T08:42:59.458605",
+      "duration_seconds": 0.261132,
       "metrics": {
         "reason": "Pre-step hooks failed"
       }
     }
   ],
   "timing": {
-    "total_elapsed_seconds": 29.912918,
-    "estimated_remaining_seconds": 164.521049,
+    "total_elapsed_seconds": 268.690635,
+    "estimated_remaining_seconds": 1477.7984924999998,
     "sla_target_seconds": 900,
     "within_sla": true
   },
