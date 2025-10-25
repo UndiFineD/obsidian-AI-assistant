@@ -704,6 +704,80 @@ def detect_code_changes(change_path: Path) -> dict:
     return results
 
 
+def execute_stages_parallel(
+    stages: List[int],
+    change_path: Path,
+    title: Optional[str] = None,
+    owner: Optional[str] = None,
+    dry_run: bool = False,
+    release_type: Optional[str] = None,
+    template: str = "default",
+    enable_checkpoints: bool = True,
+    skip_quality_gates: bool = False,
+    max_workers: int = 3,
+) -> bool:
+    """
+    Execute multiple stages in parallel (used for stages 2-6).
+    
+    Args:
+        stages: List of stage numbers to execute in parallel
+        change_path: Path to change directory
+        title: Change title
+        owner: Change owner
+        dry_run: Dry run mode
+        release_type: Release type for versioning
+        template: Template to use
+        enable_checkpoints: Enable checkpoint creation
+        skip_quality_gates: Skip quality gates
+        max_workers: Max parallel workers (default: 3)
+        
+    Returns:
+        True if all stages succeed, False if any stage fails
+    """
+    if not PARALLEL_EXECUTOR_AVAILABLE or not ParallelExecutor:
+        # Fallback to sequential execution
+        helpers.write_warning("ParallelExecutor not available, executing sequentially")
+        for stage in stages:
+            success = execute_step(
+                stage, change_path, title, owner, dry_run, release_type, template,
+                enable_checkpoints, skip_quality_gates
+            )
+            if not success:
+                return False
+        return True
+    
+    # Build task list
+    tasks = []
+    for stage in sorted(stages):
+        task_name = STEP_NAMES.get(stage, f"Stage {stage}")
+        tasks.append((
+            stage,
+            task_name,
+            execute_step,
+            [stage, change_path, title, owner, dry_run, release_type, template,
+             enable_checkpoints, skip_quality_gates],
+            {}
+        ))
+    
+    # Execute in parallel
+    executor = ParallelExecutor(max_workers=max_workers, verbose=False)
+    results = executor.execute_parallel(tasks)
+    
+    # Log results
+    helpers.write_info(f"\n╔ Parallel Execution Summary (Stages {min(stages)}-{max(stages)}) ╗")
+    all_success = True
+    for result in sorted(results, key=lambda r: r.task_id):
+        status_icon = "✓" if result.status.value == "completed" else "✗"
+        print(f"  {status_icon} Stage {result.task_id}: {result.task_name} ({result.duration:.1f}s)")
+        if result.status.value != "completed":
+            all_success = False
+            if result.error:
+                print(f"     Error: {result.error}")
+    helpers.write_info("╚" + "═" * 49 + "╝")
+    
+    return all_success
+
+
 def run_interactive_workflow(
     change_id: str,
     title: Optional[str] = None,
@@ -801,16 +875,71 @@ def run_interactive_workflow(
     # Calculate which steps will actually execute
     steps_to_run = [s for s in range(start_step, 13) if s in stages_to_execute]
     total_steps = len(steps_to_run)
+    
+    # Get lane config to check if parallelization is enabled
+    lane_config = get_lane_config(lane)
+    parallelization_enabled = lane_config.get("parallelization_enabled", True)
 
     # Execute steps with nested progress indicator if available
     if PROGRESS_AVAILABLE and total_steps > 1:
         print()  # Add space for progress display
 
         with workflow_progress(total_steps, "OpenSpec Workflow") as wp:
-            for i, current_step in enumerate(steps_to_run, 1):
+            i = 1
+            step_idx = 0
+            while step_idx < len(steps_to_run):
+                current_step = steps_to_run[step_idx]
+                
+                # Check if this is the start of stages 2-6 that can run in parallel
+                parallel_stages = []
+                if (parallelization_enabled and 
+                    current_step in [2, 3, 4, 5, 6] and 
+                    start_step <= 2):
+                    # Collect all stages 2-6 that are in this lane and haven't run yet
+                    for stage in range(2, 7):
+                        if stage in steps_to_run and stage >= start_step:
+                            parallel_stages.append(stage)
+                    
+                    # Only use parallelization if we have multiple stages
+                    if len(parallel_stages) > 1:
+                        wp.start_step(i, f"Parallel Stages {min(parallel_stages)}-{max(parallel_stages)}")
+                        wp.update_step_progress("Starting parallel execution...")
+                        
+                        # Execute in parallel
+                        success = execute_stages_parallel(
+                            parallel_stages,
+                            change_path,
+                            title,
+                            owner,
+                            dry_run,
+                            release_type,
+                            template,
+                            enable_checkpoints,
+                            skip_quality_gates,
+                        )
+                        
+                        if not success:
+                            wp.finish(f"Failed at Parallel Stages")
+                            print()
+                            helpers.write_error("Parallel stages failed. Stopping workflow.")
+                            return 1
+                        
+                        wp.update_step_progress("Complete")
+                        wp.complete_step()
+                        i += 1
+                        
+                        # Skip the stages we just executed
+                        step_idx = len(steps_to_run)
+                        for idx, step in enumerate(steps_to_run):
+                            if step > max(parallel_stages):
+                                step_idx = idx
+                                break
+                        continue
+                
                 # Skip steps not in this lane
                 if current_step not in stages_to_execute:
                     helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
+                    step_idx += 1
                     continue
                 
                 step_name = STEP_NAMES.get(current_step, f"Step {current_step}")
