@@ -1,18 +1,18 @@
 {
-    "name": "obsidian-ai-agent",
-    "version": "0.1.37",
-    "description": "Obsidian AI Agent",
-    "main": "main.js",
-    "scripts": {
-        "lint": "eslint . --ext .js",
-        "format": "prettier --write \"**/*.{js,json,md}\""
-    },
-    "author": "UndiFineD",
-    "license": "MIT",
-    "devDependencies": {
-        "eslint": "^8.57.0",
-        "eslint-config-prettier": "^9.1.0",
-        "prettier": "^3.2.5"
-    },
-    "dependencies": {}
+  "name": "obsidian-ai-agent",
+  "version": "0.1.38",
+  "description": "Obsidian AI Agent",
+  "main": "main.js",
+  "scripts": {
+    "lint": "eslint . --ext .js",
+    "format": "prettier --write \"**/*.{js,json,md}\""
+  },
+  "author": "UndiFineD",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {}
 }
