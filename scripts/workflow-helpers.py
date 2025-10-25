@@ -13,6 +13,12 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
+import json
+from datetime import datetime
+import subprocess
+import sys
+import time
+import threading
 
 
 # ANSI color codes for terminal output
@@ -740,10 +746,6 @@ class DocumentGenerator:
 # ============================================================================
 
 
-import json
-from datetime import datetime
-
-
 @dataclass
 class StepStatus:
     """Represents the status of a single workflow step."""
@@ -934,11 +936,15 @@ class WorkflowStatusTracker:
 
         for step_id in sorted(self.steps.keys()):
             status = self.steps[step_id]
-            symbol = "✓" if status.result == "success" else "✗" if status.result == "failure" else "⊘"
+            symbol = (
+                "✓"
+                if status.result == "success"
+                else "✗"
+                if status.result == "failure"
+                else "⊘"
+            )
             duration = (
-                f" ({status.duration_seconds:.1f}s)"
-                if status.duration_seconds
-                else ""
+                f" ({status.duration_seconds:.1f}s)" if status.duration_seconds else ""
             )
             lines.append(
                 f"  {symbol} Step {step_id}: {status.step_name}{duration} [{status.result}]"
@@ -950,10 +956,6 @@ class WorkflowStatusTracker:
 # ============================================================================
 # Environment Validation Hooks
 # ============================================================================
-
-
-import subprocess
-import sys
 
 
 def check_python_version(required_version: str = "3.11") -> bool:
@@ -993,7 +995,11 @@ def check_tool_available(tool_name: str) -> bool:
             timeout=5,
         )
         return True
-    except (subprocess.CalledProcessError, FileNotFoundError, subprocess.TimeoutExpired):
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+    ):
         return False
 
 
@@ -1025,7 +1031,9 @@ def validate_environment(
     # Check required tools
     for tool in required_tools:
         if not check_tool_available(tool):
-            errors.append(f"Tool '{tool}' is not available (install with: pip install {tool})")
+            errors.append(
+                f"Tool '{tool}' is not available (install with: pip install {tool})"
+            )
 
     return (len(errors) == 0, errors)
 
@@ -1049,8 +1057,12 @@ def print_environment_validation_report(
     success, errors = validate_environment(required_tools, required_python_version)
 
     if success:
-        write_success(f"✓ Python {sys.version_info.major}.{sys.version_info.minor} detected")
-        write_success(f"✓ All required tools available: {', '.join(required_tools or [])}")
+        write_success(
+            f"✓ Python {sys.version_info.major}.{sys.version_info.minor} detected"
+        )
+        write_success(
+            f"✓ All required tools available: {', '.join(required_tools or [])}"
+        )
         return True
     else:
         write_error("✗ Environment validation failed:")
@@ -1086,11 +1098,7 @@ def check_incomplete_workflow(change_path: Path) -> Optional[int]:
         steps = data.get("steps", [])
 
         # Find last successfully completed step
-        completed_steps = [
-            s["step_id"]
-            for s in steps
-            if s.get("result") == "success"
-        ]
+        completed_steps = [s["step_id"] for s in steps if s.get("result") == "success"]
 
         if completed_steps:
             return max(completed_steps)
@@ -1151,5 +1159,730 @@ def handle_workflow_resumption(change_path: Path) -> Optional[int]:
             return last_completed + 1
         else:
             return None
-    
+
     return None
+
+
+# ============================================================================
+# Workflow Visualization System
+# ============================================================================
+
+
+class WorkflowVisualizer:
+    """Visualize workflow status and progress."""
+
+    @staticmethod
+    def show_workflow_progress(change_path: Path) -> None:
+        """
+        Display current workflow progress with visual indicators.
+
+        Args:
+            change_path: Path to the change directory
+        """
+        status_file = change_path / "status.json"
+
+        if not status_file.exists():
+            write_info("No workflow status found")
+            return
+
+        try:
+            data = json.loads(status_file.read_text(encoding="utf-8"))
+            steps = data.get("steps", [])
+            total_steps = data.get("total_steps", 0)
+            completed_steps = data.get("completed_steps", 0)
+
+            write_info("Workflow Progress:")
+            write_info(f"  Completed: {completed_steps}/{total_steps} steps")
+
+            # Show progress bar
+            progress_bar(completed_steps, total_steps, width=40)
+
+            # Show step details
+            for step_data in sorted(steps, key=lambda x: x["step_id"]):
+                step_id = step_data["step_id"]
+                step_name = step_data.get("step_name", f"Step {step_id}")
+                result = step_data.get("result", "pending")
+                duration = step_data.get("duration_seconds")
+
+                # Choose symbol and color
+                if result == "success":
+                    symbol = "✓"
+                    color = Colors.GREEN
+                elif result == "failure":
+                    symbol = "✗"
+                    color = Colors.RED
+                elif result == "in_progress":
+                    symbol = "⟳"
+                    color = Colors.YELLOW
+                elif result == "skipped":
+                    symbol = "⊘"
+                    color = Colors.GRAY
+                else:
+                    symbol = "○"
+                    color = Colors.WHITE
+
+                duration_str = f" ({duration:.1f}s)" if duration else ""
+                print(
+                    f"  {color}{symbol} Step {step_id}: {step_name}{duration_str}{Colors.RESET}"
+                )
+
+        except (json.JSONDecodeError, KeyError) as e:
+            write_warning(f"Could not load workflow status: {e}")
+
+    @staticmethod
+    def show_step_details(change_path: Path, step_id: int) -> None:
+        """
+        Show detailed information for a specific step.
+
+        Args:
+            change_path: Path to the change directory
+            step_id: Step ID to show details for
+        """
+        status_file = change_path / "status.json"
+
+        if not status_file.exists():
+            write_warning("No workflow status found")
+            return
+
+        try:
+            data = json.loads(status_file.read_text(encoding="utf-8"))
+            steps = data.get("steps", [])
+
+            step_data = next((s for s in steps if s["step_id"] == step_id), None)
+
+            if not step_data:
+                write_warning(f"Step {step_id} not found in status")
+                return
+
+            write_info(f"Step {step_id} Details:")
+            write_info(f"  Name: {step_data.get('step_name', 'Unknown')}")
+            write_info(f"  Result: {step_data.get('result', 'unknown')}")
+            write_info(f"  Start: {step_data.get('start_time', 'N/A')}")
+            write_info(f"  End: {step_data.get('end_time', 'N/A')}")
+
+            if step_data.get("duration_seconds"):
+                write_info(f"  Duration: {step_data['duration_seconds']:.1f}s")
+
+            if step_data.get("errors"):
+                write_info("  Errors:")
+                for error in step_data["errors"]:
+                    write_error(f"    {error}")
+
+            if step_data.get("files_created"):
+                write_info("  Files Created:")
+                for file in step_data["files_created"]:
+                    write_success(f"    + {file}")
+
+            if step_data.get("files_modified"):
+                write_info("  Files Modified:")
+                for file in step_data["files_modified"]:
+                    write_info(f"    ~ {file}")
+
+            if step_data.get("metrics"):
+                write_info("  Metrics:")
+                for key, value in step_data["metrics"].items():
+                    write_info(f"    {key}: {value}")
+
+        except (json.JSONDecodeError, KeyError) as e:
+            write_warning(f"Could not load step details: {e}")
+
+    @staticmethod
+    def show_workflow_summary(change_path: Path) -> None:
+        """
+        Show a summary of the entire workflow.
+
+        Args:
+            change_path: Path to the change directory
+        """
+        status_file = change_path / "status.json"
+
+        if not status_file.exists():
+            write_info("No workflow status found - workflow not started")
+            return
+
+        try:
+            data = json.loads(status_file.read_text(encoding="utf-8"))
+            total_steps = data.get("total_steps", 0)
+            completed_steps = data.get("completed_steps", 0)
+            last_updated = data.get("last_updated", "Unknown")
+
+            write_info("Workflow Summary:")
+            write_info(f"  Total Steps: {total_steps}")
+            write_info(f"  Completed: {completed_steps}")
+            write_info(f"  Last Updated: {last_updated}")
+
+            if total_steps > 0:
+                percent = round((completed_steps / total_steps) * 100)
+                write_info(f"  Progress: {percent}%")
+
+                if completed_steps == total_steps:
+                    write_success("  Status: Complete ✓")
+                elif completed_steps > 0:
+                    write_warning("  Status: In Progress ⟳")
+                else:
+                    write_info("  Status: Not Started ○")
+
+        except (json.JSONDecodeError, KeyError) as e:
+            write_warning(f"Could not load workflow summary: {e}")
+
+
+# ============================================================================
+# Progress Indicators
+# ============================================================================
+
+
+def spinner(duration: float, message: str = "Processing...") -> None:
+    """
+    Show a spinning progress indicator for a duration.
+
+    Args:
+        duration: How long to show the spinner (seconds)
+        message: Message to display with spinner
+    """
+    spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+    start_time = time.time()
+    i = 0
+
+    while time.time() - start_time < duration:
+        print(
+            f"\r{Colors.CYAN}{spinner_chars[i % len(spinner_chars)]}{Colors.RESET} {message}",
+            end="",
+            flush=True,
+        )
+        time.sleep(0.1)
+        i += 1
+
+    # Clear the spinner line
+    print(f"\r{' ' * (len(message) + 2)}\r", end="", flush=True)
+
+
+def progress_bar(
+    current: int, total: int, width: int = 50, prefix: str = "Progress:"
+) -> None:
+    """
+    Display a progress bar.
+
+    Args:
+        current: Current progress value
+        total: Total progress value
+        width: Width of the progress bar
+        prefix: Text to show before the progress bar
+    """
+    if total == 0:
+        percent = 100
+        filled = width
+    else:
+        percent = round((current / total) * 100)
+        filled = round((current / total) * width)
+
+    bar = "█" * filled + "░" * (width - filled)
+    print(f"{Colors.CYAN}{prefix} [{bar}] {percent}%{Colors.RESET}")
+
+
+def show_progress_with_spinner(func, *args, message: str = "Processing...", **kwargs):
+    """
+    Execute a function with a spinner progress indicator.
+
+    Args:
+        func: Function to execute
+        *args: Arguments for the function
+        message: Message to show with spinner
+        **kwargs: Keyword arguments for the function
+
+    Returns:
+        Result of the function execution
+    """
+    result = [None]
+    exception = [None]
+
+    def run_func():
+        try:
+            result[0] = func(*args, **kwargs)
+        except Exception as e:
+            exception[0] = e
+
+    # Start function in background thread
+    thread = threading.Thread(target=run_func, daemon=True)
+    thread.start()
+
+    # Show spinner while function runs
+    spinner_chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+    i = 0
+
+    while thread.is_alive():
+        print(
+            f"\r{Colors.CYAN}{spinner_chars[i % len(spinner_chars)]}{Colors.RESET} {message}",
+            end="",
+            flush=True,
+        )
+        time.sleep(0.1)
+        i += 1
+
+    # Clear the spinner line
+    print(f"\r{' ' * (len(message) + 2)}\r", end="", flush=True)
+
+    # Check for exceptions
+    if exception[0]:
+        raise exception[0]
+
+    return result[0]
+
+
+# ============================================================================
+# Version Management System
+# ============================================================================
+
+
+class VersionManager:
+    """Manage version detection and bumping for the project."""
+
+    @staticmethod
+    def get_current_version(project_root: Path) -> str:
+        """
+        Get the current version from version files.
+
+        Args:
+            project_root: Path to the project root
+
+        Returns:
+            Current version string
+        """
+        # Check pyproject.toml first
+        pyproject_path = project_root / "pyproject.toml"
+        if pyproject_path.exists():
+            try:
+                import tomllib
+
+                data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+                version = data.get("tool", {}).get("poetry", {}).get("version")
+                if version:
+                    return version
+                version = data.get("project", {}).get("version")
+                if version:
+                    return version
+            except Exception:
+                pass
+
+        # Check setup.py
+        setup_path = project_root / "setup.py"
+        if setup_path.exists():
+            content = setup_path.read_text(encoding="utf-8")
+            match = re.search(r'version\s*=\s*["\']([^"\']+)["\']', content)
+            if match:
+                return match.group(1)
+
+        # Check package.json
+        package_path = project_root / "package.json"
+        if package_path.exists():
+            try:
+                import json
+
+                data = json.loads(package_path.read_text(encoding="utf-8"))
+                version = data.get("version")
+                if version:
+                    return version
+            except Exception:
+                pass
+
+        # Check __init__.py files
+        init_paths = [
+            project_root / "agent" / "__init__.py",
+            project_root / "__init__.py",
+        ]
+        for init_path in init_paths:
+            if init_path.exists():
+                content = init_path.read_text(encoding="utf-8")
+                match = re.search(r'__version__\s*=\s*["\']([^"\']+)["\']', content)
+                if match:
+                    return match.group(1)
+
+        return "0.0.0"
+
+    @staticmethod
+    def bump_version(current_version: str, bump_type: str) -> str:
+        """
+        Bump a version number.
+
+        Args:
+            current_version: Current version string
+            bump_type: Type of bump (major, minor, patch)
+
+        Returns:
+            New version string
+        """
+        # Parse version
+        match = re.match(r"^(\d+)\.(\d+)\.(\d+)(.*)$", current_version)
+        if not match:
+            raise ValueError(f"Invalid version format: {current_version}")
+
+        major, minor, patch = map(int, match.groups()[:3])
+        suffix = match.group(4) or ""
+
+        if bump_type == "major":
+            major += 1
+            minor = 0
+            patch = 0
+        elif bump_type == "minor":
+            minor += 1
+            patch = 0
+        elif bump_type == "patch":
+            patch += 1
+        else:
+            raise ValueError(f"Invalid bump type: {bump_type}")
+
+        return f"{major}.{minor}.{patch}{suffix}"
+
+    @staticmethod
+    def update_version_files(project_root: Path, new_version: str) -> List[str]:
+        """
+        Update version in all relevant files.
+
+        Args:
+            project_root: Path to the project root
+            new_version: New version string
+
+        Returns:
+            List of files that were updated
+        """
+        updated_files = []
+
+        # Update pyproject.toml
+        pyproject_path = project_root / "pyproject.toml"
+        if pyproject_path.exists():
+            content = pyproject_path.read_text(encoding="utf-8")
+            # Update both poetry and standard project version formats
+            content = re.sub(
+                r'(\[tool\.poetry\]|\[project\])\s*\n.*?\n\s*version\s*=\s*["\'][^"\']*["\']',
+                f'\\1\nversion = "{new_version}"',
+                content,
+                flags=re.MULTILINE | re.DOTALL,
+            )
+            if set_content_atomic(pyproject_path, content):
+                updated_files.append(str(pyproject_path))
+
+        # Update setup.py
+        setup_path = project_root / "setup.py"
+        if setup_path.exists():
+            content = setup_path.read_text(encoding="utf-8")
+            content = re.sub(
+                r'version\s*=\s*["\'][^"\']*["\']', f'version="{new_version}"', content
+            )
+            if set_content_atomic(setup_path, content):
+                updated_files.append(str(setup_path))
+
+        # Update package.json
+        package_path = project_root / "package.json"
+        if package_path.exists():
+            try:
+                import json
+
+                data = json.loads(package_path.read_text(encoding="utf-8"))
+                data["version"] = new_version
+                if set_content_atomic(package_path, json.dumps(data, indent=2)):
+                    updated_files.append(str(package_path))
+            except Exception:
+                pass
+
+        # Update __init__.py files
+        init_paths = [
+            project_root / "agent" / "__init__.py",
+            project_root / "__init__.py",
+        ]
+        for init_path in init_paths:
+            if init_path.exists():
+                content = init_path.read_text(encoding="utf-8")
+                content = re.sub(
+                    r'__version__\s*=\s*["\'][^"\']*["\']',
+                    f'__version__ = "{new_version}"',
+                    content,
+                )
+                if set_content_atomic(init_path, content):
+                    updated_files.append(str(init_path))
+
+        return updated_files
+
+
+# ============================================================================
+# Security Validation System
+# ============================================================================
+
+
+def validate_security(project_root: Path) -> tuple[bool, List[str]]:
+    """
+    Run security validation checks on the project.
+
+    Args:
+        project_root: Path to the project root
+
+    Returns:
+        Tuple of (success: bool, issues: List[str])
+    """
+    issues = []
+
+    # Check for common security issues
+    security_checks = [
+        ("Secret files", _check_secret_files, project_root),
+        ("Dependencies", _check_dependencies, project_root),
+        ("Code patterns", _check_code_patterns, project_root),
+    ]
+
+    for check_name, check_func, *args in security_checks:
+        try:
+            success, check_issues = check_func(*args)
+            if not success:
+                issues.extend([f"{check_name}: {issue}" for issue in check_issues])
+        except Exception as e:
+            issues.append(f"{check_name}: Check failed - {e}")
+
+    return (len(issues) == 0, issues)
+
+
+def _check_secret_files(project_root: Path) -> tuple[bool, List[str]]:
+    """Check for accidentally committed secret files."""
+    issues = []
+
+    # Common secret file patterns
+    secret_patterns = [
+        ".env",
+        ".env.local",
+        ".env.*.local",
+        "secrets.json",
+        "credentials.json",
+        "*.key",
+        "*.pem",
+        "id_rsa",
+        "id_dsa",
+    ]
+
+    for pattern in secret_patterns:
+        for file_path in project_root.rglob(pattern):
+            if file_path.is_file():
+                issues.append(f"Potential secret file found: {file_path}")
+
+    return (len(issues) == 0, issues)
+
+
+def _check_dependencies(project_root: Path) -> tuple[bool, List[str]]:
+    """Check for vulnerable dependencies."""
+    issues = []
+
+    # Check requirements.txt
+    req_path = project_root / "requirements.txt"
+    if req_path.exists():
+        try:
+            content = req_path.read_text(encoding="utf-8")
+            # Look for known vulnerable packages (simplified check)
+            vulnerable = ["insecure-package", "old-version-package"]
+            for vuln in vulnerable:
+                if vuln in content:
+                    issues.append(f"Vulnerable dependency found: {vuln}")
+        except Exception as e:
+            issues.append(f"Could not check requirements.txt: {e}")
+
+    # Check pyproject.toml
+    pyproject_path = project_root / "pyproject.toml"
+    if pyproject_path.exists():
+        try:
+            import tomllib
+
+            data = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+            deps = data.get("tool", {}).get("poetry", {}).get("dependencies", {})
+            deps.update(data.get("project", {}).get("dependencies", {}))
+
+            # Check for known vulnerable packages
+            vulnerable = ["insecure-package", "old-version-package"]
+            for dep in deps:
+                for vuln in vulnerable:
+                    if vuln in dep.lower():
+                        issues.append(f"Vulnerable dependency found: {dep}")
+        except Exception as e:
+            issues.append(f"Could not check pyproject.toml: {e}")
+
+    return (len(issues) == 0, issues)
+
+
+def _check_code_patterns(project_root: Path) -> tuple[bool, List[str]]:
+    """Check for insecure code patterns."""
+    issues = []
+
+    # Patterns to check for
+    insecure_patterns = [
+        (r"eval\s*\(", "Use of eval()"),
+        (r"exec\s*\(", "Use of exec()"),
+        (r"input\s*\(", "Use of input() for sensitive data"),
+        (r"pickle\.loads?\s*\(", "Use of pickle for deserialization"),
+        (
+            r"subprocess\.(call|Popen|run)\s*\(\s*shell\s*=\s*True",
+            "Shell injection vulnerability",
+        ),
+    ]
+
+    # Check Python files
+    for py_file in project_root.rglob("*.py"):
+        try:
+            content = py_file.read_text(encoding="utf-8")
+            for pattern, description in insecure_patterns:
+                if re.search(pattern, content):
+                    issues.append(f"{description} in {py_file}")
+        except Exception:
+            continue
+
+    return (len(issues) == 0, issues)
+
+
+# ============================================================================
+# Code Quality Improvement System
+# ============================================================================
+
+
+def run_code_quality_improvements(project_root: Path) -> tuple[bool, List[str]]:
+    """
+    Run automated code quality improvements.
+
+    Args:
+        project_root: Path to the project root
+
+    Returns:
+        Tuple of (success: bool, improvements: List[str])
+    """
+    improvements = []
+
+    # Code quality checks and fixes
+    quality_checks = [
+        ("Python formatting", _fix_python_formatting, project_root),
+        ("JavaScript formatting", _fix_javascript_formatting, project_root),
+        ("Import sorting", _fix_import_sorting, project_root),
+    ]
+
+    for check_name, check_func, *args in quality_checks:
+        try:
+            success, check_improvements = check_func(*args)
+            if success and check_improvements:
+                improvements.extend(
+                    [f"{check_name}: {imp}" for imp in check_improvements]
+                )
+        except Exception as e:
+            write_warning(f"{check_name} check failed: {e}")
+
+    return (len(improvements) > 0, improvements)
+
+
+def _fix_python_formatting(project_root: Path) -> tuple[bool, List[str]]:
+    """Fix Python code formatting issues."""
+    improvements = []
+
+    if not check_tool_available("ruff"):
+        return False, ["ruff not available"]
+
+    try:
+        # Run ruff format
+        result = subprocess.run(
+            ["ruff", "format", "--check", str(project_root)],
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            # Files need formatting
+            format_result = subprocess.run(
+                ["ruff", "format", str(project_root)],
+                capture_output=True,
+                text=True,
+                cwd=project_root,
+                timeout=30,
+            )
+
+            if format_result.returncode == 0:
+                improvements.append("Python files formatted with ruff")
+            else:
+                return False, ["Failed to format Python files"]
+
+    except subprocess.TimeoutExpired:
+        return False, ["Python formatting timed out"]
+
+    return True, improvements
+
+
+def _fix_javascript_formatting(project_root: Path) -> tuple[bool, List[str]]:
+    """Fix JavaScript code formatting issues."""
+    improvements = []
+
+    # Check for JavaScript files
+    js_files = list(project_root.rglob("*.js"))
+    if not js_files:
+        return True, []
+
+    # Basic JavaScript formatting (remove trailing whitespace, fix indentation)
+    for js_file in js_files:
+        try:
+            content = js_file.read_text(encoding="utf-8")
+            original_content = content
+
+            # Remove trailing whitespace
+            lines = content.split("\n")
+            lines = [line.rstrip() for line in lines]
+            content = "\n".join(lines)
+
+            # Fix basic indentation (4 spaces)
+            # This is a simplified formatter - in practice you'd use prettier
+            formatted_lines = []
+            for line in lines:
+                stripped = line.lstrip()
+                if stripped and line.startswith(" "):
+                    # Count leading spaces and convert to multiples of 4
+                    leading_spaces = len(line) - len(line.lstrip(" "))
+                    new_leading_spaces = (leading_spaces // 4) * 4
+                    formatted_lines.append(" " * new_leading_spaces + stripped)
+                else:
+                    formatted_lines.append(line)
+
+            content = "\n".join(formatted_lines)
+
+            if content != original_content:
+                if set_content_atomic(js_file, content):
+                    improvements.append(f"Formatted {js_file.name}")
+
+        except Exception as e:
+            write_warning(f"Could not format {js_file}: {e}")
+
+    return True, improvements
+
+
+def _fix_import_sorting(project_root: Path) -> tuple[bool, List[str]]:
+    """Fix import sorting issues."""
+    improvements = []
+
+    if not check_tool_available("isort"):
+        return False, ["isort not available"]
+
+    try:
+        # Run isort check
+        result = subprocess.run(
+            ["isort", "--check-only", "--diff", str(project_root)],
+            capture_output=True,
+            text=True,
+            cwd=project_root,
+            timeout=30,
+        )
+
+        if result.returncode != 0:
+            # Imports need sorting
+            sort_result = subprocess.run(
+                ["isort", str(project_root)],
+                capture_output=True,
+                text=True,
+                cwd=project_root,
+                timeout=30,
+            )
+
+            if sort_result.returncode == 0:
+                improvements.append("Python imports sorted with isort")
+            else:
+                return False, ["Failed to sort imports"]
+
+    except subprocess.TimeoutExpired:
+        return False, ["Import sorting timed out"]
+
+    return True, improvements

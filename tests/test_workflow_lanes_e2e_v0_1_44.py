@@ -39,9 +39,7 @@ class TestDocsLaneWorkflow:
         with TemporaryDirectory() as tmpdir:
             # Initialize workflow
             tracker = StatusTracker(
-                workflow_id="docs-test",
-                lane="docs",
-                status_file=Path(tmpdir) / "status.json"
+                workflow_id="docs-test", lane="docs", status_file=Path(tmpdir) / "status.json"
             )
             hooks = PreStepHooks()
 
@@ -78,9 +76,7 @@ class TestDocsLaneWorkflow:
         """Test that docs lane meets SLA target"""
         with TemporaryDirectory() as tmpdir:
             tracker = StatusTracker(
-                workflow_id="docs-sla-test",
-                lane="docs",
-                status_file=Path(tmpdir) / "status.json"
+                workflow_id="docs-sla-test", lane="docs", status_file=Path(tmpdir) / "status.json"
             )
 
             # Simulate quick workflow
@@ -104,7 +100,7 @@ class TestStandardLaneWorkflow:
             tracker = StatusTracker(
                 workflow_id="standard-test",
                 lane="standard",
-                status_file=Path(tmpdir) / "status.json"
+                status_file=Path(tmpdir) / "status.json",
             )
             hooks = PreStepHooks()
             gates = QualityGates(lane="standard")
@@ -126,9 +122,7 @@ class TestStandardLaneWorkflow:
                     # Quality gates would run here
                     gates_result = gates.run_all()
                     tracker.complete_stage(
-                        stage,
-                        success=gates_result,
-                        metrics={"gates_passed": gates_result}
+                        stage, success=gates_result, metrics={"gates_passed": gates_result}
                     )
                 else:
                     tracker.complete_stage(stage, success=True)
@@ -144,7 +138,7 @@ class TestStandardLaneWorkflow:
     def test_standard_lane_quality_thresholds(self):
         """Test standard lane quality gate thresholds"""
         gates = QualityGates(lane="standard")
-        
+
         assert gates.thresholds["pytest_pass_rate"] == 0.80
         assert gates.thresholds["coverage_minimum"] == 0.70
         assert gates.thresholds["enabled"] is True
@@ -155,7 +149,7 @@ class TestStandardLaneWorkflow:
             tracker = StatusTracker(
                 workflow_id="standard-sla-test",
                 lane="standard",
-                status_file=Path(tmpdir) / "status.json"
+                status_file=Path(tmpdir) / "status.json",
             )
 
             # Simulate workflow
@@ -177,9 +171,7 @@ class TestHeavyLaneWorkflow:
         with TemporaryDirectory() as tmpdir:
             # Initialize workflow
             tracker = StatusTracker(
-                workflow_id="heavy-test",
-                lane="heavy",
-                status_file=Path(tmpdir) / "status.json"
+                workflow_id="heavy-test", lane="heavy", status_file=Path(tmpdir) / "status.json"
             )
             hooks = PreStepHooks()
             gates = QualityGates(lane="heavy")
@@ -198,9 +190,7 @@ class TestHeavyLaneWorkflow:
                 if stage == 8:
                     gates_result = gates.run_all()
                     tracker.complete_stage(
-                        stage,
-                        success=gates_result,
-                        metrics={"gates_passed": gates_result}
+                        stage, success=gates_result, metrics={"gates_passed": gates_result}
                     )
                 else:
                     tracker.complete_stage(stage, success=True)
@@ -215,7 +205,7 @@ class TestHeavyLaneWorkflow:
     def test_heavy_lane_strict_quality_thresholds(self):
         """Test heavy lane strict quality gate thresholds"""
         gates = QualityGates(lane="heavy")
-        
+
         # Heavy lane requires 100% test pass rate
         assert gates.thresholds["pytest_pass_rate"] == 1.0
         # And 85% coverage minimum
@@ -226,9 +216,7 @@ class TestHeavyLaneWorkflow:
         """Test that heavy lane meets SLA target"""
         with TemporaryDirectory() as tmpdir:
             tracker = StatusTracker(
-                workflow_id="heavy-sla-test",
-                lane="heavy",
-                status_file=Path(tmpdir) / "status.json"
+                workflow_id="heavy-sla-test", lane="heavy", status_file=Path(tmpdir) / "status.json"
             )
 
             # Simulate workflow
@@ -271,7 +259,7 @@ class TestCrossLaneFeatures:
                 tracker = StatusTracker(
                     workflow_id=f"test-{lane}",
                     lane=lane,
-                    status_file=Path(tmpdir) / f"status-{lane}.json"
+                    status_file=Path(tmpdir) / f"status-{lane}.json",
                 )
 
                 # Quick workflow
@@ -300,7 +288,7 @@ class TestCrossLaneFeatures:
             tracker = StatusTracker(
                 workflow_id="failure-test",
                 lane="standard",
-                status_file=Path(tmpdir) / "status.json"
+                status_file=Path(tmpdir) / "status.json",
             )
 
             # Successful stages
@@ -322,7 +310,7 @@ class TestCrossLaneFeatures:
             tracker = StatusTracker(
                 workflow_id="metrics-test",
                 lane="standard",
-                status_file=Path(tmpdir) / "status.json"
+                status_file=Path(tmpdir) / "status.json",
             )
 
             # Add metrics at different stages
@@ -346,7 +334,7 @@ def run_integration_tests(verbose: bool = True) -> bool:
     args = [__file__]
     if verbose:
         args.append("-v")
-    
+
     return pytest.main(args) == 0
 
 

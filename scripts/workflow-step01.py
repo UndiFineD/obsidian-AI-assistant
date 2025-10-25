@@ -28,14 +28,6 @@ spec = importlib.util.spec_from_file_location(
 helpers = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(helpers)
 
-# Version manager
-vm_spec = importlib.util.spec_from_file_location(
-    "version_manager",
-    SCRIPT_DIR / "version_manager.py",
-)
-version_manager = importlib.util.module_from_spec(vm_spec)
-vm_spec.loader.exec_module(version_manager)
-
 # Import progress indicators
 try:
     import progress_indicators as progress
@@ -174,29 +166,33 @@ def invoke_step1(
     current_version = None
 
     try:
-        vm = version_manager.VersionManager(str(PROJECT_ROOT))
-        current_version = vm.get_current_version()
+        current_version = helpers.VersionManager.get_current_version(PROJECT_ROOT)
 
         # Always bump patch (hardcoded requirement)
-        if progress:
-            with progress.spinner("Bumping patch version", "Version bumped"):
-                new_version = vm.bump_version("patch", use_github=True)
-                if not dry_run:
-                    bump_results = vm.update_all_versions(new_version)
+        if release_type:
+            new_version = helpers.VersionManager.bump_version(
+                current_version, release_type
+            )
         else:
-            new_version = vm.bump_version("patch", use_github=True)
-            if not dry_run:
-                bump_results = vm.update_all_versions(new_version)
+            new_version = helpers.VersionManager.bump_version(current_version, "patch")
 
         helpers.write_info(f"Bumped version: {current_version} → {new_version}")
-        if bump_results:
-            for file, ok in bump_results.items():
-                status = "✅" if ok else "❌"
-                helpers.write_info(f"  {status} {file}")
-            if not all(bump_results.values()):
-                helpers.write_warning(
-                    "One or more files failed to update. See output above."
+
+        if not dry_run:
+            if progress:
+                with progress.spinner(
+                    "Updating version files", "Version files updated"
+                ):
+                    updated_files = helpers.VersionManager.update_version_files(
+                        PROJECT_ROOT, new_version
+                    )
+            else:
+                updated_files = helpers.VersionManager.update_version_files(
+                    PROJECT_ROOT, new_version
                 )
+
+            for file in updated_files:
+                helpers.write_success(f"  ✅ Updated: {file}")
     except Exception as e:
         helpers.write_error(f"Version bump failed: {e}")
         return False

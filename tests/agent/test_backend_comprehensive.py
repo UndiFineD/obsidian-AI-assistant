@@ -275,9 +275,7 @@ class TestAppInitialization:
         # Check for key endpoints
         expected_endpoints = ["/health", "/ask", "/reindex", "/api/config"]
         for endpoint in expected_endpoints:
-            assert (
-                endpoint in routes
-            ), f"Expected endpoint {endpoint} not found in {routes}"
+            assert endpoint in routes, f"Expected endpoint {endpoint} not found in {routes}"
 
     def test_cors_middleware(self, agent_app):
         """Test CORS middleware is configured."""
@@ -292,9 +290,7 @@ class TestServiceIntegration:
     @patch("agent.agent.model_manager")
     @patch("agent.agent.cache_manager")
     @patch("agent.agent.get_cache_manager")
-    def test_ask_flow_with_cache_miss(
-        self, mock_performance_cache, mock_cache, mock_model, client
-    ):
+    def test_ask_flow_with_cache_miss(self, mock_performance_cache, mock_cache, mock_model, client):
         """Test ask flow when answer is not cached."""
         # Setup performance cache to return None (cache miss)
         mock_performance_cache.return_value.get.return_value = None
@@ -317,4 +313,3 @@ class TestServiceIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

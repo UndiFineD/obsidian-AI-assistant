@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Direct test of implement.py execution"""
+
 import sys
 from pathlib import Path
 
@@ -31,14 +32,17 @@ if qg_file.exists():
     print(f"quality_gates.py size: {qg_file.stat().st_size} bytes")
     content = qg_file.read_text()
     has_class = "class QualityGates" in content
-    has_methods = all(f"def {m}" in content for m in ["run_all", "run_ruff", "run_mypy", "run_pytest", "run_bandit"])
+    has_methods = all(
+        f"def {m}" in content
+        for m in ["run_all", "run_ruff", "run_mypy", "run_pytest", "run_bandit"]
+    )
     print(f"  Has QualityGates class: {has_class}")
     print(f"  Has all 5+ methods: {has_methods}")
 
 print(f"\nworkflow.py exists: {wf_file.exists()}")
 if wf_file.exists():
     try:
-        content = wf_file.read_text(encoding='utf-8', errors='replace')
+        content = wf_file.read_text(encoding="utf-8", errors="replace")
         has_lane = "LANE_MAPPING" in content
         print(f"  Has LANE_MAPPING: {has_lane}")
         if has_lane:

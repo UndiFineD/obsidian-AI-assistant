@@ -364,7 +364,7 @@ class OpenSpecGovernance:
 
         if dry_run:
             result["actions_taken"].append(
-                "DRY RUN: Would apply change to " "specifications"
+                "DRY RUN: Would apply change to specifications"
             )
         else:
             result["actions_taken"].append("Applied change to specifications")

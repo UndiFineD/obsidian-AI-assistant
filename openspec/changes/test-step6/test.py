@@ -126,7 +126,7 @@ def main() -> int:
         r"## Acceptance Criteria|## Requirements|## Implementation",
         "Specification has required sections"
     )
-    
+
 # Test: Verify affected files exist
     test_file_exists(project_root / "agent/test.py", "Affected file: agent/test.py")\n    test_file_exists(project_root / "frontend/app.js", "Affected file: frontend/app.js")
 

@@ -65,6 +65,7 @@ except ImportError:
 # Import parallel executor if available
 try:
     from parallel_executor import ParallelExecutor
+
     PARALLEL_EXECUTOR_AVAILABLE = True
 except ImportError:
     PARALLEL_EXECUTOR_AVAILABLE = False
@@ -73,6 +74,7 @@ except ImportError:
 # Import status tracker if available
 try:
     from status_tracker import StatusTracker, create_tracker
+
     STATUS_TRACKER_AVAILABLE = True
 except ImportError:
     STATUS_TRACKER_AVAILABLE = False
@@ -82,6 +84,7 @@ except ImportError:
 # Import hook registry if available
 try:
     from hook_registry import HookRegistry, run_stage_hooks
+
     HOOK_REGISTRY_AVAILABLE = True
 except ImportError:
     HOOK_REGISTRY_AVAILABLE = False
@@ -156,37 +159,39 @@ def derive_title_from_change_id(change_id: str) -> str:
     return " ".join(word.capitalize() for word in change_id.split("-"))
 
 
-def extract_metadata_from_proposal(proposal_path: Path) -> tuple[Optional[str], Optional[str]]:
+def extract_metadata_from_proposal(
+    proposal_path: Path,
+) -> tuple[Optional[str], Optional[str]]:
     """
     Extract title and owner from existing proposal.md file.
-    
+
     Args:
         proposal_path: Path to proposal.md file
-        
+
     Returns:
         Tuple of (title, owner) or (None, None) if not found
     """
     if not proposal_path.exists():
         return None, None
-    
+
     try:
-        content = proposal_path.read_text(encoding='utf-8')
-        
+        content = proposal_path.read_text(encoding="utf-8")
+
         # Extract title from first heading or Change ID context
         title = None
         owner = None
-        
-        for line in content.split('\n'):
-            if line.startswith('# '):
-                title = line.replace('# ', '').strip()
+
+        for line in content.split("\n"):
+            if line.startswith("# "):
+                title = line.replace("# ", "").strip()
                 break
-        
+
         # Extract owner from metadata section
-        for line in content.split('\n'):
-            if line.startswith('**Owner**:'):
-                owner = line.replace('**Owner**:', '').strip()
+        for line in content.split("\n"):
+            if line.startswith("**Owner**:"):
+                owner = line.replace("**Owner**:", "").strip()
                 break
-        
+
         return title, owner
     except Exception as e:
         helpers.write_warning(f"Could not extract metadata from proposal: {e}")
@@ -201,12 +206,12 @@ def prompt_for_missing_info(
 ) -> tuple[str, str, str]:
     """Interactively prompt for title/owner/template if missing, with sensible defaults."""
     # Note: Keep prompts minimal and safe for non-interactive environments
-    
+
     # Try to extract from existing proposal first
     change_path = CHANGES_DIR / change_id
     proposal_path = change_path / "proposal.md"
     proposal_title, proposal_owner = extract_metadata_from_proposal(proposal_path)
-    
+
     derived_title = title or proposal_title or derive_title_from_change_id(change_id)
     detected_owner = owner or proposal_owner or get_git_user()
 
@@ -320,31 +325,27 @@ def show_status(change_id: str, format_type: str = "tree"):
         change_id: Change identifier
         format_type: Display format ('tree', 'timeline', 'compact', 'detailed')
     """
-    if not VISUALIZER_AVAILABLE:
-        helpers.write_error("Workflow visualizer not available")
-        return 1
-
     change_path = CHANGES_DIR / change_id
     if not change_path.exists():
         helpers.write_error(f"Change not found: {change_id}")
         return 1
 
     try:
-        visualizer = WorkflowVisualizer(change_path)
-        state = visualizer.analyze_state()
-
         if format_type == "tree":
-            output = visualizer.render_tree(state)
+            helpers.WorkflowVisualizer.show_workflow_progress(change_path)
         elif format_type == "timeline":
-            output = visualizer.render_timeline(state)
+            helpers.WorkflowVisualizer.show_step_details(
+                change_path, 0
+            )  # Show summary for timeline
         elif format_type == "compact":
-            output = visualizer.render_compact(state)
+            helpers.WorkflowVisualizer.show_workflow_summary(change_path)
         elif format_type == "detailed":
-            output = visualizer.render_detailed(state)
+            helpers.WorkflowVisualizer.show_workflow_progress(change_path)
+            print()
+            helpers.WorkflowVisualizer.show_workflow_summary(change_path)
         else:
-            output = visualizer.render_tree(state)
+            helpers.WorkflowVisualizer.show_workflow_progress(change_path)
 
-        print(output)
         return 0
     except Exception as e:
         helpers.write_error(f"Failed to show status: {e}")
@@ -508,7 +509,11 @@ def execute_step(
     status_tracker = None
     if STATUS_TRACKER_AVAILABLE and not dry_run:
         try:
-            status_tracker = create_tracker(change_path.name, lane=lane, status_file=change_path / ".checkpoints" / "status.json")
+            status_tracker = create_tracker(
+                change_path.name,
+                lane=lane,
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
             step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
             status_tracker.start_stage(step_num, step_name)
         except Exception as e:
@@ -519,9 +524,15 @@ def execute_step(
         try:
             if not run_stage_hooks(step_num, force=force_hooks):
                 helpers.write_error(f"Pre-step hooks failed for Stage {step_num}")
-                helpers.write_info("Fix issues above and retry, or use --force-hooks to skip (not recommended)")
+                helpers.write_info(
+                    "Fix issues above and retry, or use --force-hooks to skip (not recommended)"
+                )
                 if status_tracker:
-                    status_tracker.complete_stage(step_num, success=False, metrics={"reason": "Pre-step hooks failed"})
+                    status_tracker.complete_stage(
+                        step_num,
+                        success=False,
+                        metrics={"reason": "Pre-step hooks failed"},
+                    )
                 return False
         except Exception as e:
             helpers.write_warning(f"Error running pre-step hooks: {e}")
@@ -587,7 +598,9 @@ def execute_step(
 
         # Record failure in status tracker
         if status_tracker and not dry_run:
-            status_tracker.complete_stage(step_num, success=False, metrics={"error": str(e)})
+            status_tracker.complete_stage(
+                step_num, success=False, metrics={"error": str(e)}
+            )
 
         # Offer rollback if checkpoint was created
         if checkpoint_manager and checkpoint_id:
@@ -633,9 +646,7 @@ def run_single_step(
         print()
 
     if force_hooks:
-        helpers.write_warning(
-            "⚠️  Pre-step hooks SKIPPED - validation may be bypassed"
-        )
+        helpers.write_warning("⚠️  Pre-step hooks SKIPPED - validation may be bypassed")
         print()
 
     success = execute_step(
@@ -664,101 +675,137 @@ def run_single_step(
 def check_code_changes_in_docs_lane(change_path: Path) -> bool:
     """
     Check if code changes exist in a docs-lane workflow.
-    
+
     Scans for Python, JavaScript, and TypeScript files that indicate
     code changes requiring standard or heavy lane validation.
-    
+
     Args:
         change_path: Path to the change directory
-        
+
     Returns:
         True if NO code changes detected (safe for docs lane)
         False if code changes detected (should switch lanes)
     """
-    code_extensions = {'.py', '.js', '.ts', '.jsx', '.tsx', '.java', '.cpp', '.go', '.rs', '.c', '.h', '.hpp'}
-    ignore_patterns = {'__pycache__', '.pyc', 'node_modules', '.git', '.venv', 'venv', '.next', 'dist', 'build'}
-    
+    code_extensions = {
+        ".py",
+        ".js",
+        ".ts",
+        ".jsx",
+        ".tsx",
+        ".java",
+        ".cpp",
+        ".go",
+        ".rs",
+        ".c",
+        ".h",
+        ".hpp",
+    }
+    ignore_patterns = {
+        "__pycache__",
+        ".pyc",
+        "node_modules",
+        ".git",
+        ".venv",
+        "venv",
+        ".next",
+        "dist",
+        "build",
+    }
+
     code_files_found = []
-    
+
     try:
-        for file_path in change_path.rglob('*'):
+        for file_path in change_path.rglob("*"):
             if not file_path.is_file():
                 continue
-                
+
             # Check if file should be ignored
             if any(ignore in str(file_path) for ignore in ignore_patterns):
                 continue
-            
+
             # Check if file is a code file
             if file_path.suffix in code_extensions:
                 code_files_found.append(file_path.relative_to(change_path))
     except Exception as e:
         helpers.write_warning(f"Could not check for code changes: {e}")
         return True  # Assume no code changes on error, let user decide
-    
+
     if code_files_found:
-        helpers.write_warning(f"Detected {len(code_files_found)} code file(s) in docs lane:")
+        helpers.write_warning(
+            f"Detected {len(code_files_found)} code file(s) in docs lane:"
+        )
         for code_file in code_files_found[:5]:  # Show first 5
             helpers.write_info(f"  - {code_file}")
         if len(code_files_found) > 5:
             helpers.write_info(f"  ... and {len(code_files_found) - 5} more")
         return False
-    
+
     return True
 
 
 def detect_code_changes(change_path: Path) -> dict:
     """
     Analyze a change directory for code changes.
-    
+
     Provides detailed information about code changes detected.
-    
+
     Args:
         change_path: Path to the change directory
-        
+
     Returns:
         Dictionary with code analysis results
     """
     code_extensions = {
-        'python': {'.py', '.pyi'},
-        'javascript': {'.js', '.jsx', '.mjs'},
-        'typescript': {'.ts', '.tsx'},
-        'other': {'.java', '.cpp', '.c', '.h', '.hpp', '.go', '.rs'},
+        "python": {".py", ".pyi"},
+        "javascript": {".js", ".jsx", ".mjs"},
+        "typescript": {".ts", ".tsx"},
+        "other": {".java", ".cpp", ".c", ".h", ".hpp", ".go", ".rs"},
     }
-    
-    ignore_patterns = {'__pycache__', '.pyc', 'node_modules', '.git', '.venv', 'venv', '.next', 'dist', 'build', '.egg-info'}
-    
+
+    ignore_patterns = {
+        "__pycache__",
+        ".pyc",
+        "node_modules",
+        ".git",
+        ".venv",
+        "venv",
+        ".next",
+        "dist",
+        "build",
+        ".egg-info",
+    }
+
     results = {
-        'has_code_changes': False,
-        'by_language': {lang: [] for lang in code_extensions},
-        'total_count': 0,
-        'affected_directories': set(),
+        "has_code_changes": False,
+        "by_language": {lang: [] for lang in code_extensions},
+        "total_count": 0,
+        "affected_directories": set(),
     }
-    
+
     try:
-        for file_path in change_path.rglob('*'):
+        for file_path in change_path.rglob("*"):
             if not file_path.is_file():
                 continue
-            
+
             # Skip ignored patterns
             if any(ignore in str(file_path) for ignore in ignore_patterns):
                 continue
-            
+
             # Check against all code extensions
             for language, extensions in code_extensions.items():
                 if file_path.suffix in extensions:
                     rel_path = file_path.relative_to(change_path)
-                    results['by_language'][language].append(str(rel_path))
-                    results['affected_directories'].add(str(rel_path.parent))
-                    results['total_count'] += 1
-                    results['has_code_changes'] = True
+                    results["by_language"][language].append(str(rel_path))
+                    results["affected_directories"].add(str(rel_path.parent))
+                    results["total_count"] += 1
+                    results["has_code_changes"] = True
                     break
     except Exception as e:
         helpers.write_warning(f"Error analyzing code changes: {e}")
-    
+
     # Convert set to sorted list for consistent output
-    results['affected_directories'] = sorted(list(results['affected_directories']))
-    
+    results["affected_directories"] = sorted(list(results["affected_directories"]))
+
     return results
 
 
@@ -776,7 +823,7 @@ def execute_stages_parallel(
 ) -> bool:
     """
     Execute multiple stages in parallel (used for stages 2-6).
-    
+
     Args:
         stages: List of stage numbers to execute in parallel
         change_path: Path to change directory
@@ -788,7 +835,7 @@ def execute_stages_parallel(
         enable_checkpoints: Enable checkpoint creation
         skip_quality_gates: Skip quality gates
         max_workers: Max parallel workers (default: 3)
-        
+
     Returns:
         True if all stages succeed, False if any stage fails
     """
@@ -797,42 +844,64 @@ def execute_stages_parallel(
         helpers.write_warning("ParallelExecutor not available, executing sequentially")
         for stage in stages:
             success = execute_step(
-                stage, change_path, title, owner, dry_run, release_type, template,
-                enable_checkpoints, skip_quality_gates
+                stage,
+                change_path,
+                title,
+                owner,
+                dry_run,
+                release_type,
+                template,
+                enable_checkpoints,
+                skip_quality_gates,
             )
             if not success:
                 return False
         return True
-    
+
     # Build task list
     tasks = []
     for stage in sorted(stages):
         task_name = STEP_NAMES.get(stage, f"Stage {stage}")
-        tasks.append((
-            stage,
-            task_name,
-            execute_step,
-            [stage, change_path, title, owner, dry_run, release_type, template,
-             enable_checkpoints, skip_quality_gates],
-            {}
-        ))
-    
+        tasks.append(
+            (
+                stage,
+                task_name,
+                execute_step,
+                [
+                    stage,
+                    change_path,
+                    title,
+                    owner,
+                    dry_run,
+                    release_type,
+                    template,
+                    enable_checkpoints,
+                    skip_quality_gates,
+                ],
+                {},
+            )
+        )
+
     # Execute in parallel
     executor = ParallelExecutor(max_workers=max_workers, verbose=False)
     results = executor.execute_parallel(tasks)
-    
+
     # Log results
-    helpers.write_info(f"\n╔ Parallel Execution Summary (Stages {min(stages)}-{max(stages)}) ╗")
+    helpers.write_info(
+        f"\n╔ Parallel Execution Summary (Stages {min(stages)}-{max(stages)}) ╗"
+    )
     all_success = True
     for result in sorted(results, key=lambda r: r.task_id):
         status_icon = "✓" if result.status.value == "completed" else "✗"
-        print(f"  {status_icon} Stage {result.task_id}: {result.task_name} ({result.duration:.1f}s)")
+        print(
+            f"  {status_icon} Stage {result.task_id}: {result.task_name} ({result.duration:.1f}s)"
+        )
         if result.status.value != "completed":
             all_success = False
             if result.error:
                 print(f"     Error: {result.error}")
     helpers.write_info("╚" + "═" * 49 + "╝")
-    
+
     return all_success
 
 
@@ -866,32 +935,42 @@ def run_interactive_workflow(
     if lane == "docs":
         if not check_code_changes_in_docs_lane(change_path):
             helpers.write_warning("Code files detected in documentation-only lane")
-            
+
             # Get detailed analysis
             code_analysis = detect_code_changes(change_path)
-            
+
             print()
             helpers.write_info("Code Change Analysis:")
-            for language, files in code_analysis['by_language'].items():
+            for language, files in code_analysis["by_language"].items():
                 if files:
-                    helpers.write_info(f"  {language.capitalize()}: {len(files)} file(s)")
-            
-            if code_analysis['affected_directories']:
-                helpers.write_info(f"  Affected dirs: {', '.join(code_analysis['affected_directories'][:3])}")
-            
+                    helpers.write_info(
+                        f"  {language.capitalize()}: {len(files)} file(s)"
+                    )
+
+            if code_analysis["affected_directories"]:
+                helpers.write_info(
+                    f"  Affected dirs: {', '.join(code_analysis['affected_directories'][:3])}"
+                )
+
             print()
-            helpers.write_warning("The docs lane is optimized for documentation changes only.")
-            helpers.write_warning("Code changes require the 'standard' or 'heavy' lane for proper validation.")
+            helpers.write_warning(
+                "The docs lane is optimized for documentation changes only."
+            )
+            helpers.write_warning(
+                "Code changes require the 'standard' or 'heavy' lane for proper validation."
+            )
             print()
-            
+
             try:
                 response = input("Switch to 'standard' lane? (y/n): ").strip().lower()
-                if response == 'y':
+                if response == "y":
                     lane = "standard"
                     helpers.write_success("Switched to standard lane")
                     print()
                 else:
-                    helpers.write_warning("Continuing with docs lane (code validation will be skipped)")
+                    helpers.write_warning(
+                        "Continuing with docs lane (code validation will be skipped)"
+                    )
                     print()
             except Exception as e:
                 helpers.write_info(f"Continuing with docs lane... ({e})")
@@ -930,11 +1009,11 @@ def run_interactive_workflow(
 
     # Get stages for this lane
     stages_to_execute = get_stages_for_lane(lane)
-    
+
     # Calculate which steps will actually execute
     steps_to_run = [s for s in range(start_step, 13) if s in stages_to_execute]
     total_steps = len(steps_to_run)
-    
+
     # Get lane config to check if parallelization is enabled
     lane_config = get_lane_config(lane)
     parallelization_enabled = lane_config.get("parallelization_enabled", True)
@@ -948,22 +1027,27 @@ def run_interactive_workflow(
             step_idx = 0
             while step_idx < len(steps_to_run):
                 current_step = steps_to_run[step_idx]
-                
+
                 # Check if this is the start of stages 2-6 that can run in parallel
                 parallel_stages = []
-                if (parallelization_enabled and 
-                    current_step in [2, 3, 4, 5, 6] and 
-                    start_step <= 2):
+                if (
+                    parallelization_enabled
+                    and current_step in [2, 3, 4, 5, 6]
+                    and start_step <= 2
+                ):
                     # Collect all stages 2-6 that are in this lane and haven't run yet
                     for stage in range(2, 7):
                         if stage in steps_to_run and stage >= start_step:
                             parallel_stages.append(stage)
-                    
+
                     # Only use parallelization if we have multiple stages
                     if len(parallel_stages) > 1:
-                        wp.start_step(i, f"Parallel Stages {min(parallel_stages)}-{max(parallel_stages)}")
+                        wp.start_step(
+                            i,
+                            f"Parallel Stages {min(parallel_stages)}-{max(parallel_stages)}",
+                        )
                         wp.update_step_progress("Starting parallel execution...")
-                        
+
                         # Execute in parallel
                         success = execute_stages_parallel(
                             parallel_stages,
@@ -976,17 +1060,19 @@ def run_interactive_workflow(
                             enable_checkpoints,
                             skip_quality_gates,
                         )
-                        
+
                         if not success:
                             wp.finish(f"Failed at Parallel Stages")
                             print()
-                            helpers.write_error("Parallel stages failed. Stopping workflow.")
+                            helpers.write_error(
+                                "Parallel stages failed. Stopping workflow."
+                            )
                             return 1
-                        
+
                         wp.update_step_progress("Complete")
                         wp.complete_step()
                         i += 1
-                        
+
                         # Skip the stages we just executed
                         step_idx = len(steps_to_run)
                         for idx, step in enumerate(steps_to_run):
@@ -994,13 +1080,15 @@ def run_interactive_workflow(
                                 step_idx = idx
                                 break
                         continue
-                
+
                 # Skip steps not in this lane
                 if current_step not in stages_to_execute:
-                    helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
+                    helpers.write_info(
+                        f"[SKIP] Step {current_step} - not in {lane} lane"
+                    )
                     step_idx += 1
                     continue
-                
+
                 step_name = STEP_NAMES.get(current_step, f"Step {current_step}")
                 wp.start_step(i, step_name)
                 wp.update_step_progress("Starting...")
@@ -1041,7 +1129,7 @@ def run_interactive_workflow(
             if current_step not in stages_to_execute:
                 helpers.write_info(f"[SKIP] Step {current_step} - not in {lane} lane")
                 continue
-                
+
             success = execute_step(
                 current_step,
                 change_path,
@@ -1117,29 +1205,31 @@ LANE_MAPPING = {
 def get_lane_config(lane: str) -> dict:
     """
     Get configuration for a workflow lane.
-    
+
     Args:
         lane: Lane identifier ('docs', 'standard', or 'heavy')
-        
+
     Returns:
         Dictionary with lane configuration
-        
+
     Raises:
         ValueError if lane is invalid
     """
     if lane not in LANE_MAPPING:
-        raise ValueError(f"Invalid lane: {lane}. Valid options: {', '.join(LANE_MAPPING.keys())}")
-    
+        raise ValueError(
+            f"Invalid lane: {lane}. Valid options: {', '.join(LANE_MAPPING.keys())}"
+        )
+
     return LANE_MAPPING[lane].copy()
 
 
 def get_stages_for_lane(lane: str) -> List[int]:
     """
     Get list of stages to execute for a specific lane.
-    
+
     Args:
         lane: Lane identifier
-        
+
     Returns:
         List of stage numbers to execute
     """
@@ -1150,11 +1240,11 @@ def get_stages_for_lane(lane: str) -> List[int]:
 def should_execute_stage(stage_num: int, lane: str) -> bool:
     """
     Check if a stage should be executed in the given lane.
-    
+
     Args:
         stage_num: Stage number (0-12)
         lane: Lane identifier
-        
+
     Returns:
         True if stage should be executed, False otherwise
     """
@@ -1165,20 +1255,36 @@ def should_execute_stage(stage_num: int, lane: str) -> bool:
 def log_lane_configuration(lane: str):
     """
     Log the selected lane configuration to console.
-    
+
     Args:
         lane: Lane identifier
     """
     config = get_lane_config(lane)
     print()
-    print(f"{helpers.Colors.CYAN}╔══════════════════════════════════════════╗{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}║  Workflow Lane: {config['name']:<20}{helpers.Colors.CYAN}║{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}╠══════════════════════════════════════════╣{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} {config['description']:<39} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Stages: {len(config['stages'])}/13                      {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Quality Gates: {'Enabled' if config['quality_gates_enabled'] else 'Disabled':<27} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Parallelization: {'Enabled' if config['parallelization_enabled'] else 'Disabled':<23} {helpers.Colors.CYAN}║{helpers.Colors.RESET}")
-    print(f"{helpers.Colors.CYAN}╚══════════════════════════════════════════╝{helpers.Colors.RESET}")
+    print(
+        f"{helpers.Colors.CYAN}╔══════════════════════════════════════════╗{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}║  Workflow Lane: {config['name']:<20}{helpers.Colors.CYAN}║{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}╠══════════════════════════════════════════╣{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} {config['description']:<39} {helpers.Colors.CYAN}║{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Stages: {len(config['stages'])}/13                      {helpers.Colors.CYAN}║{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Quality Gates: {'Enabled' if config['quality_gates_enabled'] else 'Disabled':<27} {helpers.Colors.CYAN}║{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}║{helpers.Colors.RESET} Parallelization: {'Enabled' if config['parallelization_enabled'] else 'Disabled':<23} {helpers.Colors.CYAN}║{helpers.Colors.RESET}"
+    )
+    print(
+        f"{helpers.Colors.CYAN}╚══════════════════════════════════════════╝{helpers.Colors.RESET}"
+    )
     print()
 
 
@@ -1317,7 +1423,7 @@ Examples:
     )
 
     args = parser.parse_args()
-    
+
     # Configure workflow based on selected lane
     if args.lane:
         lane_config = LANE_MAPPING.get(args.lane, LANE_MAPPING["standard"])
@@ -1408,9 +1514,6 @@ Examples:
             args.lane,
             args.force_hooks,
         )
-
-
-
 
 
 if __name__ == "__main__":

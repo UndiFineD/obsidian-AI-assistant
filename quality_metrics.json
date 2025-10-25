@@ -1,0 +1,48 @@
+{
+  "lane": "standard",
+  "timestamp": "2025-10-25T08:35:10.631825",
+  "ruff": {
+    "status": "SKIP",
+    "errors": 0,
+    "threshold": 0
+  },
+  "mypy": {
+    "status": "SKIP",
+    "errors": 0,
+    "threshold": 0
+  },
+  "pytest": {
+    "status": "SKIP",
+    "pass_rate": 0,
+    "coverage": 0,
+    "coverage_threshold": 0.7
+  },
+  "bandit": {
+    "status": "PASS",
+    "high_severity": 0,
+    "threshold": 0
+  },
+  "security": {
+    "status": "FAIL",
+    "issues": 1515,
+    "details": [
+      "Secret files: Potential secret file found: C:\\Users\\kdejo\\DEV\\obsidian-llm-assistant\\obsidian-AI-assistant\\.venv\\Lib\\site-packages\\gevent\\tests\\server.key",
+      "Secret files: Potential secret file found: C:\\Users\\kdejo\\DEV\\obsidian-llm-assistant\\obsidian-AI-assistant\\.venv\\Lib\\site-packages\\gevent\\tests\\test_server.key",
+      "Secret files: Potential secret file found: C:\\Users\\kdejo\\DEV\\obsidian-llm-assistant\\obsidian-AI-assistant\\.venv\\Lib\\site-packages\\certifi\\cacert.pem",
+      "Secret files: Potential secret file found: C:\\Users\\kdejo\\DEV\\obsidian-llm-assistant\\obsidian-AI-assistant\\.venv\\Lib\\site-packages\\pip\\_vendor\\certifi\\cacert.pem",
+      "Secret files: Potential secret file found: C:\\Users\\kdejo\\DEV\\obsidian-llm-assistant\\obsidian-AI-assistant\\.venv\\Lib\\site-packages\\grpc\\_cython\\_credentials\\roots.pem"
+    ]
+  },
+  "code_quality": {
+    "status": "PASS",
+    "improvements": 12,
+    "details": [
+      "JavaScript formatting: Formatted testPyScriptlet.js",
+      "JavaScript formatting: Formatted debugger.js",
+      "JavaScript formatting: Formatted emscripten_fetch_worker.js",
+      "JavaScript formatting: Formatted code.js",
+      "JavaScript formatting: Formatted jquery-3.6.0.js"
+    ]
+  },
+  "overall": "FAIL"
+}

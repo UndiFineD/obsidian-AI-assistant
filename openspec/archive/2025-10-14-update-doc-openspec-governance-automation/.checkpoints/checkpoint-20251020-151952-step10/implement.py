@@ -25,11 +25,7 @@ implement_results = {
 }
 
 
-def invoke_task(
-    task_name: str,
-    action: Callable,
-    description: str = ""
-) -> bool:
+def invoke_task(task_name: str, action: Callable, description: str = "") -> bool:
     """Execute an implementation task.
 
     Args:
@@ -53,20 +49,24 @@ def invoke_task(
             print("  [COMPLETED]")
             implement_results["completed"] += 1
 
-        implement_results["tasks"].append({
-            "name": task_name,
-            "result": "SKIPPED" if args.what_if else "COMPLETED",
-            "description": description
-        })
+        implement_results["tasks"].append(
+            {
+                "name": task_name,
+                "result": "SKIPPED" if args.what_if else "COMPLETED",
+                "description": description,
+            }
+        )
         return True
     except Exception as error:
         print(f"  [FAILED] {error}")
         implement_results["failed"] += 1
-        implement_results["tasks"].append({
-            "name": task_name,
-            "result": "FAILED",
-            "description": f"{description} - Error: {error}"
-        })
+        implement_results["tasks"].append(
+            {
+                "name": task_name,
+                "result": "FAILED",
+                "description": f"{description} - Error: {error}",
+            }
+        )
         return False
 
 
@@ -81,16 +81,16 @@ def main() -> int:
     """Run implementation tasks."""
     global args
 
-    parser = argparse.ArgumentParser(description="Implementation script for 2025-10-14-update-doc-openspec-governance-automation")
+    parser = argparse.ArgumentParser(
+        description="Implementation script for 2025-10-14-update-doc-openspec-governance-automation"
+    )
     parser.add_argument(
         "--what-if",
         action="store_true",
-        help="Show what would be done without making changes"
+        help="Show what would be done without making changes",
     )
     parser.add_argument(
-        "--force",
-        action="store_true",
-        help="Force execution without prompts"
+        "--force", action="store_true", help="Force execution without prompts"
     )
     args = parser.parse_args()
 
@@ -118,8 +118,11 @@ def main() -> int:
     affected_files = []
     if proposal_path.exists():
         import re
+
         proposal_content = proposal_path.read_text(encoding="utf-8")
-        match = re.search(r"(?m)^[-*]\s*\*\*Affected files\*\*:\s*(.+)", proposal_content)
+        match = re.search(
+            r"(?m)^[-*]\s*\*\*Affected files\*\*:\s*(.+)", proposal_content
+        )
         if match:
             affected_files = [f.strip() for f in match.group(1).split(",")]
             print("Affected files from proposal:")
@@ -136,10 +139,8 @@ def main() -> int:
     # Parse specific implementation tasks from tasks.md
     # Extract tasks from Implementation section
     import re
-    impl_match = re.search(
-        r"(?ms)## 1\. Implementation.*?(?=## 2\.|$)",
-        tasks_content
-    )
+
+    impl_match = re.search(r"(?ms)## 1\. Implementation.*?(?=## 2\.|$)", tasks_content)
     if impl_match:
         impl_section = impl_match.group(0)
         print("Implementation tasks from tasks.md:")
@@ -152,7 +153,7 @@ def main() -> int:
             invoke_task(
                 task_name.strip(),
                 lambda: print(f"    TODO: Implement {task_name}"),
-                task_desc.strip()
+                task_desc.strip(),
             )
 
     # Summary
@@ -163,7 +164,9 @@ def main() -> int:
     print(f"Completed: {implement_results['completed']}")
     print(f"Failed: {implement_results['failed']}")
     print(f"Skipped: {implement_results['skipped']}")
-    print(f"Total: {implement_results['completed'] + implement_results['failed'] + implement_results['skipped']}")
+    print(
+        f"Total: {implement_results['completed'] + implement_results['failed'] + implement_results['skipped']}"
+    )
     print()
 
     if implement_results["failed"] > 0:

@@ -62,15 +62,15 @@ class PerformanceAssertion:
             performance_ratio = (duration_ms / threshold_ms) * 100
 
             pytest.fail(
-                f"\n{'='*70}\n"
+                f"\n{'=' * 70}\n"
                 f"PERFORMANCE REGRESSION DETECTED\n"
-                f"{'='*70}\n"
+                f"{'=' * 70}\n"
                 f"Operation: {operation}\n"
                 f"Duration: {duration_ms:.2f}ms\n"
                 f"Threshold: {threshold_ms:.2f}ms\n"
                 f"Exceeded by: {duration_ms - threshold_ms:.2f}ms ({performance_ratio:.1f}% of threshold)\n"
                 f"{context_str}\n"
-                f"{'='*70}\n"
+                f"{'=' * 70}\n"
             )
 
     @staticmethod
@@ -251,13 +251,9 @@ class TestConcurrencyPerformance:
             return (response.status_code, duration_ms)
 
         # Make concurrent requests
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=num_requests
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
             futures = [executor.submit(make_request) for _ in range(num_requests)]
-            results = [
-                future.result() for future in concurrent.futures.as_completed(futures)
-            ]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
 
         # Check all requests completed successfully
         assert all(status in [200, 503] for status, _ in results)
@@ -287,13 +283,9 @@ class TestConcurrencyPerformance:
             duration_ms = (time.perf_counter() - start_time) * 1000
             return (response.status_code, duration_ms)
 
-        with concurrent.futures.ThreadPoolExecutor(
-            max_workers=num_requests
-        ) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=num_requests) as executor:
             futures = [executor.submit(make_request) for _ in range(num_requests)]
-            results = [
-                future.result() for future in concurrent.futures.as_completed(futures)
-            ]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
 
         assert all(status == 200 for status, _ in results)
 
@@ -395,7 +387,7 @@ class TestPerformanceTrends:
         # Increased from 3x to account for occasional GC pauses and system variance
         assert max_duration < avg_duration * 4, (
             f"Response time inconsistency detected: "
-            f"Max ({max_duration:.2f}ms) is {max_duration/avg_duration:.1f}x the average ({avg_duration:.2f}ms). "
+            f"Max ({max_duration:.2f}ms) is {max_duration / avg_duration:.1f}x the average ({avg_duration:.2f}ms). "
             f"Range: {min_duration:.2f}ms - {max_duration:.2f}ms"
         )
 

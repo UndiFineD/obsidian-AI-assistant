@@ -26,7 +26,6 @@ class CSRFMiddleware(BaseHTTPMiddleware):
         self.secret = secret.encode("utf-8") if isinstance(secret, str) else secret
 
     async def dispatch(self, request: Request, call_next: Callable):
-
         print(f"[CSRF] Invoked for {request.method} {request.url.path}")
         # Skip enforcement during tests
         if (

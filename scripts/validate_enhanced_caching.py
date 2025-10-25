@@ -58,9 +58,9 @@ def test_unified_cache_manager():
         assert success, "Cache set should succeed"
 
         retrieved = cache_manager.get(test_key)
-        assert (
-            retrieved == test_value
-        ), f"Retrieved value should match: {retrieved} != {test_value}"
+        assert retrieved == test_value, (
+            f"Retrieved value should match: {retrieved} != {test_value}"
+        )
 
         # Test stats
         stats = cache_manager.get_comprehensive_stats()
@@ -92,9 +92,9 @@ def test_cache_routing():
 
         for key, expected_type in test_cases:
             analysis = router.analyze_key(key)
-            assert (
-                analysis["cache_type"] == expected_type
-            ), f"Wrong cache type for {key}: {analysis['cache_type']} != {expected_type}"
+            assert analysis["cache_type"] == expected_type, (
+                f"Wrong cache type for {key}: {analysis['cache_type']} != {expected_type}"
+            )
 
         print("✓ Cache routing functionality working")
         return True
@@ -155,9 +155,9 @@ def test_agent_integration():
         import agent.backend
 
         # Check that enhanced caching imports are present
-        assert hasattr(
-            agent.agent, "get_unified_cache_manager"
-        ), "Backend should have unified cache manager"
+        assert hasattr(agent.agent, "get_unified_cache_manager"), (
+            "Backend should have unified cache manager"
+        )
         assert hasattr(agent.agent, "cache_router"), "Backend should have cache router"
 
         print("✓ Backend integration successful")

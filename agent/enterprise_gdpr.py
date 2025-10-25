@@ -184,7 +184,6 @@ class GDPRComplianceManager:
                 and consent.granted
                 and consent.withdrawn_at is None
             ):
-
                 consent.granted = False
                 consent.withdrawn_at = datetime.now(UTC)
                 logger.info(f"Consent withdrawn: {user_id} -> {purpose.value}")

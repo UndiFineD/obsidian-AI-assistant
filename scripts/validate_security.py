@@ -85,7 +85,7 @@ def validate_security_workflow() -> Tuple[bool, List[str]]:
                     missing_jobs.append(job)
 
             if missing_jobs:
-                issues.append(f'Missing expected jobs: {", ".join(missing_jobs)}')
+                issues.append(f"Missing expected jobs: {', '.join(missing_jobs)}")
 
         # Check schedule trigger (try both 'on' and True keys)
         trigger_config = workflow.get("on") or workflow.get(True)
@@ -260,9 +260,9 @@ def scan_code_bandit() -> Tuple[bool, str]:
 
 def print_section(title: str, content: str = None):
     """Print a formatted section header."""
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"  {title}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     if content:
         print(content)
 

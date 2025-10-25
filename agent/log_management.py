@@ -518,7 +518,7 @@ async def delete_log_file(filename: str):
 
 @router.post("/cleanup")
 async def cleanup_old_logs(
-    days: int = Query(30, description="Delete logs older than N days", ge=1, le=365)
+    days: int = Query(30, description="Delete logs older than N days", ge=1, le=365),
 ):
     """Clean up old log files"""
     with error_context("cleanup_old_logs", reraise=False):

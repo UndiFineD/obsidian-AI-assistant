@@ -48,9 +48,7 @@ def test_vault_indexer_initialization(temp_cache_dir):
         MockEmb.assert_called_once()
 
 
-def test_initialization_with_existing_embeddings_manager(
-    mock_embeddings_manager, temp_cache_dir
-):
+def test_initialization_with_existing_embeddings_manager(mock_embeddings_manager, temp_cache_dir):
     """Test initialization with existing EmbeddingsManager."""
     indexer = VaultIndexer(emb_mgr=mock_embeddings_manager, cache_dir=temp_cache_dir)
     assert indexer.emb_mgr is mock_embeddings_manager
@@ -146,9 +144,7 @@ def test_read_markdown_file_error(vault_indexer, temp_cache_dir):
     md_file = Path(temp_cache_dir) / "test.md"
     md_file.write_text("content")
 
-    with patch(
-        "builtins.open", side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "error")
-    ):
+    with patch("builtins.open", side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "error")):
         content = vault_indexer._read_markdown(str(md_file))
         assert content is None
 
@@ -239,9 +235,7 @@ def test_fetch_web_content_http_error(mock_get, vault_indexer):
     assert content is None
 
 
-def test_reindex_vault_with_markdown_files(
-    vault_indexer, temp_cache_dir, mock_embeddings_manager
-):
+def test_reindex_vault_with_markdown_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with markdown files."""
     # Create test vault directory
     vault_dir = Path(temp_cache_dir) / "vault"
@@ -271,9 +265,7 @@ def test_reindex_vault_with_markdown_files(
     assert result["chunks"] == 6  # 3 files * 2 chunks each
 
 
-def test_reindex_vault_with_mixed_files(
-    vault_indexer, temp_cache_dir, mock_embeddings_manager
-):
+def test_reindex_vault_with_mixed_files(vault_indexer, temp_cache_dir, mock_embeddings_manager):
     """Test reindexing vault with mixed file types."""
     vault_dir = Path(temp_cache_dir) / "vault"
     vault_dir.mkdir()
@@ -382,9 +374,7 @@ class TestVaultIndexerIntegration:
             vault_result = indexer.reindex(str(vault_dir))
 
             # Index web content
-            with patch.object(
-                indexer, "_fetch_web_content", return_value="Web content"
-            ):
+            with patch.object(indexer, "_fetch_web_content", return_value="Web content"):
                 web_result = indexer.index_web_content("https://example.com")
 
             # Verify both operations succeeded
@@ -398,4 +388,3 @@ class TestVaultIndexerIntegration:
 
 if __name__ == "__main__":
     pytest.main([__file__])
-

@@ -330,9 +330,7 @@ class TestTenantManager:
         )
 
         # Update status to suspended
-        success = self.tenant_manager.update_tenant_status(
-            tenant.tenant_id, "suspended"
-        )
+        success = self.tenant_manager.update_tenant_status(tenant.tenant_id, "suspended")
 
         assert success is True
 
@@ -342,9 +340,7 @@ class TestTenantManager:
 
     def test_update_tenant_status_invalid_tenant(self):
         """Test updating status for invalid tenant."""
-        success = self.tenant_manager.update_tenant_status(
-            "invalid_tenant_id", "suspended"
-        )
+        success = self.tenant_manager.update_tenant_status("invalid_tenant_id", "suspended")
 
         assert success is False
 
@@ -399,9 +395,7 @@ class TestTenantManager:
 
     def test_update_tenant_usage_invalid_tenant(self):
         """Test updating usage for invalid tenant."""
-        success = self.tenant_manager.update_tenant_usage(
-            "invalid_tenant", current_users=10
-        )
+        success = self.tenant_manager.update_tenant_usage("invalid_tenant", current_users=10)
 
         assert success is False
 
@@ -424,9 +418,7 @@ class TestTenantManager:
         )
 
         # Check limits
-        within_limits, violations = self.tenant_manager.check_tenant_limits(
-            tenant.tenant_id
-        )
+        within_limits, violations = self.tenant_manager.check_tenant_limits(tenant.tenant_id)
 
         assert within_limits is True
         assert len(violations) == 0
@@ -447,9 +439,7 @@ class TestTenantManager:
         )
 
         # Check limits
-        within_limits, violations = self.tenant_manager.check_tenant_limits(
-            tenant.tenant_id
-        )
+        within_limits, violations = self.tenant_manager.check_tenant_limits(tenant.tenant_id)
 
         assert within_limits is False
         assert len(violations) > 0
@@ -457,9 +447,7 @@ class TestTenantManager:
 
     def test_check_tenant_limits_invalid_tenant(self):
         """Test checking limits for invalid tenant."""
-        within_limits, violations = self.tenant_manager.check_tenant_limits(
-            "invalid_tenant"
-        )
+        within_limits, violations = self.tenant_manager.check_tenant_limits("invalid_tenant")
 
         assert within_limits is False
         assert len(violations) > 0
@@ -508,17 +496,13 @@ class TestTenantManager:
         assert basic_tenants[0].tier == TenantTier.BASIC
 
         # Test professional tier filtering
-        pro_tenants = self.tenant_manager.list_tenants(
-            tier_filter=TenantTier.PROFESSIONAL
-        )
+        pro_tenants = self.tenant_manager.list_tenants(tier_filter=TenantTier.PROFESSIONAL)
         assert len(pro_tenants) == 1
         assert pro_tenants[0].tenant_id == pro_tenant.tenant_id
         assert pro_tenants[0].tier == TenantTier.PROFESSIONAL
 
         # Test enterprise tier filtering
-        enterprise_tenants = self.tenant_manager.list_tenants(
-            tier_filter=TenantTier.ENTERPRISE
-        )
+        enterprise_tenants = self.tenant_manager.list_tenants(tier_filter=TenantTier.ENTERPRISE)
         assert len(enterprise_tenants) == 1
         assert enterprise_tenants[0].tenant_id == enterprise_tenant.tenant_id
         assert enterprise_tenants[0].tier == TenantTier.ENTERPRISE
@@ -532,9 +516,7 @@ class TestTenantManager:
         suspended_tenant = self.tenant_manager.create_tenant(
             "Suspended Tenant", "suspended@test.com", TenantTier.BASIC
         )
-        self.tenant_manager.update_tenant_status(
-            suspended_tenant.tenant_id, "suspended"
-        )
+        self.tenant_manager.update_tenant_status(suspended_tenant.tenant_id, "suspended")
 
         # List only active tenants
         active_tenants = self.tenant_manager.list_tenants(status_filter="active")
@@ -620,16 +602,12 @@ class TestTenantIntegration:
         assert success is True
 
         # Check limits
-        within_limits, violations = self.tenant_manager.check_tenant_limits(
-            tenant.tenant_id
-        )
+        within_limits, violations = self.tenant_manager.check_tenant_limits(tenant.tenant_id)
         # Should be within professional limits
         assert within_limits is True
 
         # Suspend tenant
-        success = self.tenant_manager.update_tenant_status(
-            tenant.tenant_id, "suspended"
-        )
+        success = self.tenant_manager.update_tenant_status(tenant.tenant_id, "suspended")
         assert success is True
 
         # Verify suspension
@@ -702,9 +680,7 @@ class TestTenantIntegration:
         )
 
         # Check limits - should be exceeded
-        within_limits, violations = self.tenant_manager.check_tenant_limits(
-            basic_tenant.tenant_id
-        )
+        within_limits, violations = self.tenant_manager.check_tenant_limits(basic_tenant.tenant_id)
         assert within_limits is False
         assert len(violations) > 0
 
@@ -780,9 +756,7 @@ class TestResourceLimits:
 
     def test_check_resource_limit_invalid_tenant(self):
         """Test resource limit check with invalid tenant."""
-        result = self.tenant_manager.check_resource_limit(
-            "invalid-id", "users", requested_amount=1
-        )
+        result = self.tenant_manager.check_resource_limit("invalid-id", "users", requested_amount=1)
         assert result is False
 
     def test_check_resource_limit_suspended_tenant(self):
@@ -843,9 +817,7 @@ class TestUsageIncrement:
 
     def test_increment_usage_concurrent_requests(self):
         """Test incrementing concurrent requests."""
-        self.tenant_manager.increment_usage(
-            self.tenant_id, "concurrent_requests", amount=2
-        )
+        self.tenant_manager.increment_usage(self.tenant_id, "concurrent_requests", amount=2)
 
         updated_usage = self.tenant_manager.get_tenant_usage(self.tenant_id)
         assert updated_usage.concurrent_requests == 2
@@ -1079,9 +1051,7 @@ class TestBillingManager:
     def test_record_multiple_usage_events(self):
         """Test recording multiple usage events."""
         self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=5)
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "document_index", quantity=2
-        )
+        self.billing_manager.record_usage_event(self.tenant_id, "document_index", quantity=2)
 
         events = self.billing_manager.usage_history[self.tenant_id]
         assert len(events) == 2
@@ -1093,17 +1063,13 @@ class TestBillingManager:
         # Record some events
         self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=10)
         self.billing_manager.record_usage_event(self.tenant_id, "api_call", quantity=5)
-        self.billing_manager.record_usage_event(
-            self.tenant_id, "document_index", quantity=3
-        )
+        self.billing_manager.record_usage_event(self.tenant_id, "document_index", quantity=3)
 
         # Generate report
         start_date = datetime.utcnow() - timedelta(hours=1)
         end_date = datetime.utcnow() + timedelta(hours=1)
 
-        report = self.billing_manager.generate_usage_report(
-            self.tenant_id, start_date, end_date
-        )
+        report = self.billing_manager.generate_usage_report(self.tenant_id, start_date, end_date)
 
         assert report["tenant_id"] == self.tenant_id
         assert report["tenant_name"] == "Billing Test"
@@ -1119,9 +1085,7 @@ class TestBillingManager:
         start_date = datetime.utcnow() - timedelta(hours=1)
         end_date = datetime.utcnow() + timedelta(hours=1)
 
-        report = self.billing_manager.generate_usage_report(
-            self.tenant_id, start_date, end_date
-        )
+        report = self.billing_manager.generate_usage_report(self.tenant_id, start_date, end_date)
 
         assert report["total_events"] == 0
         assert report["usage_summary"] == {}
@@ -1137,9 +1101,7 @@ class TestBillingManager:
         start_date = datetime.utcnow() - timedelta(days=7)
         end_date = datetime.utcnow() - timedelta(days=6)
 
-        report = self.billing_manager.generate_usage_report(
-            self.tenant_id, start_date, end_date
-        )
+        report = self.billing_manager.generate_usage_report(self.tenant_id, start_date, end_date)
 
         assert report["total_events"] == 0
 
@@ -1162,17 +1124,13 @@ class TestFeatureAccess:
     def test_has_feature_access_enabled(self):
         """Test feature access when feature is enabled."""
         # Professional tier has 'analytics' feature
-        result = self.tenant_manager.has_feature_access(
-            self.pro_tenant.tenant_id, "analytics"
-        )
+        result = self.tenant_manager.has_feature_access(self.pro_tenant.tenant_id, "analytics")
         assert result is True
 
     def test_has_feature_access_disabled(self):
         """Test feature access when feature is disabled."""
         # Basic tier doesn't have 'analytics' feature
-        result = self.tenant_manager.has_feature_access(
-            self.basic_tenant.tenant_id, "analytics"
-        )
+        result = self.tenant_manager.has_feature_access(self.basic_tenant.tenant_id, "analytics")
         assert result is False
 
     def test_has_feature_access_invalid_tenant(self):
@@ -1189,9 +1147,7 @@ class TestFeatureAccess:
         )
 
         # Enterprise tier has more features
-        result = self.tenant_manager.has_feature_access(
-            enterprise_tenant.tenant_id, "any_feature"
-        )
+        result = self.tenant_manager.has_feature_access(enterprise_tenant.tenant_id, "any_feature")
         # Will return True if 'all' is in features or if feature is explicitly listed
         assert isinstance(result, bool)
 
@@ -1213,9 +1169,7 @@ class TestTenantUpgrade:
         """Test upgrading tenant from basic to professional."""
         from agent.enterprise_tenant import TenantTier
 
-        result = self.tenant_manager.upgrade_tenant(
-            self.tenant_id, TenantTier.PROFESSIONAL
-        )
+        result = self.tenant_manager.upgrade_tenant(self.tenant_id, TenantTier.PROFESSIONAL)
         assert result is True
 
         tenant = self.tenant_manager.get_tenant(self.tenant_id)
@@ -1226,9 +1180,7 @@ class TestTenantUpgrade:
         """Test upgrading tenant to enterprise tier."""
         from agent.enterprise_tenant import TenantTier
 
-        result = self.tenant_manager.upgrade_tenant(
-            self.tenant_id, TenantTier.ENTERPRISE
-        )
+        result = self.tenant_manager.upgrade_tenant(self.tenant_id, TenantTier.ENTERPRISE)
         assert result is True
 
         tenant = self.tenant_manager.get_tenant(self.tenant_id)

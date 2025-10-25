@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 # Data Models
 # ============================================================================
 
+
 @dataclass
 class QualityGateConfig:
     """Configuration for quality gates in a lane."""
@@ -42,14 +43,18 @@ class QualityGateConfig:
     pytest: bool = True
     bandit: bool = True
     coverage_threshold: float = 70.0
-    required_passes: List[str] = field(default_factory=lambda: ["ruff", "mypy", "pytest"])
+    required_passes: List[str] = field(
+        default_factory=lambda: ["ruff", "mypy", "pytest"]
+    )
 
     def validate(self) -> Tuple[bool, List[str]]:
         """Validate quality gate configuration."""
         errors = []
 
         if self.coverage_threshold < 0 or self.coverage_threshold > 100:
-            errors.append(f"coverage_threshold must be 0-100, got {self.coverage_threshold}")
+            errors.append(
+                f"coverage_threshold must be 0-100, got {self.coverage_threshold}"
+            )
 
         for gate in self.required_passes:
             if gate not in ["ruff", "mypy", "pytest", "bandit"]:
@@ -140,6 +145,7 @@ class LaneDefinition:
 # ============================================================================
 # Lane Registry & Management
 # ============================================================================
+
 
 class LaneValidator:
     """Validates lane configurations against schema."""
@@ -278,7 +284,9 @@ class LaneRegistry:
                     # Validate lane
                     valid, lane_errors = LaneValidator.validate_lane_definition(lane)
                     if not valid:
-                        errors.extend([f"Lane '{lane_name}': {err}" for err in lane_errors])
+                        errors.extend(
+                            [f"Lane '{lane_name}': {err}" for err in lane_errors]
+                        )
                         continue
 
                     self.lanes[lane_name] = lane
@@ -312,13 +320,13 @@ class LaneRegistry:
 
     def get_lane(self, name: str) -> Optional[LaneDefinition]:
         """Get lane by name.
-        
+
         Returns a copy to prevent external modifications.
         """
         lane = self.lanes.get(name)
         if lane is None:
             return None
-        
+
         # Return a copy to prevent external modifications
         return LaneDefinition.from_dict(lane.to_dict())
 
@@ -386,7 +394,9 @@ def get_registry() -> LaneRegistry:
     return _global_registry
 
 
-def initialize_registry(custom_lanes_path: Optional[Path] = None) -> Tuple[bool, List[str]]:
+def initialize_registry(
+    custom_lanes_path: Optional[Path] = None,
+) -> Tuple[bool, List[str]]:
     """Initialize global lane registry with optional custom lanes."""
     registry = get_registry()
 

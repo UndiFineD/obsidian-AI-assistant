@@ -79,9 +79,9 @@ class MultiLevelCache:
         self._l3_lock = threading.Lock()
         # L4: Predictive cache warming
         self.enable_prediction = enable_prediction
-        self.access_patterns: Dict[str, list] = (
-            {}
-        )  # Track access patterns for prediction
+        self.access_patterns: Dict[
+            str, list
+        ] = {}  # Track access patterns for prediction
         self.prediction_queue = []  # Keys predicted to be accessed soon
         self._prediction_lock = threading.Lock()
         self._warming_active = False

@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ValidationError:
     """Represents a state validation error"""
+
     error_type: str
     message: str
     severity: str  # "warning", "error", "critical"
@@ -56,6 +57,7 @@ class ValidationError:
 @dataclass
 class RepairResult:
     """Represents a state repair operation result"""
+
     success: bool
     repairs_applied: int
     errors_remaining: int
@@ -417,7 +419,7 @@ class StateRepair:
             fixed_content = content
 
             # Remove trailing commas before closing braces/brackets
-            fixed_content = re.sub(r',(\s*[}\]])', r'\1', fixed_content)
+            fixed_content = re.sub(r",(\s*[}\]])", r"\1", fixed_content)
 
             # Try to parse
             json.loads(fixed_content)
@@ -549,7 +551,9 @@ class CheckpointRollback:
                             }
                         )
                     except Exception as e:
-                        logger.warning(f"Failed to read checkpoint {checkpoint_path}: {e}")
+                        logger.warning(
+                            f"Failed to read checkpoint {checkpoint_path}: {e}"
+                        )
 
         return checkpoints
 

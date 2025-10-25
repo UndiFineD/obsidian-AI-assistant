@@ -110,9 +110,7 @@ class TestTokenGeneration:
 
     def test_empty_username(self, client):
         """Test rejection of empty username"""
-        response = client.post(
-            "/api/auth/token", json={"username": "", "password": "testpass"}
-        )
+        response = client.post("/api/auth/token", json={"username": "", "password": "testpass"})
 
         # AuthenticationError raises 401
         assert response.status_code in [400, 401, 422, 500]
@@ -122,9 +120,7 @@ class TestTokenGeneration:
 
     def test_empty_password(self, client):
         """Test rejection of empty password"""
-        response = client.post(
-            "/api/auth/token", json={"username": "testuser", "password": ""}
-        )
+        response = client.post("/api/auth/token", json={"username": "testuser", "password": ""})
 
         # AuthenticationError raises 401
         assert response.status_code in [400, 401, 422, 500]
@@ -134,18 +130,14 @@ class TestTokenGeneration:
 
     def test_whitespace_only_username(self, client):
         """Test rejection of whitespace-only username"""
-        response = client.post(
-            "/api/auth/token", json={"username": "   ", "password": "testpass"}
-        )
+        response = client.post("/api/auth/token", json={"username": "   ", "password": "testpass"})
 
         # AuthenticationError raises 401
         assert response.status_code in [400, 401, 422, 500]
 
     def test_whitespace_only_password(self, client):
         """Test rejection of whitespace-only password"""
-        response = client.post(
-            "/api/auth/token", json={"username": "testuser", "password": "   "}
-        )
+        response = client.post("/api/auth/token", json={"username": "testuser", "password": "   "})
 
         # AuthenticationError raises 401
         assert response.status_code in [400, 401, 422, 500]
@@ -220,9 +212,7 @@ class TestTokenVerification:
 
     def test_verify_with_malformed_token(self, client):
         """Test verification with malformed JWT token"""
-        response = client.get(
-            "/api/auth/verify", headers={"Authorization": "Bearer not.a.jwt"}
-        )
+        response = client.get("/api/auth/verify", headers={"Authorization": "Bearer not.a.jwt"})
 
         # In test mode, bypasses validation
         assert response.status_code in [200, 401, 403]
@@ -278,9 +268,7 @@ class TestTokenDecoding:
         token = response.json()["access_token"]
 
         # Decode token without verification (for testing)
-        payload = jwt.decode(
-            token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]]
-        )
+        payload = jwt.decode(token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]])
 
         # Verify username is in subject (sub)
         assert payload["sub"] == "testuser"
@@ -294,9 +282,7 @@ class TestTokenDecoding:
         token = response.json()["access_token"]
 
         # Decode token
-        payload = jwt.decode(
-            token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]]
-        )
+        payload = jwt.decode(token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]])
 
         # Verify roles are in payload
         assert "roles" in payload
@@ -315,9 +301,7 @@ class TestTokenDecoding:
         token = response.json()["access_token"]
 
         # Decode token
-        payload = jwt.decode(
-            token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]]
-        )
+        payload = jwt.decode(token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]])
 
         # Verify expiration is present
         assert "exp" in payload
@@ -327,12 +311,8 @@ class TestTokenDecoding:
         exp_datetime = datetime.utcfromtimestamp(exp_timestamp)
 
         # Should expire approximately 60 minutes from now (with some tolerance)
-        expected_exp_min = before_time + timedelta(
-            minutes=jwt_config["expiration_minutes"] - 1
-        )
-        expected_exp_max = after_time + timedelta(
-            minutes=jwt_config["expiration_minutes"] + 1
-        )
+        expected_exp_min = before_time + timedelta(minutes=jwt_config["expiration_minutes"] - 1)
+        expected_exp_max = after_time + timedelta(minutes=jwt_config["expiration_minutes"] + 1)
 
         assert expected_exp_min <= exp_datetime <= expected_exp_max
 
@@ -345,9 +325,7 @@ class TestTokenDecoding:
         token = response.json()["access_token"]
 
         # Decode token
-        payload = jwt.decode(
-            token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]]
-        )
+        payload = jwt.decode(token, jwt_config["secret_key"], algorithms=[jwt_config["algorithm"]])
 
         # Verify issued-at is present
         assert "iat" in payload
@@ -475,4 +453,3 @@ class TestRoleBasedAccess:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

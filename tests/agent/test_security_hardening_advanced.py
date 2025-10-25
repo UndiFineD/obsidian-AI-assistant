@@ -129,9 +129,7 @@ def test_threat_detector_suspicious_user_agent():
 # ============================================================================
 
 
-@pytest.mark.skip(
-    reason="APIKeyManager.create_api_key() not yet implemented - needs API update"
-)
+@pytest.mark.skip(reason="APIKeyManager.create_api_key() not yet implemented - needs API update")
 def test_api_key_manager_initialization():
     """Test APIKeyManager initialization"""
     manager = APIKeyManager()
@@ -140,9 +138,7 @@ def test_api_key_manager_initialization():
     assert hasattr(manager, "create_api_key")
 
 
-@pytest.mark.skip(
-    reason="APIKeyManager.create_api_key() not yet implemented - needs API update"
-)
+@pytest.mark.skip(reason="APIKeyManager.create_api_key() not yet implemented - needs API update")
 def test_api_key_manager_create_key():
     """Test API key creation"""
     manager = APIKeyManager()
@@ -159,17 +155,13 @@ def test_api_key_manager_create_key():
     assert "read" in key_info["permissions"]
 
 
-@pytest.mark.skip(
-    reason="APIKeyManager.create_api_key() not yet implemented - needs API update"
-)
+@pytest.mark.skip(reason="APIKeyManager.create_api_key() not yet implemented - needs API update")
 def test_api_key_manager_validate_valid_key():
     """Test validation of valid API key"""
     manager = APIKeyManager()
 
     # Create a key first
-    key_info = manager.create_api_key(
-        user_id="user456", name="Valid Key", permissions=["read"]
-    )
+    key_info = manager.create_api_key(user_id="user456", name="Valid Key", permissions=["read"])
 
     api_key = key_info["api_key"]
 
@@ -191,17 +183,13 @@ def test_api_key_manager_validate_invalid_key():
     assert validation_result is None
 
 
-@pytest.mark.skip(
-    reason="APIKeyManager.create_api_key() not yet implemented - needs API update"
-)
+@pytest.mark.skip(reason="APIKeyManager.create_api_key() not yet implemented - needs API update")
 def test_api_key_manager_revoke_key():
     """Test API key revocation"""
     manager = APIKeyManager()
 
     # Create a key
-    key_info = manager.create_api_key(
-        user_id="user789", name="Key to Revoke", permissions=["read"]
-    )
+    key_info = manager.create_api_key(user_id="user789", name="Key to Revoke", permissions=["read"])
 
     key_id = key_info["key_id"]
     api_key = key_info["api_key"]
@@ -215,9 +203,7 @@ def test_api_key_manager_revoke_key():
     assert validation_result is None
 
 
-@pytest.mark.skip(
-    reason="APIKeyManager.create_api_key() not yet implemented - needs API update"
-)
+@pytest.mark.skip(reason="APIKeyManager.create_api_key() not yet implemented - needs API update")
 def test_api_key_manager_rate_limiting():
     """Test API key rate limiting"""
     manager = APIKeyManager()
@@ -249,9 +235,7 @@ def test_session_manager_initialization():
     assert hasattr(manager, "validate_session")
 
 
-@pytest.mark.skip(
-    reason="SessionManager.create_session() returns str, not dict - needs API update"
-)
+@pytest.mark.skip(reason="SessionManager.create_session() returns str, not dict - needs API update")
 def test_session_manager_create_session():
     """Test session creation"""
     manager = SessionManager()
@@ -267,9 +251,7 @@ def test_session_manager_create_session():
     assert session_info["client_ip"] == "192.168.1.200"
 
 
-@pytest.mark.skip(
-    reason="SessionManager.create_session() returns str, not dict - needs API update"
-)
+@pytest.mark.skip(reason="SessionManager.create_session() returns str, not dict - needs API update")
 def test_session_manager_validate_valid_session():
     """Test validation of valid session"""
     manager = SessionManager()
@@ -284,9 +266,7 @@ def test_session_manager_validate_valid_session():
     session_id = session_info["session_id"]
 
     # Validate the session
-    validation_result = manager.validate_session(
-        session_id, "192.168.1.300", "Mozilla/5.0"
-    )
+    validation_result = manager.validate_session(session_id, "192.168.1.300", "Mozilla/5.0")
 
     assert validation_result is not None
     assert validation_result["session_id"] == session_id
@@ -305,9 +285,7 @@ def test_session_manager_validate_invalid_session():
     assert validation_result is None
 
 
-@pytest.mark.skip(
-    reason="SessionManager.create_session() returns str, not dict - needs API update"
-)
+@pytest.mark.skip(reason="SessionManager.create_session() returns str, not dict - needs API update")
 def test_session_manager_validate_expired_session():
     """Test validation of expired session"""
     manager = SessionManager()
@@ -326,17 +304,13 @@ def test_session_manager_validate_expired_session():
     with patch.object(manager, "_get_session_expiry") as mock_expiry:
         mock_expiry.return_value = datetime.utcnow() - timedelta(hours=1)
 
-        validation_result = manager.validate_session(
-            session_id, "192.168.1.500", "Mozilla/5.0"
-        )
+        validation_result = manager.validate_session(session_id, "192.168.1.500", "Mozilla/5.0")
 
         # Depending on implementation, expired session should fail validation
         # This assertion may need adjustment based on actual behavior
 
 
-@pytest.mark.skip(
-    reason="SessionManager.create_session() returns str, not dict - needs API update"
-)
+@pytest.mark.skip(reason="SessionManager.create_session() returns str, not dict - needs API update")
 def test_session_manager_invalidate_session():
     """Test session invalidation"""
     manager = SessionManager()
@@ -353,16 +327,12 @@ def test_session_manager_invalidate_session():
     assert result is True
 
     # Validation should now fail
-    validation_result = manager.validate_session(
-        session_id, "192.168.1.600", "Mozilla/5.0"
-    )
+    validation_result = manager.validate_session(session_id, "192.168.1.600", "Mozilla/5.0")
 
     assert validation_result is None
 
 
-@pytest.mark.skip(
-    reason="SessionManager.create_session() returns str, not dict - needs API update"
-)
+@pytest.mark.skip(reason="SessionManager.create_session() returns str, not dict - needs API update")
 def test_session_manager_ip_mismatch():
     """Test session validation with IP mismatch"""
     manager = SessionManager()
@@ -376,7 +346,9 @@ def test_session_manager_ip_mismatch():
 
     # Try to validate from different IP
     validation_result = manager.validate_session(
-        session_id, "192.168.1.999", "Mozilla/5.0"  # Different IP
+        session_id,
+        "192.168.1.999",
+        "Mozilla/5.0",  # Different IP
     )
 
     # Should fail due to IP mismatch (depending on implementation)
@@ -482,9 +454,7 @@ def test_request_signer_timestamp_expiry():
     old_timestamp = str(int((datetime.utcnow() - timedelta(minutes=10)).timestamp()))
 
     # Try to validate with old timestamp
-    is_valid = signer.validate_request_signature(
-        request, "some_signature", old_timestamp
-    )
+    is_valid = signer.validate_request_signature(request, "some_signature", old_timestamp)
 
     # Should fail due to expired timestamp (depending on implementation)
     # Adjust assertion based on actual timeout policy
@@ -498,16 +468,12 @@ def test_request_signer_timestamp_expiry():
 @pytest.mark.asyncio
 async def test_authenticate_with_api_key():
     """Test authentication with valid API key"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
     request.method = "GET"
-    request.headers = Headers(
-        {"x-api-key": "test_key_12345", "user-agent": "TestClient"}
-    )
+    request.headers = Headers({"x-api-key": "test_key_12345", "user-agent": "TestClient"})
     request.client.host = "192.168.1.1"
 
     context = SecurityContext(request)
@@ -530,9 +496,7 @@ async def test_authenticate_with_api_key():
 @pytest.mark.asyncio
 async def test_authenticate_with_invalid_api_key():
     """Test authentication with invalid API key"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -556,9 +520,7 @@ async def test_authenticate_with_invalid_api_key():
 @pytest.mark.asyncio
 async def test_authenticate_with_jwt_token():
     """Test authentication with JWT token"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -584,16 +546,12 @@ async def test_authenticate_with_jwt_token():
 @pytest.mark.asyncio
 async def test_authenticate_with_session():
     """Test authentication with session token"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
     request.method = "GET"
-    request.headers = Headers(
-        {"x-session-id": "session_abc123", "user-agent": "TestClient"}
-    )
+    request.headers = Headers({"x-session-id": "session_abc123", "user-agent": "TestClient"})
     request.client.host = "192.168.1.1"
 
     context = SecurityContext(request)
@@ -616,9 +574,7 @@ async def test_authenticate_with_session():
 @pytest.mark.asyncio
 async def test_authenticate_with_signed_request():
     """Test authentication with signed request"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -635,9 +591,7 @@ async def test_authenticate_with_signed_request():
     context = SecurityContext(request)
 
     # Mock signature validation
-    with patch.object(
-        middleware.request_signer, "validate_request_signature"
-    ) as mock_validate:
+    with patch.object(middleware.request_signer, "validate_request_signature") as mock_validate:
         mock_validate.return_value = True
 
         result = await middleware._validate_authentication(request, context)
@@ -650,9 +604,7 @@ async def test_authenticate_with_signed_request():
 @pytest.mark.asyncio
 async def test_authenticate_no_credentials():
     """Test authentication with no credentials"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -677,9 +629,7 @@ async def test_authenticate_no_credentials():
 @pytest.mark.asyncio
 async def test_rate_limit_within_limits():
     """Test rate limiting when within limits"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -700,9 +650,7 @@ async def test_rate_limit_within_limits():
 @pytest.mark.asyncio
 async def test_rate_limit_exceeded():
     """Test rate limiting when exceeded"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.STANDARD
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.STANDARD)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -714,9 +662,7 @@ async def test_rate_limit_exceeded():
     context.auth_method = AuthenticationMethod.API_KEY
 
     # Mock rate limit exceeded
-    with patch.object(
-        middleware, "_check_rate_limits", new_callable=AsyncMock
-    ) as mock_check:
+    with patch.object(middleware, "_check_rate_limits", new_callable=AsyncMock) as mock_check:
         mock_check.return_value = False
 
         result = await middleware._check_rate_limits(context)
@@ -729,9 +675,7 @@ async def test_rate_limit_exceeded():
 # ============================================================================
 
 
-@pytest.mark.skip(
-    reason="SecurityError doesn't accept threat_score parameter - needs API update"
-)
+@pytest.mark.skip(reason="SecurityError doesn't accept threat_score parameter - needs API update")
 def test_security_error_creation():
     """Test SecurityError creation"""
     error = SecurityError(
@@ -743,9 +687,7 @@ def test_security_error_creation():
     assert hasattr(error, "security_flags")
 
 
-@pytest.mark.skip(
-    reason="SecurityError doesn't accept auth_method parameter - needs API update"
-)
+@pytest.mark.skip(reason="SecurityError doesn't accept auth_method parameter - needs API update")
 def test_security_error_with_suggestion():
     """Test SecurityError with suggestion"""
     error = SecurityError(
@@ -774,9 +716,7 @@ def test_security_error_with_suggestion():
 )
 async def test_middleware_blocks_high_threat_request():
     """Test that middleware blocks high-threat requests"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.MAXIMUM
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MAXIMUM)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -801,9 +741,7 @@ async def test_middleware_blocks_high_threat_request():
 @pytest.mark.asyncio
 async def test_middleware_public_endpoint_bypass():
     """Test that public endpoints bypass security in minimal mode"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.MINIMAL
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.MINIMAL)
     middleware.public_endpoints = ["/api/public"]
 
     request = Mock(spec=Request)
@@ -824,9 +762,7 @@ async def test_middleware_public_endpoint_bypass():
 @pytest.mark.asyncio
 async def test_middleware_adds_security_headers_to_response():
     """Test that middleware adds security headers"""
-    middleware = SecurityHardeningMiddleware(
-        Mock(), security_level=SecurityLevel.ENHANCED
-    )
+    middleware = SecurityHardeningMiddleware(Mock(), security_level=SecurityLevel.ENHANCED)
 
     request = Mock(spec=Request)
     request.url.path = "/api/test"
@@ -850,4 +786,3 @@ async def test_middleware_adds_security_headers_to_response():
             # Check response has security headers
             # Actual headers depend on _add_security_headers implementation
             assert response is not None
-

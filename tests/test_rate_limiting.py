@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Rate limiting tests - placeholder due to corruption."""
+
 import pytest
 
 

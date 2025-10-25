@@ -349,7 +349,7 @@ class TrendAnalyzer:
 
         # Calculate correlation coefficient
         correlation = (
-            numerator / (denominator ** 0.5 * ss_tot ** 0.5)
+            numerator / (denominator**0.5 * ss_tot**0.5)
             if denominator > 0 and ss_tot > 0
             else 0.0
         )
@@ -510,7 +510,7 @@ class DashboardGenerator:
     <div class="container">
         <div class="header">
             <h1>{title}</h1>
-            <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Generated on {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
         <div class="metrics-grid">
             {metrics_cards}
@@ -531,7 +531,7 @@ class DashboardGenerator:
         <div class="metric-card">
             <div class="metric-label">Total Workflows</div>
             <div class="metric-value">{metrics.total_workflows}</div>
-            <div class="metric-subtitle">Success Rate: {metrics.success_rate*100:.1f}%</div>
+            <div class="metric-subtitle">Success Rate: {metrics.success_rate * 100:.1f}%</div>
         </div>
         <div class="metric-card">
             <div class="metric-label">Avg Execution Time</div>
@@ -567,7 +567,7 @@ class DashboardGenerator:
                 {execution_trend.trend_direction.title()}
             </span>
             <p>Slope: {execution_trend.trend_slope:.4f} | R²: {execution_trend.r_squared:.3f}</p>
-            <p>Forecast: {execution_trend.forecast_next_value:.1f}s (Confidence: {execution_trend.confidence_level*100:.0f}%)</p>
+            <p>Forecast: {execution_trend.forecast_next_value:.1f}s (Confidence: {execution_trend.confidence_level * 100:.0f}%)</p>
         </div>
         """
 
@@ -579,7 +579,7 @@ class DashboardGenerator:
                 {success_trend.trend_direction.title()}
             </span>
             <p>Slope: {success_trend.trend_slope:.4f} | R²: {success_trend.r_squared:.3f}</p>
-            <p>Forecast: {success_trend.forecast_next_value*100:.1f}% (Confidence: {success_trend.confidence_level*100:.0f}%)</p>
+            <p>Forecast: {success_trend.forecast_next_value * 100:.1f}% (Confidence: {success_trend.confidence_level * 100:.0f}%)</p>
         </div>
         """
 
@@ -593,15 +593,15 @@ class ReportFormatter:
         """Initialize report formatter."""
         self.aggregator = aggregator
 
-    def export_json(
-        self, output_path: Path, include_metrics: bool = True
-    ) -> None:
+    def export_json(self, output_path: Path, include_metrics: bool = True) -> None:
         """Export analytics as JSON."""
         metrics = self.aggregator.aggregate()
         data: Dict[str, Any] = {"aggregated_metrics": metrics.to_dict()}
 
         if include_metrics:
-            data["individual_metrics"] = [m.to_dict() for m in self.aggregator.get_metrics()]
+            data["individual_metrics"] = [
+                m.to_dict() for m in self.aggregator.get_metrics()
+            ]
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(data, indent=2))
@@ -648,19 +648,19 @@ class ReportFormatter:
 
         summary = f"""
 WORKFLOW ANALYTICS SUMMARY REPORT
-{'='*50}
+{"=" * 50}
 
 Report Generated: {datetime.now().isoformat()}
 
 OVERVIEW
-{'-'*50}
+{"-" * 50}
 Total Workflows:      {metrics.total_workflows}
 Successful:           {metrics.successful_workflows}
 Failed:               {metrics.failed_workflows}
-Success Rate:         {metrics.success_rate*100:.1f}%
+Success Rate:         {metrics.success_rate * 100:.1f}%
 
 EXECUTION TIME
-{'-'*50}
+{"-" * 50}
 Total Time:           {metrics.total_execution_time:.1f}s
 Average:              {metrics.avg_execution_time:.1f}s
 Median:               {metrics.median_execution_time:.1f}s
@@ -669,13 +669,13 @@ Max:                  {metrics.max_execution_time:.1f}s
 Std Dev:              {metrics.stddev_execution_time:.1f}s
 
 QUALITY METRICS
-{'-'*50}
+{"-" * 50}
 Total Errors:         {metrics.total_errors}
 Total Warnings:       {metrics.total_warnings}
 Avg Stages/Workflow:  {metrics.avg_stage_count:.1f}
 
 TIME PERIOD
-{'-'*50}
+{"-" * 50}
 Start: {metrics.time_period_start.isoformat()}
 End:   {metrics.time_period_end.isoformat()}
 
@@ -686,7 +686,9 @@ End:   {metrics.time_period_end.isoformat()}
 
 
 # Public API functions
-def create_analytics_pipeline() -> Tuple[MetricsAggregator, TrendAnalyzer, DashboardGenerator, ReportFormatter]:
+def create_analytics_pipeline() -> Tuple[
+    MetricsAggregator, TrendAnalyzer, DashboardGenerator, ReportFormatter
+]:
     """Create a complete analytics pipeline."""
     aggregator = MetricsAggregator()
     analyzer = TrendAnalyzer(aggregator)

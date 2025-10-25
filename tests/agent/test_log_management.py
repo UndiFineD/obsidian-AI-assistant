@@ -131,9 +131,7 @@ def client(mock_log_manager):
             with patch("agent.log_management.log_security"):
                 with patch("agent.log_management.logger"):
                     # Mock asyncio.sleep to prevent delays in streaming/background tasks
-                    with patch(
-                        "agent.log_management.asyncio.sleep", new_callable=AsyncMock
-                    ):
+                    with patch("agent.log_management.asyncio.sleep", new_callable=AsyncMock):
                         yield TestClient(app)
 
 
@@ -326,9 +324,7 @@ def test_search_logs_by_level(client):
 
 def test_search_logs_by_search_term(client):
     """Test searching logs by search term"""
-    response = client.post(
-        "/api/logs/search", json={"search_term": "Application started"}
-    )
+    response = client.post("/api/logs/search", json={"search_term": "Application started"})
 
     assert response.status_code == 200
     data = response.json()
@@ -670,4 +666,3 @@ def test_cleanup_invalid_days(client):
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

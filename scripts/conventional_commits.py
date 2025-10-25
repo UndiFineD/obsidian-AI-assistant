@@ -47,7 +47,9 @@ class CommitValidator:
     """Validate and fix Conventional Commits"""
 
     VALID_TYPES = ["feat", "fix", "docs", "style", "refactor", "test", "chore"]
-    COMMIT_PATTERN = r"^(feat|fix|docs|style|refactor|test|chore)(\([^)]+\))?: .{1,100}(?: #\d+)?$"
+    COMMIT_PATTERN = (
+        r"^(feat|fix|docs|style|refactor|test|chore)(\([^)]+\))?: .{1,100}(?: #\d+)?$"
+    )
 
     @staticmethod
     def validate_commit(message: str) -> Tuple[bool, Optional[str]]:
@@ -68,7 +70,10 @@ class CommitValidator:
 
         # Check basic format
         if not re.match(CommitValidator.COMMIT_PATTERN, message):
-            return False, f"Invalid format. Expected: type(scope): subject\nGot: {message}"
+            return (
+                False,
+                f"Invalid format. Expected: type(scope): subject\nGot: {message}",
+            )
 
         # Parse to verify
         match = re.match(r"^(\w+)(\([^)]+\))?: (.+)$", message)
@@ -180,7 +185,9 @@ class CommitValidator:
             return []
 
     @staticmethod
-    def validate_all_commits(branch: str = "HEAD") -> Tuple[bool, List[Tuple[str, bool]]]:
+    def validate_all_commits(
+        branch: str = "HEAD",
+    ) -> Tuple[bool, List[Tuple[str, bool]]]:
         """
         Validate all commits in a branch.
 
@@ -245,7 +252,9 @@ def validate_git_commits(verbose: bool = False) -> bool:
             print(f"✓ All {len(results)} commits valid")
     else:
         if HELPERS_AVAILABLE:
-            helpers.write_error(f"{invalid_count} commit(s) not in Conventional Commits format")
+            helpers.write_error(
+                f"{invalid_count} commit(s) not in Conventional Commits format"
+            )
         else:
             print(f"✗ {invalid_count} commit(s) invalid")
 
@@ -267,7 +276,9 @@ def interactive_fix_commits() -> bool:
     validator = CommitValidator()
     all_valid, results = validator.validate_all_commits()
 
-    invalid_commits = [(commit, idx) for idx, (commit, valid) in enumerate(results) if not valid]
+    invalid_commits = [
+        (commit, idx) for idx, (commit, valid) in enumerate(results) if not valid
+    ]
 
     if not invalid_commits:
         if HELPERS_AVAILABLE:
@@ -362,4 +373,3 @@ if __name__ == "__main__":
     # Test recent commits
     print("\nValidating recent commits...")
     validate_git_commits(verbose=True)
-

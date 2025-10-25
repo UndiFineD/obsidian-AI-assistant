@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Find all Python files with syntax/indentation errors."""
+
 import ast
 import sys
 from pathlib import Path
@@ -40,12 +41,12 @@ def main():
         else:
             broken_files.append((py_file, error))
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("Python File Analysis")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     print(f"Total OK files: {len(ok_files)}")
     print(f"Total BROKEN files: {len(broken_files)}")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     # Always write broken_files.txt, even if empty
     with open(root / "broken_files.txt", "w") as f:

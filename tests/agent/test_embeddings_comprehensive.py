@@ -74,9 +74,7 @@ def mock_chroma_client(mock_chroma_collection):
 def mock_settings():
     """Mock settings for from_settings() method."""
     mock_settings = Mock()
-    mock_settings.project_root = (
-        tempfile.mkdtemp()
-    )  # Secure temp directory for test isolation
+    mock_settings.project_root = tempfile.mkdtemp()  # Secure temp directory for test isolation
     mock_settings.chunk_size = 600
     mock_settings.chunk_overlap = 100
     mock_settings.top_k = 8
@@ -89,9 +87,7 @@ class TestEmbeddingsManagerInit:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_successful_initialization(
         self,
         mock_ef,
@@ -143,9 +139,7 @@ class TestEmbeddingsManagerInit:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    def test_chroma_client_failure(
-        self, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
-    ):
+    def test_chroma_client_failure(self, mock_st, mock_pc, temp_db_path, mock_sentence_transformer):
         """Test initialization when ChromaDB client fails."""
         mock_st.return_value = mock_sentence_transformer
         mock_pc.side_effect = Exception("ChromaDB connection failed")
@@ -160,9 +154,7 @@ class TestEmbeddingsManagerInit:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_collection_creation_failure(
         self,
         mock_ef,
@@ -194,9 +186,7 @@ class TestEmbeddingsFromSettings:
     @patch("agent.embeddings.get_settings")
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_from_settings_success(
         self,
         mock_ef,
@@ -242,9 +232,7 @@ class TestEmbeddingOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_compute_embedding_success(
         self,
         mock_ef,
@@ -281,9 +269,7 @@ class TestEmbeddingOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_compute_embedding_model_error(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_chroma_client
     ):
@@ -302,9 +288,7 @@ class TestEmbeddingOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_add_embedding_success(
         self,
         mock_ef,
@@ -317,9 +301,7 @@ class TestEmbeddingOperations:
         """Test successful embedding addition."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -362,9 +344,7 @@ class TestSearchOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_search_success(
         self,
         mock_ef,
@@ -377,9 +357,7 @@ class TestSearchOperations:
         """Test successful search operation."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -400,9 +378,7 @@ class TestSearchOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_search_custom_top_k(
         self,
         mock_ef,
@@ -415,9 +391,7 @@ class TestSearchOperations:
         """Test search with custom top_k parameter."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -445,9 +419,7 @@ class TestSearchOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_search_query_error(
         self,
         mock_ef,
@@ -460,9 +432,7 @@ class TestSearchOperations:
         """Test search when query operation fails."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
         mock_chroma_collection.query.side_effect = Exception("Query failed")
 
@@ -479,9 +449,7 @@ class TestDatabaseOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_reset_db_success(
         self,
         mock_ef,
@@ -502,9 +470,7 @@ class TestDatabaseOperations:
 
         from agent.embeddings import EmbeddingsManager
 
-        emb_mgr = EmbeddingsManager(
-            db_path=temp_db_path, collection_name="test_collection"
-        )
+        emb_mgr = EmbeddingsManager(db_path=temp_db_path, collection_name="test_collection")
         emb_mgr.reset_db()
 
         mock_chroma_client.delete_collection.assert_called_once_with("test_collection")
@@ -527,9 +493,7 @@ class TestDatabaseOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_reset_db_error(
         self,
         mock_ef,
@@ -553,9 +517,7 @@ class TestDatabaseOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_clear_collection_alias(
         self,
         mock_ef,
@@ -585,9 +547,7 @@ class TestBatchOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_add_documents_success(
         self,
         mock_ef,
@@ -600,9 +560,7 @@ class TestBatchOperations:
         """Test successful batch document addition."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -628,9 +586,7 @@ class TestBatchOperations:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_add_documents_default_metadata(
         self,
         mock_ef,
@@ -643,9 +599,7 @@ class TestBatchOperations:
         """Test add_documents with default metadata generation."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -693,9 +647,7 @@ class TestUtilityMethods:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_get_collection_info_success(
         self,
         mock_ef,
@@ -708,9 +660,7 @@ class TestUtilityMethods:
         """Test getting collection information successfully."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
         mock_chroma_collection.count.return_value = 42
 
@@ -744,9 +694,7 @@ class TestUtilityMethods:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_get_collection_info_count_error(
         self,
         mock_ef,
@@ -759,9 +707,7 @@ class TestUtilityMethods:
         """Test get_collection_info when count() fails."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
         mock_chroma_collection.count.side_effect = Exception("Count failed")
 
@@ -784,9 +730,7 @@ class TestUtilityMethods:
             emb_mgr = EmbeddingsManager()
 
         text = "test content"
-        expected_hash = hashlib.md5(
-            text.encode("utf-8"), usedforsecurity=False
-        ).hexdigest()
+        expected_hash = hashlib.md5(text.encode("utf-8"), usedforsecurity=False).hexdigest()
 
         result = emb_mgr._hash_text(text)
         assert result == expected_hash
@@ -846,9 +790,7 @@ class TestIndexingMethods:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_index_file_success(
         self,
         mock_ef,
@@ -862,9 +804,7 @@ class TestIndexingMethods:
         """Test successful file indexing."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -893,9 +833,7 @@ class TestIndexingMethods:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_index_vault_success(
         self,
         mock_ef,
@@ -909,9 +847,7 @@ class TestIndexingMethods:
         """Test successful vault indexing."""
         mock_st.return_value = mock_sentence_transformer
         mock_chroma_client = Mock()
-        mock_chroma_client.get_or_create_collection.return_value = (
-            mock_chroma_collection
-        )
+        mock_chroma_client.get_or_create_collection.return_value = mock_chroma_collection
         mock_pc.return_value = mock_chroma_client
 
         from agent.embeddings import EmbeddingsManager
@@ -926,9 +862,7 @@ class TestIndexingMethods:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_reindex_success(
         self,
         mock_ef,
@@ -1008,9 +942,7 @@ class TestGetEmbeddingById:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_get_embedding_by_id_success(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
     ):
@@ -1033,15 +965,11 @@ class TestGetEmbeddingById:
         result = manager.get_embedding_by_id("test_note.md")
 
         assert result == [0.1, 0.2, 0.3, 0.4, 0.5]
-        mock_collection.get.assert_called_once_with(
-            ids=["test_note.md"], include=["embeddings"]
-        )
+        mock_collection.get.assert_called_once_with(ids=["test_note.md"], include=["embeddings"])
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_get_embedding_by_id_not_found(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
     ):
@@ -1076,9 +1004,7 @@ class TestGetEmbeddingById:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_get_embedding_by_id_exception_handling(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
     ):
@@ -1105,9 +1031,7 @@ class TestIndexFilePersist:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_index_file_with_persist(
         self,
         mock_ef,
@@ -1142,9 +1066,7 @@ class TestIndexFilePersist:
 
     @patch("agent.embeddings.PersistentClient")
     @patch("agent.embeddings.SentenceTransformer")
-    @patch(
-        "agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction"
-    )
+    @patch("agent.embeddings.embedding_functions.SentenceTransformerEmbeddingFunction")
     def test_index_file_nonexistent(
         self, mock_ef, mock_st, mock_pc, temp_db_path, mock_sentence_transformer
     ):
@@ -1202,4 +1124,3 @@ class TestSentenceTransformerNoneWarning:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
-

@@ -24,9 +24,9 @@ def test_security_hardening_structure():
 
     # Check that security management API exists
     security_management_path = Path("agent/security_management.py")
-    assert (
-        security_management_path.exists()
-    ), "Security management API file should exist"
+    assert security_management_path.exists(), (
+        "Security management API file should exist"
+    )
 
     # Read security hardening file
     with open(security_hardening_path, "r") as f:
@@ -45,17 +45,17 @@ def test_security_hardening_structure():
     ]
 
     for class_name in required_classes:
-        assert (
-            f"class {class_name}" in hardening_content
-        ), f"Missing required class: {class_name}"
+        assert f"class {class_name}" in hardening_content, (
+            f"Missing required class: {class_name}"
+        )
 
     # Check for required functions
     required_functions = ["get_security_status", "create_security_hardening_middleware"]
 
     for func_name in required_functions:
-        assert (
-            f"def {func_name}" in hardening_content
-        ), f"Missing required function: {func_name}"
+        assert f"def {func_name}" in hardening_content, (
+            f"Missing required function: {func_name}"
+        )
 
     print("✓ Security hardening structure validation passed")
 
@@ -128,14 +128,14 @@ def test_agent_security_integration():
         assert import_item in agent_content, f"Missing required import: {import_item}"
 
     # Check for router inclusion
-    assert (
-        "app.include_router(security_router)" in agent_content
-    ), "Security management router not included"
+    assert "app.include_router(security_router)" in agent_content, (
+        "Security management router not included"
+    )
 
     # Check for middleware initialization
-    assert (
-        "create_security_hardening_middleware" in agent_content
-    ), "Security middleware initialization not found"
+    assert "create_security_hardening_middleware" in agent_content, (
+        "Security middleware initialization not found"
+    )
 
     # Check for security level configuration
     assert "SECURITY_LEVEL" in agent_content, "Security level configuration not found"
@@ -173,9 +173,9 @@ def test_settings_security_integration():
     ]
 
     for setting in required_settings:
-        assert (
-            setting in settings_content
-        ), f"Missing required security setting: {setting}"
+        assert setting in settings_content, (
+            f"Missing required security setting: {setting}"
+        )
 
     # Check allowed update keys
     allowed_keys_content = settings_content[
@@ -205,9 +205,9 @@ def test_settings_security_integration():
     ]
 
     for key in security_keys:
-        assert (
-            key in allowed_keys_content
-        ), f"Missing security key in allowed updates: {key}"
+        assert key in allowed_keys_content, (
+            f"Missing security key in allowed updates: {key}"
+        )
 
     print("✓ Settings security integration validation passed")
 
@@ -257,9 +257,9 @@ def test_session_management():
     ]
 
     for method in session_methods:
-        assert (
-            method in hardening_content
-        ), f"Missing session management method: {method}"
+        assert method in hardening_content, (
+            f"Missing session management method: {method}"
+        )
 
     # Check for session security features
     security_features = [
@@ -272,9 +272,9 @@ def test_session_management():
     ]
 
     for feature in security_features:
-        assert (
-            feature in hardening_content
-        ), f"Missing session security feature: {feature}"
+        assert feature in hardening_content, (
+            f"Missing session security feature: {feature}"
+        )
 
     print("✓ Session management validation passed")
 
@@ -297,9 +297,9 @@ def test_api_key_management():
     ]
 
     for method in api_key_methods:
-        assert (
-            method in hardening_content
-        ), f"Missing API key management method: {method}"
+        assert method in hardening_content, (
+            f"Missing API key management method: {method}"
+        )
 
     # Check for API key security features
     security_features = [
@@ -312,9 +312,9 @@ def test_api_key_management():
     ]
 
     for feature in security_features:
-        assert (
-            feature in hardening_content
-        ), f"Missing API key security feature: {feature}"
+        assert feature in hardening_content, (
+            f"Missing API key security feature: {feature}"
+        )
 
     print("✓ API key management validation passed")
 
@@ -355,9 +355,9 @@ def test_threat_detection():
     ]
 
     for feature in behavioral_features:
-        assert (
-            feature in hardening_content
-        ), f"Missing behavioral analysis feature: {feature}"
+        assert feature in hardening_content, (
+            f"Missing behavioral analysis feature: {feature}"
+        )
 
     print("✓ Threat detection validation passed")
 
@@ -384,9 +384,9 @@ def test_request_signing():
     crypto_components = ["hmac", "hashlib", "sha256", "signing_keys"]
 
     for component in crypto_components:
-        assert (
-            component in hardening_content
-        ), f"Missing cryptographic component: {component}"
+        assert component in hardening_content, (
+            f"Missing cryptographic component: {component}"
+        )
 
     print("✓ Request signing validation passed")
 
@@ -446,14 +446,14 @@ def test_error_handling_integration():
     ]
 
     for import_item in error_handling_imports:
-        assert (
-            import_item in hardening_content
-        ), f"Missing error handling import: {import_item}"
+        assert import_item in hardening_content, (
+            f"Missing error handling import: {import_item}"
+        )
 
     # Check for error context usage
-    assert (
-        "with error_context(" in hardening_content
-    ), "Error context not used in security code"
+    assert "with error_context(" in hardening_content, (
+        "Error context not used in security code"
+    )
 
     print("✓ Error handling integration validation passed")
 
@@ -476,9 +476,9 @@ def test_logging_integration():
     ]
 
     for import_item in logging_imports:
-        assert (
-            import_item in hardening_content
-        ), f"Missing logging import: {import_item}"
+        assert import_item in hardening_content, (
+            f"Missing logging import: {import_item}"
+        )
 
     # Check for security logging usage
     assert "log_security(" in hardening_content, "Security logging not used"
@@ -500,9 +500,9 @@ def test_configuration_management():
     config_endpoints = ["get_security_config", "update_security_config"]
 
     for endpoint in config_endpoints:
-        assert (
-            endpoint in management_content
-        ), f"Missing configuration endpoint: {endpoint}"
+        assert endpoint in management_content, (
+            f"Missing configuration endpoint: {endpoint}"
+        )
 
     # Check for configuration validation
     validation_features = [
@@ -513,9 +513,9 @@ def test_configuration_management():
     ]
 
     for feature in validation_features:
-        assert (
-            feature in management_content
-        ), f"Missing configuration validation feature: {feature}"
+        assert feature in management_content, (
+            f"Missing configuration validation feature: {feature}"
+        )
 
     print("✓ Configuration management validation passed")
 
@@ -532,9 +532,9 @@ def test_compliance_and_audit():
     compliance_endpoints = ["get_security_audit_events", "generate_compliance_report"]
 
     for endpoint in compliance_endpoints:
-        assert (
-            endpoint in management_content
-        ), f"Missing compliance endpoint: {endpoint}"
+        assert endpoint in management_content, (
+            f"Missing compliance endpoint: {endpoint}"
+        )
 
     # Check for audit features
     audit_features = [

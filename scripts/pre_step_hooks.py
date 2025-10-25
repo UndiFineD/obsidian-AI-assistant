@@ -27,15 +27,17 @@ from enum import Enum
 
 class HookStatus(Enum):
     """Hook execution status"""
-    SUCCESS = "SUCCESS"      # Hook passed
-    SKIP = "SKIP"           # Skip stage
+
+    SUCCESS = "SUCCESS"  # Hook passed
+    SKIP = "SKIP"  # Skip stage
     REMEDIATE = "REMEDIATE"  # Show remediation and exit
-    FAIL = "FAIL"           # Abort workflow
+    FAIL = "FAIL"  # Abort workflow
 
 
 @dataclass
 class HookResult:
     """Result of hook execution"""
+
     status: HookStatus
     message: str
     remediation: Optional[str] = None
@@ -103,7 +105,7 @@ class PreStepHooks:
             # Create initial state file if needed
             state_file = checkpoint_dir / "state.json"
             if not state_file.exists():
-                state_file.write_text("{\"workflows\": {}}", encoding="utf-8")
+                state_file.write_text('{"workflows": {}}', encoding="utf-8")
 
             return HookResult(
                 status=HookStatus.SUCCESS,
@@ -250,7 +252,7 @@ class PreStepHooks:
                 result = hook()
 
                 if verbose:
-                    print(f"  Hook {i+1}/{len(hooks)}: {result.message}")
+                    print(f"  Hook {i + 1}/{len(hooks)}: {result.message}")
 
                 # Check result status
                 if result.status == HookStatus.SUCCESS:
@@ -265,7 +267,7 @@ class PreStepHooks:
             except Exception as e:
                 return HookResult(
                     status=HookStatus.REMEDIATE,
-                    message=f"✗ Hook {i+1} failed with exception: {e}",
+                    message=f"✗ Hook {i + 1} failed with exception: {e}",
                 )
 
         return HookResult(

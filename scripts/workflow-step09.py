@@ -85,9 +85,7 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         else:
             existing = changes.read_text(encoding="utf-8") if changes.exists() else ""
             block = (
-                "\n## Documentation Changes\n\n"
-                "- Files updated:\n"
-                "- New docs added:\n"
+                "\n## Documentation Changes\n\n- Files updated:\n- New docs added:\n"
             )
             if block not in existing:
                 helpers.set_content_atomic(changes, existing + block)

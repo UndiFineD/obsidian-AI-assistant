@@ -27,6 +27,7 @@ from dataclasses import dataclass, field
 @dataclass
 class ParallelStage:
     """Definition of a parallelizable stage"""
+
     stage_id: int
     stage_name: str
     task: Callable
@@ -40,6 +41,7 @@ class ParallelStage:
 @dataclass
 class StageExecutionResult:
     """Result of a parallel stage execution"""
+
     stage_id: int
     stage_name: str
     success: bool
@@ -90,7 +92,9 @@ class AdaptiveParallelExecutor:
             return optimal
 
         except Exception as e:
-            self.logger.warning(f"Failed to calculate optimal workers: {e}. Using default 3.")
+            self.logger.warning(
+                f"Failed to calculate optimal workers: {e}. Using default 3."
+            )
             return 3
 
     def get_worker_count(self) -> int:
@@ -98,9 +102,7 @@ class AdaptiveParallelExecutor:
         return self.max_workers
 
     def execute_parallel(
-        self,
-        stages: List[ParallelStage],
-        continue_on_failure: bool = False
+        self, stages: List[ParallelStage], continue_on_failure: bool = False
     ) -> Tuple[List[StageExecutionResult], bool]:
         """
         Execute stages in parallel with dependency tracking.
@@ -153,7 +155,7 @@ class AdaptiveParallelExecutor:
                             stage_id=stage.stage_id,
                             stage_name=stage.stage_name,
                             success=False,
-                            error=str(e)
+                            error=str(e),
                         )
                         results[stage.stage_id] = result
                         all_succeeded = False
@@ -165,9 +167,13 @@ class AdaptiveParallelExecutor:
 
                     # Submit stages that now have their dependencies met
                     for candidate_stage in stages:
-                        if (candidate_stage.stage_id not in submitted and
-                            all(dep in completed_stages for dep in candidate_stage.dependencies)):
-                            future = executor.submit(self._execute_stage, candidate_stage)
+                        if candidate_stage.stage_id not in submitted and all(
+                            dep in completed_stages
+                            for dep in candidate_stage.dependencies
+                        ):
+                            future = executor.submit(
+                                self._execute_stage, candidate_stage
+                            )
                             futures[future] = candidate_stage
                             submitted.add(candidate_stage.stage_id)
 
@@ -198,7 +204,7 @@ class AdaptiveParallelExecutor:
                 stage_name=stage.stage_name,
                 success=True,
                 result=result,
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
         except Exception as e:
@@ -213,13 +219,11 @@ class AdaptiveParallelExecutor:
                 stage_name=stage.stage_name,
                 success=False,
                 error=str(e),
-                duration_seconds=duration
+                duration_seconds=duration,
             )
 
     def _results_to_list(
-        self,
-        results: Dict[int, StageExecutionResult],
-        stages: List[ParallelStage]
+        self, results: Dict[int, StageExecutionResult], stages: List[ParallelStage]
     ) -> List[StageExecutionResult]:
         """Convert results dict to ordered list"""
         result_list = []
@@ -233,7 +237,7 @@ class AdaptiveParallelExecutor:
                         stage_id=stage.stage_id,
                         stage_name=stage.stage_name,
                         success=False,
-                        error="Not executed"
+                        error="Not executed",
                     )
                 )
         return result_list
@@ -258,7 +262,7 @@ class AdaptiveParallelExecutor:
 def execute_parallel_stages(
     stages: List[ParallelStage],
     max_workers: Optional[int] = None,
-    continue_on_failure: bool = False
+    continue_on_failure: bool = False,
 ) -> Tuple[List[StageExecutionResult], bool]:
     """
     Convenience function to execute stages in parallel.

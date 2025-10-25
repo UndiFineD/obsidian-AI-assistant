@@ -12,6 +12,7 @@ Usage:
   python scripts/check_markdown_todos.py [paths...]
 If no paths are provided, scans openspec/changes/*/todo.md and openspec/templates/todo.md
 """
+
 from __future__ import annotations
 
 import re
@@ -43,7 +44,7 @@ def validate_file(path: Path) -> list[str]:
     # Trailing whitespace
     for i, line in enumerate(text.splitlines()):
         if re.search(r"\s+$", line):
-            errors.append(f"{path}: trailing whitespace on line {i+1}")
+            errors.append(f"{path}: trailing whitespace on line {i + 1}")
             break
 
     # Must end with newline

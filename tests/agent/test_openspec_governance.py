@@ -289,9 +289,7 @@ def test_get_status_pending(temp_openspec_dir):
     change_path.mkdir(parents=True, exist_ok=True)
 
     (change_path / "proposal.md").write_text("# Test", encoding="utf-8")
-    (change_path / "tasks.md").write_text(
-        "- [ ] Task 1\n- [ ] Task 2", encoding="utf-8"
-    )
+    (change_path / "tasks.md").write_text("- [ ] Task 1\n- [ ] Task 2", encoding="utf-8")
 
     change = OpenSpecChange(change_id, temp_openspec_dir)
     assert change.get_status() == "pending"
@@ -304,9 +302,7 @@ def test_get_status_in_progress(temp_openspec_dir):
     change_path.mkdir(parents=True, exist_ok=True)
 
     (change_path / "proposal.md").write_text("# Test", encoding="utf-8")
-    (change_path / "tasks.md").write_text(
-        "- [x] Task 1\n- [ ] Task 2", encoding="utf-8"
-    )
+    (change_path / "tasks.md").write_text("- [x] Task 1\n- [ ] Task 2", encoding="utf-8")
 
     change = OpenSpecChange(change_id, temp_openspec_dir)
     assert change.get_status() == "in_progress"
@@ -319,9 +315,7 @@ def test_get_status_completed(temp_openspec_dir):
     change_path.mkdir(parents=True, exist_ok=True)
 
     (change_path / "proposal.md").write_text("# Test", encoding="utf-8")
-    (change_path / "tasks.md").write_text(
-        "- [x] Task 1\n- [x] Task 2", encoding="utf-8"
-    )
+    (change_path / "tasks.md").write_text("- [x] Task 1\n- [x] Task 2", encoding="utf-8")
 
     change = OpenSpecChange(change_id, temp_openspec_dir)
     assert change.get_status() == "completed"
@@ -609,9 +603,7 @@ def test_parse_proposal_with_malformed_content(temp_openspec_dir):
     change_path.mkdir(parents=True, exist_ok=True)
 
     # Create malformed proposal
-    (change_path / "proposal.md").write_text(
-        "Random text without structure", encoding="utf-8"
-    )
+    (change_path / "proposal.md").write_text("Random text without structure", encoding="utf-8")
     (change_path / "tasks.md").write_text("- [ ] Task", encoding="utf-8")
 
     change = OpenSpecChange(change_id, temp_openspec_dir)
@@ -759,12 +751,8 @@ def test_apply_change_with_actual_execution(temp_openspec_dir):
     change_path = temp_openspec_dir / "openspec" / "changes" / change_id
     change_path.mkdir(parents=True, exist_ok=True)
 
-    (change_path / "proposal.md").write_text(
-        "# Test\n\n## Why\nReason", encoding="utf-8"
-    )
-    (change_path / "tasks.md").write_text(
-        "- [x] Task 1\n- [x] Task 2", encoding="utf-8"
-    )
+    (change_path / "proposal.md").write_text("# Test\n\n## Why\nReason", encoding="utf-8")
+    (change_path / "tasks.md").write_text("- [x] Task 1\n- [x] Task 2", encoding="utf-8")
 
     gov = OpenSpecGovernance(str(temp_openspec_dir))
     result = gov.apply_change(change_id, dry_run=False)

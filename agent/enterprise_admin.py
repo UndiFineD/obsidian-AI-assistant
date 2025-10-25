@@ -252,7 +252,7 @@ class EnterpriseAdminDashboard:
                 {
                     "user_id": f"user{i}",
                     "email": f"user{i}@company.com",
-                    "tenant_id": f"tenant{(i-1)//10 + 1}",
+                    "tenant_id": f"tenant{(i - 1) // 10 + 1}",
                     "roles": ["user", "analyst"] if i % 3 == 0 else ["user"],
                     "last_login": (
                         datetime.utcnow() - timedelta(days=i % 30)

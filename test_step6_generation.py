@@ -6,7 +6,9 @@ import importlib.util
 from pathlib import Path
 
 # Load the module properly
-spec = importlib.util.spec_from_file_location("workflow_step06", "scripts/workflow-step06.py")
+spec = importlib.util.spec_from_file_location(
+    "workflow_step06", "scripts/workflow-step06.py"
+)
 module = importlib.util.module_from_spec(spec)
 sys.modules["workflow_step06"] = module
 spec.loader.exec_module(module)
@@ -26,7 +28,7 @@ test_plan_path = test_dir / "test_plan.md"
 if test_plan_path.exists():
     size = test_plan_path.stat().st_size
     print(f"\n✅ SUCCESS: test_plan.md created ({size:,} bytes)")
-    
+
     # Show first 1000 chars
     with open(test_plan_path, "r", encoding="utf-8") as f:
         content = f.read(1000)

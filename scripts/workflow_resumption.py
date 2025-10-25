@@ -100,7 +100,11 @@ class WorkflowResumption:
         print(f"Last updated: {workflow.get('last_updated', 'unknown')}")
         print("\n" + "-" * 70)
         print("Options:")
-        print("  1. Resume from stage {} ({})".format(last_stage + 1, workflow.get("next_stage_name", "unknown")))
+        print(
+            "  1. Resume from stage {} ({})".format(
+                last_stage + 1, workflow.get("next_stage_name", "unknown")
+            )
+        )
         print("  2. Start fresh (will recreate files)")
         print("  3. Cancel")
         print("-" * 70)
@@ -239,7 +243,9 @@ class WorkflowResumption:
             state = json.loads(self.state_file.read_text(encoding="utf-8"))
             if change_id in state.get("workflows", {}):
                 del state["workflows"][change_id]
-                self.state_file.write_text(json.dumps(state, indent=2), encoding="utf-8")
+                self.state_file.write_text(
+                    json.dumps(state, indent=2), encoding="utf-8"
+                )
             return True
         except Exception:
             return False
@@ -251,11 +257,11 @@ class WorkflowResumption:
 ║                    WORKFLOW RESUMPTION REPORT                     ║
 ╚═══════════════════════════════════════════════════════════════════╝
 
-Change ID:              {workflow.get('change_id', 'unknown')}
-Status:                 {workflow.get('status', 'unknown')}
-Last Completed Stage:   {workflow.get('last_completed_stage', -1)} - {workflow.get('last_stage_name', 'unknown')}
-Next Stage to Resume:   {workflow.get('next_stage_num', 0)} - {workflow.get('next_stage_name', 'unknown')}
-Last Updated:           {workflow.get('last_updated', 'unknown')}
+Change ID:              {workflow.get("change_id", "unknown")}
+Status:                 {workflow.get("status", "unknown")}
+Last Completed Stage:   {workflow.get("last_completed_stage", -1)} - {workflow.get("last_stage_name", "unknown")}
+Next Stage to Resume:   {workflow.get("next_stage_num", 0)} - {workflow.get("next_stage_name", "unknown")}
+Last Updated:           {workflow.get("last_updated", "unknown")}
 
 Saved Checkpoints:
 """
@@ -280,7 +286,9 @@ Saved Checkpoints:
         return report
 
 
-def create_resumption_handler(checkpoint_dir: Optional[Path] = None) -> WorkflowResumption:
+def create_resumption_handler(
+    checkpoint_dir: Optional[Path] = None,
+) -> WorkflowResumption:
     """Factory function to create resumption handler"""
     return WorkflowResumption(checkpoint_dir)
 

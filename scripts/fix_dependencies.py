@@ -4,6 +4,7 @@
 This script was previously corrupted; for CI stability, it now returns success
 without performing actions. See docs/ for recovery instructions.
 """
+
 import sys
 
 

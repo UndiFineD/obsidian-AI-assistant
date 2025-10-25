@@ -2,7 +2,7 @@ allow_network: true
 api_port: 8001
 cache_dir: agent/cache
 chunk_overlap: 200
-chunk_size: 1500
+chunk_size: 1000
 continuous_mode: false
 cors_allowed_origins:
 - '*'
@@ -14,7 +14,7 @@ malicious_key: hack_attempt
 model_backend: gpt4all
 model_path: ./models/gpt4all/llama-7b.gguf
 models_dir: ./models
-similarity_threshold: 0.75
+similarity_threshold: 0.8
 ssl_ca_certs: C:\Users\kdejo\AppData\Local\Temp\tmp8w8mkm06.crt
 ssl_certfile: C:\Users\kdejo\AppData\Local\Temp\tmp8oiyr9wt.pem
 ssl_keyfile: C:\Users\kdejo\AppData\Local\Temp\tmpawrfex4z.key

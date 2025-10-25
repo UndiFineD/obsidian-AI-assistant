@@ -25,11 +25,7 @@ implement_results = {
 }
 
 
-def invoke_task(
-    task_name: str,
-    action: Callable,
-    description: str = ""
-) -> bool:
+def invoke_task(task_name: str, action: Callable, description: str = "") -> bool:
     """Execute an implementation task."""
     print(f"Task: {task_name}")
     if description:
@@ -44,11 +40,13 @@ def invoke_task(
             print("  [COMPLETED]")
             implement_results["completed"] += 1
 
-        implement_results["tasks"].append({
-            "name": task_name,
-            "result": "SKIPPED" if args.what_if else "COMPLETED",
-            "description": description
-        })
+        implement_results["tasks"].append(
+            {
+                "name": task_name,
+                "result": "SKIPPED" if args.what_if else "COMPLETED",
+                "description": description,
+            }
+        )
         return True
     except Exception as error:
         print(f"  [FAILED] {error}")
@@ -65,7 +63,9 @@ def verify_file(file_path: Path) -> None:
 def main() -> int:
     """Run implementation tasks."""
     global args
-    parser = argparse.ArgumentParser(description="Implementation script for phase2-option1-expand-docs")
+    parser = argparse.ArgumentParser(
+        description="Implementation script for phase2-option1-expand-docs"
+    )
     parser.add_argument("--what-if", action="store_true")
     parser.add_argument("--force", action="store_true")
     args = parser.parse_args()

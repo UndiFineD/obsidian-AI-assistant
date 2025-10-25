@@ -84,7 +84,7 @@ def main():
 
     print("=" * 80)
     print(f"SUMMARY: {total_diffs} files different")
-    print(f"Total diff size: {total_size:,} bytes ({total_size/1024:.2f} KB)")
+    print(f"Total diff size: {total_size:,} bytes ({total_size / 1024:.2f} KB)")
     print("=" * 80)
 
 

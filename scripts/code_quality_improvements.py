@@ -4,6 +4,7 @@
 This script is Windows-safe (ASCII-only output) and returns success by default,
 unless --strict-exit is provided. It performs best-effort fixes without failing CI.
 """
+
 import argparse
 import subprocess
 import sys
@@ -15,10 +16,10 @@ STRICT_EXIT = False  # Overridden by CLI flag
 
 def run_command(cmd, description):
     """Run a command and print results."""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     # Avoid emojis that may fail on Windows terminals with legacy code pages
     print(f"[tool] {description}")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
     try:
         result = subprocess.run(
             cmd, shell=True, capture_output=True, text=True, cwd=REPO_ROOT
@@ -113,9 +114,9 @@ def type_check():
 
 def remove_trailing_whitespace():
     """Remove trailing whitespace from Python files."""
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("[fix] Removing trailing whitespace")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
     fixed_count = 0
     for py_file in REPO_ROOT.rglob("*.py"):
@@ -154,7 +155,7 @@ def main():
     STRICT_EXIT = bool(args.strict_exit)
 
     print("\n[run] Starting Automated Code Quality Improvements")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     steps = [
         ("Remove trailing whitespace", remove_trailing_whitespace),
@@ -172,9 +173,9 @@ def main():
         results.append((step_name, success))
 
     # Summary
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print("[summary] Code Quality Improvement Summary")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     for step_name, success in results:
         status = "PASS" if success else "FAIL"
@@ -183,9 +184,9 @@ def main():
     passed = sum(1 for _, success in results if success)
     total = len(results)
 
-    print(f"\n{'='*70}")
-    print(f"[result] {passed}/{total} steps passed ({passed*100//total}%)")
-    print(f"{'='*70}\n")
+    print(f"\n{'=' * 70}")
+    print(f"[result] {passed}/{total} steps passed ({passed * 100 // total}%)")
+    print(f"{'=' * 70}\n")
 
     if STRICT_EXIT:
         return 0 if passed == total else 1

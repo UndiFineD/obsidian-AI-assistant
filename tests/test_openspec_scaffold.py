@@ -92,13 +92,9 @@ def test_create_change_refuses_overwrite(tmp_path: Path):
     base = tmp_path
     (base / "openspec" / "templates").mkdir(parents=True)
     (base / "openspec" / "changes" / "abc").mkdir(parents=True)
-    (base / "openspec" / "templates" / "todo.md").write_text(
-        "<Change Title>", encoding="utf-8"
-    )
+    (base / "openspec" / "templates" / "todo.md").write_text("<Change Title>", encoding="utf-8")
 
-    spec = ChangeSpec(
-        title="X", change_id="abc", owner=None, date="2025-10-18", base_dir=base
-    )
+    spec = ChangeSpec(title="X", change_id="abc", owner=None, date="2025-10-18", base_dir=base)
 
     with pytest.raises(FileExistsError):
         create_change(spec)
