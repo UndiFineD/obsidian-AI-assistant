@@ -70,6 +70,15 @@ except ImportError:
     PARALLEL_EXECUTOR_AVAILABLE = False
     ParallelExecutor = None  # Provide fallback for type checking
 
+# Import status tracker if available
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
 # Directory paths
 CHANGES_DIR = PROJECT_ROOT / "openspec" / "changes"
 ARCHIVE_DIR = PROJECT_ROOT / "openspec" / "archive"
@@ -454,7 +463,7 @@ def execute_step(
     lane: str = "standard",
 ) -> bool:
     """
-    Execute a specific workflow step with optional checkpoint creation.
+    Execute a specific workflow step with optional checkpoint creation and status tracking.
 
     Args:
         step_num: Step number (0-12)
@@ -483,6 +492,16 @@ def execute_step(
             )
         except Exception as e:
             helpers.write_warning(f"Could not create checkpoint: {e}")
+
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE and not dry_run:
+        try:
+            status_tracker = create_tracker(change_path.name, lane=lane, status_file=change_path / ".checkpoints" / "status.json")
+            step_name = STEP_NAMES.get(step_num, f"Step {step_num}")
+            status_tracker.start_stage(step_num, step_name)
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
 
     # Load step module
     step_module = load_step_module(step_num)
@@ -532,12 +551,20 @@ def execute_step(
         if success and checkpoint_manager:
             checkpoint_manager.mark_step_success(step_num)
 
+        # Record completion in status tracker
+        if status_tracker and not dry_run:
+            status_tracker.complete_stage(step_num, success=success)
+
         return success
     except Exception as e:
         helpers.write_error(f"Step {step_num} failed: {e}")
         import traceback
 
         traceback.print_exc()
+
+        # Record failure in status tracker
+        if status_tracker and not dry_run:
+            status_tracker.complete_stage(step_num, success=False, metrics={"error": str(e)})
 
         # Offer rollback if checkpoint was created
         if checkpoint_manager and checkpoint_id:
