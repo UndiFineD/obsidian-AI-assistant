@@ -20,6 +20,12 @@ sys.path.insert(0, str(SCRIPTS_DIR))
 
 from progress_indicators import StatusTracker
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker as WorkflowStatusTracker
+except ImportError:
+    WorkflowStatusTracker = None
+
 
 def get_change_doc_info(change_path: Path) -> dict:
     """
@@ -219,6 +225,9 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
     change_path = Path(change_path)
     change_id = change_path.name
 
+    # Initialize status tracker
+    tracker = WorkflowStatusTracker(change_path, "step12") if WorkflowStatusTracker else None
+
     # Load new_version from state file if not provided
     if not new_version:
         state_file = change_path / ".workflow_state.json"
@@ -361,6 +370,20 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
         print()
         print(f"Suggested manual title if needed: chore(openspec): {change_id}")
         print(f"Link to: {docs_base}/")
+
+        # Show changes and validate artifacts
+        if not dry_run:
+            # Import helpers for validation
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                "workflow_helpers",
+                SCRIPTS_DIR / "workflow-helpers.py",
+            )
+            helpers = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(helpers)
+            helpers.show_changes(change_path)
+            helpers.validate_step_artifacts(change_path, 12)
+
         return True  # Non-blocking, user can create PR manually
 
     if dry_run:
@@ -383,6 +406,20 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
         )
         print(f"URL: {existing_pr['url']}")
         print(f"✓ Using existing Pull Request #{existing_pr['number']}")
+
+        # Show changes and validate artifacts
+        if not dry_run:
+            # Import helpers for validation
+            import importlib.util
+            spec = importlib.util.spec_from_file_location(
+                "workflow_helpers",
+                SCRIPTS_DIR / "workflow-helpers.py",
+            )
+            helpers = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(helpers)
+            helpers.show_changes(change_path)
+            helpers.validate_step_artifacts(change_path, 12)
+
         return True
 
     # Create PR using GitHub CLI
@@ -413,6 +450,20 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
             print()
             print("✓ Pull Request created successfully!")
             print(f"URL: {pr_url}")
+
+            # Show changes and validate artifacts
+            if not dry_run:
+                # Import helpers for validation
+                import importlib.util
+                spec = importlib.util.spec_from_file_location(
+                    "workflow_helpers",
+                    SCRIPTS_DIR / "workflow-helpers.py",
+                )
+                helpers = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(helpers)
+                helpers.show_changes(change_path)
+                helpers.validate_step_artifacts(change_path, 12)
+
             return True
         else:
             tracker.update_item("create", status="failed", message=str(result))
@@ -433,6 +484,20 @@ def invoke_step12(change_path, dry_run=False, new_version=None, **_):
             print()
             print("✓ Pull Request created successfully!")
             print(f"URL: {result}")
+
+            # Show changes and validate artifacts
+            if not dry_run:
+                # Import helpers for validation
+                import importlib.util
+                spec = importlib.util.spec_from_file_location(
+                    "workflow_helpers",
+                    SCRIPTS_DIR / "workflow-helpers.py",
+                )
+                helpers = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(helpers)
+                helpers.show_changes(change_path)
+                helpers.validate_step_artifacts(change_path, 12)
+
             return True
         else:
             print()

@@ -26,6 +26,12 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker
+except ImportError:
+    StatusTracker = None
+
 # Remove any .checkpoints directory creation or usage in step 11
 
 
@@ -41,6 +47,10 @@ def _mark_complete(change_path: Path) -> None:
 
 def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     helpers.write_step(11, "Archive")
+
+    # Initialize status tracker
+    tracker = StatusTracker(change_path, "step11") if StatusTracker else None
+
     ARCHIVE_DIR.mkdir(parents=True, exist_ok=True)
 
     target = ARCHIVE_DIR / change_path.name
@@ -103,6 +113,12 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     _mark_complete(target if target.exists() else change_path)
     # No .checkpoints creation or management here
     helpers.write_success("Step 11 completed")
+
+    # Show changes and validate artifacts
+    if not dry_run:
+        helpers.show_changes(change_path)
+        helpers.validate_step_artifacts(change_path, 11)
+
     return True
 
 

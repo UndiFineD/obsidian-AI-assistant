@@ -34,6 +34,27 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import document validator and template manager
+try:
+    DocumentValidator = helpers.DocumentValidator
+    TemplateManager = helpers.TemplateManager
+    DOCUMENT_VALIDATOR_AVAILABLE = True
+    TEMPLATE_MANAGER_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_VALIDATOR_AVAILABLE = False
+    TEMPLATE_MANAGER_AVAILABLE = False
+    DocumentValidator = None
+    TemplateManager = None
+
 
 def _read_pyproject_version(pyproject: Path) -> Optional[str]:
     try:
@@ -152,6 +173,19 @@ def invoke_step1(
 ) -> bool:
     helpers.write_step(1, "Version (HARD REQUIREMENT: ALWAYS bump patch)")
 
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 1
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(1, "Version Bump")
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
     pyproject = PROJECT_ROOT / "pyproject.toml"
     package_json = PROJECT_ROOT / "package.json"
     py_ver = _read_pyproject_version(pyproject) if pyproject.exists() else None
@@ -159,6 +193,19 @@ def invoke_step1(
 
     helpers.write_info(f"Detected Python version: {py_ver or 'N/A'}")
     helpers.write_info(f"Detected Node version:   {js_ver or 'N/A'}")
+
+    # Use DocumentValidator if available
+    if DOCUMENT_VALIDATOR_AVAILABLE and DocumentValidator:
+        try:
+            validator = DocumentValidator()
+            # Validate that we can create the version snapshot file
+            if not validator.validate_file_creation(change_path, "version_snapshot.md"):
+                helpers.write_error("Document validation failed for version_snapshot.md creation")
+                if status_tracker:
+                    status_tracker.complete_stage(1, success=False, metrics={"reason": "Document validation failed"})
+                return False
+        except Exception as e:
+            helpers.write_warning(f"Document validation error: {e}")
 
     # ALWAYS bump patch version (HARD REQUIREMENT - no optional parameter)
     new_version: Optional[str] = None
@@ -179,7 +226,7 @@ def invoke_step1(
         helpers.write_info(f"Bumped version: {current_version} → {new_version}")
 
         if not dry_run:
-            if progress:
+            if progress and hasattr(progress, 'spinner'):
                 with progress.spinner(
                     "Updating version files", "Version files updated"
                 ):
@@ -195,6 +242,8 @@ def invoke_step1(
                 helpers.write_success(f"  ✅ Updated: {file}")
     except Exception as e:
         helpers.write_error(f"Version bump failed: {e}")
+        if status_tracker:
+            status_tracker.complete_stage(1, success=False, metrics={"error": str(e)})
         return False
 
     # Create/checkout versioned branch (e.g., release-0.1.27)
@@ -203,31 +252,73 @@ def invoke_step1(
         helpers.write_info(f"Managing git branch: {version_branch}")
         if not _create_or_checkout_branch(version_branch, dry_run):
             helpers.write_error("Failed to create/checkout version branch")
+            if status_tracker:
+                status_tracker.complete_stage(1, success=False, metrics={"reason": "Branch creation failed"})
             return False
         helpers.write_info(f"  ✅ Using branch: {version_branch}")
 
     # Write snapshot (always)
     snapshot = change_path / "version_snapshot.md"
     now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-    content = (
-        f"# Version Snapshot\n\n"
-        f"Captured: {now}\n\n"
-        f"- Python (pyproject.toml): {py_ver or 'N/A'}\n"
-        f"- Node (package.json):    {js_ver or 'N/A'}\n"
-    )
-    if new_version:
-        content += f"- Version bumped: {current_version} → {new_version}\n"
-        content += f"- Branch: release-{new_version}\n"
+
+    # Use TemplateManager if available for version snapshot
+    if TEMPLATE_MANAGER_AVAILABLE and TemplateManager:
+        try:
+            template_manager = TemplateManager()
+            content = template_manager.render_version_snapshot(
+                captured_time=now,
+                python_version=py_ver or 'N/A',
+                node_version=js_ver or 'N/A',
+                current_version=current_version,
+                new_version=new_version,
+                branch=version_branch if new_version else None
+            )
+        except Exception as e:
+            helpers.write_warning(f"Template manager error, using fallback: {e}")
+            content = (
+                f"# Version Snapshot\n\n"
+                f"Captured: {now}\n\n"
+                f"- Python (pyproject.toml): {py_ver or 'N/A'}\n"
+                f"- Node (package.json):    {js_ver or 'N/A'}\n"
+            )
+            if new_version:
+                content += f"- Version bumped: {current_version} → {new_version}\n"
+                content += f"- Branch: release-{new_version}\n"
+    else:
+        content = (
+            f"# Version Snapshot\n\n"
+            f"Captured: {now}\n\n"
+            f"- Python (pyproject.toml): {py_ver or 'N/A'}\n"
+            f"- Node (package.json):    {js_ver or 'N/A'}\n"
+        )
+        if new_version:
+            content += f"- Version bumped: {current_version} → {new_version}\n"
+            content += f"- Branch: release-{new_version}\n"
 
     if dry_run:
         helpers.write_info(f"[DRY RUN] Would write: {snapshot}")
     else:
-        if progress:
+        if progress and hasattr(progress, 'spinner'):
             with progress.spinner("Writing version snapshot", "Snapshot written"):
                 helpers.set_content_atomic(snapshot, content)
         else:
             helpers.set_content_atomic(snapshot, content)
         helpers.write_success(f"Wrote version snapshot: {snapshot}")
+
+    # Validate step artifacts
+    if not dry_run and not helpers.validate_step_artifacts(change_path, 1):
+        helpers.write_error("Step 1 artifact validation failed")
+        if status_tracker:
+            status_tracker.complete_stage(1, success=False, metrics={"reason": "Artifact validation failed"})
+        return False
+
+    # Show changes if available
+    if not dry_run:
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
 
     # Persist new_version and version_branch to state file for downstream steps
     if new_version:
@@ -246,6 +337,11 @@ def invoke_step1(
             helpers.write_warning(f"Could not persist version state: {e}")
 
     _mark_complete(change_path)
+
+    # Record completion in status tracker
+    if status_tracker:
+        status_tracker.complete_stage(1, success=True)
+
     helpers.write_success("Step 1 completed: Version bumped and all files updated")
     return True
 

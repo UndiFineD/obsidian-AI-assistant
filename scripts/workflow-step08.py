@@ -35,6 +35,12 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker
+except ImportError:
+    StatusTracker = None
+
 
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
@@ -237,6 +243,10 @@ def invoke_step8(
     change_path: Path, lane: str = "standard", dry_run: bool = False, **_: dict
 ) -> bool:
     helpers.write_step(8, "Testing & Quality Gates - Verify Implementation")
+
+    # Initialize status tracker
+    tracker = StatusTracker(change_path, "step8") if StatusTracker else None
+
     results = change_path / "test_results.md"
     test_script = change_path / "test.py"
 
@@ -333,6 +343,11 @@ def invoke_step8(
 
     _mark_complete(change_path)
     helpers.write_success("Step 8 completed")
+
+    # Show changes and validate artifacts
+    if not dry_run:
+        helpers.show_changes(change_path)
+        helpers.validate_step_artifacts(change_path, 8)
 
     # Success if implementation happened, tests passed, and quality gates passed
     return impl_success and test_success and gates_success

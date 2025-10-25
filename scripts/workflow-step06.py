@@ -30,6 +30,23 @@ progress_spec = importlib.util.spec_from_file_location(
 progress = importlib.util.module_from_spec(progress_spec)
 progress_spec.loader.exec_module(progress)
 
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import document generator
+try:
+    DocumentGenerator = helpers.DocumentGenerator
+    DOCUMENT_GENERATOR_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_GENERATOR_AVAILABLE = False
+    DocumentGenerator = None
+
 
 def _analyze_requirements(change_path: Path) -> Dict[str, any]:
     """Analyze proposal and spec to detect script requirements.
@@ -1819,6 +1836,19 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     """
     helpers.write_step(6, "Script Generation & Tooling")
 
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 6
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(6, "Script Generation")
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
     change_id = change_path.name
 
     helpers.write_info("Analyzing documentation for script requirements...")
@@ -1870,6 +1900,25 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
 
     if not scripts_to_generate and not dry_run:
         helpers.write_success("Scripts already exist")
+
+        # Validate step artifacts
+        if not helpers.validate_step_artifacts(change_path, 6):
+            helpers.write_error("Step 6 artifact validation failed")
+            if status_tracker:
+                status_tracker.complete_stage(6, success=False, metrics={"reason": "Artifact validation failed"})
+            return False
+
+        # Show changes if available
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
+
+        # Record completion in status tracker
+        if status_tracker:
+            status_tracker.complete_stage(6, success=True)
+
         return True
 
     # Use status tracker for script generation
@@ -1929,6 +1978,25 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     elif dry_run:
         for script_name, _ in scripts_to_generate:
             helpers.write_info(f"[DRY-RUN] Would generate: {script_name}")
+
+    # Validate step artifacts
+    if not dry_run and not helpers.validate_step_artifacts(change_path, 6):
+        helpers.write_error("Step 6 artifact validation failed")
+        if status_tracker:
+            status_tracker.complete_stage(6, success=False, metrics={"reason": "Artifact validation failed"})
+        return False
+
+    # Show changes if available
+    if not dry_run:
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
+
+    # Record completion in status tracker
+    if status_tracker:
+        status_tracker.complete_stage(6, success=True)
 
     return True
 

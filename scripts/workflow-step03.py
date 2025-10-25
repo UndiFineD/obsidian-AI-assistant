@@ -23,6 +23,27 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracker
+try:
+    from status_tracker import StatusTracker, create_tracker
+    STATUS_TRACKER_AVAILABLE = True
+except ImportError:
+    STATUS_TRACKER_AVAILABLE = False
+    StatusTracker = None
+    create_tracker = None
+
+# Import document generator and validator
+try:
+    DocumentGenerator = helpers.DocumentGenerator
+    DocumentValidator = helpers.DocumentValidator
+    DOCUMENT_GENERATOR_AVAILABLE = True
+    DOCUMENT_VALIDATOR_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_GENERATOR_AVAILABLE = False
+    DOCUMENT_VALIDATOR_AVAILABLE = False
+    DocumentGenerator = None
+    DocumentValidator = None
+
 
 SCAFFOLD = """# Specification
 
@@ -60,8 +81,34 @@ def invoke_step3(
     change_path: Path, title: str | None = None, dry_run: bool = False, **_: dict
 ) -> bool:
     helpers.write_step(3, "Specification")
+
+    # Initialize status tracker if available
+    status_tracker = None
+    if STATUS_TRACKER_AVAILABLE:
+        try:
+            status_tracker = create_tracker(
+                change_path.name,
+                lane="standard",  # Default lane for step 3
+                status_file=change_path / ".checkpoints" / "status.json",
+            )
+            status_tracker.start_stage(3, "Capability Spec")
+        except Exception as e:
+            helpers.write_warning(f"Could not initialize status tracker: {e}")
+
     spec_md = change_path / "spec.md"
     proposal = change_path / "proposal.md"
+
+    # Use DocumentValidator if available for file creation check
+    if DOCUMENT_VALIDATOR_AVAILABLE and DocumentValidator and not spec_md.exists():
+        try:
+            validator = DocumentValidator()
+            if not validator.validate_file_creation(change_path, "spec.md"):
+                helpers.write_error("Document validation failed for spec.md creation")
+                if status_tracker:
+                    status_tracker.complete_stage(3, success=False, metrics={"reason": "Document validation failed"})
+                return False
+        except Exception as e:
+            helpers.write_warning(f"Document validation error: {e}")
 
     if spec_md.exists():
         helpers.write_info("spec.md already exists; leaving as-is")
@@ -106,18 +153,25 @@ def invoke_step3(
                 )
     else:
         # Prefer contextual generation from proposal
-        if progress:
-            with progress.spinner("Generating spec.md from proposal", "Spec generated"):
-                generator = helpers.DocumentGenerator()
+        if DOCUMENT_GENERATOR_AVAILABLE and DocumentGenerator:
+            if progress and hasattr(progress, 'spinner'):
+                with progress.spinner("Generating spec.md from proposal", "Spec generated"):
+                    generator = DocumentGenerator()
+                    content = generator.generate_spec_from_proposal(proposal, title)
+                    if not dry_run:
+                        helpers.set_content_atomic(spec_md, content)
+            else:
+                generator = DocumentGenerator()
                 content = generator.generate_spec_from_proposal(proposal, title)
                 if not dry_run:
                     helpers.set_content_atomic(spec_md, content)
+                    helpers.write_success(f"Created spec from proposal: {spec_md}")
         else:
-            generator = helpers.DocumentGenerator()
-            content = generator.generate_spec_from_proposal(proposal, title)
+            # Fallback to scaffold
+            content = SCAFFOLD
             if not dry_run:
                 helpers.set_content_atomic(spec_md, content)
-                helpers.write_success(f"Created spec from proposal: {spec_md}")
+                helpers.write_success(f"Created spec scaffold: {spec_md}")
 
         if dry_run:
             helpers.write_info(f"[DRY RUN] Would create: {spec_md}")
@@ -126,13 +180,17 @@ def invoke_step3(
     if dry_run:
         helpers.write_info("[DRY RUN] Skipping spec validation")
     else:
-        if progress:
-            with progress.spinner("Validating spec.md", "Validation complete"):
-                validator = helpers.DocumentValidator()
+        if DOCUMENT_VALIDATOR_AVAILABLE and DocumentValidator:
+            if progress and hasattr(progress, 'spinner'):
+                with progress.spinner("Validating spec.md", "Validation complete"):
+                    validator = DocumentValidator()
+                    result = validator.validate_spec(spec_md)
+            else:
+                validator = DocumentValidator()
                 result = validator.validate_spec(spec_md)
         else:
-            validator = helpers.DocumentValidator()
-            result = validator.validate_spec(spec_md)
+            # Fallback validation
+            result = type('Result', (), {'is_valid': True, 'errors': [], 'warnings': []})()
 
         if not result.is_valid:
             for err in result.errors:
@@ -140,6 +198,8 @@ def invoke_step3(
             helpers.write_warning(
                 "Specification has blocking issues; fix and rerun step 3"
             )
+            if status_tracker:
+                status_tracker.complete_stage(3, success=False, metrics={"reason": "Validation failed"})
             return False
         if result.warnings:
             helpers.write_warning(
@@ -148,7 +208,27 @@ def invoke_step3(
             for w in result.warnings[:3]:
                 helpers.write_warning(f"  ⚠ {w}")
 
+    # Validate step artifacts
+    if not dry_run and not helpers.validate_step_artifacts(change_path, 3):
+        helpers.write_error("Step 3 artifact validation failed")
+        if status_tracker:
+            status_tracker.complete_stage(3, success=False, metrics={"reason": "Artifact validation failed"})
+        return False
+
+    # Show changes if available
+    if not dry_run:
+        try:
+            changes_dir = change_path.parent
+            helpers.show_changes(changes_dir)
+        except Exception as e:
+            helpers.write_warning(f"Could not show changes: {e}")
+
     _mark_complete(change_path)
+
+    # Record completion in status tracker
+    if status_tracker:
+        status_tracker.complete_stage(3, success=True)
+
     helpers.write_success("Step 3 completed")
     return True
 

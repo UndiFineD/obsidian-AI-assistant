@@ -46,6 +46,12 @@ progress_spec = importlib.util.spec_from_file_location(
 progress = importlib.util.module_from_spec(progress_spec)
 progress_spec.loader.exec_module(progress)
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker
+except ImportError:
+    StatusTracker = None
+
 
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
@@ -505,6 +511,9 @@ def invoke_step10(
     """
     helpers.write_step(10, "Git Operations & GitHub Issue Sync")
 
+    # Initialize status tracker
+    tracker = StatusTracker(change_path, "step10") if StatusTracker else None
+
     # Load version info from state file (set by Step 1)
     version_branch = None
     new_version = None
@@ -755,6 +764,12 @@ def invoke_step10(
 
     _mark_complete(change_path)
     helpers.write_success("Step 10 completed")
+
+    # Show changes and validate artifacts
+    if not dry_run:
+        helpers.show_changes(change_path)
+        helpers.validate_step_artifacts(change_path, 10)
+
     return True
 
 

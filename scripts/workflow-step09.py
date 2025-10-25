@@ -26,6 +26,12 @@ try:
 except ImportError:
     progress = None
 
+# Import status tracking
+try:
+    from status_tracker import StatusTracker
+except ImportError:
+    StatusTracker = None
+
 
 def _mark_complete(change_path: Path) -> None:
     todo = change_path / "todo.md"
@@ -61,6 +67,10 @@ def _summarize_doc(name: str, path: Path) -> str:
 
 def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
     helpers.write_step(9, "Documentation")
+
+    # Initialize status tracker
+    tracker = StatusTracker(change_path, "step9") if StatusTracker else None
+
     changes = change_path / "doc_changes.md"
     review = change_path / "review_summary.md"
 
@@ -226,6 +236,12 @@ def invoke_step9(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
             helpers.write_success(f"Wrote report: {report_path}")
 
     helpers.write_success("Step 9 completed")
+
+    # Show changes and validate artifacts
+    if not dry_run:
+        helpers.show_changes(change_path)
+        helpers.validate_step_artifacts(change_path, 9)
+
     return True
 
 
