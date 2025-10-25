@@ -1080,7 +1080,7 @@ Examples:
         type=str,
         choices=["docs", "standard", "heavy"],
         default="standard",
-        help="Workflow lane selection: docs (fast docs-only, <5min), standard (default, ~15min), or heavy (strict, ~20min)",
+        help="Workflow lane: docs (fast docs-only, <5min), standard (default, ~15min), or heavy (strict, ~20min)",
     )
     parser.add_argument(
         "--step",
@@ -1111,15 +1111,14 @@ Examples:
         help="Status visualization format (default: tree)",
     )
     parser.add_argument(
-        "--lane",
-        choices=["docs", "standard", "heavy"],
-        default="standard",
-        help="Workflow lane: docs (fast), standard (default), or heavy (strict)",
-    )
-    parser.add_argument(
         "--skip-quality-gates",
         action="store_true",
         help="Skip quality gates for faster local iteration (not recommended for production)",
+    )
+    parser.add_argument(
+        "--no-parallel",
+        action="store_true",
+        help="Disable parallelization of stages 2-6 (useful for debugging)",
     )
 
     args = parser.parse_args()
