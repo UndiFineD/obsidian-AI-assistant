@@ -35,6 +35,18 @@ except ImportError:
     StatusTracker = None
     create_tracker = None
 
+# Import document generator and validator
+try:
+    DocumentGenerator = helpers.DocumentGenerator
+    DocumentValidator = helpers.DocumentValidator
+    DOCUMENT_GENERATOR_AVAILABLE = True
+    DOCUMENT_VALIDATOR_AVAILABLE = True
+except AttributeError:
+    DOCUMENT_GENERATOR_AVAILABLE = False
+    DOCUMENT_VALIDATOR_AVAILABLE = False
+    DocumentGenerator = None
+    DocumentValidator = None
+
 
 def _extract_success_criteria(proposal_path: Path) -> list:
     """Extract success criteria from proposal.md.
@@ -312,6 +324,13 @@ def invoke_step5(
             helpers.show_changes(changes_dir)
         except Exception as e:
             helpers.write_warning(f"Could not show changes: {e}")
+
+    # Detect next step
+    try:
+        next_step = helpers.detect_next_step(change_path)
+        helpers.write_info(f"Next workflow step: {next_step}")
+    except Exception as e:
+        helpers.write_warning(f"Could not detect next step: {e}")
 
     _mark_complete(change_path)
 

@@ -87,6 +87,13 @@ def invoke_step0(
         except Exception as e:
             write_warning(f"Could not initialize status tracker: {e}")
 
+    # Log environment validation
+    write_info("Validating environment and workspace structure")
+    write_info(f"  Change path: {change_path}")
+    write_info(f"  Title: {title}")
+    write_info(f"  Owner: {owner}")
+    write_info(f"  Dry run: {dry_run}")
+
     todo_path = change_path / "todo.md"
     # Calculate template path: go up from change_path to project root, then to templates
     # change_path is like: project_root/openspec/changes/change-id
@@ -116,6 +123,13 @@ def invoke_step0(
                 return False
         except Exception as e:
             write_warning(f"Document validation error: {e}")
+
+    # Detect next step
+    try:
+        next_step = workflow_helpers.detect_next_step(change_path)
+        write_info(f"Next workflow phase: Step {next_step}")
+    except Exception as e:
+        write_warning(f"Could not detect next step: {e}")
 
     if not dry_run:
         try:
@@ -165,6 +179,35 @@ def invoke_step0(
                     if status_tracker:
                         status_tracker.complete_stage(0, success=False, metrics={"reason": "Failed to write file"})
                     return False
+
+            # Write status.json in WorkflowStatusTracker format
+            status_data = {
+                "workflow_version": "0.1.41",
+                "last_updated": datetime.now().isoformat(),
+                "total_steps": 1,  # Only step 0 completed so far
+                "completed_steps": 1,
+                "steps": [
+                    {
+                        "step_id": 0,
+                        "step_name": "Create TODOs",
+                        "start_time": datetime.now().isoformat(),
+                        "end_time": datetime.now().isoformat(),
+                        "result": "success",
+                        "duration_seconds": 0.0,
+                        "metrics": {},
+                        "errors": [],
+                        "files_created": ["todo.md"],
+                        "files_modified": []
+                    }
+                ]
+            }
+            
+            status_file = change_path / "status.json"
+            import json
+            if not set_content_atomic(status_file, json.dumps(status_data, indent=2)):
+                write_warning("Failed to write status.json")
+            else:
+                write_success("Created status.json")
 
             # Validate step artifacts
             if not workflow_helpers.validate_step_artifacts(change_path, 0):

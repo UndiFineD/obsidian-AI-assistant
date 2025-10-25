@@ -1,0 +1,33 @@
+{
+  "workflow_id": "test-lane-docs-fixed",
+  "lane": "standard",
+  "status": "RUNNING",
+  "started_at": "2025-10-25T16:24:00.432140",
+  "updated_at": "2025-10-25T16:25:32.657675",
+  "stages": [
+    {
+      "stage_num": 0,
+      "name": "Create TODOs",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T16:25:32.651082",
+      "completed_at": "2025-10-25T16:25:32.657675",
+      "duration_seconds": 0.006593,
+      "metrics": {
+        "dry_run": true
+      }
+    }
+  ],
+  "timing": {
+    "total_elapsed_seconds": 92.225565,
+    "estimated_remaining_seconds": 1106.70678,
+    "sla_target_seconds": 900,
+    "within_sla": true
+  },
+  "metrics": {
+    "files_modified": 0,
+    "files_created": 0,
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "coverage_percent": 0
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "workflow_id": "test-lane-fix",
+  "lane": "standard",
+  "status": "RUNNING",
+  "started_at": "2025-10-25T16:41:53.223240",
+  "updated_at": "2025-10-25T17:53:19.691096",
+  "stages": [
+    {
+      "stage_num": 0,
+      "name": "Create TODOs",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T16:42:13.840460",
+      "completed_at": "2025-10-25T16:42:27.505105",
+      "duration_seconds": 13.664645,
+      "metrics": {
+        "dry_run": true
+      }
+    },
+    {
+      "stage_num": 1,
+      "name": "Version Bump",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T17:53:18.955168",
+      "completed_at": "2025-10-25T17:53:19.254779",
+      "duration_seconds": 0.299611,
+      "metrics": {
+        "error": "name 'VersionManager' is not defined"
+      }
+    },
+    {
+      "stage_num": 2,
+      "name": "Proposal Review",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T17:53:19.275836",
+      "completed_at": "2025-10-25T17:53:19.442092",
+      "duration_seconds": 0.166256,
+      "metrics": {}
+    },
+    {
+      "stage_num": 3,
+      "name": "Capability Spec",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T17:53:19.464920",
+      "completed_at": "2025-10-25T17:53:19.553346",
+      "duration_seconds": 0.088426,
+      "metrics": {}
+    },
+    {
+      "stage_num": 4,
+      "name": "Task Breakdown",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T17:53:19.578660",
+      "completed_at": "2025-10-25T17:53:19.667676",
+      "duration_seconds": 0.089016,
+      "metrics": {}
+    },
+    {
+      "stage_num": 5,
+      "name": "Implementation Checklist",
+      "status": "COMPLETED",
+      "started_at": "2025-10-25T17:53:19.687699",
+      "completed_at": "2025-10-25T17:53:19.691096",
+      "duration_seconds": 0.003397,
+      "metrics": {}
+    }
+  ],
+  "timing": {
+    "total_elapsed_seconds": 4286.467879,
+    "estimated_remaining_seconds": 5000.879192166667,
+    "sla_target_seconds": 900,
+    "within_sla": false
+  },
+  "metrics": {
+    "files_modified": 0,
+    "files_created": 0,
+    "tests_passed": 0,
+    "tests_failed": 0,
+    "coverage_percent": 0
+  }
+}

@@ -1994,6 +1994,13 @@ def invoke_step6(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         except Exception as e:
             helpers.write_warning(f"Could not show changes: {e}")
 
+    # Detect next step
+    try:
+        next_step = helpers.detect_next_step(change_path)
+        helpers.write_info(f"Next workflow step: {next_step}")
+    except Exception as e:
+        helpers.write_warning(f"Could not detect next step: {e}")
+
     # Record completion in status tracker
     if status_tracker:
         status_tracker.complete_stage(6, success=True)

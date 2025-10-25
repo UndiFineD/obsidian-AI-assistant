@@ -196,6 +196,13 @@ def invoke_step7(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         helpers.show_changes(change_path)
         helpers.validate_step_artifacts(change_path, 7)
 
+    # Detect next step
+    try:
+        next_step = helpers.detect_next_step(change_path)
+        helpers.write_info(f"Next workflow step: {next_step}")
+    except Exception as e:
+        helpers.write_warning(f"Could not detect next step: {e}")
+
     return test_success and implement_success
 
 

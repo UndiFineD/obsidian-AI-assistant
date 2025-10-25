@@ -770,6 +770,9 @@ def invoke_step10(
         helpers.show_changes(change_path)
         helpers.validate_step_artifacts(change_path, 10)
 
+    # Detect next step
+    helpers.detect_next_step(change_path)
+
     return True
 
 

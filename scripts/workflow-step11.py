@@ -119,6 +119,9 @@ def invoke_step11(change_path: Path, dry_run: bool = False, **_: dict) -> bool:
         helpers.show_changes(change_path)
         helpers.validate_step_artifacts(change_path, 11)
 
+    # Detect next step
+    helpers.detect_next_step(change_path, 11)
+
     return True
 
 

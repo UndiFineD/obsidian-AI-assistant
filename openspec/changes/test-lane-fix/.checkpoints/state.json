@@ -1,0 +1,15 @@
+{
+  "change_id": "test-lane-fix",
+  "checkpoints": [
+    {
+      "checkpoint_id": "checkpoint-20251025-154213-step00",
+      "step_num": 0,
+      "step_name": "Create TODOs",
+      "timestamp": "2025-10-25T15:42:13.773222",
+      "files_snapshot": [],
+      "git_commit": "4db015d34465a4b1043a7b7a1f7b02247a4ecb48",
+      "notes": "Before executing step 0"
+    }
+  ],
+  "last_successful_step": 0
+}
